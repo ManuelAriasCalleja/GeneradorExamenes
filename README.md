@@ -81,6 +81,11 @@ trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`.
   así ocupan menos líneas, menos separación entre preguntas y letra algo menor (hasta 9 pt). El nivel usado
   se indica junto a la semilla y vale para todos los exámenes de la convocatoria, la vista previa y las tres
   exportaciones; si ni así cabe, se avisa.
+- «Letra grande», junto a «Mostrar soluciones», es la versión adaptada para estudiantes con discapacidad
+  visual, lo contrario de la maqueta compacta: letra de 16 pt (también la cabecera y las instrucciones), una
+  opción por línea, más separación entre preguntas e imágenes más grandes, sin límite de páginas. Vale para la
+  vista, la impresión y las tres exportaciones, y los ficheros llevan `_letra_grande` en el nombre
+  (`2026_Junio_letra_grande_Nacional_Original.pdf`) para no pisar los normales.
 - *Exportar LaTeX…* guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>_imagenes` al
   lado). Con «Mostrar soluciones» marcado incluye también la estructura, la plantilla de respuestas y las
   soluciones marcadas. Hay que compilarlo dos veces para que salga el «página / total» del pie:

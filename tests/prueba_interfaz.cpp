@@ -12,6 +12,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
 #include <QLabel>
@@ -300,9 +301,27 @@ private slots:
             });
             QVERIFY(QMetaObject::invokeMethod(&v, slot));
         }
+        // Con «Letra grande», los ficheros llevan «_letra_grande» en el nombre.
+        auto *letraGrande = v.findChild<QCheckBox *>(QString(), Qt::FindChildrenRecursively);
+        for (QCheckBox *c : v.findChildren<QCheckBox *>())
+            if (c->text() == QStringLiteral("Letra grande"))
+                letraGrande = c;
+        QCOMPARE(letraGrande->text(), QStringLiteral("Letra grande"));
+        letraGrande->setChecked(true);
+        QTimer::singleShot(100, [&carpeta] {
+            QWidget *d = QApplication::activeModalWidget();
+            if (!d)
+                return;
+            d->findChild<QLineEdit *>()->setText(carpeta);
+            for (QPushButton *b : d->findChildren<QPushButton *>())
+                if (b->text() == QStringLiteral("Exportar"))
+                    b->click();
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "exportarPdf"));
         // Por omisión, un fichero por examen (Nacional Original y Nacional Reserva) de cada tipo.
         const QStringList ficheros = QDir(carpeta).entryList(QDir::Files);
-        QCOMPARE(ficheros.filter(QStringLiteral(".pdf")).size(), 4);
+        QCOMPARE(ficheros.filter(QStringLiteral(".pdf")).size(), 6);
+        QCOMPARE(ficheros.filter(QStringLiteral("_letra_grande")).size(), 2);
         QCOMPARE(ficheros.filter(QStringLiteral("_soluciones")).size(), 2);
         QCOMPARE(ficheros.filter(QStringLiteral(".html")).size(), 2);
         QCOMPARE(ficheros.filter(QStringLiteral(".tex")).size(), 2);

@@ -111,6 +111,8 @@ private:
     void editar(Pregunta p);
     // Muestra m_resultado (recién generado o cargado del historial); 'origen' va delante de la semilla.
     void presentarResultado(const QString &origen = QString());
+    // Avisos, nivel de la maqueta y examen mostrado, según el resultado y la casilla «Letra grande».
+    void actualizarMaqueta();
     void cargarRegistrados(const QVector<int> &examenes);
     DatosConvocatoria datosConvocatoria() const;
     ConfigExamen configuracionExamen() const;
@@ -118,8 +120,9 @@ private:
     QStringList nombresModelos() const;
     QListWidgetItem *anadirExamen(const QString &nombre, bool marcado);
     QVector<Modelo> modelosDe(const QVector<int> &indices) const;
-    // Nivel de compactación de la maqueta con el que los modelos generados caben en sus páginas (ver Maquetador).
-    int nivelCompactacion() const;
+    // Nivel de la maqueta: el de letra grande si está marcada la casilla; si no, el de compactación con el que los
+    // modelos generados caben en sus páginas (ver Maquetador).
+    int nivelMaqueta() const;
     // Exporta los exámenes que se elijan en el diálogo, cada fichero con 'escribir' (ver exportacion.h); 'nota' se
     // añade al mensaje del final.
     using Escritor = bool (*)(const QString &ruta, const QVector<Modelo> &modelos, const DatosConvocatoria &datos,
@@ -132,6 +135,7 @@ private:
     QVector<Tema> m_temas;
     QVector<Pregunta> m_preguntas;
     ResultadoGeneracion m_resultado;
+    QString m_origenResultado;              // «Registrada el …» si viene del historial
     QPushButton *m_avisoJson;               // en la barra de estado: el JSON enlazado no coincide con el banco
     QAction *m_accionJsonAuto;
     bool m_jsonCoincide = false;            // el JSON enlazado existe y coincide con el banco
@@ -160,6 +164,7 @@ private:
     QLineEdit *m_semilla;
     QComboBox *m_selectorModelo;
     QCheckBox *m_verSoluciones;
+    QCheckBox *m_letraGrande;
     QLabel *m_correctasPorLetra;
     QLabel *m_avisos;
     QLabel *m_infoGeneracion;

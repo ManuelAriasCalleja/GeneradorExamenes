@@ -96,6 +96,41 @@ private slots:
         QVERIFY(!caben);
     }
 
+    void letraGrande()
+    {
+        QVector<Pregunta> banco = bancoInventado();
+        for (Pregunta &p : banco)
+            if (p.numero == 2)
+                p.imagen = imagenInventada();   // 40 píxeles de ancho a 96 ppp
+        const Modelo m = examenes(banco, 3, 1).first();
+        const int n = m.preguntas.size();
+
+        // Letra de 16 pt (la cabecera, a escala), una opción por línea e imágenes más grandes.
+        const QString normal = Maquetador::examenHtml(m, convocatoria(), false, 0);
+        const QString grande = Maquetador::examenHtml(m, convocatoria(), false, Maquetador::kLetraGrande);
+        QVERIFY(normal.contains(QStringLiteral("font-size:10.5pt")) && normal.contains(QStringLiteral("font-size:14.0pt")));
+        QVERIFY(grande.contains(QStringLiteral("font-size:16pt")) && grande.contains(QStringLiteral("font-size:21.3pt")));
+        QVERIFY(normal.contains(QStringLiteral("width=\"48%\"")));     // opciones cortas: en dos columnas
+        QVERIFY(!grande.contains(QStringLiteral("width=\"48%\"")));
+        QCOMPARE(grande.count(QStringLiteral("width=\"96%\"")), 4 * n);
+        QVERIFY(normal.contains(QStringLiteral("width=\"40\"")));
+        QVERIFY(grande.contains(QStringLiteral("width=\"61\"")));      // 40 · 16 / 10,5
+
+        // En LaTeX: \LARGE para todo el modelo, más separación y una opción por línea.
+        const QString tex = Maquetador::examenesLatex({m}, convocatoria(), false, QStringLiteral("img"), Maquetador::kLetraGrande);
+        QVERIFY(tex.contains(QStringLiteral("\\renewcommand{\\letraexamen}{\\LARGE}")));
+        QVERIFY(tex.contains(QStringLiteral("\\setlength{\\seppregunta}{14pt}")));
+        QVERIFY(tex.contains(QStringLiteral("{\\huge\\bfseries ")));
+        QCOMPARE(tex.count(QStringLiteral("{@{\\sangria}Y@{}}")), n);
+        QVERIFY(!tex.contains(QStringLiteral("YY")));
+
+        // Se exporta sin mirar si cabe en una página.
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("grande.pdf"));
+        QVERIFY(Exportacion::pdf(ruta, {m}, convocatoria(), false, Maquetador::kLetraGrande));
+        QVERIFY(leer(ruta).startsWith("%PDF"));
+    }
+
     void solucionesMarcanLaCorrecta()
     {
         const Modelo m = examenes(bancoInventado(), 3, 1).first();

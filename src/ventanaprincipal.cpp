@@ -305,12 +305,18 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     m_selectorModelo->setMinimumWidth(110);
     m_selectorModelo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     m_verSoluciones = new QCheckBox(QStringLiteral("Mostrar soluciones"));
+    m_letraGrande = new QCheckBox(QStringLiteral("Letra grande"));
+    m_letraGrande->setToolTip(QStringLiteral("Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una "
+                                             "opción por línea, más separación e imágenes más grandes, sin límite de páginas.\n"
+                                             "Vale para la vista, la impresión y las exportaciones; los ficheros llevan "
+                                             "«_letra_grande» en el nombre."));
     m_infoGeneracion = new QLabel;
     m_infoGeneracion->setStyleSheet(QStringLiteral("color: gray"));
     m_infoGeneracion->setTextInteractionFlags(Qt::TextSelectableByMouse);
     barra->addWidget(new QLabel(QStringLiteral("Examen:")));
     barra->addWidget(m_selectorModelo);
     barra->addWidget(m_verSoluciones);
+    barra->addWidget(m_letraGrande);
     m_correctasPorLetra = new QLabel;
     m_correctasPorLetra->setToolTip(QStringLiteral("Cuántas veces es correcta cada letra en este examen"));
     barra->addSpacing(12);
@@ -354,6 +360,7 @@ QWidget *VentanaPrincipal::crearPanelResultados()
 
     connect(m_selectorModelo, &QComboBox::currentIndexChanged, this, &VentanaPrincipal::mostrarModelo);
     connect(m_verSoluciones, &QCheckBox::toggled, this, &VentanaPrincipal::mostrarModelo);
+    connect(m_letraGrande, &QCheckBox::toggled, this, &VentanaPrincipal::actualizarMaqueta);
     return resultados;
 }
 
@@ -972,32 +979,42 @@ void VentanaPrincipal::generar()
 
 void VentanaPrincipal::presentarResultado(const QString &origen)
 {
+    m_origenResultado = origen;
     m_selectorModelo->blockSignals(true);
     m_selectorModelo->clear();
     for (const Modelo &m : std::as_const(m_resultado.modelos))
         m_selectorModelo->addItem(m.nombre);
     m_selectorModelo->blockSignals(false);
+    for (QPushButton *b : std::as_const(m_botonesExamen))
+        b->setEnabled(hayExamen());
+    actualizarMaqueta();
+}
 
+void VentanaPrincipal::actualizarMaqueta()
+{
     QStringList avisos = m_resultado.avisos;
-    bool caben = true;
-    const int nivel = hayExamen() ? Maquetador::nivelParaCaber(m_resultado.modelos, datosConvocatoria(), &caben) : 0;
-    if (!caben) {
-        const int paginas = Maquetador::paginasObjetivo(m_resultado.modelos.first().preguntas.size());
-        avisos << QStringLiteral("Algún examen no cabe en %1 ni con la maqueta más compacta: acorte las instrucciones o quite preguntas.")
-                      .arg(paginas == 1 ? QStringLiteral("una página") : QStringLiteral("%1 páginas").arg(paginas));
+    QString info = m_origenResultado.isEmpty() ? QString() : m_origenResultado + QStringLiteral("  ·  ");
+    info += QStringLiteral("Semilla: %1").arg(m_resultado.semilla);
+    if (m_letraGrande->isChecked()) {
+        info += QStringLiteral("  ·  Letra grande (versión adaptada, sin límite de páginas)");
+    } else {
+        bool caben = true;
+        const int nivel = hayExamen() ? Maquetador::nivelParaCaber(m_resultado.modelos, datosConvocatoria(), &caben) : 0;
+        if (!caben) {
+            const int paginas = Maquetador::paginasObjetivo(m_resultado.modelos.first().preguntas.size());
+            avisos << QStringLiteral("Algún examen no cabe en %1 ni con la maqueta más compacta: acorte las instrucciones o quite preguntas.")
+                          .arg(paginas == 1 ? QStringLiteral("una página") : QStringLiteral("%1 páginas").arg(paginas));
+        }
+        if (nivel > 0)
+            info += QStringLiteral("  ·  Maqueta compacta (nivel %1 de %2)").arg(nivel).arg(Maquetador::numNiveles() - 1);
     }
     m_avisos->setText(avisos.join(QLatin1Char('\n')));
     m_avisos->setVisible(!avisos.isEmpty());
-    QString info = origen.isEmpty() ? QString() : origen + QStringLiteral("  ·  ");
-    info += QStringLiteral("Semilla: %1").arg(m_resultado.semilla);
-    if (nivel > 0)
-        info += QStringLiteral("  ·  Maqueta compacta (nivel %1 de %2)").arg(nivel).arg(Maquetador::numNiveles() - 1);
     m_infoGeneracion->setText(info);
     m_infoGeneracion->setToolTip(QStringLiteral("Escriba esta semilla en Opciones para volver a obtener los mismos exámenes.\n"
                                                 "La maqueta se compacta (opciones en dos columnas, menos separación, letra menor) "
-                                                "hasta que cada examen cabe en una página por cada 10 preguntas."));
-    for (QPushButton *b : std::as_const(m_botonesExamen))
-        b->setEnabled(hayExamen());
+                                                "hasta que cada examen cabe en una página por cada 10 preguntas; con «Letra grande» "
+                                                "no se compacta."));
     mostrarModelo();
 }
 
@@ -1013,14 +1030,16 @@ void VentanaPrincipal::mostrarModelo()
         return;
     m_correctasPorLetra->setText(QStringLiteral("Correctas: ") + Maquetador::textoCorrectasPorLetra(m_resultado.modelos.at(i)));
     const QString html = Maquetador::examenHtml(m_resultado.modelos.at(i), datosConvocatoria(), m_verSoluciones->isChecked(),
-                                                nivelCompactacion());
+                                                nivelMaqueta());
     ponerDocumento(m_visorExamen, Maquetador::crearDocumento(html, Maquetador::preguntasDe(m_resultado.modelos), m_visorExamen));
 }
 
 QString VentanaPrincipal::nombreBaseFichero() const
 {
-    // «2026_Junio»: el año delante, para que los ficheros de varios años queden ordenados.
-    return limpiarNombreFichero(QStringLiteral("%1 %2").arg(m_anio->value()).arg(m_convocatoria->currentText().trimmed()));
+    // «2026_Junio»: el año delante, para que los ficheros de varios años queden ordenados; la versión adaptada,
+    // «2026_Junio_letra_grande», para no pisar la normal.
+    const QString base = limpiarNombreFichero(QStringLiteral("%1 %2").arg(m_anio->value()).arg(m_convocatoria->currentText().trimmed()));
+    return m_letraGrande->isChecked() ? base + QStringLiteral("_letra_grande") : base;
 }
 
 QStringList VentanaPrincipal::nombresModelos() const
@@ -1040,8 +1059,10 @@ QVector<Modelo> VentanaPrincipal::modelosDe(const QVector<int> &indices) const
     return res;
 }
 
-int VentanaPrincipal::nivelCompactacion() const
+int VentanaPrincipal::nivelMaqueta() const
 {
+    if (m_letraGrande->isChecked())
+        return Maquetador::kLetraGrande;
     return hayExamen() ? Maquetador::nivelParaCaber(m_resultado.modelos, datosConvocatoria()) : 0;
 }
 
@@ -1069,7 +1090,7 @@ void VentanaPrincipal::vistaPreviaImpresion()
     vista.setWindowTitle(QStringLiteral("Vista previa de impresión"));
     vista.resize(1000, 900);
     const DatosConvocatoria d = datosConvocatoria();
-    const int nivel = nivelCompactacion();
+    const int nivel = nivelMaqueta();
     connect(&vista, &QPrintPreviewDialog::paintRequested, this,
             [this, d, nivel](QPrinter *p) { Maquetador::imprimirExamenes(p, m_resultado.modelos, d, false, nivel); });
     vista.exec();
@@ -1084,7 +1105,7 @@ void VentanaPrincipal::exportar(const QString &titulo, const QString &nombreBase
     if (dialogo.exec() != QDialog::Accepted)
         return;
     const DatosConvocatoria d = datosConvocatoria();
-    const int nivel = nivelCompactacion();
+    const int nivel = nivelMaqueta();
     QStringList escritos, fallidos;
     for (const DialogoExportar::Fichero &f : dialogo.ficheros())
         (escribir(f.ruta, modelosDe(f.modelos), d, soluciones, nivel) ? escritos : fallidos) << f.ruta;

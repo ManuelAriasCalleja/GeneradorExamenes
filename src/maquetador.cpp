@@ -61,39 +61,9 @@ qreal dpiDocumento()
     return 100;
 }
 
-// Ancho con el que se muestra la imagen de la pregunta, en píxeles a 96 ppp (0 si no tiene).
-int anchoImagen(const Pregunta &p)
-{
-    if (p.imagen.isEmpty())
-        return 0;
-    QImage img;
-    if (!img.loadFromData(p.imagen))
-        return 0;
-    qreal dpi = img.dotsPerMeterX() * 0.0254;
-    if (dpi < 50)
-        dpi = 96;
-    return qMin(500, qRound(img.width() * 96.0 / dpi));
-}
-
-QString imagenHtml(const Pregunta &p)
-{
-    const int ancho = anchoImagen(p);
-    if (ancho == 0)
-        return QString();
-    return QStringLiteral("<p style=\"margin-left:26px; margin-top:4px; margin-bottom:4px\"><img src=\"img:%1\" width=\"%2\"></p>")
-        .arg(p.id).arg(ancho);
-}
-
-QString textoOpcion(const QString &letra, const QString &texto, bool marcada)
-{
-    QString t = Maquetador::escapar(texto);
-    if (marcada)
-        return QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2) %3 &#10004;</span>").arg(QLatin1String(Maquetador::kColorCorrecta), letra, t);
-    return QStringLiteral("%1) %2").arg(letra, t);
-}
-
 // Niveles de compactación de la maqueta (ver maquetador.h). El 0 es la maqueta normal. En LaTeX el artículo es de
 // 10pt y se aprovecha mejor la página que en QTextDocument, así que basta con \small (9pt) en los niveles altos.
+// kLetraGrande es la versión adaptada (letra grande).
 struct Nivel
 {
     qreal fuentePt;            // tamaño de la letra del examen
@@ -110,16 +80,62 @@ const Nivel kNiveles[] = {
     {9.0, 4, true, "2", "\\small"},
 };
 const int kNumNiveles = int(sizeof(kNiveles) / sizeof(kNiveles[0]));
+const Nivel kLetraGrande = {16.0, 24, false, "14", "\\LARGE"};
 
 const Nivel &nivel(int n)
 {
-    return kNiveles[qBound(0, n, kNumNiveles - 1)];
+    return n == Maquetador::kLetraGrande ? kLetraGrande : kNiveles[qBound(0, n, kNumNiveles - 1)];
+}
+
+// Cuánto se agrandan la cabecera, las instrucciones y las imágenes respecto a la maqueta normal (10,5 pt).
+qreal escala(int n)
+{
+    return nivel(n).fuentePt / kNiveles[0].fuentePt;
+}
+
+QString pt(qreal puntos)
+{
+    return QString::number(puntos, 'f', 1) + QStringLiteral("pt");
+}
+
+// Ancho con el que se muestra la imagen de la pregunta, en píxeles a 96 ppp (0 si no tiene).
+int anchoImagen(const Pregunta &p, int n = 0)
+{
+    if (p.imagen.isEmpty())
+        return 0;
+    QImage img;
+    if (!img.loadFromData(p.imagen))
+        return 0;
+    qreal dpi = img.dotsPerMeterX() * 0.0254;
+    if (dpi < 50)
+        dpi = 96;
+    return qMin(qRound(500 * escala(n)), qRound(img.width() * 96.0 / dpi * escala(n)));
+}
+
+QString imagenHtml(const Pregunta &p, int n = 0)
+{
+    const int ancho = anchoImagen(p, n);
+    if (ancho == 0)
+        return QString();
+    return QStringLiteral("<p style=\"margin-left:26px; margin-top:4px; margin-bottom:4px\"><img src=\"img:%1\" width=\"%2\"></p>")
+        .arg(p.id).arg(ancho);
+}
+
+QString textoOpcion(const QString &letra, const QString &texto, bool marcada)
+{
+    QString t = Maquetador::escapar(texto);
+    if (marcada)
+        return QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2) %3 &#10004;</span>").arg(QLatin1String(Maquetador::kColorCorrecta), letra, t);
+    return QStringLiteral("%1) %2").arg(letra, t);
 }
 
 // Filas en que se reparten las opciones: 1 (a b c d), 2 (a c / b d) o 4 (una por línea). Se decide estimando
-// los caracteres que caben en una línea (A4 con los márgenes de configurarPagina() y la letra del nivel).
+// los caracteres que caben en una línea (A4 con los márgenes de configurarPagina() y la letra del nivel). Con
+// letra grande, siempre una por línea.
 int filasOpciones(const PreguntaExamen &pe, int n)
 {
+    if (n == Maquetador::kLetraGrande)
+        return 4;
     int maximo = 0;
     for (int i = 0; i < 4; ++i)
         maximo = qMax(maximo, int(pe.opcion(i).size()));
@@ -166,13 +182,13 @@ QString opcionesHtml(const PreguntaExamen &pe, bool soluciones, int n = 0)
     return html + QStringLiteral("</table>");
 }
 
-QString cabeceraHtml(const DatosConvocatoria &d, const QString &derecha)
+QString cabeceraHtml(const DatosConvocatoria &d, const QString &derecha, int n = 0)
 {
     return QStringLiteral(
                "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr>"
-               "<td><span style=\"font-size:14pt; font-weight:bold\">%1</span><br>%2</td>"
+               "<td><span style=\"font-size:%4; font-weight:bold\">%1</span><br>%2</td>"
                "<td align=\"right\" valign=\"top\">%3</td></tr></table>")
-        .arg(Maquetador::escapar(d.asignatura), Maquetador::escapar(d.convocatoriaYAnio()), derecha);
+        .arg(Maquetador::escapar(d.asignatura), Maquetador::escapar(d.convocatoriaYAnio()), derecha, pt(14 * escala(n)));
 }
 
 // Pie de página de un examen o de la hoja de soluciones: «Nacional Original · Junio 2026».
@@ -291,7 +307,7 @@ QString Maquetador::fichaPreguntaHtml(const Pregunta &p, const QString &nombreTe
     html += imagenHtml(p);
     PreguntaExamen pe;
     pe.pregunta = p;
-    html += opcionesHtml(pe, true);
+    html += opcionesHtml(pe, true, 0);
     html += QStringLiteral("<p><b>Respuesta correcta:</b> %1. %2</p>").arg(Pregunta::letraMayuscula(p.correcta)).arg(escapar(p.referencia));
     if (!p.explicacion.isEmpty())
         html += QStringLiteral("<p><b>Explicación:</b> %1</p>").arg(escapar(p.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
@@ -331,7 +347,7 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
     QString derecha;
     if (soluciones)
         derecha = QStringLiteral("<span style=\"color:%1; font-weight:bold\">CON SOLUCIONES</span>").arg(QLatin1String(Maquetador::kColorCorrecta));
-    html += cabeceraHtml(d, derecha);
+    html += cabeceraHtml(d, derecha, n);
 
     // Recuadro de instrucciones: el texto y, justo debajo, la puntuación (sin líneas en blanco, para que sea bajo).
     QString instrucciones = escapar(d.instrucciones).replace(QLatin1Char('\n'), QStringLiteral("<br>"));
@@ -355,7 +371,7 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
         html += QStringLiteral("<div style=\"margin-top:%1px; font-weight:bold; font-style:italic\">%2</div>")
                     .arg(i == 0 ? separacion + 4 : separacion)
                     .arg(enunciadoHtml(pe.pregunta.enunciado, prefijo));
-        html += imagenHtml(pe.pregunta);
+        html += imagenHtml(pe.pregunta, n);
         html += opcionesHtml(pe, soluciones, n);
     }
     html += QStringLiteral("<p style=\"margin:0\"><a name=\"fin\">&nbsp;</a></p>");
@@ -663,9 +679,9 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \newenvironment{pregunta}{\par\addvspace{\seppregunta}\noindent\begin{minipage}{\linewidth}}{\end{minipage}\par}
 )tex";
 
-QString imagenLatex(const Pregunta &p, const QString &carpeta)
+QString imagenLatex(const Pregunta &p, const QString &carpeta, int n)
 {
-    const int ancho = anchoImagen(p);
+    const int ancho = anchoImagen(p, n);
     if (ancho == 0)
         return QString();
     return QStringLiteral("\\par\\smallskip\\sangria\\includegraphics[width=%1cm]{%2/%3}\\par\\smallskip\n")
@@ -761,9 +777,12 @@ QString enunciadoLatex(const QString &texto, const QString &prefijo)
     return tex;
 }
 
-QString cabeceraLatex(const DatosConvocatoria &d, const QString &derecha)
+// Con letra grande, la cabecera y las instrucciones van en \LARGE y el título en \huge.
+QString cabeceraLatex(const DatosConvocatoria &d, const QString &derecha, int n = 0)
 {
-    QString izquierda = QStringLiteral("{\\Large\\bfseries %1}").arg(Maquetador::escaparLatex(d.asignatura));
+    const bool grande = n == Maquetador::kLetraGrande;
+    QString izquierda = QStringLiteral("{%1\\bfseries %2}").arg(grande ? QStringLiteral("\\huge") : QStringLiteral("\\Large"),
+                                                               Maquetador::escaparLatex(d.asignatura));
     if (!d.convocatoriaYAnio().isEmpty())
         izquierda += QStringLiteral("\\\\\n") + Maquetador::escaparLatex(d.convocatoriaYAnio());
     return QStringLiteral("\\noindent\\begin{minipage}[t]{0.58\\linewidth}\n%1\n\\end{minipage}\\hfill\n"
@@ -835,7 +854,9 @@ QString Maquetador::cuerpoExamenLatex(const Modelo &modelo, const DatosConvocato
     QString derecha;
     if (soluciones)
         derecha = QStringLiteral("\\textcolor{verde}{\\bfseries CON SOLUCIONES}");
-    QString tex = cabeceraLatex(d, derecha);
+    // Con letra grande, todo el modelo (cabecera e instrucciones incluidas) va en \letraexamen.
+    QString tex = n == Maquetador::kLetraGrande ? QStringLiteral("{\\letraexamen\n") : QString();
+    tex += cabeceraLatex(d, derecha, n);
 
     QStringList instrucciones;
     for (const QString &linea : d.instrucciones.split(QLatin1Char('\n')))
@@ -852,7 +873,8 @@ QString Maquetador::cuerpoExamenLatex(const Modelo &modelo, const DatosConvocato
                "\\end{tabular}\n\\end{minipage}}}\\par\\smallskip\n")
                .arg(instrucciones.join(QStringLiteral("\\par\n")), formatoPuntos(d.puntosAcierto), formatoPuntos(d.puntosFallo));
 
-    tex += QStringLiteral("{\\letraexamen\n");
+    if (n != Maquetador::kLetraGrande)
+        tex += QStringLiteral("{\\letraexamen\n");
     for (int i = 0; i < modelo.preguntas.size(); ++i) {
         const PreguntaExamen &pe = modelo.preguntas.at(i);
         QString prefijo = QStringLiteral("%1.- ").arg(i + 1);
@@ -860,7 +882,7 @@ QString Maquetador::cuerpoExamenLatex(const Modelo &modelo, const DatosConvocato
             prefijo += QStringLiteral("\\textcolor{verde}{\\upshape[%1]} ").arg(escaparLatex(pe.pregunta.codigoCompleto()));
         tex += QStringLiteral("\\begin{pregunta}\n");
         tex += enunciadoLatex(pe.pregunta.enunciado, prefijo);
-        tex += imagenLatex(pe.pregunta, carpetaImagenes);
+        tex += imagenLatex(pe.pregunta, carpetaImagenes, n);
         tex += opcionesLatex(pe, soluciones, n);
         tex += QStringLiteral("\\end{pregunta}\n");
     }

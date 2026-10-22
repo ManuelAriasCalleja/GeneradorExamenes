@@ -33,10 +33,15 @@ struct DatosConvocatoria
 // varios niveles de compactación (0 = normal): a partir del 1 las opciones se ponen en dos columnas (a c / b d)
 // siempre que así ocupen menos líneas, y en los siguientes se reduce la separación entre preguntas y el tamaño
 // de la letra. nivelParaCaber() elige el menor nivel con el que caben todos los modelos.
+//
+// Al contrario, el nivel kLetraGrande es la versión adaptada para estudiantes con discapacidad visual: letra de
+// 16 pt (también en la cabecera y las instrucciones), una opción por línea, más separación e imágenes más grandes,
+// sin límite de páginas.
 class Maquetador
 {
 public:
     static constexpr const char *kColorCorrecta = "#0a7d32";   // verde de las respuestas correctas
+    static constexpr int kLetraGrande = -1;                    // nivel de la maqueta con letra grande
 
     // Enunciado (texto con bloques ``` y tablas |) a HTML. 'prefijo' (ya en HTML) se pone al principio.
     static QString enunciadoHtml(const QString &texto, const QString &prefijo = QString());
