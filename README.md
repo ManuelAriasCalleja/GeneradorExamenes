@@ -149,7 +149,7 @@ en el directorio de la asignatura, y se copian aparte de un ordenador a otro:
 
 | Carpeta | Contenido |
 |---|---|
-| `BancoPreguntas/` | El banco del equipo docente (ver11): `preguntas.db` (base de datos SQLite, con el historial de convocatorias), `preguntas_fi.json` (las preguntas extraídas del .docx), `imagenes/` (diagramas) y `estilo_preguntas.md` (guía de redacción). |
+| `BancoPreguntas/` | El banco del equipo docente (ver11): `preguntas.db` (base de datos SQLite, con el historial de convocatorias), `preguntas_fi.json` (las preguntas extraídas del .docx), `imagenes/` (diagramas), `estilo_preguntas.md` (guía de redacción) y `copias/` (copias de seguridad de la base de datos que hace el programa antes de «Reemplazar todo»). |
 | `BancoPreguntas2/` | **Banco 2**: propuesta de 1500 preguntas nuevas, separada del banco actual y pendiente de revisión del equipo docente (base de datos propia, .docx para revisar e informes). Ver su `LEEME.md`. |
 
 `asignatura` es un enlace local (fuera de git) a ese directorio, para llegar a los bancos desde el proyecto:
@@ -163,7 +163,11 @@ python3 herramientas/importar_docx.py asignatura/FI_preguntas_..._ver12.docx asi
         --imagenes asignatura/BancoPreguntas/imagenes
 ```
 
-y en el programa *Archivo → Importar preguntas (JSON)…* (añadir/actualizar o reemplazar todo).
+y en el programa *Archivo → Importar preguntas (JSON)…* (añadir/actualizar o reemplazar todo). Antes de
+reemplazar todo, el programa guarda una copia de seguridad de la base de datos en la carpeta `copias/` junto a
+ella, con la fecha y la hora en el nombre (`copias/preguntas_2026-10-22_153045.db`), y al terminar dice dónde la
+ha dejado; si la importación falla, la base de datos no cambia y la copia se quita. Para volver atrás, basta con
+abrir esa copia (*Archivo → Abrir banco de preguntas…*) o copiarla sobre `preguntas.db`.
 El script avisa de preguntas sin cuatro opciones o sin respuesta y de dibujos sin imagen.
 Las etiquetas del documento se interpretan así: `old` → ya salió en exámenes; `ANULADA`/`OBSOLETA` → no
 sale; `MEJORAR`, `REFINAR`, `DEFINIR …` → marcada para revisar; `PSEUDORREPETIDA … TEMA1 preg 7` → enlace

@@ -533,7 +533,8 @@ void VentanaPrincipal::importarJson()
     QMessageBox caja(QMessageBox::Question, windowTitle(),
                      QStringLiteral("¿Cómo quiere importar las preguntas?\n\n"
                                     "Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.\n"
-                                    "Reemplazar todo: se borran antes todos los temas y preguntas."),
+                                    "Reemplazar todo: se borran antes todos los temas y preguntas (antes de borrarlos se guarda "
+                                    "una copia de seguridad de la base de datos en la carpeta «copias», junto a ella)."),
                      QMessageBox::NoButton, this);
     QPushButton *anadir = caja.addButton(QStringLiteral("Añadir/actualizar"), QMessageBox::AcceptRole);
     QPushButton *reemplazar = caja.addButton(QStringLiteral("Reemplazar todo"), QMessageBox::DestructiveRole);
@@ -541,13 +542,18 @@ void VentanaPrincipal::importarJson()
     caja.exec();
     if (caja.clickedButton() != anadir && caja.clickedButton() != reemplazar)
         return;
-    const int n = m_bd.importarJson(ruta, caja.clickedButton() == reemplazar);
+    QString copia;
+    const int n = m_bd.importarJson(ruta, caja.clickedButton() == reemplazar, &copia);
     if (n < 0) {
         QMessageBox::warning(this, windowTitle(), QStringLiteral("Error al importar:\n%1").arg(m_bd.ultimoError()));
         return;
     }
     recargarDatos();
-    QMessageBox::information(this, windowTitle(), QStringLiteral("Se han importado %1 preguntas.").arg(n));
+    QString mensaje = QStringLiteral("Se han importado %1 preguntas.").arg(n);
+    if (!copia.isEmpty())
+        mensaje += QStringLiteral("\n\nAntes de borrar el banco se ha guardado una copia de seguridad en:\n%1")
+                       .arg(QDir::toNativeSeparators(copia));
+    QMessageBox::information(this, windowTitle(), mensaje);
 }
 
 void VentanaPrincipal::exportarJson()

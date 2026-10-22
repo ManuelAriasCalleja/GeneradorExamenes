@@ -51,10 +51,16 @@ public:
     bool borrarPregunta(int id);
 
     // Importa un JSON con el formato de herramientas/importar_docx.py.
-    // Si 'reemplazar' es true borra antes todas las preguntas y temas.
-    // Las preguntas con el mismo tema, número y variante se actualizan.
-    int importarJson(const QString &ruta, bool reemplazar);
+    // Si 'reemplazar' es true borra antes todas las preguntas y temas, tras guardar una copia de seguridad de la
+    // base de datos (ver copiaSeguridad()); en 'copia', si se da, deja la ruta de esa copia, o vacía si no se ha
+    // hecho (banco sin temas, o añadir/actualizar). Si la importación falla, la base de datos no cambia y la copia
+    // se borra. Las preguntas con el mismo tema, número y variante se actualizan.
+    int importarJson(const QString &ruta, bool reemplazar, QString *copia = nullptr);
     bool exportarJson(const QString &ruta);
+
+    // Guarda una copia de la base de datos en la carpeta «copias» junto a ella, con la fecha y la hora en el nombre
+    // (copias/preguntas_2026-10-22_153045.db), y devuelve su ruta; vacía si falla (el motivo, en ultimoError()).
+    QString copiaSeguridad();
 
     // Historial de convocatorias. Cada examen registrado guarda una copia de sus preguntas tal como salieron (con
     // el orden de las opciones), para poder volver a exportarlo aunque después se corrijan. Las preguntas se

@@ -425,8 +425,31 @@ int BaseDatos::idTema(int numero, const QString &titulo, const QString &autor, b
     return guardarTema(t) ? t.id : 0;
 }
 
-int BaseDatos::importarJson(const QString &ruta, bool reemplazar)
+QString BaseDatos::copiaSeguridad()
 {
+    const QFileInfo info(m_ruta);
+    const QDir carpeta(info.absolutePath() + QStringLiteral("/copias"));
+    if (!carpeta.mkpath(QStringLiteral("."))) {
+        m_error = QStringLiteral("No se puede crear la carpeta %1").arg(carpeta.absolutePath());
+        return {};
+    }
+    const QString base = info.completeBaseName() + QLatin1Char('_')
+                         + QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_HHmmss"));
+    const QString extension = info.suffix().isEmpty() ? QStringLiteral("db") : info.suffix();
+    QString destino = carpeta.filePath(QStringLiteral("%1.%2").arg(base, extension));
+    for (int i = 2; QFileInfo::exists(destino); ++i)
+        destino = carpeta.filePath(QStringLiteral("%1_%2.%3").arg(base).arg(i).arg(extension));
+    // VACUUM INTO copia la base de datos entera y coherente aunque esté abierta (SQLite ≥ 3.27). No admite
+    // transacción abierta ni que el destino exista.
+    if (!ejecutar(QStringLiteral("VACUUM INTO ?"), {destino}))
+        return {};
+    return destino;
+}
+
+int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia)
+{
+    if (copia)
+        copia->clear();
     QFile f(ruta);
     if (!f.open(QIODevice::ReadOnly)) {
         m_error = QStringLiteral("No se puede abrir %1: %2").arg(ruta, f.errorString());
@@ -439,9 +462,33 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar)
         return -1;
     }
 
+    // Antes de borrar el banco, copia de seguridad (si hay algo que borrar: las preguntas van con sus temas). Si
+    // la copia falla, no se toca nada.
+    QString rutaCopia;
+    if (reemplazar) {
+        bool hayTemas = true;
+        {   // La consulta se cierra antes de la copia: VACUUM no admite sentencias a medias.
+            QSqlQuery q = consultar(QStringLiteral("SELECT COUNT(*) FROM temas"));
+            hayTemas = !(q.next() && q.value(0).toInt() == 0);
+        }
+        if (hayTemas) {
+            rutaCopia = copiaSeguridad();
+            if (rutaCopia.isEmpty()) {
+                m_error = QStringLiteral("No se ha podido guardar la copia de seguridad del banco, así que no se ha borrado nada:\n%1").arg(m_error);
+                return -1;
+            }
+        }
+    }
+    // Si la importación falla no cambia nada, y la copia sobra.
+    const auto fallo = [&rutaCopia]() {
+        if (!rutaCopia.isEmpty())
+            QFile::remove(rutaCopia);
+        return -1;
+    };
+
     Transaccion transaccion(m_db);
     if (reemplazar && !(ejecutar(QStringLiteral("DELETE FROM preguntas")) && ejecutar(QStringLiteral("DELETE FROM temas"))))
-        return -1;
+        return fallo();
 
     int n = 0;
     const QJsonArray temas = doc.object().value(QStringLiteral("temas")).toArray();
@@ -451,7 +498,7 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar)
                                   jt.value(QStringLiteral("titulo")).toString(),
                                   jt.value(QStringLiteral("autor")).toString(), true);
         if (temaId == 0)
-            return -1;
+            return fallo();
         for (const QJsonValue &vp : jt.value(QStringLiteral("preguntas")).toArray()) {
             Pregunta p = preguntaDeJson(vp.toObject());
             p.temaId = temaId;
@@ -463,15 +510,17 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar)
                 p.id = q.value(0).toInt();
             if (!guardarPregunta(p)) {
                 m_error = QStringLiteral("Tema %1, pregunta %2: %3").arg(jt.value(QStringLiteral("numero")).toInt()).arg(p.codigo(), m_error);
-                return -1;
+                return fallo();
             }
             ++n;
         }
     }
     if (!transaccion.confirmar()) {
         m_error = m_db.lastError().text();
-        return -1;
+        return fallo();
     }
+    if (copia)
+        *copia = rutaCopia;
     return n;
 }
 

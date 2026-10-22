@@ -4,7 +4,9 @@
 #include "datos_prueba.h"
 #include "generador.h"
 
+#include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -123,9 +125,60 @@ private slots:
         f.write(QJsonDocument(raiz).toJson());
         f.close();
 
-        QCOMPARE(bd.importarJson(json, true), -1);   // reemplazar todo: borra antes los temas y las preguntas
+        const int copiasAntes = QDir(m_dir.filePath(QStringLiteral("copias"))).entryList(QDir::Files).size();
+        QString copia = QStringLiteral("x");
+        QCOMPARE(bd.importarJson(json, true, &copia), -1);   // reemplazar todo: borra antes los temas y las preguntas
         QVERIFY(bd.ultimoError().contains(QStringLiteral("CHECK")));
         QCOMPARE(describir(bd.preguntas()), antes);
+        // Como no ha cambiado nada, la copia de seguridad que se hizo antes de borrar sobra y se quita.
+        QVERIFY(copia.isEmpty());
+        QCOMPARE(QDir(m_dir.filePath(QStringLiteral("copias"))).entryList(QDir::Files).size(), copiasAntes);
+    }
+
+    void reemplazarTodoHaceCopiaDeSeguridad()
+    {
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd, 3, 10), qPrintable(bd.ultimoError()));
+        const QStringList antes = describir(bd.preguntas());
+        // Un JSON con otro banco, más pequeño.
+        BaseDatos otro;
+        QVERIFY2(abrirConBanco(otro, 2, 5), qPrintable(otro.ultimoError()));
+        const QString json = m_dir.filePath(QStringLiteral("otro.json"));
+        QVERIFY(otro.exportarJson(json));
+        const QStringList nuevas = describir(otro.preguntas());
+
+        QString copia;
+        QVERIFY2(bd.importarJson(json, true, &copia) == nuevas.size(), qPrintable(bd.ultimoError()));
+        QCOMPARE(describir(bd.preguntas()), nuevas);
+        // La copia está en la carpeta «copias» junto a la base de datos, se llama como ella y tiene lo que había
+        // antes de borrar.
+        QVERIFY(!copia.isEmpty());
+        const QFileInfo infoCopia(copia), infoBd(bd.ruta());
+        QCOMPARE(infoCopia.absolutePath(), infoBd.absolutePath() + QStringLiteral("/copias"));
+        QVERIFY2(infoCopia.fileName().startsWith(infoBd.completeBaseName() + QLatin1Char('_')), qPrintable(copia));
+        QCOMPARE(infoCopia.suffix(), infoBd.suffix());
+        BaseDatos restaurada;
+        QVERIFY2(restaurada.abrir(copia), qPrintable(restaurada.ultimoError()));
+        QCOMPARE(describir(restaurada.preguntas()), antes);
+        QCOMPARE(restaurada.temas().size(), 3);
+
+        // Otra copia en el mismo segundo no pisa la anterior.
+        QString copia2;
+        QCOMPARE(bd.importarJson(json, true, &copia2), nuevas.size());
+        QVERIFY(!copia2.isEmpty());
+        QVERIFY(copia2 != copia);
+        QVERIFY(QFileInfo::exists(copia) && QFileInfo::exists(copia2));
+
+        // Añadir/actualizar no borra nada y no hace copia; reemplazar un banco sin temas, tampoco.
+        copia = QStringLiteral("x");
+        QCOMPARE(bd.importarJson(json, false, &copia), nuevas.size());
+        QVERIFY(copia.isEmpty());
+        BaseDatos vacia;
+        QVERIFY(vacia.abrir(m_dir.filePath(QStringLiteral("vacia.db"))));
+        copia = QStringLiteral("x");
+        QCOMPARE(vacia.importarJson(json, true, &copia), nuevas.size());
+        QVERIFY(copia.isEmpty());
+        QCOMPARE(describir(vacia.preguntas()), nuevas);
     }
 
     void historialRegistrarYCargar()
