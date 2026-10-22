@@ -195,8 +195,10 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     m_incluirRevisar = new QCheckBox(QStringLiteral("Incluir preguntas marcadas para revisar"));
     m_incluirRevisar->setChecked(true);
     m_ordenAleatorio = new QCheckBox(QStringLiteral("Orden aleatorio (si no, por tema y número)"));
-    m_barajarOpciones = new QCheckBox(QStringLiteral("Barajar las opciones a), b), c), d)"));
-    m_barajarOpciones->setToolTip(QStringLiteral("No se barajan las preguntas con opciones del tipo «Todas las anteriores»"));
+    m_barajarOpciones = new QCheckBox(QStringLiteral("Barajar las opciones (la correcta, repartida entre a)–d))"));
+    m_barajarOpciones->setToolTip(QStringLiteral("En cada examen, la correcta sale en a), b), c) y d) por igual y nunca tres veces "
+                                                 "seguidas en la misma letra (si se puede).\nNo se barajan las preguntas con "
+                                                 "opciones del tipo «Todas las anteriores»."));
     m_semilla = new QLineEdit;
     m_semilla->setValidator(new QIntValidator(0, 2147483647, m_semilla));
     m_semilla->setPlaceholderText(QStringLiteral("aleatoria"));
@@ -238,9 +240,16 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     barra->addWidget(new QLabel(QStringLiteral("Examen:")));
     barra->addWidget(m_selectorModelo);
     barra->addWidget(m_verSoluciones);
+    m_correctasPorLetra = new QLabel;
+    m_correctasPorLetra->setToolTip(QStringLiteral("Cuántas veces es correcta cada letra en este examen"));
+    barra->addSpacing(12);
+    barra->addWidget(m_correctasPorLetra);
     barra->addStretch();
-    barra->addWidget(m_infoGeneracion);
     lr->addLayout(barra);
+    // Semilla, origen (si se ha cargado del historial) y nivel de la maqueta, en su propia línea porque no caben en
+    // la de arriba. Si la ventana es estrecha se corta, en lugar de ensancharla.
+    m_infoGeneracion->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    lr->addWidget(m_infoGeneracion);
     m_avisos = new QLabel;
     m_avisos->setWordWrap(true);
     m_avisos->setStyleSheet(QStringLiteral("background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; padding: 6px"));
@@ -250,23 +259,27 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     m_visorExamen->setHtml(QStringLiteral("<p style=\"color:gray\">Elija cuántas preguntas quiere de cada tema y pulse "
                                           "<b>Generar exámenes</b>.</p>"));
     lr->addWidget(m_visorExamen, 1);
-    auto *acciones = new QHBoxLayout;
-    auto boton = [&](const QString &texto, void (VentanaPrincipal::*slot)()) {
+    // Dos filas de botones (exportar; registrar y practicar) para que la ventana quepa en pantallas pequeñas.
+    auto *exportar = new QHBoxLayout;
+    auto *otras = new QHBoxLayout;
+    auto boton = [&](QHBoxLayout *fila, const QString &texto, void (VentanaPrincipal::*slot)()) {
         auto *b = new QPushButton(texto);
         b->setEnabled(false);
         connect(b, &QPushButton::clicked, this, slot);
-        acciones->addWidget(b);
+        fila->addWidget(b);
         m_botonesExamen << b;
     };
-    boton(QStringLiteral("Imprimir…"), &VentanaPrincipal::vistaPreviaImpresion);
-    boton(QStringLiteral("Exportar PDF…"), &VentanaPrincipal::exportarPdf);
-    boton(QStringLiteral("Soluciones PDF…"), &VentanaPrincipal::exportarSolucionesPdf);
-    boton(QStringLiteral("Exportar HTML…"), &VentanaPrincipal::exportarHtml);
-    boton(QStringLiteral("Exportar LaTeX…"), &VentanaPrincipal::exportarLatex);
-    acciones->addStretch();
-    boton(QStringLiteral("Registrar convocatoria…"), &VentanaPrincipal::registrarConvocatoria);
-    boton(QStringLiteral("Practicar este examen…"), &VentanaPrincipal::practicar);
-    lr->addLayout(acciones);
+    boton(exportar, QStringLiteral("Imprimir…"), &VentanaPrincipal::vistaPreviaImpresion);
+    boton(exportar, QStringLiteral("Exportar PDF…"), &VentanaPrincipal::exportarPdf);
+    boton(exportar, QStringLiteral("Soluciones PDF…"), &VentanaPrincipal::exportarSolucionesPdf);
+    boton(exportar, QStringLiteral("Exportar HTML…"), &VentanaPrincipal::exportarHtml);
+    boton(exportar, QStringLiteral("Exportar LaTeX…"), &VentanaPrincipal::exportarLatex);
+    exportar->addStretch();
+    otras->addStretch();
+    boton(otras, QStringLiteral("Registrar convocatoria…"), &VentanaPrincipal::registrarConvocatoria);
+    boton(otras, QStringLiteral("Practicar este examen…"), &VentanaPrincipal::practicar);
+    lr->addLayout(exportar);
+    lr->addLayout(otras);
 
     connect(m_selectorModelo, &QComboBox::currentIndexChanged, this, &VentanaPrincipal::mostrarModelo);
     connect(m_verSoluciones, &QCheckBox::toggled, this, &VentanaPrincipal::mostrarModelo);
@@ -385,6 +398,7 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
     }
     m_resultado = ResultadoGeneracion();
     m_selectorModelo->clear();
+    m_correctasPorLetra->clear();
     for (QPushButton *b : m_botonesExamen)
         b->setEnabled(false);
     recargarDatos();
@@ -813,6 +827,7 @@ void VentanaPrincipal::mostrarModelo()
     const int i = m_selectorModelo->currentIndex();
     if (i < 0 || i >= m_resultado.modelos.size())
         return;
+    m_correctasPorLetra->setText(QStringLiteral("Correctas: ") + Maquetador::textoCorrectasPorLetra(m_resultado.modelos.at(i)));
     const QString html = Maquetador::examenHtml(m_resultado.modelos.at(i), datosConvocatoria(), m_verSoluciones->isChecked(),
                                                 nivelCompactacion());
     ponerDocumento(m_visorExamen, Maquetador::crearDocumento(html, Maquetador::preguntasDe(m_resultado.modelos), m_visorExamen));

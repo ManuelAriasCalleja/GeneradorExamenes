@@ -200,6 +200,15 @@ QString Maquetador::escapar(const QString &texto)
     return texto.toHtmlEscaped();
 }
 
+QString Maquetador::textoCorrectasPorLetra(const Modelo &modelo)
+{
+    const std::array<int, 4> cuenta = modelo.correctasPorLetra();
+    QStringList partes;
+    for (int l = 0; l < 4; ++l)
+        partes << QStringLiteral("%1 %2").arg(QChar('A' + l)).arg(cuenta[l]);
+    return partes.join(QStringLiteral(" · "));
+}
+
 QString Maquetador::formatoPuntos(double v)
 {
     return QLocale(QLocale::Spanish, QLocale::Spain).toString(v, 'f', 2);
@@ -412,7 +421,8 @@ QString Maquetador::solucionesHtml(const QVector<Modelo> &modelos, const DatosCo
             }
             html += filaNum + QStringLiteral("</tr>") + filaResp + QStringLiteral("</tr>");
         }
-        html += QStringLiteral("</table><p style=\"margin-bottom:0\"></p>");
+        html += QStringLiteral("</table><p style=\"margin-top:2px; margin-bottom:0\">Respuestas correctas: %1</p>")
+                    .arg(textoCorrectasPorLetra(m));
         html += QStringLiteral("<table cellspacing=\"0\" cellpadding=\"2\" width=\"100%\" style=\"font-size:9pt\">");
         for (int i = 0; i < m.preguntas.size(); ++i) {
             const PreguntaExamen &pe = m.preguntas.at(i);
@@ -960,7 +970,8 @@ QString Maquetador::solucionesLatex(const QVector<Modelo> &modelos, const DatosC
             tex += linea + numeros.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\\n")
                    + linea + letras.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\\n") + linea;
         }
-        tex += QStringLiteral("\\end{tabular}\n\\par\\smallskip\n{\\footnotesize\n"
+        tex += QStringLiteral("\\end{tabular}\n\\par\\smallskip\nRespuestas correctas: ") + textoCorrectasPorLetra(m)
+               + QStringLiteral("\\par\\smallskip\n{\\footnotesize\n"
                               "\\begin{tabularx}{\\linewidth}{@{}r@{\\hspace{1em}}l@{\\hspace{1em}}l@{\\hspace{1em}}Y@{}}\n");
         for (int i = 0; i < n; ++i) {
             const PreguntaExamen &pe = m.preguntas.at(i);

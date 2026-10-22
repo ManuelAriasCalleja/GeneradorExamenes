@@ -128,6 +128,7 @@ private:
     QLineEdit *m_semilla;
     QComboBox *m_selectorModelo;
     QCheckBox *m_verSoluciones;
+    QLabel *m_correctasPorLetra;
     QLabel *m_avisos;
     QLabel *m_infoGeneracion;
     QTextBrowser *m_visorExamen;

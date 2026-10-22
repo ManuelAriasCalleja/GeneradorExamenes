@@ -15,7 +15,7 @@ struct ConfigExamen
     bool noRepetirEntreModelos = true;  // dentro de una misma convocatoria
     bool incluirParaRevisar = true;     // preguntas marcadas MEJORAR/REFINAR...
     bool ordenAleatorio = false;        // si no, por tema y número (como en los exámenes oficiales)
-    bool barajarOpciones = false;
+    bool barajarOpciones = false;       // repartiendo la correcta por igual entre a), b), c) y d)
     // Preguntas ya usadas, que se dejan para el final (con sus variantes y pseudorrepetidas): primero las nunca
     // usadas, luego las «old» (si se pide) y por último las de las convocatorias registradas, de la más antigua
     // a la más reciente.
@@ -43,6 +43,15 @@ struct Modelo
 {
     QString nombre;                     // p. ej. "Nacional Original"
     QVector<PreguntaExamen> preguntas;
+
+    // Cuántas veces es correcta cada letra (a, b, c, d) tal como se muestran las opciones.
+    std::array<int, 4> correctasPorLetra() const
+    {
+        std::array<int, 4> cuenta{};
+        for (const PreguntaExamen &pe : preguntas)
+            ++cuenta[pe.correcta()];
+        return cuenta;
+    }
 };
 
 struct ResultadoGeneracion

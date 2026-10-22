@@ -74,6 +74,11 @@ iniciales y una base de datos nueva empieza vacía.
   primero se eligen las nunca usadas, luego las marcadas «old» (si se marca la opción) y por último las de las
   últimas N convocatorias registradas, de la más antigua a la más reciente. Si no hay bastantes, se avisa. Las
   convocatorias se ordenan por año y por mes (si se llaman como un mes: Febrero, Junio…).
+- Si se marca «Barajar las opciones», en cada examen la correcta sale en a), b), c) y d) por igual (como mucho,
+  una de diferencia) y, si se puede, nunca tres veces seguidas en la misma letra. Las preguntas con opciones que
+  se refieren a otras («Todas las anteriores», «a y b»…) no se barajan. Sin barajar, la correcta queda donde está
+  en el banco, y si en algún examen una letra sale bastante más de lo que le toca (5 de 10, por ejemplo), se
+  avisa. La ventana y la hoja de soluciones muestran cuántas veces es correcta cada letra.
 - Las preguntas anuladas u obsoletas no salen nunca. Las marcadas para revisar se pueden excluir.
 - Por defecto las preguntas se ordenan por tema y número, como en los exámenes oficiales.
 

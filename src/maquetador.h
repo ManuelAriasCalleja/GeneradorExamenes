@@ -81,6 +81,8 @@ public:
     static bool imprimir(QPrinter *printer, const QVector<QTextDocument *> &documentos, const QStringList &pies);
 
     static QString formatoPuntos(double v);
+    // «A 3 · B 3 · C 2 · D 2»: cuántas veces es correcta cada letra en el examen.
+    static QString textoCorrectasPorLetra(const Modelo &modelo);
 
 private:
     static QString cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones, int nivel);

@@ -52,6 +52,65 @@ bool usable(const Pregunta &p, bool incluirParaRevisar)
     return p.activa() && (incluirParaRevisar || !p.revisar);
 }
 
+// Baraja las opciones de las preguntas de un examen de modo que la correcta quede repartida por igual entre a),
+// b), c) y d) y, si se puede, sin caer tres veces seguidas en la misma letra. Las preguntas con opciones que se
+// refieren a otras («Todas las anteriores»...) se quedan como están.
+void repartirCorrectas(QVector<PreguntaExamen> &preguntas, QRandomGenerator &rng)
+{
+    QVector<int> barajables;
+    std::array<int, 4> cuenta{};
+    for (int i = 0; i < preguntas.size(); ++i) {
+        if (opcionesDependientes(preguntas.at(i).pregunta))
+            ++cuenta[preguntas.at(i).pregunta.correcta];
+        else
+            barajables << i;
+    }
+
+    // Letra de la correcta para cada pregunta barajable: cada vez, la que menos ha salido (a igualdad, al azar).
+    QVector<int> letras;
+    for (int k = 0; k < barajables.size(); ++k) {
+        const int minimo = *std::min_element(cuenta.begin(), cuenta.end());
+        QVector<int> menos;
+        for (int l = 0; l < 4; ++l)
+            if (cuenta[l] == minimo)
+                menos << l;
+        const int l = menos.at(rng.bounded(qsizetype(menos.size())));
+        ++cuenta[l];
+        letras << l;
+    }
+
+    // Se reparten en un orden al azar; si salen tres seguidas iguales, se prueba con otros.
+    auto rachaMasLarga = [&](const QVector<int> &asignadas) {
+        int racha = 0, masLarga = 0, anterior = -1;
+        for (int i = 0, j = 0; i < preguntas.size(); ++i) {
+            const int l = j < barajables.size() && barajables.at(j) == i ? asignadas.at(j++) : preguntas.at(i).pregunta.correcta;
+            racha = l == anterior ? racha + 1 : 1;
+            anterior = l;
+            masLarga = qMax(masLarga, racha);
+        }
+        return masLarga;
+    };
+    std::shuffle(letras.begin(), letras.end(), rng);
+    for (int intento = 0; intento < 200 && rachaMasLarga(letras) > 2; ++intento) {
+        QVector<int> otras = letras;
+        std::shuffle(otras.begin(), otras.end(), rng);
+        if (rachaMasLarga(otras) < rachaMasLarga(letras))
+            letras = otras;
+    }
+
+    // En cada pregunta, la correcta en su letra y las otras tres opciones al azar en las demás.
+    for (int j = 0; j < barajables.size(); ++j) {
+        PreguntaExamen &pe = preguntas[barajables.at(j)];
+        std::array<int, 3> otras{};
+        for (int o = 0, k = 0; o < 4; ++o)
+            if (o != pe.pregunta.correcta)
+                otras[k++] = o;
+        std::shuffle(otras.begin(), otras.end(), rng);
+        for (int pos = 0, k = 0; pos < 4; ++pos)
+            pe.orden[pos] = pos == letras.at(j) ? pe.pregunta.correcta : otras[k++];
+    }
+}
+
 } // namespace
 
 QMap<int, int> Generador::gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar)
@@ -165,8 +224,6 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
                 PreguntaExamen pe;
                 pe.pregunta = candidatas.at(rng.bounded(qsizetype(candidatas.size())));
                 idsUsados.insert(pe.pregunta.id);
-                if (config.barajarOpciones && !opcionesDependientes(pe.pregunta))
-                    std::shuffle(pe.orden.begin(), pe.orden.end(), rng);
                 modelo.preguntas.append(pe);
                 ++elegidas;
             }
@@ -196,6 +253,19 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
                 return x.variante < y.variante;
             });
         }
+        if (config.barajarOpciones)
+            repartirCorrectas(modelo.preguntas, rng);
+
+        // Aviso si la correcta queda muy desigualmente repartida: una letra con dos o más de las que le tocarían.
+        const std::array<int, 4> cuenta = modelo.correctasPorLetra();
+        const int n = modelo.preguntas.size();
+        const int masRepetida = int(std::max_element(cuenta.begin(), cuenta.end()) - cuenta.begin());
+        if (n >= 4 && cuenta[masRepetida] > (n + 3) / 4 + 1)
+            res.avisos << QStringLiteral("«%1»: la respuesta correcta es la %2) en %3 de %4 preguntas%5.")
+                              .arg(modelo.nombre, QString(Pregunta::letra(masRepetida)))
+                              .arg(cuenta[masRepetida])
+                              .arg(n)
+                              .arg(config.barajarOpciones ? QString() : QStringLiteral("; marque «Barajar las opciones» para repartirla"));
         res.modelos.append(modelo);
     }
 
