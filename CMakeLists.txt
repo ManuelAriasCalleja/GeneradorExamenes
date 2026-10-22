@@ -12,10 +12,11 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Sql PrintSupport)
+find_package(Qt6 6.2 COMPONENTS Test)   # solo para las pruebas automáticas
 qt_standard_project_setup()
 
-qt_add_executable(GeneradorExamenesFI
-    src/main.cpp
+# Todo el programa salvo main.cpp, en una biblioteca que comparten el ejecutable y las pruebas.
+qt_add_library(nucleo STATIC
     src/pregunta.h src/pregunta.cpp
     src/utilidades.h
     src/basedatos.h src/basedatos.cpp
@@ -35,6 +36,13 @@ qt_add_executable(GeneradorExamenesFI
     src/dialogohistorial.h src/dialogohistorial.cpp
     src/ventanaprincipal.h src/ventanaprincipal.cpp
 )
+target_include_directories(nucleo PUBLIC src)
+target_link_libraries(nucleo PUBLIC Qt6::Widgets Qt6::Sql Qt6::PrintSupport)
+# La versión del proyecto se usa en el diálogo «Acerca de», para no tenerla escrita a mano en dos sitios.
+target_compile_definitions(nucleo PRIVATE VERSION_APLICACION="${PROJECT_VERSION}")
+
+qt_add_executable(GeneradorExamenesFI src/main.cpp)
+target_link_libraries(GeneradorExamenesFI PRIVATE nucleo)
 
 # Foto del autor para el diálogo «Acerca de» e icono de la aplicación (PNG generados con recursos/generar_iconos.sh).
 qt_add_resources(GeneradorExamenesFI "recursos"
@@ -50,15 +58,22 @@ qt_add_resources(GeneradorExamenesFI "recursos"
         recursos/icono/icono_256.png
 )
 
-# La versión del proyecto se usa en el diálogo «Acerca de», para no tenerla escrita a mano en dos sitios.
-target_compile_definitions(GeneradorExamenesFI PRIVATE
-    VERSION_APLICACION="${PROJECT_VERSION}"
-)
-
-target_link_libraries(GeneradorExamenesFI PRIVATE Qt6::Widgets Qt6::Sql Qt6::PrintSupport)
-
 # En Windows, aplicación gráfica (sin ventana de consola) y con icono en el .exe. El de las ventanas lo pone main.cpp.
 if(WIN32)
     set_target_properties(GeneradorExamenesFI PROPERTIES WIN32_EXECUTABLE TRUE)
     target_sources(GeneradorExamenesFI PRIVATE recursos/icono.rc)
+endif()
+
+# Pruebas automáticas (ctest --test-dir build --output-on-failure). Usan un banco inventado; la de los bancos
+# reales se salta si no está el enlace «asignatura» al directorio de la asignatura.
+option(PRUEBAS "Compilar las pruebas automáticas" ON)
+if(PRUEBAS AND Qt6Test_FOUND)
+    enable_testing()
+    foreach(prueba generador estilo enunciado basedatos maqueta parecidas interfaz bancos_reales)
+        qt_add_executable(prueba_${prueba} tests/prueba_${prueba}.cpp tests/datos_prueba.h)
+        target_link_libraries(prueba_${prueba} PRIVATE nucleo Qt6::Test)
+        add_test(NAME ${prueba} COMMAND prueba_${prueba})
+        set_tests_properties(${prueba} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    endforeach()
+    target_compile_definitions(prueba_bancos_reales PRIVATE RUTA_PROYECTO="${CMAKE_CURRENT_SOURCE_DIR}")
 endif()

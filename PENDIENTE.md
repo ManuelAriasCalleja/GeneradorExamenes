@@ -15,6 +15,3 @@ terminar cada una, se quita de aquí.
    de compactación de la maqueta).
 6. **Exportar el banco a cuestionarios de Moodle** (XML o GIFT), para practicar en el curso virtual si la
    plataforma los admite.
-7. **Pruebas automáticas** (Qt Test): con cientos de semillas, que nunca salgan juntas dos variantes ni dos
-   pseudorrepetidas, que se respete el reparto por tema y que un examen de 10 preguntas quepa en un folio.
-   Los datos de prueba deben ser inventados (ver «Las preguntas no van en git» en `CLAUDE.md`).

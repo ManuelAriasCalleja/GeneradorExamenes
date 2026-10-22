@@ -14,6 +14,11 @@ exportados (PDF, HTML, LaTeX) tampoco se guardan dentro del proyecto.
 desde aquí. Si falta: `ln -s "<directorio de la asignatura>" asignatura`. El programa no lo usa: abre el
 último banco que se abrió, cuya ruta guarda en su fichero de configuración (`~/.config/UNED-FI/GeneradorExamenesFI.conf`).
 
+## Pruebas
+`ctest --test-dir build --output-on-failure` (ver README). Pasarlas antes de dar por bueno un cambio, y añadir
+una cuando se arregle un fallo o se programe algo nuevo. Los datos de prueba son inventados (`tests/datos_prueba.h`):
+nunca se copian preguntas, opciones ni frases de los bancos, tampoco para reproducir un caso real.
+
 ## GitHub
 El repositorio está en GitHub con **GitHub Actions desactivado**: no se compila ni se comprueba nada allí (no
 hay minutos). No añadir flujos de trabajo (`.github/workflows`) ni otras comprobaciones automáticas.

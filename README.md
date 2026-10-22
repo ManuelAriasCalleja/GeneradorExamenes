@@ -28,6 +28,20 @@ En Windows se compila igual con CMake (o desde Qt Creator), con Qt 6 para MinGW 
 gráfica, sin ventana de consola, y el `.exe` lleva el icono (`recursos/icono.rc`). Para usarlo en otro
 ordenador hay que copiar a su lado las bibliotecas de Qt con `windeployqt GeneradorExamenesFI.exe`.
 
+### Pruebas automáticas
+
+```sh
+ctest --test-dir build --output-on-failure
+```
+
+Están en `tests/`, con Qt Test (incluido en `qt6-base-dev`), y tardan unos segundos. Comprueban el generador
+(reparto por tema, variantes y pseudorrepetidas, reparto de la correcta, preguntas ya usadas), el comprobador de
+estilo, el formato de los enunciados, la base de datos (JSON, transacciones, historial, temas), la maqueta (que un
+examen de 10 preguntas quepa en un folio) y las exportaciones, las parecidas y los recorridos principales de la
+interfaz. Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
+trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`. Para no compilarlas:
+`cmake -S . -B build -DPRUEBAS=OFF`.
+
 ## Uso
 
 **Generar examen**
@@ -115,6 +129,7 @@ variantes nuevas toman la siguiente letra libre (si la pregunta existente no tie
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |
 | `recursos/` | Foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. |
 | `src/` | Código fuente del programa. |
+| `tests/` | Pruebas automáticas, con datos inventados. |
 
 ## Bancos de preguntas
 
