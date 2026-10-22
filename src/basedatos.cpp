@@ -69,6 +69,31 @@ Pregunta preguntaDeJson(const QJsonObject &jp)
     return p;
 }
 
+// Transacción que se deshace sola si no se llega a confirmar (al salir de una función por un error).
+class Transaccion
+{
+public:
+    explicit Transaccion(QSqlDatabase &db)
+        : m_db(db)
+    {
+        m_db.transaction();
+    }
+    ~Transaccion()
+    {
+        if (!m_confirmada)
+            m_db.rollback();
+    }
+    bool confirmar()
+    {
+        m_confirmada = m_db.commit();
+        return m_confirmada;
+    }
+
+private:
+    QSqlDatabase &m_db;
+    bool m_confirmada = false;
+};
+
 using ClaveConvocatoria = QPair<int, QString>;   // año y convocatoria
 
 // Mes de una convocatoria que se llama como un mes («Junio», «Septiembre (reserva)»...); 0 si no.
@@ -137,14 +162,37 @@ bool BaseDatos::abrir(const QString &ruta)
     return crearEsquema();
 }
 
-bool BaseDatos::ejecutar(const QString &sql)
+bool BaseDatos::ejecutar(const QString &sql, const QVariantList &valores, int *id)
 {
     QSqlQuery q(m_db);
-    if (!q.exec(sql)) {
-        m_error = q.lastError().text();
+    if (!ejecutarEn(q, sql, valores))
         return false;
-    }
+    if (id)
+        *id = q.lastInsertId().toInt();
     return true;
+}
+
+QSqlQuery BaseDatos::consultar(const QString &sql, const QVariantList &valores)
+{
+    QSqlQuery q(m_db);
+    ejecutarEn(q, sql, valores);
+    return q;
+}
+
+bool BaseDatos::ejecutarEn(QSqlQuery &q, const QString &sql, const QVariantList &valores)
+{
+    bool ok;
+    if (valores.isEmpty()) {
+        ok = q.exec(sql);
+    } else {
+        q.prepare(sql);
+        for (const QVariant &v : valores)
+            q.addBindValue(v);
+        ok = q.exec();
+    }
+    if (!ok)
+        m_error = q.lastError().text();
+    return ok;
 }
 
 bool BaseDatos::crearEsquema()
@@ -205,8 +253,7 @@ bool BaseDatos::crearEsquema()
 QVector<Tema> BaseDatos::temas()
 {
     QVector<Tema> res;
-    QSqlQuery q(m_db);
-    q.exec(QStringLiteral("SELECT id, numero, titulo, autor FROM temas ORDER BY numero"));
+    QSqlQuery q = consultar(QStringLiteral("SELECT id, numero, titulo, autor FROM temas ORDER BY numero"));
     while (q.next()) {
         Tema t;
         t.id = q.value(0).toInt();
@@ -220,24 +267,10 @@ QVector<Tema> BaseDatos::temas()
 
 bool BaseDatos::guardarTema(Tema &tema)
 {
-    QSqlQuery q(m_db);
-    if (tema.id == 0) {
-        q.prepare(QStringLiteral("INSERT INTO temas (numero, titulo, autor) VALUES (?, ?, ?)"));
-    } else {
-        q.prepare(QStringLiteral("UPDATE temas SET numero = ?, titulo = ?, autor = ? WHERE id = ?"));
-    }
-    q.addBindValue(tema.numero);
-    q.addBindValue(tema.titulo.isNull() ? QStringLiteral("") : tema.titulo);
-    q.addBindValue(tema.autor.isNull() ? QStringLiteral("") : tema.autor);
+    const QVariantList valores{tema.numero, texto(tema.titulo), texto(tema.autor)};
     if (tema.id != 0)
-        q.addBindValue(tema.id);
-    if (!q.exec()) {
-        m_error = q.lastError().text();
-        return false;
-    }
-    if (tema.id == 0)
-        tema.id = q.lastInsertId().toInt();
-    return true;
+        return ejecutar(QStringLiteral("UPDATE temas SET numero = ?, titulo = ?, autor = ? WHERE id = ?"), valores + QVariantList{tema.id});
+    return ejecutar(QStringLiteral("INSERT INTO temas (numero, titulo, autor) VALUES (?, ?, ?)"), valores, &tema.id);
 }
 
 bool BaseDatos::guardarTemas(QVector<Tema> &nuevos, const QVector<int> &borrados)
@@ -245,21 +278,17 @@ bool BaseDatos::guardarTemas(QVector<Tema> &nuevos, const QVector<int> &borrados
     QHash<int, int> numeroAntes;   // id del tema -> número que tenía
     for (const Tema &t : temas())
         numeroAntes.insert(t.id, t.numero);
-    auto fallar = [this]() {
-        m_db.rollback();
-        return false;
-    };
-    m_db.transaction();
+    Transaccion transaccion(m_db);
     for (int id : borrados)
         if (!borrarTema(id))
-            return fallar();
+            return false;
     // Se renumeran en dos pasos para no chocar con la restricción UNIQUE si se intercambian números.
     for (const Tema &t : std::as_const(nuevos)) {
         if (t.id) {
             Tema provisional = t;
             provisional.numero = -t.numero;
             if (!guardarTema(provisional))
-                return fallar();
+                return false;
         }
     }
     QVector<Tema> guardados = nuevos;
@@ -268,7 +297,7 @@ bool BaseDatos::guardarTemas(QVector<Tema> &nuevos, const QVector<int> &borrados
         if (t.id && numeroAntes.contains(t.id) && numeroAntes.value(t.id) != t.numero)
             cambio.insert(numeroAntes.value(t.id), t.numero);
         if (!guardarTema(t))
-            return fallar();
+            return false;
     }
 
     if (!cambio.isEmpty()) {
@@ -279,45 +308,32 @@ bool BaseDatos::guardarTemas(QVector<Tema> &nuevos, const QVector<int> &borrados
                 return codigo;
             return QStringLiteral("T%1-").arg(cambio.value(m.captured(1).toInt())) + codigo.trimmed().mid(m.capturedEnd());
         };
-        QSqlQuery q(m_db);
         QVector<QPair<int, QString>> enlaces;
-        q.exec(QStringLiteral("SELECT id, pseudo_con FROM preguntas WHERE pseudo_con <> ''"));
+        QSqlQuery q = consultar(QStringLiteral("SELECT id, pseudo_con FROM preguntas WHERE pseudo_con <> ''"));
         while (q.next())
             if (renumerar(q.value(1).toString()) != q.value(1).toString())
                 enlaces.append({q.value(0).toInt(), renumerar(q.value(1).toString())});
-        for (const auto &e : enlaces) {
-            q.prepare(QStringLiteral("UPDATE preguntas SET pseudo_con = ? WHERE id = ?"));
-            q.addBindValue(e.second);
-            q.addBindValue(e.first);
-            if (!q.exec()) {
-                m_error = q.lastError().text();
-                return fallar();
-            }
-        }
+        for (const auto &e : enlaces)
+            if (!ejecutar(QStringLiteral("UPDATE preguntas SET pseudo_con = ? WHERE id = ?"), {e.second, e.first}))
+                return false;
         struct Registrada
         {
             int examen, posicion;
             QString codigo;
         };
         QVector<Registrada> registradas;
-        q.exec(QStringLiteral("SELECT examen_id, posicion, codigo FROM preguntas_registradas"));
+        q = consultar(QStringLiteral("SELECT examen_id, posicion, codigo FROM preguntas_registradas"));
         while (q.next())
             if (renumerar(q.value(2).toString()) != q.value(2).toString())
                 registradas.append({q.value(0).toInt(), q.value(1).toInt(), renumerar(q.value(2).toString())});
-        for (const Registrada &r : registradas) {
-            q.prepare(QStringLiteral("UPDATE preguntas_registradas SET codigo = ? WHERE examen_id = ? AND posicion = ?"));
-            q.addBindValue(r.codigo);
-            q.addBindValue(r.examen);
-            q.addBindValue(r.posicion);
-            if (!q.exec()) {
-                m_error = q.lastError().text();
-                return fallar();
-            }
-        }
+        for (const Registrada &r : registradas)
+            if (!ejecutar(QStringLiteral("UPDATE preguntas_registradas SET codigo = ? WHERE examen_id = ? AND posicion = ?"),
+                          {r.codigo, r.examen, r.posicion}))
+                return false;
     }
-    if (!m_db.commit()) {
+    if (!transaccion.confirmar()) {
         m_error = m_db.lastError().text();
-        return fallar();
+        return false;
     }
     nuevos = guardados;
     return true;
@@ -325,31 +341,19 @@ bool BaseDatos::guardarTemas(QVector<Tema> &nuevos, const QVector<int> &borrados
 
 bool BaseDatos::borrarTema(int id)
 {
-    QSqlQuery q(m_db);
-    q.prepare(QStringLiteral("DELETE FROM temas WHERE id = ?"));
-    q.addBindValue(id);
-    if (!q.exec()) {
-        m_error = q.lastError().text();
-        return false;
-    }
-    return true;
+    return ejecutar(QStringLiteral("DELETE FROM temas WHERE id = ?"), {id});
 }
 
 int BaseDatos::contarPreguntas(int temaId)
 {
-    QSqlQuery q(m_db);
-    q.prepare(QStringLiteral("SELECT COUNT(*) FROM preguntas WHERE tema_id = ?"));
-    q.addBindValue(temaId);
-    if (q.exec() && q.next())
-        return q.value(0).toInt();
-    return 0;
+    QSqlQuery q = consultar(QStringLiteral("SELECT COUNT(*) FROM preguntas WHERE tema_id = ?"), {temaId});
+    return q.next() ? q.value(0).toInt() : 0;
 }
 
 QVector<Pregunta> BaseDatos::preguntas()
 {
     QVector<Pregunta> res;
-    QSqlQuery q(m_db);
-    q.exec(QStringLiteral(
+    QSqlQuery q = consultar(QStringLiteral(
         "SELECT p.id, p.tema_id, t.numero, p.numero, p.variante, p.old, p.estado, p.revisar,"
         " p.enunciado, p.opcion_a, p.opcion_b, p.opcion_c, p.opcion_d, p.correcta,"
         " p.referencia, p.explicacion, p.notas, p.pseudo_con, p.imagen"
@@ -381,73 +385,37 @@ QVector<Pregunta> BaseDatos::preguntas()
 
 bool BaseDatos::guardarPregunta(Pregunta &p)
 {
-    QSqlQuery q(m_db);
-    const QString campos = QStringLiteral(
-        "tema_id, numero, variante, old, estado, revisar, enunciado, opcion_a, opcion_b, opcion_c, opcion_d,"
-        " correcta, referencia, explicacion, notas, pseudo_con, imagen");
-    if (p.id == 0) {
-        q.prepare(QStringLiteral("INSERT INTO preguntas (%1) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)").arg(campos));
-    } else {
-        q.prepare(QStringLiteral(
-            "UPDATE preguntas SET tema_id=?, numero=?, variante=?, old=?, estado=?, revisar=?, enunciado=?,"
-            " opcion_a=?, opcion_b=?, opcion_c=?, opcion_d=?, correcta=?, referencia=?, explicacion=?,"
-            " notas=?, pseudo_con=?, imagen=? WHERE id=?"));
-    }
-    q.addBindValue(p.temaId);
-    q.addBindValue(p.numero);
-    q.addBindValue(texto(p.variante));
-    q.addBindValue(p.old ? 1 : 0);
-    q.addBindValue(texto(p.estado));
-    q.addBindValue(p.revisar ? 1 : 0);
-    q.addBindValue(texto(p.enunciado));
+    QVariantList valores{p.temaId, p.numero, texto(p.variante), p.old ? 1 : 0, texto(p.estado), p.revisar ? 1 : 0, texto(p.enunciado)};
     for (int i = 0; i < 4; ++i)
-        q.addBindValue(texto(p.opciones.value(i)));
-    q.addBindValue(QString(Pregunta::letraMayuscula(p.correcta)));
-    q.addBindValue(texto(p.referencia));
-    q.addBindValue(texto(p.explicacion));
-    q.addBindValue(texto(p.notas));
-    q.addBindValue(texto(p.pseudoCon));
-    q.addBindValue(p.imagen.isEmpty() ? QVariant(QMetaType(QMetaType::QByteArray)) : QVariant(p.imagen));
-    if (p.id != 0)
-        q.addBindValue(p.id);
-    if (!q.exec()) {
-        m_error = q.lastError().text();
-        if (m_error.contains(QLatin1String("UNIQUE")))
-            m_error = QStringLiteral("Ya existe una pregunta %1 en ese tema.").arg(p.codigo());
-        return false;
-    }
-    if (p.id == 0)
-        p.id = q.lastInsertId().toInt();
-    return true;
+        valores << texto(p.opciones.value(i));
+    valores << QString(Pregunta::letraMayuscula(p.correcta)) << texto(p.referencia) << texto(p.explicacion) << texto(p.notas)
+            << texto(p.pseudoCon) << (p.imagen.isEmpty() ? QVariant(QMetaType(QMetaType::QByteArray)) : QVariant(p.imagen));
+    const bool ok = p.id == 0
+                        ? ejecutar(QStringLiteral("INSERT INTO preguntas (tema_id, numero, variante, old, estado, revisar, enunciado,"
+                                                  " opcion_a, opcion_b, opcion_c, opcion_d, correcta, referencia, explicacion, notas,"
+                                                  " pseudo_con, imagen) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
+                                   valores, &p.id)
+                        : ejecutar(QStringLiteral("UPDATE preguntas SET tema_id=?, numero=?, variante=?, old=?, estado=?, revisar=?,"
+                                                  " enunciado=?, opcion_a=?, opcion_b=?, opcion_c=?, opcion_d=?, correcta=?,"
+                                                  " referencia=?, explicacion=?, notas=?, pseudo_con=?, imagen=? WHERE id=?"),
+                                   valores << p.id);
+    if (!ok && m_error.contains(QLatin1String("UNIQUE")))
+        m_error = QStringLiteral("Ya existe una pregunta %1 en ese tema.").arg(p.codigo());
+    return ok;
 }
 
 bool BaseDatos::borrarPregunta(int id)
 {
-    QSqlQuery q(m_db);
-    q.prepare(QStringLiteral("DELETE FROM preguntas WHERE id = ?"));
-    q.addBindValue(id);
-    if (!q.exec()) {
-        m_error = q.lastError().text();
-        return false;
-    }
-    return true;
+    return ejecutar(QStringLiteral("DELETE FROM preguntas WHERE id = ?"), {id});
 }
 
 int BaseDatos::idTema(int numero, const QString &titulo, const QString &autor, bool actualizar)
 {
-    QSqlQuery q(m_db);
-    q.prepare(QStringLiteral("SELECT id FROM temas WHERE numero = ?"));
-    q.addBindValue(numero);
-    if (q.exec() && q.next()) {
+    QSqlQuery q = consultar(QStringLiteral("SELECT id FROM temas WHERE numero = ?"), {numero});
+    if (q.next()) {
         const int id = q.value(0).toInt();
-        if (actualizar) {
-            QSqlQuery u(m_db);
-            u.prepare(QStringLiteral("UPDATE temas SET titulo = ?, autor = ? WHERE id = ?"));
-            u.addBindValue(titulo);
-            u.addBindValue(autor.isNull() ? QStringLiteral("") : autor);
-            u.addBindValue(id);
-            u.exec();
-        }
+        if (actualizar && !ejecutar(QStringLiteral("UPDATE temas SET titulo = ?, autor = ? WHERE id = ?"), {texto(titulo), texto(autor), id}))
+            return 0;
         return id;
     }
     Tema t;
@@ -471,11 +439,9 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar)
         return -1;
     }
 
-    m_db.transaction();
-    if (reemplazar && !(ejecutar(QStringLiteral("DELETE FROM preguntas")) && ejecutar(QStringLiteral("DELETE FROM temas")))) {
-        m_db.rollback();
+    Transaccion transaccion(m_db);
+    if (reemplazar && !(ejecutar(QStringLiteral("DELETE FROM preguntas")) && ejecutar(QStringLiteral("DELETE FROM temas"))))
         return -1;
-    }
 
     int n = 0;
     const QJsonArray temas = doc.object().value(QStringLiteral("temas")).toArray();
@@ -484,31 +450,28 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar)
         const int temaId = idTema(jt.value(QStringLiteral("numero")).toInt(),
                                   jt.value(QStringLiteral("titulo")).toString(),
                                   jt.value(QStringLiteral("autor")).toString(), true);
-        if (temaId == 0) {
-            m_db.rollback();
+        if (temaId == 0)
             return -1;
-        }
         for (const QJsonValue &vp : jt.value(QStringLiteral("preguntas")).toArray()) {
             Pregunta p = preguntaDeJson(vp.toObject());
             p.temaId = temaId;
 
             // Si ya existe (mismo tema, número y variante) se actualiza.
-            QSqlQuery q(m_db);
-            q.prepare(QStringLiteral("SELECT id FROM preguntas WHERE tema_id = ? AND numero = ? AND variante = ?"));
-            q.addBindValue(temaId);
-            q.addBindValue(p.numero);
-            q.addBindValue(p.variante);
-            if (q.exec() && q.next())
+            QSqlQuery q = consultar(QStringLiteral("SELECT id FROM preguntas WHERE tema_id = ? AND numero = ? AND variante = ?"),
+                                    {temaId, p.numero, p.variante});
+            if (q.next())
                 p.id = q.value(0).toInt();
             if (!guardarPregunta(p)) {
                 m_error = QStringLiteral("Tema %1, pregunta %2: %3").arg(jt.value(QStringLiteral("numero")).toInt()).arg(p.codigo(), m_error);
-                m_db.rollback();
                 return -1;
             }
             ++n;
         }
     }
-    m_db.commit();
+    if (!transaccion.confirmar()) {
+        m_error = m_db.lastError().text();
+        return -1;
+    }
     return n;
 }
 
@@ -546,37 +509,19 @@ bool BaseDatos::exportarJson(const QString &ruta)
 
 bool BaseDatos::registrarExamenes(const QVector<Modelo> &modelos, const DatosConvocatoria &datos, quint32 semilla)
 {
-    auto fallar = [this](const QSqlQuery &q) {
-        m_error = q.lastError().text();
-        m_db.rollback();
-        return false;
-    };
     const QString ahora = QDateTime::currentDateTime().toString(Qt::ISODate);
-    m_db.transaction();
+    Transaccion transaccion(m_db);
     for (const Modelo &m : modelos) {
-        QSqlQuery q(m_db);
-        q.prepare(QStringLiteral("DELETE FROM examenes_registrados WHERE anio = ? AND convocatoria = ? AND nombre = ?"));
-        q.addBindValue(datos.anio);
-        q.addBindValue(texto(datos.convocatoria));
-        q.addBindValue(texto(m.nombre));
-        if (!q.exec())
-            return fallar(q);
-        q.prepare(QStringLiteral(
-            "INSERT INTO examenes_registrados (anio, convocatoria, nombre, registrado, semilla, asignatura, instrucciones,"
-            " duracion, puntos_acierto, puntos_fallo) VALUES (?,?,?,?,?,?,?,?,?,?)"));
-        q.addBindValue(datos.anio);
-        q.addBindValue(texto(datos.convocatoria));
-        q.addBindValue(texto(m.nombre));
-        q.addBindValue(ahora);
-        q.addBindValue(qint64(semilla));
-        q.addBindValue(texto(datos.asignatura));
-        q.addBindValue(texto(datos.instrucciones));
-        q.addBindValue(datos.duracionMinutos);
-        q.addBindValue(datos.puntosAcierto);
-        q.addBindValue(datos.puntosFallo);
-        if (!q.exec())
-            return fallar(q);
-        const int examenId = q.lastInsertId().toInt();
+        int examenId = 0;
+        if (!ejecutar(QStringLiteral("DELETE FROM examenes_registrados WHERE anio = ? AND convocatoria = ? AND nombre = ?"),
+                      {datos.anio, texto(datos.convocatoria), texto(m.nombre)})
+            || !ejecutar(QStringLiteral("INSERT INTO examenes_registrados (anio, convocatoria, nombre, registrado, semilla,"
+                                        " asignatura, instrucciones, duracion, puntos_acierto, puntos_fallo)"
+                                        " VALUES (?,?,?,?,?,?,?,?,?,?)"),
+                         {datos.anio, texto(datos.convocatoria), texto(m.nombre), ahora, qint64(semilla), texto(datos.asignatura),
+                          texto(datos.instrucciones), datos.duracionMinutos, datos.puntosAcierto, datos.puntosFallo},
+                         &examenId))
+            return false;
         for (int i = 0; i < m.preguntas.size(); ++i) {
             const PreguntaExamen &pe = m.preguntas.at(i);
             QJsonObject jp = preguntaAJson(pe.pregunta);
@@ -585,18 +530,16 @@ bool BaseDatos::registrarExamenes(const QVector<Modelo> &modelos, const DatosCon
             QString orden;
             for (int k : pe.orden)
                 orden += QString::number(k);
-            q.prepare(QStringLiteral(
-                "INSERT INTO preguntas_registradas (examen_id, posicion, codigo, orden, pregunta) VALUES (?,?,?,?,?)"));
-            q.addBindValue(examenId);
-            q.addBindValue(i);
-            q.addBindValue(pe.pregunta.codigoCompleto());
-            q.addBindValue(orden);
-            q.addBindValue(QString::fromUtf8(QJsonDocument(jp).toJson(QJsonDocument::Compact)));
-            if (!q.exec())
-                return fallar(q);
+            if (!ejecutar(QStringLiteral("INSERT INTO preguntas_registradas (examen_id, posicion, codigo, orden, pregunta) VALUES (?,?,?,?,?)"),
+                          {examenId, i, pe.pregunta.codigoCompleto(), orden,
+                           QString::fromUtf8(QJsonDocument(jp).toJson(QJsonDocument::Compact))}))
+                return false;
         }
     }
-    m_db.commit();
+    if (!transaccion.confirmar()) {
+        m_error = m_db.lastError().text();
+        return false;
+    }
     return true;
 }
 
@@ -604,8 +547,7 @@ QVector<ExamenRegistrado> BaseDatos::examenesRegistrados()
 {
     QVector<ExamenRegistrado> res;
     QHash<ClaveConvocatoria, int> ultimoId;
-    QSqlQuery q(m_db);
-    q.exec(QStringLiteral(
+    QSqlQuery q = consultar(QStringLiteral(
         "SELECT e.id, e.nombre, e.registrado, e.semilla, e.anio, e.convocatoria, e.asignatura, e.instrucciones,"
         " e.duracion, e.puntos_acierto, e.puntos_fallo,"
         " (SELECT COUNT(*) FROM preguntas_registradas p WHERE p.examen_id = e.id)"
@@ -642,14 +584,10 @@ QVector<ExamenRegistrado> BaseDatos::examenesRegistrados()
 Modelo BaseDatos::modeloRegistrado(int examenId)
 {
     Modelo m;
-    QSqlQuery q(m_db);
-    q.prepare(QStringLiteral("SELECT nombre FROM examenes_registrados WHERE id = ?"));
-    q.addBindValue(examenId);
-    if (q.exec() && q.next())
+    QSqlQuery q = consultar(QStringLiteral("SELECT nombre FROM examenes_registrados WHERE id = ?"), {examenId});
+    if (q.next())
         m.nombre = q.value(0).toString();
-    q.prepare(QStringLiteral("SELECT orden, pregunta FROM preguntas_registradas WHERE examen_id = ? ORDER BY posicion"));
-    q.addBindValue(examenId);
-    q.exec();
+    q = consultar(QStringLiteral("SELECT orden, pregunta FROM preguntas_registradas WHERE examen_id = ? ORDER BY posicion"), {examenId});
     while (q.next()) {
         const QJsonObject jp = QJsonDocument::fromJson(q.value(1).toString().toUtf8()).object();
         PreguntaExamen pe;
@@ -666,14 +604,7 @@ Modelo BaseDatos::modeloRegistrado(int examenId)
 
 bool BaseDatos::borrarExamenRegistrado(int examenId)
 {
-    QSqlQuery q(m_db);
-    q.prepare(QStringLiteral("DELETE FROM examenes_registrados WHERE id = ?"));
-    q.addBindValue(examenId);
-    if (!q.exec()) {
-        m_error = q.lastError().text();
-        return false;
-    }
-    return true;
+    return ejecutar(QStringLiteral("DELETE FROM examenes_registrados WHERE id = ?"), {examenId});
 }
 
 QHash<QString, int> BaseDatos::usoReciente(int cuantas, int anio, const QString &convocatoria, const QStringList &excluidos)
@@ -685,8 +616,7 @@ QHash<QString, int> BaseDatos::usoReciente(int cuantas, int anio, const QString 
     };
     QVector<Uso> usos;
     QHash<ClaveConvocatoria, int> ultimoId;
-    QSqlQuery q(m_db);
-    q.exec(QStringLiteral(
+    QSqlQuery q = consultar(QStringLiteral(
         "SELECT p.codigo, e.anio, e.convocatoria, e.nombre, e.id"
         " FROM preguntas_registradas p JOIN examenes_registrados e ON e.id = p.examen_id"));
     while (q.next()) {
@@ -715,12 +645,10 @@ QHash<QString, int> BaseDatos::usoReciente(int cuantas, int anio, const QString 
 QStringList BaseDatos::usosDe(const QString &codigo)
 {
     QStringList res;
-    QSqlQuery q(m_db);
-    q.prepare(QStringLiteral(
-        "SELECT e.convocatoria, e.anio, e.nombre FROM preguntas_registradas p JOIN examenes_registrados e ON e.id = p.examen_id"
-        " WHERE p.codigo = ? ORDER BY e.anio DESC, e.id DESC"));
-    q.addBindValue(codigo);
-    q.exec();
+    QSqlQuery q = consultar(QStringLiteral("SELECT e.convocatoria, e.anio, e.nombre FROM preguntas_registradas p"
+                                           " JOIN examenes_registrados e ON e.id = p.examen_id"
+                                           " WHERE p.codigo = ? ORDER BY e.anio DESC, e.id DESC"),
+                            {codigo});
     while (q.next())
         res << QStringLiteral("%1 %2 · %3").arg(q.value(0).toString()).arg(q.value(1).toInt()).arg(q.value(2).toString());
     return res;

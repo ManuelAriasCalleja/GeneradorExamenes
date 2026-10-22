@@ -7,7 +7,10 @@
 #include <QHash>
 #include <QSqlDatabase>
 #include <QString>
+#include <QVariant>
 #include <QVector>
+
+class QSqlQuery;
 
 // Examen guardado en el historial de convocatorias.
 struct ExamenRegistrado
@@ -71,7 +74,12 @@ public:
 
 private:
     bool crearEsquema();
-    bool ejecutar(const QString &sql);
+    // Sentencia con sus valores (los «?», en orden); si falla, deja el error en m_error. En 'id' deja el de la fila
+    // insertada.
+    bool ejecutar(const QString &sql, const QVariantList &valores = {}, int *id = nullptr);
+    // Consulta con sus valores, para recorrerla con next(); si falla, no da filas y deja el error en m_error.
+    QSqlQuery consultar(const QString &sql, const QVariantList &valores = {});
+    bool ejecutarEn(QSqlQuery &q, const QString &sql, const QVariantList &valores);
     int idTema(int numero, const QString &titulo, const QString &autor, bool actualizar);
 
     QSqlDatabase m_db;
