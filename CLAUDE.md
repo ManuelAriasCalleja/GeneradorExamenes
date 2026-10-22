@@ -25,3 +25,6 @@ Está en `asignatura/BancoPreguntas/estilo_preguntas.md` (fuera de git porque ci
 al escribir, corregir o proponer preguntas:
 
 @asignatura/BancoPreguntas/estilo_preguntas.md
+
+Las pautas que se pueden comprobar solas están programadas en `src/estilo.cpp` (avisos del editor de preguntas
+y del informe *Editar → Revisar el estilo del banco*). Si cambia la guía, hay que actualizarlas.

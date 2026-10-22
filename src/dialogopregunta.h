@@ -53,4 +53,5 @@ private:
     QLineEdit *m_notas;
     QLabel *m_vistaImagen;
     QTextBrowser *m_vistaPrevia;
+    QLabel *m_avisosEstilo;
 };

@@ -15,11 +15,13 @@ qt_add_executable(GeneradorExamenesFI
     src/utilidades.h
     src/basedatos.h src/basedatos.cpp
     src/generador.h src/generador.cpp
+    src/estilo.h src/estilo.cpp
     src/maquetador.h src/maquetador.cpp
     src/modelopreguntas.h src/modelopreguntas.cpp
     src/dialogopregunta.h src/dialogopregunta.cpp
     src/dialogotemas.h src/dialogotemas.cpp
     src/dialogopractica.h src/dialogopractica.cpp
+    src/dialogoestilo.h src/dialogoestilo.cpp
     src/dialogoexportar.h src/dialogoexportar.cpp
     src/dialogohistorial.h src/dialogohistorial.cpp
     src/ventanaprincipal.h src/ventanaprincipal.cpp

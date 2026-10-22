@@ -1,4 +1,5 @@
 #include "dialogopregunta.h"
+#include "estilo.h"
 #include "maquetador.h"
 
 #include <QBuffer>
@@ -139,6 +140,10 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const Pregunta &pre
     auto *lp = new QVBoxLayout(gPrevia);
     m_vistaPrevia = new QTextBrowser;
     lp->addWidget(m_vistaPrevia);
+    m_avisosEstilo = new QLabel;
+    m_avisosEstilo->setWordWrap(true);
+    m_avisosEstilo->setStyleSheet(QStringLiteral("background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; padding: 6px"));
+    lp->addWidget(m_avisosEstilo);
 
     auto *divisor = new QSplitter;
     divisor->addWidget(formulario);
@@ -146,9 +151,10 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const Pregunta &pre
     divisor->setStretchFactor(0, 3);
     divisor->setStretchFactor(1, 2);
 
-    auto *botones = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
-    botones->button(QDialogButtonBox::Save)->setText(QStringLiteral("Guardar"));
-    botones->button(QDialogButtonBox::Cancel)->setText(QStringLiteral("Cancelar"));
+    // Botones con texto propio: los estándar (Save, Cancel) vuelven al inglés si no están las traducciones de Qt.
+    auto *botones = new QDialogButtonBox;
+    botones->addButton(QStringLiteral("Guardar"), QDialogButtonBox::AcceptRole)->setDefault(true);
+    botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoPregunta::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoPregunta::reject);
 
@@ -212,6 +218,21 @@ void DialogoPregunta::accept()
         QMessageBox::warning(this, windowTitle(), error);
         return;
     }
+    const QVector<Estilo::Aviso> avisos = Estilo::revisar(p);
+    if (!avisos.isEmpty()) {
+        QStringList lineas;
+        for (const Estilo::Aviso &a : avisos)
+            lineas << QStringLiteral("• ") + a.texto;
+        QMessageBox caja(QMessageBox::Warning, windowTitle(),
+                         QStringLiteral("La pregunta no sigue algunas pautas de estilo:\n\n%1\n\n¿Quiere guardarla así?")
+                             .arg(lineas.join(QLatin1Char('\n'))),
+                         QMessageBox::NoButton, this);
+        QPushButton *guardar = caja.addButton(QStringLiteral("Guardar así"), QMessageBox::AcceptRole);
+        caja.setDefaultButton(caja.addButton(QStringLiteral("Seguir editando"), QMessageBox::RejectRole));
+        caja.exec();
+        if (caja.clickedButton() != guardar)
+            return;
+    }
     QDialog::accept();
 }
 
@@ -225,6 +246,13 @@ void DialogoPregunta::actualizarVistaPrevia()
     m_vistaPrevia->setDocument(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema), {p}, m_vistaPrevia));
     if (propio)
         anterior->deleteLater();
+
+    // Pautas de estilo que no se cumplen (mientras se escribe; al guardar se vuelven a mostrar).
+    QStringList avisos;
+    for (const Estilo::Aviso &a : Estilo::revisar(p))
+        avisos << QStringLiteral("• ") + a.texto.toHtmlEscaped();
+    m_avisosEstilo->setText(QStringLiteral("<b>Pautas de estilo</b><br>") + avisos.join(QStringLiteral("<br>")));
+    m_avisosEstilo->setVisible(!avisos.isEmpty());
 }
 
 void DialogoPregunta::mostrarImagen()

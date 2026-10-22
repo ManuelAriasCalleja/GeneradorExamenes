@@ -1,8 +1,8 @@
 #include "generador.h"
+#include "estilo.h"
 
 #include <QHash>
 #include <QRandomGenerator>
-#include <QRegularExpression>
 #include <QSet>
 #include <algorithm>
 
@@ -35,18 +35,6 @@ QString claveGrupo(int tema, int numero)
     return QStringLiteral("T%1-%2").arg(tema).arg(numero);
 }
 
-// Las opciones que se refieren a otras ("Todas las anteriores", "a y b"...) no se pueden barajar.
-bool opcionesDependientes(const Pregunta &p)
-{
-    static const QRegularExpression re(
-        QStringLiteral("anterior|todas las|ninguna de|ambas|las dos|\\b[a-d]\\)? y [a-d]\\b"),
-        QRegularExpression::CaseInsensitiveOption);
-    for (const QString &o : p.opciones)
-        if (re.match(o).hasMatch())
-            return true;
-    return false;
-}
-
 bool usable(const Pregunta &p, bool incluirParaRevisar)
 {
     return p.activa() && (incluirParaRevisar || !p.revisar);
@@ -60,7 +48,7 @@ void repartirCorrectas(QVector<PreguntaExamen> &preguntas, QRandomGenerator &rng
     QVector<int> barajables;
     std::array<int, 4> cuenta{};
     for (int i = 0; i < preguntas.size(); ++i) {
-        if (opcionesDependientes(preguntas.at(i).pregunta))
+        if (Estilo::tieneOpcionesDependientes(preguntas.at(i).pregunta))
             ++cuenta[preguntas.at(i).pregunta.correcta];
         else
             barajables << i;

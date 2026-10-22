@@ -48,6 +48,7 @@ private slots:
     void importarJson();
     void exportarJson();
     void gestionarTemas();
+    void revisarEstilo();
     void acercaDe();
 
     // Generar examen

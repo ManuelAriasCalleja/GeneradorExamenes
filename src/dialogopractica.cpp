@@ -105,8 +105,8 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
     m_corregir = new QPushButton(QStringLiteral("Terminar y corregir"));
     m_corregir->setDefault(true);
     connect(m_corregir, &QPushButton::clicked, this, &DialogoPractica::corregir);
-    auto *botones = new QDialogButtonBox(QDialogButtonBox::Close);
-    botones->button(QDialogButtonBox::Close)->setText(QStringLiteral("Cerrar"));
+    auto *botones = new QDialogButtonBox;
+    botones->addButton(QStringLiteral("Cerrar"), QDialogButtonBox::RejectRole);
     botones->addButton(m_corregir, QDialogButtonBox::ActionRole);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoPractica::reject);
 

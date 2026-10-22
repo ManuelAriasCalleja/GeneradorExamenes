@@ -89,6 +89,15 @@ ordenador hay que copiar a su lado las bibliotecas de Qt con `windeployqt Genera
 menú *Editar → Temas* para añadir o renombrar temas. En el enunciado se puede escribir código entre
 líneas ```` ``` ```` y filas de tabla como `| celda | celda |`; también se puede añadir una imagen.
 
+Al editar una pregunta, bajo la vista previa se avisa de las pautas de redacción que no cumple: enunciado
+acabado en dos puntos (o en «?:» si es una pregunta) y de no más de unos 180 caracteres, negaciones en
+mayúsculas, opciones con mayúscula y punto final, opciones del tipo «Todas las anteriores», opciones repetidas,
+correcta mucho más larga que las demás, comillas (tipográficas en el texto, rectas en el código) y forma de la
+referencia al libro según el tema. Son avisos: al guardar se pide confirmación, pero se puede guardar igual.
+*Editar → Revisar el estilo del banco…* revisa todas las preguntas del banco abierto: lista los avisos (todos o
+solo los del enunciado, las opciones o la referencia), abre cada pregunta para corregirla y guarda el informe
+en un fichero de texto, solo con los códigos de las preguntas y los avisos.
+
 ## Ficheros
 
 | Ruta | Contenido |

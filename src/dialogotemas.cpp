@@ -35,9 +35,10 @@ DialogoTemas::DialogoTemas(BaseDatos *bd, QWidget *parent)
     connect(bAnadir, &QPushButton::clicked, this, &DialogoTemas::anadir);
     connect(bEliminar, &QPushButton::clicked, this, &DialogoTemas::eliminar);
 
-    auto *botones = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
-    botones->button(QDialogButtonBox::Save)->setText(QStringLiteral("Guardar"));
-    botones->button(QDialogButtonBox::Cancel)->setText(QStringLiteral("Cancelar"));
+    // Botones con texto propio: los estándar (Save, Cancel) vuelven al inglés si no están las traducciones de Qt.
+    auto *botones = new QDialogButtonBox;
+    botones->addButton(QStringLiteral("Guardar"), QDialogButtonBox::AcceptRole)->setDefault(true);
+    botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoTemas::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoTemas::reject);
 

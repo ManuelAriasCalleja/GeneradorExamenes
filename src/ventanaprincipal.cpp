@@ -1,4 +1,5 @@
 #include "ventanaprincipal.h"
+#include "dialogoestilo.h"
 #include "dialogoexportar.h"
 #include "dialogohistorial.h"
 #include "dialogopractica.h"
@@ -381,6 +382,7 @@ void VentanaPrincipal::crearMenus()
     QMenu *editar = menuBar()->addMenu(QStringLiteral("&Editar"));
     editar->addAction(QStringLiteral("&Temas…"), this, &VentanaPrincipal::gestionarTemas);
     editar->addAction(QStringLiteral("&Nueva pregunta…"), QKeySequence::New, this, &VentanaPrincipal::nuevaPregunta);
+    editar->addAction(QStringLiteral("&Revisar el estilo del banco…"), this, &VentanaPrincipal::revisarEstilo);
 
     QMenu *ayuda = menuBar()->addMenu(QStringLiteral("A&yuda"));
     ayuda->addAction(QStringLiteral("&Acerca de…"), this, &VentanaPrincipal::acercaDe);
@@ -505,6 +507,21 @@ void VentanaPrincipal::gestionarTemas()
     DialogoTemas d(&m_bd, this);
     if (d.exec() == QDialog::Accepted)
         recargarDatos();
+}
+
+void VentanaPrincipal::revisarEstilo()
+{
+    DialogoEstilo dialogo([this]() { return m_preguntas; },
+                          [this](int id) {
+                              for (const Pregunta &p : std::as_const(m_preguntas)) {
+                                  if (p.id == id) {
+                                      editar(p);   // recarga m_preguntas: no se sigue recorriendo
+                                      return;
+                                  }
+                              }
+                          },
+                          m_bd.ruta(), this);
+    dialogo.exec();
 }
 
 void VentanaPrincipal::acercaDe()
