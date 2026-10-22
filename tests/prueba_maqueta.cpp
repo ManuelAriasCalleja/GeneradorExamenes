@@ -115,12 +115,15 @@ private slots:
         QCOMPARE(grande.count(QStringLiteral("width=\"96%\"")), 4 * n);
         QVERIFY(normal.contains(QStringLiteral("width=\"40\"")));
         QVERIFY(grande.contains(QStringLiteral("width=\"61\"")));      // 40 · 16 / 10,5
+        QVERIFY(normal.contains(QStringLiteral("font-style:italic")));   // los enunciados, sin cursiva
+        QVERIFY(!grande.contains(QStringLiteral("font-style:italic")));
 
         // En LaTeX: \LARGE para todo el modelo, más separación y una opción por línea.
         const QString tex = Maquetador::examenesLatex({m}, convocatoria(), false, QStringLiteral("img"), Maquetador::kLetraGrande);
         QVERIFY(tex.contains(QStringLiteral("\\renewcommand{\\letraexamen}{\\LARGE}")));
         QVERIFY(tex.contains(QStringLiteral("\\setlength{\\seppregunta}{14pt}")));
         QVERIFY(tex.contains(QStringLiteral("{\\huge\\bfseries ")));
+        QVERIFY(tex.contains(QStringLiteral("\\renewcommand{\\enunciado}[1]{{\\raggedright\\bfseries #1\\par}}")));
         QCOMPARE(tex.count(QStringLiteral("{@{\\sangria}Y@{}}")), n);
         QVERIFY(!tex.contains(QStringLiteral("YY")));
 

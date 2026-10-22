@@ -9,6 +9,7 @@ datos/
 *.db
 *.docx
 preguntas*.json
+*.xml
 
 # Exámenes exportados, por si se guardan dentro del proyecto
 *.pdf

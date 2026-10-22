@@ -48,6 +48,7 @@ private slots:
     void nuevaBaseDatos();
     void importarJson();
     void exportarJson();
+    void exportarMoodle();
     void actualizarJsonBanco();
     void cambiarJsonAutomatico(bool activar);
     void gestionarTemas();

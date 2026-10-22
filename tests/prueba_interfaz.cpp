@@ -328,6 +328,24 @@ private slots:
         for (const QString &f : ficheros)
             QVERIFY2(QFileInfo(carpeta + QLatin1Char('/') + f).size() > 1000, qPrintable(f));
         QCOMPARE(QSettings().value(QStringLiteral("bd/ruta")).toString(), dir.filePath(QStringLiteral("banco.db")));
+
+        // El banco entero, a Moodle: el fichero se escribe en la ruta del diálogo.
+        const QString moodle = carpeta + QStringLiteral("/moodle.xml");
+        QTimer::singleShot(100, [&moodle] {
+            QWidget *d = QApplication::activeModalWidget();
+            if (!d)
+                return;
+            d->findChild<QLineEdit *>()->setText(moodle);
+            for (QPushButton *b : d->findChildren<QPushButton *>())
+                if (b->text() == QStringLiteral("Exportar"))
+                    b->click();
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "exportarMoodle"));
+        QFile f(moodle);
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const QString xml = QString::fromUtf8(f.readAll());
+        QCOMPARE(xml.count(QStringLiteral("type=\"multichoice\"")), bancoInventado().size());
+        QCOMPARE(xml.count(QStringLiteral("type=\"category\"")), 8);
     }
 };
 

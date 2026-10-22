@@ -2,6 +2,7 @@
 #include "dialogoestilo.h"
 #include "dialogoexportar.h"
 #include "dialogohistorial.h"
+#include "dialogomoodle.h"
 #include "dialogopractica.h"
 #include "dialogopregunta.h"
 #include "dialogotemas.h"
@@ -307,7 +308,7 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     m_verSoluciones = new QCheckBox(QStringLiteral("Mostrar soluciones"));
     m_letraGrande = new QCheckBox(QStringLiteral("Letra grande"));
     m_letraGrande->setToolTip(QStringLiteral("Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una "
-                                             "opción por línea, más separación e imágenes más grandes, sin límite de páginas.\n"
+                                             "opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.\n"
                                              "Vale para la vista, la impresión y las exportaciones; los ficheros llevan "
                                              "«_letra_grande» en el nombre."));
     m_infoGeneracion = new QLabel;
@@ -445,6 +446,7 @@ void VentanaPrincipal::crearMenus()
     archivo->addSeparator();
     archivo->addAction(QStringLiteral("&Importar preguntas (JSON)…"), this, &VentanaPrincipal::importarJson);
     archivo->addAction(QStringLiteral("&Exportar preguntas (JSON)…"), this, &VentanaPrincipal::exportarJson);
+    archivo->addAction(QStringLiteral("Exportar a &Moodle (XML)…"), this, &VentanaPrincipal::exportarMoodle);
     archivo->addSeparator();
     QAction *actualizarJson = archivo->addAction(QStringLiteral("Actuali&zar el JSON del banco…"), this, &VentanaPrincipal::actualizarJsonBanco);
     actualizarJson->setToolTip(QStringLiteral("Sobrescribe el JSON enlazado con el banco (la primera vez pide cuál es) con el "
@@ -592,6 +594,23 @@ void VentanaPrincipal::exportarJson()
         QMessageBox::warning(this, windowTitle(), m_bd.ultimoError());
     else
         statusBar()->showMessage(QStringLiteral("Preguntas exportadas a %1").arg(ruta), 5000);
+}
+
+void VentanaPrincipal::exportarMoodle()
+{
+    DialogoMoodle dialogo(m_preguntas, m_asignatura->text().trimmed(), this);
+    if (dialogo.exec() != QDialog::Accepted)
+        return;
+    const Moodle::Opciones opciones = dialogo.opciones();
+    QString error;
+    if (!Moodle::exportar(dialogo.ruta(), m_temas, m_preguntas, opciones, &error)) {
+        QMessageBox::warning(this, windowTitle(), error);
+        return;
+    }
+    statusBar()->showMessage(QStringLiteral("%1 preguntas exportadas a %2 (en Moodle: Banco de preguntas → Importar, formato «Moodle XML»)")
+                                 .arg(Moodle::seleccion(m_preguntas, opciones).size())
+                                 .arg(QDir::toNativeSeparators(dialogo.ruta())),
+                             10000);
 }
 
 void VentanaPrincipal::actualizarJsonBanco()

@@ -368,9 +368,11 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
         if (soluciones)
             prefijo += QStringLiteral("<span style=\"color:%1; font-style:normal\">[%2]</span> ")
                            .arg(QLatin1String(Maquetador::kColorCorrecta), escapar(pe.pregunta.codigoCompleto()));
-        html += QStringLiteral("<div style=\"margin-top:%1px; font-weight:bold; font-style:italic\">%2</div>")
+        // Con letra grande, el enunciado va en negrita sin cursiva, que cuesta más de leer.
+        html += QStringLiteral("<div style=\"margin-top:%1px; font-weight:bold%3\">%2</div>")
                     .arg(i == 0 ? separacion + 4 : separacion)
-                    .arg(enunciadoHtml(pe.pregunta.enunciado, prefijo));
+                    .arg(enunciadoHtml(pe.pregunta.enunciado, prefijo),
+                         n == Maquetador::kLetraGrande ? QString() : QStringLiteral("; font-style:italic"));
         html += imagenHtml(pe.pregunta, n);
         html += opcionesHtml(pe, soluciones, n);
     }
@@ -829,9 +831,11 @@ QString Maquetador::examenesLatex(const QVector<Modelo> &modelos, const DatosCon
 {
     QString tex = QString::fromUtf8(kPreambuloLatex);
     tex += QStringLiteral("\\begin{document}\n");
-    // Nivel de compactación: separación entre preguntas y letra.
+    // Nivel de compactación: separación entre preguntas y letra. Con letra grande, enunciados sin cursiva.
     tex += QStringLiteral("\\setlength{\\seppregunta}{%1pt}\\renewcommand{\\letraexamen}{%2}\n")
                .arg(QLatin1String(nivel(n).separacionLatex), QLatin1String(nivel(n).letraLatex));
+    if (n == kLetraGrande)
+        tex += QStringLiteral("\\renewcommand{\\enunciado}[1]{{\\raggedright\\bfseries #1\\par}}\n");
     if (soluciones) {
         tex += QStringLiteral("\n\\empezarmodelo{") + escaparLatex(textoPie(QStringLiteral("Soluciones"), d))
                + QStringLiteral("}{fin:soluciones}\n");

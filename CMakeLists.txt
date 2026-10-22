@@ -34,6 +34,8 @@ qt_add_library(nucleo STATIC
     src/dialogoparecidas.h src/dialogoparecidas.cpp
     src/dialogoexportar.h src/dialogoexportar.cpp
     src/dialogohistorial.h src/dialogohistorial.cpp
+    src/moodle.h src/moodle.cpp
+    src/dialogomoodle.h src/dialogomoodle.cpp
     src/ventanaprincipal.h src/ventanaprincipal.cpp
 )
 target_include_directories(nucleo PUBLIC src)
@@ -113,7 +115,7 @@ endif()
 option(PRUEBAS "Compilar las pruebas automáticas" ON)
 if(PRUEBAS AND Qt6Test_FOUND)
     enable_testing()
-    foreach(prueba generador estilo enunciado basedatos maqueta parecidas interfaz bancos_reales)
+    foreach(prueba generador estilo enunciado basedatos maqueta parecidas moodle interfaz bancos_reales)
         qt_add_executable(prueba_${prueba} tests/prueba_${prueba}.cpp tests/datos_prueba.h)
         target_link_libraries(prueba_${prueba} PRIVATE nucleo Qt6::Test)
         add_test(NAME ${prueba} COMMAND prueba_${prueba})

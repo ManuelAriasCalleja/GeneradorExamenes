@@ -47,9 +47,9 @@ ctest --test-dir build --output-on-failure
 
 Están en `tests/`, con Qt Test (incluido en `qt6-base-dev`), y tardan unos segundos. Comprueban el generador
 (reparto por tema, variantes y pseudorrepetidas, reparto de la correcta, preguntas ya usadas), el comprobador de
-estilo, el formato de los enunciados, la base de datos (JSON, transacciones, historial, temas), la maqueta (que un
-examen de 10 preguntas quepa en un folio) y las exportaciones, las parecidas y los recorridos principales de la
-interfaz. Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
+estilo, el formato de los enunciados, la base de datos (JSON, copia de seguridad, transacciones, historial, temas),
+la maqueta (que un examen de 10 preguntas quepa en un folio, y la versión con letra grande) y las exportaciones, las
+parecidas, el cuestionario de Moodle y los recorridos principales de la interfaz. Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
 trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`. Para no compilarlas:
 `cmake -S . -B build -DPRUEBAS=OFF`.
 
@@ -82,8 +82,9 @@ trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`.
   se indica junto a la semilla y vale para todos los exámenes de la convocatoria, la vista previa y las tres
   exportaciones; si ni así cabe, se avisa.
 - «Letra grande», junto a «Mostrar soluciones», es la versión adaptada para estudiantes con discapacidad
-  visual, lo contrario de la maqueta compacta: letra de 16 pt (también la cabecera y las instrucciones), una
-  opción por línea, más separación entre preguntas e imágenes más grandes, sin límite de páginas. Vale para la
+  visual, lo contrario de la maqueta compacta: letra de 16 pt (también la cabecera y las instrucciones), los
+  enunciados en negrita sin cursiva, una opción por línea, más separación entre preguntas e imágenes más
+  grandes, sin límite de páginas. Vale para la
   vista, la impresión y las tres exportaciones, y los ficheros llevan `_letra_grande` en el nombre
   (`2026_Junio_letra_grande_Nacional_Original.pdf`) para no pisar los normales.
 - *Exportar LaTeX…* guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>_imagenes` al
@@ -129,6 +130,15 @@ referencia al libro según el tema. Son avisos: al guardar se pide confirmación
 solo los del enunciado, las opciones o la referencia), abre cada pregunta para corregirla y guarda el informe
 en un fichero de texto, solo con los códigos de las preguntas y los avisos.
 
+*Archivo → Exportar a Moodle (XML)…* guarda las preguntas activas del banco como cuestionario en formato
+«Moodle XML», para que los estudiantes practiquen en el curso virtual: una categoría por tema (`Fundamentos de
+Informática/Tema 1: …`), cada pregunta de opción múltiple con una sola respuesta, la referencia al libro y la
+explicación como realimentación general, las imágenes incrustadas y, si se marca, las respuestas erróneas
+restando el 30 % de la pregunta, como en el examen. Las opciones se barajan en Moodle salvo en las preguntas con
+opciones del tipo «Todas las anteriores»; las anuladas y obsoletas no se exportan, y las marcadas para revisar
+se pueden excluir. En Moodle se importa desde *Banco de preguntas → Importar*. No hace falta el formato GIFT: el
+XML admite imágenes, categorías y realimentación, y GIFT no.
+
 El editor muestra también las preguntas del banco más parecidas a la que se escribe (de otros números; las
 variantes de la misma no cuentan). Al guardar una pregunta nueva con un número que no existe, si se parece mucho
 a otras, las enseña con su ficha para compararlas y propone guardarla como la siguiente variante de una de ellas
@@ -160,7 +170,8 @@ en el directorio de la asignatura, y se copian aparte de un ordenador a otro:
 
 `asignatura` es un enlace local (fuera de git) a ese directorio, para llegar a los bancos desde el proyecto:
 `ln -s "<directorio de la asignatura>" asignatura`. El `.gitignore` excluye además los `.db`, `.docx`, los JSON
-de preguntas y los exámenes exportados, por si alguno se guarda dentro del proyecto.
+de preguntas, los exámenes exportados y los cuestionarios de Moodle (`.xml`), por si alguno se guarda dentro del
+proyecto.
 
 ## Actualizar desde una nueva versión del .docx
 
