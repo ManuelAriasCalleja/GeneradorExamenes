@@ -5,6 +5,7 @@
 #include "dialogopractica.h"
 #include "dialogopregunta.h"
 #include "dialogotemas.h"
+#include "exportacion.h"
 #include "modelopreguntas.h"
 #include "utilidades.h"
 
@@ -34,7 +35,6 @@
 #include <QPixmap>
 #include <QPlainTextEdit>
 #include <QPrintPreviewDialog>
-#include <QPdfWriter>
 #include <QPrinter>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -927,123 +927,45 @@ void VentanaPrincipal::vistaPreviaImpresion()
     vista.exec();
 }
 
-// Cada modelo marcado en el diálogo se guarda en su propio PDF (y, si se marca, otro con todos juntos).
+void VentanaPrincipal::exportar(const QString &titulo, const QString &nombreBase, const QString &extension,
+                                Escritor escribir, bool soluciones, const QString &nota)
+{
+    if (!hayExamen())
+        return;
+    DialogoExportar dialogo(titulo, nombresModelos(), nombreBase, extension, this);
+    if (dialogo.exec() != QDialog::Accepted)
+        return;
+    const DatosConvocatoria d = datosConvocatoria();
+    const int nivel = nivelCompactacion();
+    QStringList escritos, fallidos;
+    for (const DialogoExportar::Fichero &f : dialogo.ficheros())
+        (escribir(f.ruta, modelosDe(f.modelos), d, soluciones, nivel) ? escritos : fallidos) << f.ruta;
+    informarExportacion(escritos, fallidos, nota);
+}
+
+// Cada examen marcado en el diálogo se guarda en su propio fichero (y, si se marca, otro con todos juntos).
 void VentanaPrincipal::exportarPdf()
 {
-    if (!hayExamen())
-        return;
-    DialogoExportar dialogo(QStringLiteral("Exportar exámenes a PDF"), nombresModelos(), nombreBaseFichero(), QStringLiteral("pdf"), this);
-    if (dialogo.exec() != QDialog::Accepted)
-        return;
-    const DatosConvocatoria d = datosConvocatoria();
-    const int nivel = nivelCompactacion();
-    QStringList escritos, fallidos;
-    for (const DialogoExportar::Fichero &f : dialogo.ficheros()) {
-        QPdfWriter pdf(f.ruta);
-        Maquetador::configurarPdf(pdf);
-        (Maquetador::imprimirExamenes(&pdf, modelosDe(f.modelos), d, false, nivel) ? escritos : fallidos) << f.ruta;
-    }
-    informarExportacion(escritos, fallidos);
+    exportar(QStringLiteral("Exportar exámenes a PDF"), nombreBaseFichero(), QStringLiteral("pdf"), &Exportacion::pdf, false);
 }
 
-// Igual que exportarPdf(), pero cada fichero lleva delante la hoja de soluciones de sus modelos.
+// Igual que exportarPdf(), pero cada fichero lleva delante la hoja de soluciones de sus exámenes.
 void VentanaPrincipal::exportarSolucionesPdf()
 {
-    if (!hayExamen())
-        return;
-    DialogoExportar dialogo(QStringLiteral("Exportar soluciones a PDF"), nombresModelos(),
-                            nombreBaseFichero() + QStringLiteral("_soluciones"), QStringLiteral("pdf"), this);
-    if (dialogo.exec() != QDialog::Accepted)
-        return;
-    const DatosConvocatoria d = datosConvocatoria();
-    const int nivel = nivelCompactacion();
-    QStringList escritos, fallidos;
-    for (const DialogoExportar::Fichero &f : dialogo.ficheros()) {
-        QPdfWriter pdf(f.ruta);
-        Maquetador::configurarPdf(pdf);
-        (Maquetador::imprimirExamenes(&pdf, modelosDe(f.modelos), d, true, nivel) ? escritos : fallidos) << f.ruta;
-    }
-    informarExportacion(escritos, fallidos);
-}
-
-bool VentanaPrincipal::escribirHtml(const QString &ruta, const QVector<Modelo> &modelos, int nivel)
-{
-    const DatosConvocatoria d = datosConvocatoria();
-    QString html = Maquetador::examenesHtml(modelos, d, m_verSoluciones->isChecked(), nivel);
-    html.replace(QStringLiteral("<html>"),
-                 QStringLiteral("<html><head><meta charset=\"utf-8\"><title>%1</title>"
-                                "<style>p { margin-top: 0; margin-bottom: 2px; } td { vertical-align: top; }</style></head>")
-                     .arg(Maquetador::escapar(d.asignatura + QStringLiteral(" - ") + d.convocatoriaYAnio())));
-
-    // Las imágenes se guardan en una carpeta junto al HTML.
-    const QFileInfo info(ruta);
-    const QString carpeta = info.completeBaseName() + QStringLiteral("_imagenes");
-    for (const Pregunta &p : Maquetador::preguntasDe(modelos)) {
-        const QString src = QStringLiteral("src=\"img:%1\"").arg(p.id);
-        if (p.imagen.isEmpty() || !html.contains(src))
-            continue;
-        QDir(info.absolutePath()).mkpath(carpeta);
-        const QString nombre = QStringLiteral("%1/%2.png").arg(carpeta, p.codigoCompleto());
-        QFile img(info.absolutePath() + QLatin1Char('/') + nombre);
-        if (img.open(QIODevice::WriteOnly))
-            img.write(p.imagen);
-        html.replace(src, QStringLiteral("src=\"%1\"").arg(nombre));
-    }
-    QFile f(ruta);
-    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
-        return false;
-    f.write(html.toUtf8());
-    return true;
+    exportar(QStringLiteral("Exportar soluciones a PDF"), nombreBaseFichero() + QStringLiteral("_soluciones"),
+             QStringLiteral("pdf"), &Exportacion::pdf, true);
 }
 
 void VentanaPrincipal::exportarHtml()
 {
-    if (!hayExamen())
-        return;
-    DialogoExportar dialogo(QStringLiteral("Exportar a HTML (editable en Word / LibreOffice)"), nombresModelos(), nombreBaseFichero(),
-                            QStringLiteral("html"), this);
-    if (dialogo.exec() != QDialog::Accepted)
-        return;
-    const int nivel = nivelCompactacion();
-    QStringList escritos, fallidos;
-    for (const DialogoExportar::Fichero &f : dialogo.ficheros())
-        (escribirHtml(f.ruta, modelosDe(f.modelos), nivel) ? escritos : fallidos) << f.ruta;
-    informarExportacion(escritos, fallidos);
-}
-
-bool VentanaPrincipal::escribirLatex(const QString &ruta, const QVector<Modelo> &modelos, int nivel)
-{
-    // Las imágenes se guardan en una carpeta junto al .tex, con un nombre sin espacios ni tildes para pdflatex.
-    const QFileInfo info(ruta);
-    const QString carpeta = limpiarNombreFichero(info.completeBaseName()) + QStringLiteral("_imagenes");
-    for (const Pregunta &p : Maquetador::preguntasDe(modelos)) {
-        if (p.imagen.isEmpty())
-            continue;
-        QDir(info.absolutePath()).mkpath(carpeta);
-        QFile img(info.absolutePath() + QLatin1Char('/') + carpeta + QLatin1Char('/') + Maquetador::nombreImagen(p));
-        if (img.open(QIODevice::WriteOnly))
-            img.write(p.imagen);
-    }
-    const QString tex = Maquetador::examenesLatex(modelos, datosConvocatoria(), m_verSoluciones->isChecked(), carpeta, nivel);
-    QFile f(ruta);
-    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
-        return false;
-    f.write(tex.toUtf8());
-    return true;
+    exportar(QStringLiteral("Exportar a HTML (editable en Word / LibreOffice)"), nombreBaseFichero(), QStringLiteral("html"),
+             &Exportacion::html, m_verSoluciones->isChecked());
 }
 
 void VentanaPrincipal::exportarLatex()
 {
-    if (!hayExamen())
-        return;
-    DialogoExportar dialogo(QStringLiteral("Exportar a LaTeX"), nombresModelos(), nombreBaseFichero(), QStringLiteral("tex"), this);
-    if (dialogo.exec() != QDialog::Accepted)
-        return;
-    const int nivel = nivelCompactacion();
-    QStringList escritos, fallidos;
-    for (const DialogoExportar::Fichero &f : dialogo.ficheros())
-        (escribirLatex(f.ruta, modelosDe(f.modelos), nivel) ? escritos : fallidos) << f.ruta;
-    informarExportacion(escritos, fallidos, QStringLiteral("compílelos dos veces con pdflatex"));
+    exportar(QStringLiteral("Exportar a LaTeX"), nombreBaseFichero(), QStringLiteral("tex"), &Exportacion::latex,
+             m_verSoluciones->isChecked(), QStringLiteral("compílelos dos veces con pdflatex"));
 }
 
 void VentanaPrincipal::registrarConvocatoria()

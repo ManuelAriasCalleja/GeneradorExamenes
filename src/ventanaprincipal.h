@@ -98,8 +98,12 @@ private:
     QVector<Modelo> modelosDe(const QVector<int> &indices) const;
     // Nivel de compactación de la maqueta con el que los modelos generados caben en sus páginas (ver Maquetador).
     int nivelCompactacion() const;
-    bool escribirHtml(const QString &ruta, const QVector<Modelo> &modelos, int nivel);
-    bool escribirLatex(const QString &ruta, const QVector<Modelo> &modelos, int nivel);
+    // Exporta los exámenes que se elijan en el diálogo, cada fichero con 'escribir' (ver exportacion.h); 'nota' se
+    // añade al mensaje del final.
+    using Escritor = bool (*)(const QString &ruta, const QVector<Modelo> &modelos, const DatosConvocatoria &datos,
+                              bool soluciones, int nivel);
+    void exportar(const QString &titulo, const QString &nombreBase, const QString &extension, Escritor escribir,
+                  bool soluciones, const QString &nota = QString());
     void informarExportacion(const QStringList &escritos, const QStringList &fallidos, const QString &nota = QString());
 
     BaseDatos m_bd;
