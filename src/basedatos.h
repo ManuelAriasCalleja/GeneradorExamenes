@@ -37,6 +37,10 @@ public:
     QVector<Tema> temas();
     bool guardarTema(Tema &tema);
     bool borrarTema(int id);
+    // Los cambios del diálogo de temas, de una vez (si algo falla, no cambia nada): borra los temas de 'borrados'
+    // (con sus preguntas) y guarda los de 'nuevos', a los que no tenían id se lo pone. Si cambia el número de un tema,
+    // actualiza los códigos que lo llevan escrito: los enlaces «pseudorrepetida con» (T3-5) y los del historial.
+    bool guardarTemas(QVector<Tema> &nuevos, const QVector<int> &borrados);
     int contarPreguntas(int temaId);
 
     QVector<Pregunta> preguntas();

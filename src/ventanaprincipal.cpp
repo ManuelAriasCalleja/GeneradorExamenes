@@ -35,6 +35,7 @@
 #include <QPixmap>
 #include <QPlainTextEdit>
 #include <QPrintPreviewDialog>
+#include <QPdfWriter>
 #include <QPrinter>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -949,11 +950,9 @@ void VentanaPrincipal::exportarPdf()
     const int nivel = nivelCompactacion();
     QStringList escritos, fallidos;
     for (const DialogoExportar::Fichero &f : dialogo.ficheros()) {
-        QPrinter printer(QPrinter::HighResolution);
-        printer.setOutputFormat(QPrinter::PdfFormat);
-        printer.setOutputFileName(f.ruta);
-        Maquetador::configurarPagina(printer);
-        (Maquetador::imprimirExamenes(&printer, modelosDe(f.modelos), d, false, nivel) ? escritos : fallidos) << f.ruta;
+        QPdfWriter pdf(f.ruta);
+        Maquetador::configurarPdf(pdf);
+        (Maquetador::imprimirExamenes(&pdf, modelosDe(f.modelos), d, false, nivel) ? escritos : fallidos) << f.ruta;
     }
     informarExportacion(escritos, fallidos);
 }
@@ -971,11 +970,9 @@ void VentanaPrincipal::exportarSolucionesPdf()
     const int nivel = nivelCompactacion();
     QStringList escritos, fallidos;
     for (const DialogoExportar::Fichero &f : dialogo.ficheros()) {
-        QPrinter printer(QPrinter::HighResolution);
-        printer.setOutputFormat(QPrinter::PdfFormat);
-        printer.setOutputFileName(f.ruta);
-        Maquetador::configurarPagina(printer);
-        (Maquetador::imprimirExamenes(&printer, modelosDe(f.modelos), d, true, nivel) ? escritos : fallidos) << f.ruta;
+        QPdfWriter pdf(f.ruta);
+        Maquetador::configurarPdf(pdf);
+        (Maquetador::imprimirExamenes(&pdf, modelosDe(f.modelos), d, true, nivel) ? escritos : fallidos) << f.ruta;
     }
     informarExportacion(escritos, fallidos);
 }
@@ -1233,6 +1230,10 @@ void VentanaPrincipal::duplicarPregunta()
     // Nueva variante del mismo número: siguiente letra libre.
     p.id = 0;
     p.variante = Parecidas::siguienteVariante(m_preguntas, p.temaId, p.numero);
+    if (p.variante.isEmpty()) {
+        QMessageBox::information(this, windowTitle(), QStringLiteral("%1 ya tiene variantes de la a a la z.").arg(p.grupo()));
+        return;
+    }
     p.old = false;
     editar(p);
 }

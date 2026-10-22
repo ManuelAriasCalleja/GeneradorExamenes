@@ -7,6 +7,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegularExpression>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QVariant>
@@ -236,6 +237,89 @@ bool BaseDatos::guardarTema(Tema &tema)
     }
     if (tema.id == 0)
         tema.id = q.lastInsertId().toInt();
+    return true;
+}
+
+bool BaseDatos::guardarTemas(QVector<Tema> &nuevos, const QVector<int> &borrados)
+{
+    QHash<int, int> numeroAntes;   // id del tema -> número que tenía
+    for (const Tema &t : temas())
+        numeroAntes.insert(t.id, t.numero);
+    auto fallar = [this]() {
+        m_db.rollback();
+        return false;
+    };
+    m_db.transaction();
+    for (int id : borrados)
+        if (!borrarTema(id))
+            return fallar();
+    // Se renumeran en dos pasos para no chocar con la restricción UNIQUE si se intercambian números.
+    for (const Tema &t : std::as_const(nuevos)) {
+        if (t.id) {
+            Tema provisional = t;
+            provisional.numero = -t.numero;
+            if (!guardarTema(provisional))
+                return fallar();
+        }
+    }
+    QVector<Tema> guardados = nuevos;
+    QHash<int, int> cambio;   // número antes -> número después
+    for (Tema &t : guardados) {
+        if (t.id && numeroAntes.contains(t.id) && numeroAntes.value(t.id) != t.numero)
+            cambio.insert(numeroAntes.value(t.id), t.numero);
+        if (!guardarTema(t))
+            return fallar();
+    }
+
+    if (!cambio.isEmpty()) {
+        auto renumerar = [&cambio](const QString &codigo) {
+            static const QRegularExpression re(QStringLiteral("^T(\\d+)-"), QRegularExpression::CaseInsensitiveOption);
+            const QRegularExpressionMatch m = re.match(codigo.trimmed());
+            if (!m.hasMatch() || !cambio.contains(m.captured(1).toInt()))
+                return codigo;
+            return QStringLiteral("T%1-").arg(cambio.value(m.captured(1).toInt())) + codigo.trimmed().mid(m.capturedEnd());
+        };
+        QSqlQuery q(m_db);
+        QVector<QPair<int, QString>> enlaces;
+        q.exec(QStringLiteral("SELECT id, pseudo_con FROM preguntas WHERE pseudo_con <> ''"));
+        while (q.next())
+            if (renumerar(q.value(1).toString()) != q.value(1).toString())
+                enlaces.append({q.value(0).toInt(), renumerar(q.value(1).toString())});
+        for (const auto &e : enlaces) {
+            q.prepare(QStringLiteral("UPDATE preguntas SET pseudo_con = ? WHERE id = ?"));
+            q.addBindValue(e.second);
+            q.addBindValue(e.first);
+            if (!q.exec()) {
+                m_error = q.lastError().text();
+                return fallar();
+            }
+        }
+        struct Registrada
+        {
+            int examen, posicion;
+            QString codigo;
+        };
+        QVector<Registrada> registradas;
+        q.exec(QStringLiteral("SELECT examen_id, posicion, codigo FROM preguntas_registradas"));
+        while (q.next())
+            if (renumerar(q.value(2).toString()) != q.value(2).toString())
+                registradas.append({q.value(0).toInt(), q.value(1).toInt(), renumerar(q.value(2).toString())});
+        for (const Registrada &r : registradas) {
+            q.prepare(QStringLiteral("UPDATE preguntas_registradas SET codigo = ? WHERE examen_id = ? AND posicion = ?"));
+            q.addBindValue(r.codigo);
+            q.addBindValue(r.examen);
+            q.addBindValue(r.posicion);
+            if (!q.exec()) {
+                m_error = q.lastError().text();
+                return fallar();
+            }
+        }
+    }
+    if (!m_db.commit()) {
+        m_error = m_db.lastError().text();
+        return fallar();
+    }
+    nuevos = guardados;
     return true;
 }
 

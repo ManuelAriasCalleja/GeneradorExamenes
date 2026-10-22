@@ -5,7 +5,8 @@
 #include <QString>
 #include <QVector>
 
-class QPrinter;
+class QPagedPaintDevice;
+class QPdfWriter;
 class QTextDocument;
 class QObject;
 
@@ -70,15 +71,18 @@ public:
     // los márgenes de configurarPagina(). Si no caben ni con el último nivel, devuelve ese y pone *caben a false.
     static int nivelParaCaber(const QVector<Modelo> &modelos, const DatosConvocatoria &datos, bool *caben = nullptr);
 
-    // A4 con los márgenes de los exámenes.
-    static void configurarPagina(QPrinter &printer);
+    // A4 con los márgenes de los exámenes, en una impresora (QPrinter) o en un PDF.
+    static void configurarPagina(QPagedPaintDevice &dispositivo);
+    // PDF con la página de los exámenes y la resolución de QPrinter::HighResolution. Para los PDF se usa QPdfWriter
+    // y no QPrinter: crear un QPrinter consulta las impresoras del sistema y tarda segundos.
+    static void configurarPdf(QPdfWriter &pdf);
     // Imprime (o exporta a PDF) los modelos, cada uno en página nueva, con pie «Nacional Original · Junio 2026: n / total».
     // Con 'soluciones' antepone la hoja de soluciones (estructura y plantillas) y marca las respuestas correctas.
-    static bool imprimirExamenes(QPrinter *printer, const QVector<Modelo> &modelos, const DatosConvocatoria &datos,
+    static bool imprimirExamenes(QPagedPaintDevice *dispositivo, const QVector<Modelo> &modelos, const DatosConvocatoria &datos,
                                  bool soluciones, int nivel);
     // Imprime varios documentos (cada uno empieza en página nueva) con pie "texto: página / total".
     // Evita que una pregunta quede partida entre dos páginas.
-    static bool imprimir(QPrinter *printer, const QVector<QTextDocument *> &documentos, const QStringList &pies);
+    static bool imprimir(QPagedPaintDevice *dispositivo, const QVector<QTextDocument *> &documentos, const QStringList &pies);
 
     static QString formatoPuntos(double v);
     // «A 3 · B 3 · C 2 · D 2»: cuántas veces es correcta cada letra en el examen.

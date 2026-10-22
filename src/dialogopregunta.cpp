@@ -2,6 +2,7 @@
 #include "dialogoparecidas.h"
 #include "estilo.h"
 #include "maquetador.h"
+#include "utilidades.h"
 
 #include <QBuffer>
 #include <QButtonGroup>
@@ -186,6 +187,16 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     connect(m_variante, &QLineEdit::textChanged, this, &DialogoPregunta::actualizarVistaPrevia);
     connect(m_tema, &QComboBox::currentIndexChanged, this, &DialogoPregunta::actualizarVistaPrevia);
     connect(m_pseudo, &QLineEdit::textChanged, this, &DialogoPregunta::actualizarVistaPrevia);
+    // En una pregunta nueva, el número propuesto es el primero libre del tema que se eligió al crearla; si se cambia
+    // de tema, se propone el del tema nuevo, para que no vaya a parar sin querer al grupo de otra pregunta.
+    if (pregunta.id == 0 && pregunta.variante.isEmpty())
+        connect(m_tema, &QComboBox::currentIndexChanged, this, [this]() {
+            int maximo = 0;
+            for (const Pregunta &q : std::as_const(m_banco))
+                if (q.temaId == m_tema->currentData().toInt())
+                    maximo = qMax(maximo, q.numero);
+            m_numero->setValue(maximo + 1);
+        });
 
     mostrarImagen();
     actualizarVistaPrevia();
@@ -300,13 +311,34 @@ bool DialogoPregunta::decidirSiEsVariante()
     switch (dialogo.decision()) {
     case DialogoParecidas::SeguirEditando:
         return false;
-    case DialogoParecidas::ComoVariante:
+    case DialogoParecidas::ComoVariante: {
+        const QString letra = Parecidas::siguienteVariante(m_banco, elegida.temaId, elegida.numero);
+        if (letra.isEmpty()) {
+            QMessageBox::information(this, windowTitle(), QStringLiteral("%1 ya tiene variantes de la a a la z.").arg(elegida.grupo()));
+            return false;
+        }
         m_numero->setValue(elegida.numero);
-        m_variante->setText(Parecidas::siguienteVariante(m_banco, elegida.temaId, elegida.numero));
+        m_variante->setText(letra);
+        // Las variantes de un grupo comparten su enlace con la pseudorrepetida de otro tema.
+        if (m_pseudo->text().trimmed().isEmpty()) {
+            for (const Pregunta &q : std::as_const(m_banco)) {
+                if (q.temaId == elegida.temaId && q.numero == elegida.numero && !q.pseudoCon.isEmpty()) {
+                    m_pseudo->setText(q.pseudoCon);
+                    break;
+                }
+            }
+        }
         break;
-    case DialogoParecidas::ComoPseudorrepetida:
+    }
+    case DialogoParecidas::ComoPseudorrepetida: {
+        const QString antes = m_pseudo->text().trimmed().toUpper();
+        if (!antes.isEmpty() && antes != elegida.grupo()
+            && !confirmar(this, windowTitle(),
+                          QStringLiteral("La pregunta ya está enlazada con %1. ¿Enlazarla con %2 en su lugar?").arg(antes, elegida.grupo())))
+            return false;
         m_pseudo->setText(elegida.grupo());
         break;
+    }
     case DialogoParecidas::ComoNueva:
         break;
     }

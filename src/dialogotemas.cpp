@@ -106,9 +106,6 @@ void DialogoTemas::accept()
         }
         numeros.insert(n);
     }
-    for (int id : m_borrados)
-        m_bd->borrarTema(id);
-    // Se renumeran en dos pasos para no chocar con la restricción UNIQUE si se intercambian números.
     QVector<Tema> temas;
     for (int f = 0; f < m_tabla->rowCount(); ++f) {
         Tema t;
@@ -118,17 +115,9 @@ void DialogoTemas::accept()
         t.autor = m_tabla->item(f, ColAutor) ? m_tabla->item(f, ColAutor)->text().trimmed() : QString();
         temas << t;
     }
-    for (Tema t : temas) {
-        if (t.id) {
-            t.numero = -t.numero;
-            m_bd->guardarTema(t);
-        }
-    }
-    for (Tema &t : temas) {
-        if (!m_bd->guardarTema(t)) {
-            QMessageBox::warning(this, windowTitle(), m_bd->ultimoError());
-            return;
-        }
+    if (!m_bd->guardarTemas(temas, m_borrados)) {
+        QMessageBox::warning(this, windowTitle(), QStringLiteral("No se guardó ningún cambio:\n%1").arg(m_bd->ultimoError()));
+        return;
     }
     QDialog::accept();
 }

@@ -8,7 +8,9 @@
 #include <QLocale>
 #include <QMap>
 #include <QPainter>
-#include <QPrinter>
+#include <QBuffer>
+#include <QPagedPaintDevice>
+#include <QPdfWriter>
 #include <QScreen>
 #include <QTextBlock>
 #include <QTextCursor>
@@ -515,38 +517,45 @@ struct Pagina
     QFont fuentePie;
 };
 
-Pagina paginaDe(QPrinter *printer)
+Pagina paginaDe(QPagedPaintDevice *dispositivo)
 {
     Pagina p;
     const qreal dpiDoc = dpiDocumento();
-    p.escala = printer->logicalDpiY() / dpiDoc;
-    const QRectF area = printer->pageLayout().paintRect(QPageLayout::Point);
+    p.escala = dispositivo->logicalDpiY() / dpiDoc;
+    const QRectF area = dispositivo->pageLayout().paintRect(QPageLayout::Point);
     p.fuentePie.setFamilies({QStringLiteral("Liberation Sans"), QStringLiteral("Arial"), QStringLiteral("DejaVu Sans")});
     p.fuentePie.setPointSizeF(8);
-    const QFontMetricsF fm(p.fuentePie, printer);
+    const QFontMetricsF fm(p.fuentePie, dispositivo);
     const qreal altoPieDispositivo = fm.height() * 2.2;
     const qreal anchoDoc = area.width() * dpiDoc / 72.0;
     const qreal altoDoc = area.height() * dpiDoc / 72.0 - altoPieDispositivo / p.escala;
     p.documento = QSizeF(anchoDoc, altoDoc);
     p.anchoDispositivo = anchoDoc * p.escala;
-    p.altoDispositivo = area.height() * printer->logicalDpiY() / 72.0;
+    p.altoDispositivo = area.height() * dispositivo->logicalDpiY() / 72.0;
     return p;
 }
 
 } // namespace
 
-void Maquetador::configurarPagina(QPrinter &printer)
+void Maquetador::configurarPagina(QPagedPaintDevice &dispositivo)
 {
-    printer.setPageSize(QPageSize(QPageSize::A4));
-    printer.setPageMargins(QMarginsF(18, 15, 18, 12), QPageLayout::Millimeter);
+    dispositivo.setPageSize(QPageSize(QPageSize::A4));
+    dispositivo.setPageMargins(QMarginsF(18, 15, 18, 12), QPageLayout::Millimeter);
+}
+
+void Maquetador::configurarPdf(QPdfWriter &pdf)
+{
+    pdf.setResolution(1200);
+    configurarPagina(pdf);
 }
 
 int Maquetador::nivelParaCaber(const QVector<Modelo> &modelos, const DatosConvocatoria &d, bool *caben)
 {
-    QPrinter printer(QPrinter::HighResolution);
-    printer.setOutputFormat(QPrinter::PdfFormat);
-    configurarPagina(printer);
-    const QSizeF pagina = paginaDe(&printer).documento;
+    // Solo hacen falta las medidas de la página: un PDF que no se llega a escribir.
+    QBuffer nada;
+    QPdfWriter pdf(&nada);
+    configurarPdf(pdf);
+    const QSizeF pagina = paginaDe(&pdf).documento;
     for (int n = 0; n < kNumNiveles; ++n) {
         bool todos = true;
         for (const Modelo &m : modelos) {
@@ -569,7 +578,7 @@ int Maquetador::nivelParaCaber(const QVector<Modelo> &modelos, const DatosConvoc
     return kNumNiveles - 1;
 }
 
-bool Maquetador::imprimirExamenes(QPrinter *printer, const QVector<Modelo> &modelos, const DatosConvocatoria &d,
+bool Maquetador::imprimirExamenes(QPagedPaintDevice *dispositivo, const QVector<Modelo> &modelos, const DatosConvocatoria &d,
                                   bool soluciones, int nivel)
 {
     const QVector<Pregunta> conImagen = preguntasDe(modelos);
@@ -583,19 +592,19 @@ bool Maquetador::imprimirExamenes(QPrinter *printer, const QVector<Modelo> &mode
         docs << crearDocumento(examenHtml(m, d, soluciones, nivel), conImagen, nullptr);
         pies << textoPie(m.nombre, d);
     }
-    const bool ok = imprimir(printer, docs, pies);
+    const bool ok = imprimir(dispositivo, docs, pies);
     qDeleteAll(docs);
     return ok;
 }
 
-bool Maquetador::imprimir(QPrinter *printer, const QVector<QTextDocument *> &documentos, const QStringList &pies)
+bool Maquetador::imprimir(QPagedPaintDevice *dispositivo, const QVector<QTextDocument *> &documentos, const QStringList &pies)
 {
     QPainter painter;
-    if (!painter.begin(printer))
+    if (!painter.begin(dispositivo))
         return false;
 
-    const Pagina pagina = paginaDe(printer);
-    const QFontMetricsF fm(pagina.fuentePie, printer);
+    const Pagina pagina = paginaDe(dispositivo);
+    const QFontMetricsF fm(pagina.fuentePie, dispositivo);
     const qreal anchoDoc = pagina.documento.width();
     const qreal altoDoc = pagina.documento.height();
 
@@ -607,7 +616,7 @@ bool Maquetador::imprimir(QPrinter *printer, const QVector<QTextDocument *> &doc
         const int paginas = doc->pageCount();
         for (int pg = 0; pg < paginas; ++pg) {
             if (!primera)
-                printer->newPage();
+                dispositivo->newPage();
             primera = false;
 
             painter.save();

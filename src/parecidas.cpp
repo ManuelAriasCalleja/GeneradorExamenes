@@ -130,10 +130,10 @@ QString siguienteVariante(const QVector<Pregunta> &banco, int temaId, int numero
     for (const Pregunta &q : banco)
         if (q.temaId == temaId && q.numero == numero)
             usadas.insert(q.variante.isEmpty() ? QStringLiteral("a") : q.variante);
-    QChar letra = QLatin1Char('a');
-    while (usadas.contains(QString(letra)) && letra < QLatin1Char('z'))
-        letra = QChar(letra.unicode() + 1);
-    return QString(letra);
+    for (char letra = 'a'; letra <= 'z'; ++letra)
+        if (!usadas.contains(QString(QLatin1Char(letra))))
+            return QString(QLatin1Char(letra));
+    return QString();
 }
 
 } // namespace Parecidas

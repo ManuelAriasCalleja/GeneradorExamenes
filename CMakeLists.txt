@@ -6,6 +6,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Sin tipo de compilación indicado, optimizada (CMake no optimiza por defecto).
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Tipo de compilación" FORCE)
+endif()
+
 find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Sql PrintSupport)
 qt_standard_project_setup()
 

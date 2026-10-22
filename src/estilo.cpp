@@ -225,12 +225,12 @@ QVector<Aviso> revisar(const Pregunta &p)
 bool opcionDependiente(const QString &opcion)
 {
     static const QRegularExpression re(
-        QStringLiteral("\\b(todas|ninguna|ambas|las dos)( de)?( las)?( opciones| respuestas)? anteriores\\b"
+        QStringLiteral("\\b(todos|todas|ninguno|ninguna|ambos|ambas|los dos|las dos)( de)?( los| las)?( opciones| respuestas)? anteriores\\b"
                        "|\\bcualquiera? de (los|las) (\\w+ )?anteriores\\b"
-                       "|\\b(todas|ninguna|ambas) (son|es) (correctas?|ciertas?|verdaderas?|falsas?)\\b"
-                       "|^ *(ambas|las dos|todas|ninguna) *\\.? *$"
-                       "|^ *[a-d]\\)? y [a-d]\\)? *\\.? *$"
-                       "|\\blas (opciones|respuestas) [a-d]\\)? y [a-d]\\b"),
+                       "|\\b(todos|todas|ninguno|ninguna|ambos|ambas) (son|es|están|está) (correct|ciert|verdader|fals)[oa]s?\\b"
+                       "|^ *(ambos|ambas|los dos|las dos|todos|todas|ninguno|ninguna) *\\.? *$"
+                       "|^ *[a-d]\\)? y [a-d]\\)?( (son|es|están) (correct|ciert|verdader|fals)[oa]s?)? *\\.? *$"
+                       "|\\b(opciones|respuestas) [a-d]\\)? y [a-d]\\b"),
         QRegularExpression::CaseInsensitiveOption | kUnicode);
     return re.match(opcion).hasMatch();
 }
