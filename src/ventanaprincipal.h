@@ -140,7 +140,6 @@ private:
     QLineEdit *m_asignatura;
     QComboBox *m_convocatoria;
     QSpinBox *m_anio;
-    QSpinBox *m_duracion;
     QListWidget *m_listaExamenes;           // nombres de los exámenes; se generan los marcados
     QPlainTextEdit *m_instrucciones;
     QGridLayout *m_rejillaTemas;

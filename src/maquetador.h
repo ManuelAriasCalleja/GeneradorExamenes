@@ -17,7 +17,6 @@ struct DatosConvocatoria
     int anio = 0;
     QString instrucciones = QStringLiteral("Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.\n"
                                            "No entregue el enunciado.");
-    int duracionMinutos = 60;
     double puntosAcierto = 1.0;
     double puntosFallo = 0.3;        // se resta
 

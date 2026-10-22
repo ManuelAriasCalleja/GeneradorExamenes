@@ -14,12 +14,13 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
+#include <QSpinBox>
 #include <QTimer>
 #include <QToolButton>
 #include <QVBoxLayout>
 
-DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &datos, QWidget *parent)
-    : QDialog(parent), m_modelo(modelo), m_datos(datos), m_segundosRestantes(datos.duracionMinutos * 60)
+DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &datos, int duracionMinutos, QWidget *parent)
+    : QDialog(parent), m_modelo(modelo), m_datos(datos)
 {
     setWindowTitle(QStringLiteral("Practicar: %1 - %2").arg(datos.asignatura, modelo.nombre));
     resize(900, 800);
@@ -29,14 +30,26 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
                                   .arg(Maquetador::escapar(datos.asignatura), Maquetador::escapar(modelo.nombre))
                                   .arg(modelo.preguntas.size())
                                   .arg(Maquetador::formatoPuntos(datos.puntosAcierto), Maquetador::formatoPuntos(datos.puntosFallo)));
+    // Duración y «Empezar»; al empezar los sustituye el reloj.
+    m_duracion = new QSpinBox;
+    m_duracion->setRange(5, 300);
+    m_duracion->setSuffix(QStringLiteral(" min"));
+    m_duracion->setValue(duracionMinutos);
+    m_empezar = new QPushButton(QStringLiteral("Empezar"));
+    m_empezar->setDefault(true);
+    connect(m_empezar, &QPushButton::clicked, this, &DialogoPractica::empezar);
     m_reloj = new QLabel;
     m_reloj->setStyleSheet(QStringLiteral("font-size: 16pt; font-weight: bold"));
+    m_reloj->hide();
     m_nota = new QLabel;
     m_nota->setStyleSheet(QStringLiteral("font-size: 14pt; font-weight: bold; color: #0a5d9c"));
     auto *cabecera = new QHBoxLayout;
     cabecera->addWidget(titulo, 1);
     cabecera->addWidget(m_nota);
     cabecera->addSpacing(20);
+    cabecera->addWidget(new QLabel(QStringLiteral("Duración:")));
+    cabecera->addWidget(m_duracion);
+    cabecera->addWidget(m_empezar);
     cabecera->addWidget(m_reloj);
 
     auto *contenido = new QWidget;
@@ -45,12 +58,13 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
         lc->addWidget(crearPregunta(i + 1, modelo.preguntas.at(i)));
     lc->addStretch();
 
-    auto *scroll = new QScrollArea;
-    scroll->setWidget(contenido);
-    scroll->setWidgetResizable(true);
+    m_preguntas = new QScrollArea;
+    m_preguntas->setWidget(contenido);
+    m_preguntas->setWidgetResizable(true);
+    m_preguntas->setEnabled(false);   // hasta que se pulse «Empezar»
 
     m_corregir = new QPushButton(QStringLiteral("Terminar y corregir"));
-    m_corregir->setDefault(true);
+    m_corregir->setEnabled(false);
     connect(m_corregir, &QPushButton::clicked, this, &DialogoPractica::corregir);
     auto *botones = new QDialogButtonBox;
     botones->addButton(QStringLiteral("Cerrar"), QDialogButtonBox::RejectRole);
@@ -59,11 +73,30 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
 
     auto *l = new QVBoxLayout(this);
     l->addLayout(cabecera);
-    l->addWidget(scroll, 1);
+    l->addWidget(m_preguntas, 1);
     l->addWidget(botones);
 
     m_temporizador = new QTimer(this);
     connect(m_temporizador, &QTimer::timeout, this, &DialogoPractica::tic);
+}
+
+int DialogoPractica::duracionMinutos() const
+{
+    return m_duracion->value();
+}
+
+void DialogoPractica::empezar()
+{
+    if (m_empezado)
+        return;
+    m_empezado = true;
+    m_segundosRestantes = m_duracion->value() * 60;
+    m_duracion->setEnabled(false);
+    m_empezar->hide();
+    m_reloj->show();
+    m_preguntas->setEnabled(true);
+    m_corregir->setEnabled(true);
+    m_corregir->setDefault(true);
     m_temporizador->start(1000);
     tic();
 }
@@ -153,7 +186,7 @@ void DialogoPractica::tic()
 
 void DialogoPractica::corregir()
 {
-    if (m_corregido)
+    if (m_corregido || !m_empezado)
         return;
     m_corregido = true;
     m_temporizador->stop();

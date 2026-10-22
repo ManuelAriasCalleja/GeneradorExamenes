@@ -19,7 +19,7 @@ struct ExamenRegistrado
     QString nombre;                  // p. ej. "Nacional Original"
     QDateTime registrado;
     quint32 semilla = 0;
-    DatosConvocatoria datos;         // convocatoria, año, asignatura, instrucciones, duración y puntuación
+    DatosConvocatoria datos;         // convocatoria, año, asignatura, instrucciones y puntuación
     int numPreguntas = 0;
 };
 

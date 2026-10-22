@@ -166,17 +166,12 @@ QWidget *VentanaPrincipal::crearGrupoConvocatoria()
     m_anio = new QSpinBox;
     m_anio->setRange(2000, 2100);
     m_anio->setValue(QDate::currentDate().year());
-    m_duracion = new QSpinBox;
-    m_duracion->setRange(5, 300);
-    m_duracion->setSuffix(QStringLiteral(" min"));
-    m_duracion->setValue(60);
     m_instrucciones = new QPlainTextEdit(DatosConvocatoria().instrucciones);
     m_instrucciones->setMaximumHeight(52);
     m_instrucciones->setTabChangesFocus(true);
     fConv->addRow(QStringLiteral("Asignatura:"), m_asignatura);
     fConv->addRow(QStringLiteral("Convocatoria:"), m_convocatoria);
     fConv->addRow(QStringLiteral("Año:"), m_anio);
-    fConv->addRow(QStringLiteral("Duración:"), m_duracion);
     fConv->addRow(QStringLiteral("Instrucciones:"), m_instrucciones);
     return gConv;
 }
@@ -836,7 +831,6 @@ QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
     // En este orden se leen: «Automática» antes que los puntos, para que se queden los guardados.
     return {
         {QStringLiteral("examen/asignatura"), m_asignatura},
-        {QStringLiteral("examen/duracion"), m_duracion},
         {QStringLiteral("examen/instrucciones"), m_instrucciones},
         {QStringLiteral("examen/anio"), m_anio},
         {QStringLiteral("examen/nombreConvocatoria"), m_convocatoria},
@@ -925,7 +919,6 @@ DatosConvocatoria VentanaPrincipal::datosConvocatoria() const
     d.asignatura = m_asignatura->text().trimmed();
     d.convocatoria = m_convocatoria->currentText().trimmed();
     d.anio = m_anio->value();
-    d.duracionMinutos = m_duracion->value();
     d.instrucciones = m_instrucciones->toPlainText().trimmed();
     d.puntosAcierto = m_acierto->value();
     d.puntosFallo = m_fallo->value();
@@ -1186,7 +1179,6 @@ void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)
     m_asignatura->setText(d.asignatura);
     m_convocatoria->setCurrentText(d.convocatoria);
     m_anio->setValue(d.anio);
-    m_duracion->setValue(d.duracionMinutos);
     m_instrucciones->setPlainText(d.instrucciones);
     if (qAbs(m_acierto->value() - d.puntosAcierto) > 0.001 || qAbs(m_fallo->value() - d.puntosFallo) > 0.001) {
         m_puntuacionAuto->setChecked(false);
@@ -1203,8 +1195,13 @@ void VentanaPrincipal::practicar()
     const int i = m_selectorModelo->currentIndex();
     if (i < 0 || i >= m_resultado.modelos.size())
         return;
-    DialogoPractica d(m_resultado.modelos.at(i), datosConvocatoria(), this);
+    // La duración se recuerda de una vez a otra (antes era un campo de la convocatoria: se hereda su valor).
+    QSettings ajustes;
+    const int duracion = ajustes.value(QStringLiteral("practica/duracion"),
+                                       ajustes.value(QStringLiteral("examen/duracion"), 60)).toInt();
+    DialogoPractica d(m_resultado.modelos.at(i), datosConvocatoria(), duracion, this);
     d.exec();
+    ajustes.setValue(QStringLiteral("practica/duracion"), d.duracionMinutos());
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -286,7 +286,7 @@ bool BaseDatos::crearEsquema()
                " semilla INTEGER NOT NULL,"
                " asignatura TEXT NOT NULL,"
                " instrucciones TEXT NOT NULL,"
-               " duracion INTEGER NOT NULL,"
+               " duracion INTEGER NOT NULL,"   // ya no se usa (la duración es del diálogo de práctica); se guarda 0
                " puntos_acierto REAL NOT NULL,"
                " puntos_fallo REAL NOT NULL,"
                " UNIQUE (anio, convocatoria, nombre))"))
@@ -701,7 +701,7 @@ bool BaseDatos::registrarExamenes(const QVector<Modelo> &modelos, const DatosCon
                                         " asignatura, instrucciones, duracion, puntos_acierto, puntos_fallo)"
                                         " VALUES (?,?,?,?,?,?,?,?,?,?)"),
                          {datos.anio, texto(datos.convocatoria), texto(m.nombre), ahora, qint64(semilla), texto(datos.asignatura),
-                          texto(datos.instrucciones), datos.duracionMinutos, datos.puntosAcierto, datos.puntosFallo},
+                          texto(datos.instrucciones), 0 /* duracion: columna antigua, ya sin uso */, datos.puntosAcierto, datos.puntosFallo},
                          &examenId))
             return false;
         for (int i = 0; i < m.preguntas.size(); ++i) {
@@ -731,7 +731,7 @@ QVector<ExamenRegistrado> BaseDatos::examenesRegistrados()
     QHash<ClaveConvocatoria, int> ultimoId;
     QSqlQuery q = consultar(QStringLiteral(
         "SELECT e.id, e.nombre, e.registrado, e.semilla, e.anio, e.convocatoria, e.asignatura, e.instrucciones,"
-        " e.duracion, e.puntos_acierto, e.puntos_fallo,"
+        " e.puntos_acierto, e.puntos_fallo,"
         " (SELECT COUNT(*) FROM preguntas_registradas p WHERE p.examen_id = e.id)"
         " FROM examenes_registrados e ORDER BY e.id"));
     while (q.next()) {
@@ -744,10 +744,9 @@ QVector<ExamenRegistrado> BaseDatos::examenesRegistrados()
         e.datos.convocatoria = q.value(5).toString();
         e.datos.asignatura = q.value(6).toString();
         e.datos.instrucciones = q.value(7).toString();
-        e.datos.duracionMinutos = q.value(8).toInt();
-        e.datos.puntosAcierto = q.value(9).toDouble();
-        e.datos.puntosFallo = q.value(10).toDouble();
-        e.numPreguntas = q.value(11).toInt();
+        e.datos.puntosAcierto = q.value(8).toDouble();
+        e.datos.puntosFallo = q.value(9).toDouble();
+        e.numPreguntas = q.value(10).toInt();
         ultimoId[ClaveConvocatoria(e.datos.anio, e.datos.convocatoria)] = e.id;
         res.append(e);
     }

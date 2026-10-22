@@ -74,7 +74,8 @@ trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`.
   (tabla de estructura por temas como la de las instrucciones, plantilla de respuestas y exámenes con la
   solución marcada) se exportan igual, por examen (`2026_Junio_soluciones_Nacional_Original.pdf`…) o todas
   juntas.
-  También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar»).
+  También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar este examen…»): se elige la
+  duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar «Empezar».
 - Cada examen cabe en una página por cada 10 preguntas (un examen de 10 preguntas, en un folio). Si con la
   maqueta normal no cabe, el programa la compacta por niveles: opciones en dos columnas (a c / b d) cuando
   así ocupan menos líneas, menos separación entre preguntas y letra algo menor (hasta 9 pt). El nivel usado

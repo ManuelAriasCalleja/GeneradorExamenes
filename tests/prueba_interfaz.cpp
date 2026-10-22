@@ -173,11 +173,28 @@ private slots:
         c.preguntasPorTema = {{1, 3}, {2, 2}, {3, 3}, {4, 2}};
         c.barajarOpciones = true;
         const Modelo m = Generador::generar(bancoInventado(), c).modelos.first();
-        DialogoPractica p(m, DatosConvocatoria());   // +1 por acierto, −0,3 por fallo
+        DialogoPractica p(m, DatosConvocatoria(), 45);   // +1 por acierto, −0,3 por fallo
         p.show();
-        // Bien las cuatro primeras, mal la quinta; la sexta se marca y se deja después en blanco.
         const QList<QButtonGroup *> grupos = p.findChildren<QButtonGroup *>();
         QCOMPARE(grupos.size(), 10);
+        // Hasta pulsar «Empezar» no se puede contestar ni corregir; el reloj arranca con la duración elegida.
+        QVERIFY(!grupos.first()->button(0)->isEnabled());
+        QPushButton *empezar = nullptr;
+        for (QPushButton *b : p.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Empezar"))
+                empezar = b;
+        QVERIFY(empezar);
+        QCOMPARE(p.duracionMinutos(), 45);
+        p.findChild<QSpinBox *>()->setValue(50);
+        empezar->click();
+        QCOMPARE(p.duracionMinutos(), 50);
+        QVERIFY(grupos.first()->button(0)->isEnabled());
+        QString reloj;
+        for (QLabel *l : p.findChildren<QLabel *>())
+            if (l->text() == QStringLiteral("50:00"))
+                reloj = l->text();
+        QCOMPARE(reloj, QStringLiteral("50:00"));
+        // Bien las cuatro primeras, mal la quinta; la sexta se marca y se deja después en blanco.
         for (int i = 0; i < 6; ++i) {
             const int correcta = m.preguntas.at(i).correcta();
             grupos.at(i)->button(i == 4 ? (correcta + 1) % 4 : correcta)->setChecked(true);
