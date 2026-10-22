@@ -27,7 +27,7 @@ public:
     BaseDatos();
     ~BaseDatos();
 
-    // Abre (o crea) la base de datos. Si está vacía la rellena con las preguntas incluidas en el programa.
+    // Abre la base de datos (si no existe, la crea vacía).
     bool abrir(const QString &ruta);
     void cerrar();
     bool abierta() const;
@@ -48,8 +48,6 @@ public:
     // Las preguntas con el mismo tema, número y variante se actualizan.
     int importarJson(const QString &ruta, bool reemplazar);
     bool exportarJson(const QString &ruta);
-
-    static QString rutaJsonIncluido() { return QStringLiteral(":/datos/preguntas_fi.json"); }
 
     // Historial de convocatorias. Cada examen registrado guarda una copia de sus preguntas tal como salieron (con
     // el orden de las opciones), para poder volver a exportarlo aunque después se corrijan. Las preguntas se

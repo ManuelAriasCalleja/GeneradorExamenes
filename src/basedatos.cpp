@@ -133,17 +133,7 @@ bool BaseDatos::abrir(const QString &ruta)
     }
     m_ruta = ruta;
     ejecutar(QStringLiteral("PRAGMA foreign_keys = ON"));
-    if (!crearEsquema())
-        return false;
-
-    QSqlQuery q(m_db);
-    // Base de datos vacía: se rellena con las preguntas incluidas en el ejecutable, si las lleva (no están en git).
-    if (QFile::exists(rutaJsonIncluido()) && q.exec(QStringLiteral("SELECT COUNT(*) FROM preguntas")) && q.next()
-        && q.value(0).toInt() == 0) {
-        if (importarJson(rutaJsonIncluido(), false) < 0)
-            return false;
-    }
-    return true;
+    return crearEsquema();
 }
 
 bool BaseDatos::ejecutar(const QString &sql)

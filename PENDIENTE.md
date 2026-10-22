@@ -4,7 +4,7 @@ Propuestas aceptadas el 22 de octubre de 2026, por orden de prioridad. Se van ha
 terminar cada una, se quita de aquí.
 
 1. **Comprobación de estilo al guardar una pregunta.** Avisos, no bloqueos, con las reglas de
-   `datos/estilo_preguntas.md`: enunciado acabado en «:» o «¿…?:», opciones con mayúscula y punto final,
+   `asignatura/BancoPreguntas/estilo_preguntas.md`: enunciado acabado en «:» o «¿…?:», opciones con mayúscula y punto final,
    «Todas las anteriores», longitud máxima, formato de la referencia al libro según el tema, comillas
    tipográficas dentro del código… Y un informe para revisar todo el banco de una vez (vale también para el
    banco 2).
@@ -12,11 +12,10 @@ terminar cada una, se quita de aquí.
    siguiente variante de la existente.
 3. **Copia de seguridad automática** de la base de datos antes de «Importar → Reemplazar todo», que borra
    todos los temas y preguntas.
-4. **Una sola fuente de las preguntas.** La base de datos y `datos/preguntas_fi.json` se mantienen a mano por
+4. **Una sola fuente de las preguntas.** La base de datos y `asignatura/BancoPreguntas/preguntas_fi.json` se mantienen a mano por
    separado. Que el programa avise cuando no coincidan, o que actualice el JSON él solo.
-5. **Windows: base de datos en la carpeta de datos del usuario** (`QStandardPaths::AppDataLocation`) cuando no
-   exista la ruta fijada al compilar, para que el `.exe` funcione en cualquier ordenador. Y un zip o instalador
-   preparado con `windeployqt`.
+5. **Windows: paquete para otros ordenadores**, un zip o instalador preparado con `windeployqt`. (El programa ya no
+   depende de rutas fijadas al compilar: pregunta por el banco si no lo encuentra.)
 6. **Duración, al diálogo de práctica.** El campo «Duración» de la convocatoria ya solo sirve para el reloj de
    «Practicar este examen…».
 7. **Versión adaptada con letra grande**, para estudiantes con discapacidad visual (el contrario de los niveles

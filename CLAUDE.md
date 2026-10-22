@@ -5,18 +5,23 @@ Compilación, uso y ficheros: ver `README.md`. Mejoras pendientes: ver `PENDIENT
 
 ## Las preguntas no van en git
 El repositorio se publica en Internet y **no puede contener preguntas de ningún banco**, ni siquiera como
-ejemplo o fragmento de un enunciado o de una opción. Todo lo que las contenga va en `datos/`, que está en
-`.gitignore`: bases de datos, JSON, imágenes, banco 2, informes y la guía de estilo de redacción. Lo mismo
-vale para el README, los comentarios del código, los mensajes de commit y los datos de prueba. Los exámenes
+ejemplo o fragmento de un enunciado o de una opción. Los bancos (bases de datos, JSON, imágenes, informes y la
+guía de estilo de redacción) están fuera del repositorio, en el directorio de la asignatura. Lo mismo vale
+para el README, los comentarios del código, los mensajes de commit y los datos de prueba. Los exámenes
 exportados (PDF, HTML, LaTeX) tampoco se guardan dentro del proyecto.
 
+`asignatura` es un enlace local (en `.gitignore`) al directorio de la asignatura, para llegar a los bancos
+desde aquí. Si falta: `ln -s "<directorio de la asignatura>" asignatura`. El programa no lo usa: abre el
+último banco que se abrió, cuya ruta guarda en su fichero de configuración (`~/.config/UNED-FI/GeneradorExamenesFI.conf`).
+
 Hay dos bancos de preguntas que **no deben mezclarse**:
-- el actual (ver11): `datos/preguntas.db` y `datos/preguntas_fi.json`;
-- el banco 2: `datos/banco2/`, 1500 preguntas propuestas y pendientes de revisión del equipo docente.
-  Ver `datos/banco2/LEEME.md`.
+- el actual (ver11), hecho por el equipo docente: `asignatura/BancoPreguntas/preguntas.db` y
+  `asignatura/BancoPreguntas/preguntas_fi.json`;
+- el banco 2: `asignatura/BancoPreguntas2/`, 1500 preguntas propuestas por Claude y pendientes de revisión del
+  equipo docente. Ver `asignatura/BancoPreguntas2/LEEME.md`.
 
 ## Estilo de redacción de las preguntas
-Está en `datos/estilo_preguntas.md` (fuera de git porque cita preguntas reales). Seguirlo al escribir,
-corregir o proponer preguntas:
+Está en `asignatura/BancoPreguntas/estilo_preguntas.md` (fuera de git porque cita preguntas reales). Seguirlo
+al escribir, corregir o proponer preguntas:
 
-@datos/estilo_preguntas.md
+@asignatura/BancoPreguntas/estilo_preguntas.md

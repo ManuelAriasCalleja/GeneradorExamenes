@@ -2,16 +2,11 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
-#include <QFileInfo>
 #include <QIcon>
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QSettings>
 #include <QTranslator>
-
-#ifndef RUTA_BD_POR_DEFECTO
-#define RUTA_BD_POR_DEFECTO "preguntas.db"
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -19,6 +14,12 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName(QStringLiteral("UNED-FI"));
     QApplication::setApplicationName(QStringLiteral("GeneradorExamenesFI"));
     QApplication::setApplicationDisplayName(QStringLiteral("Generador de exámenes FI"));
+#ifdef Q_OS_WIN
+    // La configuración (último banco de preguntas abierto y opciones) va en un fichero también en Windows
+    // (%APPDATA%\UNED-FI\GeneradorExamenesFI.ini), no en el registro. En Linux ya es un fichero:
+    // ~/.config/UNED-FI/GeneradorExamenesFI.conf.
+    QSettings::setDefaultFormat(QSettings::IniFormat);
+#endif
     QLocale::setDefault(QLocale(QLocale::Spanish, QLocale::Spain));
 
     QIcon icono;
@@ -38,16 +39,9 @@ int main(int argc, char *argv[])
     opciones.addPositionalArgument(QStringLiteral("basedatos"), QStringLiteral("Fichero SQLite de preguntas (se crea si no existe)"));
     opciones.process(app);
 
-    // Base de datos: la indicada en la línea de órdenes, la última usada o la de la carpeta datos/ del proyecto.
-    QString ruta = opciones.positionalArguments().value(0);
-    if (ruta.isEmpty()) {
-        ruta = QSettings().value(QStringLiteral("bd/ruta")).toString();
-        if (ruta.isEmpty() || !QFileInfo::exists(ruta))
-            ruta = QString::fromUtf8(RUTA_BD_POR_DEFECTO);
-    }
-
     VentanaPrincipal ventana;
     ventana.show();
-    ventana.abrirBaseDatos(QFileInfo(ruta).absoluteFilePath());
+    if (!ventana.abrirBancoInicial(opciones.positionalArguments().value(0)))
+        return 0;   // no se ha elegido ningún banco de preguntas
     return app.exec();
 }

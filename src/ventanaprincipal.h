@@ -33,6 +33,10 @@ public:
     ~VentanaPrincipal() override;
 
     bool abrirBaseDatos(const QString &ruta);
+    // Al arrancar: abre el banco indicado en la línea de órdenes o, si no, el último que se abrió (lo guarda el
+    // fichero de configuración). Si no lo encuentra, pregunta cuál abrir o si crear uno. Devuelve false si se
+    // prefiere salir.
+    bool abrirBancoInicial(const QString &rutaIndicada);
 
 protected:
     void closeEvent(QCloseEvent *evento) override;

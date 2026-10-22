@@ -25,17 +25,6 @@ qt_add_executable(GeneradorExamenesFI
     src/ventanaprincipal.h src/ventanaprincipal.cpp
 )
 
-# Preguntas iniciales (generadas con herramientas/importar_docx.py) incluidas en el ejecutable: se cargan
-# automáticamente al crear una base de datos nueva. No están en git (ver README), así que pueden faltar.
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/datos/preguntas_fi.json")
-    qt_add_resources(GeneradorExamenesFI "datos"
-        PREFIX "/"
-        FILES datos/preguntas_fi.json
-    )
-else()
-    message(WARNING "Falta datos/preguntas_fi.json: el ejecutable no llevará las preguntas iniciales.")
-endif()
-
 # Foto del autor para el diálogo «Acerca de» e icono de la aplicación (PNG generados con recursos/generar_iconos.sh).
 qt_add_resources(GeneradorExamenesFI "recursos"
     PREFIX "/"
@@ -50,10 +39,8 @@ qt_add_resources(GeneradorExamenesFI "recursos"
         recursos/icono/icono_256.png
 )
 
-# Por defecto la base de datos SQLite se guarda en la carpeta datos/ del proyecto.
 # La versión del proyecto se usa en el diálogo «Acerca de», para no tenerla escrita a mano en dos sitios.
 target_compile_definitions(GeneradorExamenesFI PRIVATE
-    RUTA_BD_POR_DEFECTO="${CMAKE_CURRENT_SOURCE_DIR}/datos/preguntas.db"
     VERSION_APLICACION="${PROJECT_VERSION}"
 )
 

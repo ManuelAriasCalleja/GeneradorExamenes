@@ -368,8 +368,8 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
 void VentanaPrincipal::crearMenus()
 {
     QMenu *archivo = menuBar()->addMenu(QStringLiteral("&Archivo"));
-    archivo->addAction(QStringLiteral("&Abrir base de datos…"), this, &VentanaPrincipal::abrirOtraBaseDatos);
-    archivo->addAction(QStringLiteral("&Nueva base de datos…"), this, &VentanaPrincipal::nuevaBaseDatos);
+    archivo->addAction(QStringLiteral("&Abrir banco de preguntas…"), this, &VentanaPrincipal::abrirOtraBaseDatos);
+    archivo->addAction(QStringLiteral("&Nuevo banco de preguntas…"), this, &VentanaPrincipal::nuevaBaseDatos);
     archivo->addSeparator();
     archivo->addAction(QStringLiteral("&Importar preguntas (JSON)…"), this, &VentanaPrincipal::importarJson);
     archivo->addAction(QStringLiteral("&Exportar preguntas (JSON)…"), this, &VentanaPrincipal::exportarJson);
@@ -406,9 +406,36 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
     return true;
 }
 
+bool VentanaPrincipal::abrirBancoInicial(const QString &rutaIndicada)
+{
+    const QString ruta = rutaIndicada.isEmpty() ? QSettings().value(QStringLiteral("bd/ruta")).toString()
+                                                : QFileInfo(rutaIndicada).absoluteFilePath();
+    // El de la línea de órdenes se crea si no existe; el de la configuración, no (se habrá movido).
+    if (!ruta.isEmpty() && (!rutaIndicada.isEmpty() || QFileInfo::exists(ruta)) && abrirBaseDatos(ruta))
+        return true;
+    while (!m_bd.abierta()) {
+        QMessageBox caja(QMessageBox::Question, windowTitle(),
+                         ruta.isEmpty() ? QStringLiteral("Elija el banco de preguntas (fichero .db) con el que quiere trabajar.")
+                                        : QStringLiteral("No se encuentra el banco de preguntas\n%1\n\n"
+                                                         "Elija dónde está o cree uno nuevo.").arg(QDir::toNativeSeparators(ruta)),
+                         QMessageBox::NoButton, this);
+        QPushButton *abrir = caja.addButton(QStringLiteral("Abrir banco…"), QMessageBox::AcceptRole);
+        QPushButton *nuevo = caja.addButton(QStringLiteral("Nuevo banco…"), QMessageBox::ActionRole);
+        caja.addButton(QStringLiteral("Salir"), QMessageBox::RejectRole);
+        caja.exec();
+        if (caja.clickedButton() == abrir)
+            abrirOtraBaseDatos();
+        else if (caja.clickedButton() == nuevo)
+            nuevaBaseDatos();
+        else
+            return false;
+    }
+    return true;
+}
+
 void VentanaPrincipal::abrirOtraBaseDatos()
 {
-    const QString ruta = QFileDialog::getOpenFileName(this, QStringLiteral("Abrir base de datos"),
+    const QString ruta = QFileDialog::getOpenFileName(this, QStringLiteral("Abrir banco de preguntas"),
                                                       QFileInfo(m_bd.ruta()).absolutePath(),
                                                       QStringLiteral("Bases de datos SQLite (*.db *.sqlite);;Todos (*)"));
     if (!ruta.isEmpty())
@@ -417,7 +444,7 @@ void VentanaPrincipal::abrirOtraBaseDatos()
 
 void VentanaPrincipal::nuevaBaseDatos()
 {
-    const QString ruta = QFileDialog::getSaveFileName(this, QStringLiteral("Nueva base de datos"),
+    const QString ruta = QFileDialog::getSaveFileName(this, QStringLiteral("Nuevo banco de preguntas"),
                                                       QFileInfo(m_bd.ruta()).absolutePath() + QStringLiteral("/preguntas_nueva.db"),
                                                       QStringLiteral("Bases de datos SQLite (*.db)"));
     if (ruta.isEmpty())
@@ -429,8 +456,9 @@ void VentanaPrincipal::nuevaBaseDatos()
         }
         QFile::remove(ruta);
     }
-    // Se crea con las preguntas incluidas en el programa.
-    abrirBaseDatos(ruta);
+    if (abrirBaseDatos(ruta)
+        && confirmar(this, windowTitle(), QStringLiteral("El banco nuevo está vacío. ¿Quiere importar ahora preguntas de un JSON?")))
+        importarJson();
 }
 
 void VentanaPrincipal::importarJson()
@@ -493,10 +521,10 @@ void VentanaPrincipal::acercaDe()
                                 "<p>Genera exámenes tipo test eligiendo al azar preguntas de la base de datos, "
                                 "con el número de preguntas que se indique de cada tema.</p>"
                                 "<p>Nunca pone en un mismo examen dos variantes de una pregunta (3a/3b) ni "
-                                "pseudorrepetidas, y puede evitar que se repitan preguntas entre modelos.</p>"
-                                "<p>Base de datos: <tt>%2</tt></p><p>Qt %3</p>")
-                     .arg(QStringLiteral(VERSION_APLICACION), m_bd.ruta().toHtmlEscaped(),
-                          QString::fromLatin1(qVersion())));
+                                "pseudorrepetidas, y puede evitar que se repitan preguntas entre exámenes.</p>"
+                                "<p>Base de datos: <tt>%2</tt></p><p>Configuración: <tt>%3</tt></p><p>Qt %4</p>")
+                     .arg(QStringLiteral(VERSION_APLICACION), QDir::toNativeSeparators(m_bd.ruta()).toHtmlEscaped(),
+                          QDir::toNativeSeparators(QSettings().fileName()).toHtmlEscaped(), QString::fromLatin1(qVersion())));
     caja.setStandardButtons(QMessageBox::Ok);
     // QMessageBox elige el ancho del texto y lo deja muy estrecho (hasta el nombre se partía en dos líneas).
     // Respeta el mínimo de su rejilla, así que se le añade un espaciador del ancho de la foto más unos
