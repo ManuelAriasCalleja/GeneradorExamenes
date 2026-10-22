@@ -1,0 +1,2 @@
+// Icono del ejecutable en Windows (lo añade CMakeLists.txt; icono.ico se genera con generar_iconos.sh).
+IDI_ICON1 ICON "icono.ico"

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Versión simplificada de icono.svg para 16 y 24 píxeles: en una rejilla de 16 para que los bordes caigan en píxeles enteros. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3478c6"/>
+      <stop offset="1" stop-color="#1c4f8e"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="16" height="16" rx="3.5" fill="url(#fondo)"/>
+  <rect x="3" y="2" width="10" height="12" rx="1" fill="#ffffff"/>
+  <g fill="#9aa9bd">
+    <rect x="4" y="4" width="2" height="2" rx="0.6"/>                                                  <rect x="10" y="4" width="2" height="2" rx="0.6"/>
+    <rect x="4" y="7" width="2" height="2" rx="0.6"/> <rect x="7" y="7" width="2" height="2" rx="0.6"/>
+                                                      <rect x="7" y="10" width="2" height="2" rx="0.6"/> <rect x="10" y="10" width="2" height="2" rx="0.6"/>
+  </g>
+  <g fill="#2fa35f">
+    <rect x="7" y="4" width="2" height="2" rx="0.6"/>
+    <rect x="10" y="7" width="2" height="2" rx="0.6"/>
+    <rect x="4" y="10" width="2" height="2" rx="0.6"/>
+  </g>
+</svg>

@@ -1,0 +1,16 @@
+# Compilación y cachés del editor
+build/
+.cache/
+
+# Preguntas: el repositorio se publica y no puede contener ninguna pregunta de ningún banco.
+# Todo lo que las contenga (bases de datos, JSON, imágenes, banco 2, informes, guía de estilo) va en datos/.
+datos/
+*.db
+*.docx
+preguntas*.json
+
+# Exámenes exportados, por si se guardan dentro del proyecto
+*.pdf
+*.html
+*.tex
+*_imagenes/
