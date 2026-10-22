@@ -1,5 +1,6 @@
 #include "ventanaprincipal.h"
 #include "dialogoexportar.h"
+#include "dialogohistorial.h"
 #include "dialogopractica.h"
 #include "dialogopregunta.h"
 #include "dialogotemas.h"
@@ -26,6 +27,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QLocale>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPixmap>
@@ -172,6 +174,23 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     auto *gOpc = new QGroupBox(QStringLiteral("Opciones"));
     auto *fOpc = new QFormLayout(gOpc);
     m_noRepetir = new QCheckBox(QStringLiteral("No repetir preguntas entre exámenes"));
+    m_evitarRecientes = new QCheckBox(QStringLiteral("Evitar las preguntas de las últimas"));
+    m_evitarRecientes->setToolTip(QStringLiteral("Deja para el final las preguntas (y sus variantes) que salieron en las últimas "
+                                                 "convocatorias registradas, empezando por las más recientes"));
+    m_numRecientes = new QSpinBox;
+    m_numRecientes->setRange(1, 99);
+    m_numRecientes->setValue(3);
+    m_numRecientes->setSuffix(QStringLiteral(" convocatorias"));
+    connect(m_evitarRecientes, &QCheckBox::toggled, m_numRecientes, &QWidget::setEnabled);
+    m_evitarRecientes->setChecked(true);
+    m_evitarOld = new QCheckBox(QStringLiteral("Evitar también las marcadas «old»"));
+    m_evitarOld->setToolTip(QStringLiteral("Deja para el final (aunque antes que las de las convocatorias registradas) las "
+                                           "preguntas que ya salieron en exámenes anteriores al historial"));
+    m_evitarOld->setChecked(true);
+    auto *filaRecientes = new QHBoxLayout;
+    filaRecientes->addWidget(m_evitarRecientes);
+    filaRecientes->addWidget(m_numRecientes);
+    filaRecientes->addStretch();
     m_noRepetir->setChecked(true);
     m_incluirRevisar = new QCheckBox(QStringLiteral("Incluir preguntas marcadas para revisar"));
     m_incluirRevisar->setChecked(true);
@@ -183,6 +202,8 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     m_semilla->setPlaceholderText(QStringLiteral("aleatoria"));
     m_semilla->setToolTip(QStringLiteral("Con la misma semilla y la misma configuración se obtienen los mismos exámenes"));
     fOpc->addRow(m_noRepetir);
+    fOpc->addRow(filaRecientes);
+    fOpc->addRow(m_evitarOld);
     fOpc->addRow(m_incluirRevisar);
     fOpc->addRow(m_ordenAleatorio);
     fOpc->addRow(m_barajarOpciones);
@@ -243,6 +264,7 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     boton(QStringLiteral("Exportar HTML…"), &VentanaPrincipal::exportarHtml);
     boton(QStringLiteral("Exportar LaTeX…"), &VentanaPrincipal::exportarLatex);
     acciones->addStretch();
+    boton(QStringLiteral("Registrar convocatoria…"), &VentanaPrincipal::registrarConvocatoria);
     boton(QStringLiteral("Practicar este examen…"), &VentanaPrincipal::practicar);
     lr->addLayout(acciones);
 
@@ -338,6 +360,8 @@ void VentanaPrincipal::crearMenus()
     archivo->addSeparator();
     archivo->addAction(QStringLiteral("&Importar preguntas (JSON)…"), this, &VentanaPrincipal::importarJson);
     archivo->addAction(QStringLiteral("&Exportar preguntas (JSON)…"), this, &VentanaPrincipal::exportarJson);
+    archivo->addSeparator();
+    archivo->addAction(QStringLiteral("&Historial de convocatorias…"), this, &VentanaPrincipal::historialConvocatorias);
     archivo->addSeparator();
     archivo->addAction(QStringLiteral("&Salir"), QKeySequence::Quit, this, &QWidget::close);
 
@@ -557,6 +581,9 @@ void VentanaPrincipal::leerConfiguracion()
     for (const QString &nombre : examenes)
         anadirExamen(nombre, marcados.contains(nombre));
     m_noRepetir->setChecked(s.value(QStringLiteral("examen/noRepetir"), true).toBool());
+    m_evitarRecientes->setChecked(s.value(QStringLiteral("examen/evitarRecientes"), true).toBool());
+    m_numRecientes->setValue(s.value(QStringLiteral("examen/numRecientes"), 3).toInt());
+    m_evitarOld->setChecked(s.value(QStringLiteral("examen/evitarOld"), true).toBool());
     m_incluirRevisar->setChecked(s.value(QStringLiteral("examen/incluirRevisar"), true).toBool());
     m_ordenAleatorio->setChecked(s.value(QStringLiteral("examen/ordenAleatorio"), false).toBool());
     m_barajarOpciones->setChecked(s.value(QStringLiteral("examen/barajarOpciones"), false).toBool());
@@ -596,6 +623,9 @@ void VentanaPrincipal::guardarConfiguracion()
     s.setValue(QStringLiteral("examenes/nombres"), examenes);
     s.setValue(QStringLiteral("examenes/marcados"), marcados);
     s.setValue(QStringLiteral("examen/noRepetir"), m_noRepetir->isChecked());
+    s.setValue(QStringLiteral("examen/evitarRecientes"), m_evitarRecientes->isChecked());
+    s.setValue(QStringLiteral("examen/numRecientes"), m_numRecientes->value());
+    s.setValue(QStringLiteral("examen/evitarOld"), m_evitarOld->isChecked());
     s.setValue(QStringLiteral("examen/incluirRevisar"), m_incluirRevisar->isChecked());
     s.setValue(QStringLiteral("examen/ordenAleatorio"), m_ordenAleatorio->isChecked());
     s.setValue(QStringLiteral("examen/barajarOpciones"), m_barajarOpciones->isChecked());
@@ -700,13 +730,14 @@ ConfigExamen VentanaPrincipal::configuracionExamen() const
     c.incluirParaRevisar = m_incluirRevisar->isChecked();
     c.ordenAleatorio = m_ordenAleatorio->isChecked();
     c.barajarOpciones = m_barajarOpciones->isChecked();
+    c.evitarOld = m_evitarOld->isChecked();
     c.semilla = m_semilla->text().toUInt();
     return c;
 }
 
 void VentanaPrincipal::generar()
 {
-    const ConfigExamen config = configuracionExamen();
+    ConfigExamen config = configuracionExamen();
     if (config.preguntasPorTema.isEmpty()) {
         QMessageBox::information(this, windowTitle(), QStringLiteral("Indique cuántas preguntas quiere de cada tema."));
         return;
@@ -722,9 +753,17 @@ void VentanaPrincipal::generar()
         QMessageBox::information(this, windowTitle(), error);
         return;
     }
+    // Los exámenes que se generan de nuevo no cuentan como usados: sustituirán a los registrados con su nombre.
+    if (m_evitarRecientes->isChecked())
+        config.usoReciente = m_bd.usoReciente(m_numRecientes->value(), m_anio->value(),
+                                              m_convocatoria->currentText().trimmed(), config.nombresModelos);
     m_resultado = Generador::generar(m_preguntas, config);
     guardarConfiguracion();
+    presentarResultado();
+}
 
+void VentanaPrincipal::presentarResultado(const QString &origen)
+{
     m_selectorModelo->blockSignals(true);
     m_selectorModelo->clear();
     for (const Modelo &m : std::as_const(m_resultado.modelos))
@@ -741,7 +780,8 @@ void VentanaPrincipal::generar()
     }
     m_avisos->setText(avisos.join(QLatin1Char('\n')));
     m_avisos->setVisible(!avisos.isEmpty());
-    QString info = QStringLiteral("Semilla: %1").arg(m_resultado.semilla);
+    QString info = origen.isEmpty() ? QString() : origen + QStringLiteral("  ·  ");
+    info += QStringLiteral("Semilla: %1").arg(m_resultado.semilla);
     if (nivel > 0)
         info += QStringLiteral("  ·  Maqueta compacta (nivel %1 de %2)").arg(nivel).arg(Maquetador::numNiveles() - 1);
     m_infoGeneracion->setText(info);
@@ -959,6 +999,81 @@ void VentanaPrincipal::exportarLatex()
     informarExportacion(escritos, fallidos, QStringLiteral("compílelos dos veces con pdflatex"));
 }
 
+void VentanaPrincipal::registrarConvocatoria()
+{
+    if (!hayExamen())
+        return;
+    const DatosConvocatoria d = datosConvocatoria();
+    if (d.convocatoria.isEmpty()) {
+        QMessageBox::information(this, windowTitle(), QStringLiteral("Indique la convocatoria (Febrero, Junio…)."));
+        return;
+    }
+    const QStringList nombres = nombresModelos();
+    QStringList yaRegistrados;
+    for (const ExamenRegistrado &e : m_bd.examenesRegistrados())
+        if (e.datos.anio == d.anio && e.datos.convocatoria == d.convocatoria && nombres.contains(e.nombre))
+            yaRegistrados << e.nombre;
+    QString texto = QStringLiteral("Se guardarán en el historial los exámenes de %1: %2.\n\n"
+                                   "Al generar, se evitarán sus preguntas, y desde Archivo → Historial de convocatorias "
+                                   "se podrán volver a cargar tal como están.")
+                        .arg(d.convocatoriaYAnio(), nombres.join(QStringLiteral(", ")));
+    if (!yaRegistrados.isEmpty())
+        texto += QStringLiteral("\n\nYa había registrados con el mismo nombre, y se sustituirán: %1.")
+                     .arg(yaRegistrados.join(QStringLiteral(", ")));
+    if (!confirmar(this, QStringLiteral("Registrar convocatoria"), texto))
+        return;
+    if (!m_bd.registrarExamenes(m_resultado.modelos, d, m_resultado.semilla)) {
+        QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo registrar la convocatoria:\n%1").arg(m_bd.ultimoError()));
+        return;
+    }
+    statusBar()->showMessage(QStringLiteral("Registrados en el historial los exámenes de %1").arg(d.convocatoriaYAnio()), 8000);
+    seleccionCambiada();   // la ficha de la pregunta dice en qué exámenes ha salido
+}
+
+void VentanaPrincipal::historialConvocatorias()
+{
+    DialogoHistorial dialogo(&m_bd, this);
+    if (dialogo.exec() == QDialog::Accepted)
+        cargarRegistrados(dialogo.examenesElegidos());
+    seleccionCambiada();   // por si se ha eliminado algún examen
+}
+
+void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)
+{
+    const QVector<ExamenRegistrado> registrados = m_bd.examenesRegistrados();
+    ResultadoGeneracion resultado;
+    const ExamenRegistrado *primero = nullptr;
+    for (int id : examenes) {
+        for (const ExamenRegistrado &e : registrados) {
+            if (e.id != id)
+                continue;
+            if (!primero)
+                primero = &e;
+            resultado.modelos << m_bd.modeloRegistrado(id);
+        }
+    }
+    if (!primero)
+        return;
+    resultado.semilla = primero->semilla;
+    m_resultado = resultado;
+
+    // Los datos de la convocatoria pasan a la ventana, para que lo que se exporte salga como cuando se registró.
+    const DatosConvocatoria &d = primero->datos;
+    m_asignatura->setText(d.asignatura);
+    m_convocatoria->setCurrentText(d.convocatoria);
+    m_anio->setValue(d.anio);
+    m_duracion->setValue(d.duracionMinutos);
+    m_instrucciones->setPlainText(d.instrucciones);
+    if (qAbs(m_acierto->value() - d.puntosAcierto) > 0.001 || qAbs(m_fallo->value() - d.puntosFallo) > 0.001) {
+        m_puntuacionAuto->setChecked(false);
+        m_acierto->setValue(d.puntosAcierto);
+        m_fallo->setValue(d.puntosFallo);
+    }
+    if (auto *pestanas = qobject_cast<QTabWidget *>(centralWidget()))
+        pestanas->setCurrentIndex(0);
+    presentarResultado(QStringLiteral("Registrada el %1").arg(QLocale().toString(primero->registrado.date(), QLocale::ShortFormat)));
+}
+
 void VentanaPrincipal::practicar()
 {
     const int i = m_selectorModelo->currentIndex();
@@ -1000,7 +1115,12 @@ void VentanaPrincipal::seleccionCambiada()
     for (const Tema &t : std::as_const(m_temas))
         if (t.id == p.temaId)
             nombreTema = t.nombre();
-    ponerDocumento(m_ficha, Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema), {p}, m_ficha));
+    QString html = Maquetador::fichaPreguntaHtml(p, nombreTema);
+    const QStringList usos = m_bd.usosDe(p.codigoCompleto());
+    if (!usos.isEmpty())
+        html.replace(QStringLiteral("</body>"), QStringLiteral("<p><b>Ha salido en:</b> %1</p></body>")
+                                                    .arg(Maquetador::escapar(usos.join(QStringLiteral("; ")))));
+    ponerDocumento(m_ficha, Maquetador::crearDocumento(html, {p}, m_ficha));
 }
 
 void VentanaPrincipal::editar(Pregunta p)

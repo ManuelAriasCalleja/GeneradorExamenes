@@ -56,13 +56,24 @@ iniciales y una base de datos nueva empieza vacía.
   lado). Con «Mostrar soluciones» marcado incluye también la estructura, la plantilla de respuestas y las
   soluciones marcadas. Hay que compilarlo dos veces para que salga el «página / total» del pie:
   `pdflatex examen.tex && pdflatex examen.tex`.
-- La semilla permite volver a generar exactamente los mismos exámenes.
+- La semilla permite volver a generar exactamente los mismos exámenes, siempre que no hayan cambiado ni el banco
+  ni el historial. Para recuperar los de una convocatoria pasada, mejor el historial.
+- *Registrar convocatoria…* guarda en el historial (dentro de la base de datos) los exámenes generados, con una
+  copia de sus preguntas tal como salieron y el orden de las opciones. Si ya había exámenes registrados con el
+  mismo nombre, convocatoria y año, se sustituyen. En *Archivo → Historial de convocatorias* se puede cargar una
+  convocatoria (o un solo examen) en la ventana para verla, exportarla, imprimirla o practicarla tal como salió,
+  aunque después se hayan corregido sus preguntas, o eliminarla del historial. La ficha de cada pregunta, en el
+  banco, dice en qué exámenes registrados ha salido.
 
 **Reglas al elegir preguntas**
 - Las variantes de una misma pregunta (3a, 3b…) nunca salen juntas en un examen; tampoco las
   pseudorrepetidas entre temas (T3-5 ≈ T1-7, T3-11 ≈ T2-4).
 - Opcionalmente, no se repiten preguntas entre los exámenes de la convocatoria (si no hay
   suficientes, se avisa).
+- Opcionalmente, se dejan para el final las preguntas que ya han salido, con sus variantes y pseudorrepetidas:
+  primero se eligen las nunca usadas, luego las marcadas «old» (si se marca la opción) y por último las de las
+  últimas N convocatorias registradas, de la más antigua a la más reciente. Si no hay bastantes, se avisa. Las
+  convocatorias se ordenan por año y por mes (si se llaman como un mes: Febrero, Junio…).
 - Las preguntas anuladas u obsoletas no salen nunca. Las marcadas para revisar se pueden excluir.
 - Por defecto las preguntas se ordenan por tema y número, como en los exámenes oficiales.
 

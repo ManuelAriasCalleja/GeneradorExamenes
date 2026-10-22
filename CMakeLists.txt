@@ -21,6 +21,7 @@ qt_add_executable(GeneradorExamenesFI
     src/dialogotemas.h src/dialogotemas.cpp
     src/dialogopractica.h src/dialogopractica.cpp
     src/dialogoexportar.h src/dialogoexportar.cpp
+    src/dialogohistorial.h src/dialogohistorial.cpp
     src/ventanaprincipal.h src/ventanaprincipal.cpp
 )
 

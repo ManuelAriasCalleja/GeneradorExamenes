@@ -59,6 +59,8 @@ private slots:
     void exportarSolucionesPdf();
     void exportarHtml();
     void exportarLatex();
+    void registrarConvocatoria();
+    void historialConvocatorias();
     void practicar();
 
     // Banco de preguntas
@@ -81,6 +83,9 @@ private:
     bool hayExamen() const;
     Pregunta preguntaSeleccionada(bool *ok);
     void editar(Pregunta p);
+    // Muestra m_resultado (recién generado o cargado del historial); 'origen' va delante de la semilla.
+    void presentarResultado(const QString &origen = QString());
+    void cargarRegistrados(const QVector<int> &examenes);
     DatosConvocatoria datosConvocatoria() const;
     ConfigExamen configuracionExamen() const;
     QString nombreBaseFichero() const;
@@ -114,6 +119,9 @@ private:
     QDoubleSpinBox *m_acierto;
     QDoubleSpinBox *m_fallo;
     QCheckBox *m_noRepetir;
+    QCheckBox *m_evitarRecientes;
+    QSpinBox *m_numRecientes;
+    QCheckBox *m_evitarOld;
     QCheckBox *m_incluirRevisar;
     QCheckBox *m_ordenAleatorio;
     QCheckBox *m_barajarOpciones;

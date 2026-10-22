@@ -2,6 +2,7 @@
 
 #include "pregunta.h"
 
+#include <QHash>
 #include <QMap>
 #include <QStringList>
 #include <QVector>
@@ -15,6 +16,11 @@ struct ConfigExamen
     bool incluirParaRevisar = true;     // preguntas marcadas MEJORAR/REFINAR...
     bool ordenAleatorio = false;        // si no, por tema y número (como en los exámenes oficiales)
     bool barajarOpciones = false;
+    // Preguntas ya usadas, que se dejan para el final (con sus variantes y pseudorrepetidas): primero las nunca
+    // usadas, luego las «old» (si se pide) y por último las de las convocatorias registradas, de la más antigua
+    // a la más reciente.
+    QHash<QString, int> usoReciente;    // código (T1-7a) -> última convocatoria en que salió (1 = la más reciente)
+    bool evitarOld = false;
     quint32 semilla = 0;                // 0 = aleatoria
 };
 
