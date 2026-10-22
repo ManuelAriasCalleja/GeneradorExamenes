@@ -84,7 +84,6 @@ private:
     void reconstruirTemas();
     void leerConfiguracion();
     void guardarConfiguracion();
-    void ponerDocumento(QTextBrowser *visor, QTextDocument *doc);
     bool hayExamen() const;
     Pregunta preguntaSeleccionada(bool *ok);
     void editar(Pregunta p);

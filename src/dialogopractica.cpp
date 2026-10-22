@@ -164,14 +164,14 @@ void DialogoPractica::corregir()
         for (QAbstractButton *b : f.grupo->buttons())
             b->setEnabled(false);
         f.blanco->hide();
-        f.opciones[correcta]->setStyleSheet(QStringLiteral("color: #0a7d32; font-weight: bold"));
+        f.opciones[correcta]->setStyleSheet(QStringLiteral("color: %1; font-weight: bold").arg(QLatin1String(Maquetador::kColorCorrecta)));
         QString texto;
         if (marcada < 0) {
             ++blancos;
             texto = QStringLiteral("<span style=\"color:#7f8c8d\"><b>En blanco.</b></span>");
         } else if (marcada == correcta) {
             ++aciertos;
-            texto = QStringLiteral("<span style=\"color:#0a7d32\"><b>¡Correcto!</b></span>");
+            texto = QStringLiteral("<span style=\"color:%1\"><b>¡Correcto!</b></span>").arg(QLatin1String(Maquetador::kColorCorrecta));
         } else {
             ++fallos;
             f.opciones[marcada]->setStyleSheet(QStringLiteral("color: #c0392b; text-decoration: line-through"));

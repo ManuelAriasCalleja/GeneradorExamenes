@@ -23,7 +23,6 @@ namespace {
 
 const char *const kFuente = "'Liberation Sans', Arial, 'DejaVu Sans', sans-serif";
 const char *const kFuenteCodigo = "'DejaVu Sans Mono', 'Liberation Mono', monospace";
-const char *const kVerde = "#0a7d32";
 
 // Documento que sirve las imágenes de las preguntas como recursos "img:<id>".
 class DocumentoConImagenes : public QTextDocument
@@ -43,6 +42,15 @@ protected:
         return QTextDocument::loadResource(type, name);
     }
 };
+
+// Letra de los exámenes en la maqueta y en el pie (la misma familia que kFuente).
+QFont fuenteExamen(qreal puntos)
+{
+    QFont f;
+    f.setFamilies({QStringLiteral("Liberation Sans"), QStringLiteral("Arial"), QStringLiteral("DejaVu Sans")});
+    f.setPointSizeF(puntos);
+    return f;
+}
 
 // Píxeles por pulgada con los que QTextDocument maqueta cuando no tiene dispositivo de pintado.
 qreal dpiDocumento()
@@ -79,23 +87,26 @@ QString textoOpcion(const QString &letra, const QString &texto, bool marcada)
 {
     QString t = Maquetador::escapar(texto);
     if (marcada)
-        return QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2) %3 &#10004;</span>").arg(QLatin1String(kVerde), letra, t);
+        return QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2) %3 &#10004;</span>").arg(QLatin1String(Maquetador::kColorCorrecta), letra, t);
     return QStringLiteral("%1) %2").arg(letra, t);
 }
 
-// Niveles de compactación de la maqueta (ver maquetador.h). El 0 es la maqueta normal.
+// Niveles de compactación de la maqueta (ver maquetador.h). El 0 es la maqueta normal. En LaTeX el artículo es de
+// 10pt y se aprovecha mejor la página que en QTextDocument, así que basta con \small (9pt) en los niveles altos.
 struct Nivel
 {
     qreal fuentePt;            // tamaño de la letra del examen
     int separacionPx;          // espacio entre preguntas
     bool dosColumnasSiAhorra;  // opciones largas en dos columnas cuando así ocupen menos líneas que una por línea
+    const char *separacionLatex;   // lo mismo en LaTeX (en pt)
+    const char *letraLatex;
 };
 const Nivel kNiveles[] = {
-    {10.5, 12, false},
-    {10.5, 10, true},
-    {10.0, 8, true},
-    {9.5, 6, true},
-    {9.0, 4, true},
+    {10.5, 12, false, "6", "\\normalsize"},
+    {10.5, 10, true, "5", "\\normalsize"},
+    {10.0, 8, true, "4", "\\small"},
+    {9.5, 6, true, "3", "\\small"},
+    {9.0, 4, true, "2", "\\small"},
 };
 const int kNumNiveles = int(sizeof(kNiveles) / sizeof(kNiveles[0]));
 
@@ -186,9 +197,7 @@ QStringList codigosDelTema(const Modelo &m, int tema)
     for (const PreguntaExamen &pe : m.preguntas)
         if (pe.pregunta.temaNumero == tema)
             delTema << &pe.pregunta;
-    std::sort(delTema.begin(), delTema.end(), [](const Pregunta *a, const Pregunta *b) {
-        return a->numero != b->numero ? a->numero < b->numero : a->variante < b->variante;
-    });
+    std::sort(delTema.begin(), delTema.end(), [](const Pregunta *a, const Pregunta *b) { return a->antesQue(*b); });
     QStringList codigos;
     for (const Pregunta *p : delTema)
         codigos << p->codigo();
@@ -207,7 +216,7 @@ QString Maquetador::textoCorrectasPorLetra(const Modelo &modelo)
     const std::array<int, 4> cuenta = modelo.correctasPorLetra();
     QStringList partes;
     for (int l = 0; l < 4; ++l)
-        partes << QStringLiteral("%1 %2").arg(QChar('A' + l)).arg(cuenta[l]);
+        partes << QStringLiteral("%1 %2").arg(Pregunta::letraMayuscula(l)).arg(cuenta[l]);
     return partes.join(QStringLiteral(" · "));
 }
 
@@ -321,7 +330,7 @@ QString Maquetador::fichaPreguntaHtml(const Pregunta &p, const QString &nombreTe
     PreguntaExamen pe;
     pe.pregunta = p;
     html += opcionesHtml(pe, true);
-    html += QStringLiteral("<p><b>Respuesta correcta:</b> %1. %2</p>").arg(QChar('A' + p.correcta)).arg(escapar(p.referencia));
+    html += QStringLiteral("<p><b>Respuesta correcta:</b> %1. %2</p>").arg(Pregunta::letraMayuscula(p.correcta)).arg(escapar(p.referencia));
     if (!p.explicacion.isEmpty())
         html += QStringLiteral("<p><b>Explicación:</b> %1</p>").arg(escapar(p.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
     if (!p.pseudoCon.isEmpty())
@@ -359,7 +368,7 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
     QString html;
     QString derecha;
     if (soluciones)
-        derecha = QStringLiteral("<span style=\"color:%1; font-weight:bold\">CON SOLUCIONES</span>").arg(QLatin1String(kVerde));
+        derecha = QStringLiteral("<span style=\"color:%1; font-weight:bold\">CON SOLUCIONES</span>").arg(QLatin1String(Maquetador::kColorCorrecta));
     html += cabeceraHtml(d, derecha);
 
     // Recuadro de instrucciones: el texto y, justo debajo, la puntuación (sin líneas en blanco, para que sea bajo).
@@ -380,7 +389,7 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
         QString prefijo = QStringLiteral("<a name=\"q%1\">%1.-</a> ").arg(i + 1);
         if (soluciones)
             prefijo += QStringLiteral("<span style=\"color:%1; font-style:normal\">[%2]</span> ")
-                           .arg(QLatin1String(kVerde), escapar(pe.pregunta.codigoCompleto()));
+                           .arg(QLatin1String(Maquetador::kColorCorrecta), escapar(pe.pregunta.codigoCompleto()));
         html += QStringLiteral("<div style=\"margin-top:%1px; font-weight:bold; font-style:italic\">%2</div>")
                     .arg(i == 0 ? separacion + 4 : separacion)
                     .arg(enunciadoHtml(pe.pregunta.enunciado, prefijo));
@@ -419,7 +428,7 @@ QString Maquetador::solucionesHtml(const QVector<Modelo> &modelos, const DatosCo
             QString filaNum = QStringLiteral("<tr>"), filaResp = QStringLiteral("<tr>");
             for (int i = inicio; i < qMin(inicio + 10, int(m.preguntas.size())); ++i) {
                 filaNum += QStringLiteral("<td align=\"center\" width=\"34\" bgcolor=\"#eeeeee\" style=\"border:1px solid #000\">%1</td>").arg(i + 1);
-                filaResp += QStringLiteral("<td align=\"center\" style=\"border:1px solid #000\"><b>%1</b></td>").arg(QChar('A' + m.preguntas.at(i).correcta()));
+                filaResp += QStringLiteral("<td align=\"center\" style=\"border:1px solid #000\"><b>%1</b></td>").arg(Pregunta::letraMayuscula(m.preguntas.at(i).correcta()));
             }
             html += filaNum + QStringLiteral("</tr>") + filaResp + QStringLiteral("</tr>");
         }
@@ -431,7 +440,7 @@ QString Maquetador::solucionesHtml(const QVector<Modelo> &modelos, const DatosCo
             html += QStringLiteral("<tr><td width=\"28\" align=\"right\">%1.</td><td width=\"60\">%2</td><td width=\"22\"><b>%3</b></td><td>%4</td></tr>")
                         .arg(i + 1)
                         .arg(escapar(pe.pregunta.codigoCompleto()))
-                        .arg(QChar('A' + pe.correcta()))
+                        .arg(Pregunta::letraMayuscula(pe.correcta()))
                         .arg(escapar(pe.pregunta.referencia));
         }
         html += QStringLiteral("</table>");
@@ -458,10 +467,7 @@ QTextDocument *Maquetador::crearDocumento(const QString &html, const QVector<Pre
         if (img.loadFromData(p.imagen))
             doc->imagenes.insert(p.id, img);
     }
-    QFont fuente;
-    fuente.setFamilies({QStringLiteral("Liberation Sans"), QStringLiteral("Arial"), QStringLiteral("DejaVu Sans")});
-    fuente.setPointSizeF(10.5);
-    doc->setDefaultFont(fuente);
+    doc->setDefaultFont(fuenteExamen(10.5));
     doc->setHtml(html);
     return doc;
 }
@@ -523,8 +529,7 @@ Pagina paginaDe(QPagedPaintDevice *dispositivo)
     const qreal dpiDoc = dpiDocumento();
     p.escala = dispositivo->logicalDpiY() / dpiDoc;
     const QRectF area = dispositivo->pageLayout().paintRect(QPageLayout::Point);
-    p.fuentePie.setFamilies({QStringLiteral("Liberation Sans"), QStringLiteral("Arial"), QStringLiteral("DejaVu Sans")});
-    p.fuentePie.setPointSizeF(8);
+    p.fuentePie = fuenteExamen(8);
     const QFontMetricsF fm(p.fuentePie, dispositivo);
     const qreal altoPieDispositivo = fm.height() * 2.2;
     const qreal anchoDoc = area.width() * dpiDoc / 72.0;
@@ -880,13 +885,9 @@ QString Maquetador::examenesLatex(const QVector<Modelo> &modelos, const DatosCon
 {
     QString tex = QString::fromUtf8(kPreambuloLatex);
     tex += QStringLiteral("\\begin{document}\n");
-    // Nivel de compactación: separación entre preguntas y letra. El artículo es de 10pt y LaTeX aprovecha mejor
-    // la página que QTextDocument, así que basta con \small (9pt) en los niveles altos.
-    static const char *const kSeparacionPt[] = {"6", "5", "4", "3", "2"};
-    static const char *const kLetra[] = {"\\normalsize", "\\normalsize", "\\small", "\\small", "\\small"};
-    const int nn = qBound(0, n, 4);
+    // Nivel de compactación: separación entre preguntas y letra.
     tex += QStringLiteral("\\setlength{\\seppregunta}{%1pt}\\renewcommand{\\letraexamen}{%2}\n")
-               .arg(QLatin1String(kSeparacionPt[nn]), QLatin1String(kLetra[nn]));
+               .arg(QLatin1String(nivel(n).separacionLatex), QLatin1String(nivel(n).letraLatex));
     if (soluciones) {
         tex += QStringLiteral("\n\\empezarmodelo{") + escaparLatex(textoPie(QStringLiteral("Soluciones"), d))
                + QStringLiteral("}{fin:soluciones}\n");
@@ -973,7 +974,7 @@ QString Maquetador::solucionesLatex(const QVector<Modelo> &modelos, const DatosC
             QStringList numeros, letras;
             for (int i = inicio; i < fin; ++i) {
                 numeros << QStringLiteral("\\cellcolor{gray!15}%1").arg(i + 1);
-                letras << QStringLiteral("\\textbf{%1}").arg(QChar('A' + m.preguntas.at(i).correcta()));
+                letras << QStringLiteral("\\textbf{%1}").arg(Pregunta::letraMayuscula(m.preguntas.at(i).correcta()));
             }
             const QString linea = QStringLiteral("\\cline{1-%1}\n").arg(fin - inicio);
             tex += linea + numeros.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\\n")
@@ -984,7 +985,7 @@ QString Maquetador::solucionesLatex(const QVector<Modelo> &modelos, const DatosC
                               "\\begin{tabularx}{\\linewidth}{@{}r@{\\hspace{1em}}l@{\\hspace{1em}}l@{\\hspace{1em}}Y@{}}\n");
         for (int i = 0; i < n; ++i) {
             const PreguntaExamen &pe = m.preguntas.at(i);
-            tex += QStringLiteral("%1. & %2 & \\textbf{%3} & ").arg(i + 1).arg(escaparLatex(pe.pregunta.codigoCompleto())).arg(QChar('A' + pe.correcta()))
+            tex += QStringLiteral("%1. & %2 & \\textbf{%3} & ").arg(i + 1).arg(escaparLatex(pe.pregunta.codigoCompleto())).arg(Pregunta::letraMayuscula(pe.correcta()))
                    + escaparLatex(pe.pregunta.referencia) + QStringLiteral(" \\\\\n");
         }
         tex += QStringLiteral("\\end{tabularx}}\n");

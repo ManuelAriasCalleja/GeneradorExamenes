@@ -146,11 +146,11 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     lp->addWidget(m_vistaPrevia);
     m_avisosEstilo = new QLabel;
     m_avisosEstilo->setWordWrap(true);
-    m_avisosEstilo->setStyleSheet(QStringLiteral("background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; padding: 6px"));
+    m_avisosEstilo->setStyleSheet(QLatin1String(kEstiloAviso));
     lp->addWidget(m_avisosEstilo);
     m_parecidas = new QLabel;
     m_parecidas->setWordWrap(true);
-    m_parecidas->setStyleSheet(QStringLiteral("background: #e7f1fb; color: #0b3c6b; border: 1px solid #b6d4f2; padding: 6px"));
+    m_parecidas->setStyleSheet(QLatin1String(kEstiloInformacion));
     m_parecidas->setToolTip(QStringLiteral("Si es la misma idea que una de ellas, guárdela como su variante (mismo número, "
                                            "otra letra) o, si es de otro tema, enlácela en «Pseudorrepetida con»."));
     lp->addWidget(m_parecidas);
@@ -190,13 +190,8 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     // En una pregunta nueva, el número propuesto es el primero libre del tema que se eligió al crearla; si se cambia
     // de tema, se propone el del tema nuevo, para que no vaya a parar sin querer al grupo de otra pregunta.
     if (pregunta.id == 0 && pregunta.variante.isEmpty())
-        connect(m_tema, &QComboBox::currentIndexChanged, this, [this]() {
-            int maximo = 0;
-            for (const Pregunta &q : std::as_const(m_banco))
-                if (q.temaId == m_tema->currentData().toInt())
-                    maximo = qMax(maximo, q.numero);
-            m_numero->setValue(maximo + 1);
-        });
+        connect(m_tema, &QComboBox::currentIndexChanged, this,
+                [this]() { m_numero->setValue(siguienteNumero(m_banco, m_tema->currentData().toInt())); });
 
     mostrarImagen();
     actualizarVistaPrevia();
@@ -268,12 +263,7 @@ void DialogoPregunta::actualizarVistaPrevia()
 {
     const Pregunta p = pregunta();
     QString nombreTema = m_tema->currentText();
-    // El documento inicial lo borra el propio visor al sustituirlo; los creados aquí (hijos del visor), no.
-    QTextDocument *anterior = m_vistaPrevia->document();
-    const bool propio = anterior && anterior->parent() == m_vistaPrevia;
-    m_vistaPrevia->setDocument(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema), {p}, m_vistaPrevia));
-    if (propio)
-        anterior->deleteLater();
+    ponerDocumento(m_vistaPrevia, Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema), {p}, m_vistaPrevia));
 
     // Pautas de estilo que no se cumplen (mientras se escribe; al guardar se vuelven a mostrar).
     QStringList avisos;
@@ -312,7 +302,7 @@ bool DialogoPregunta::decidirSiEsVariante()
     case DialogoParecidas::SeguirEditando:
         return false;
     case DialogoParecidas::ComoVariante: {
-        const QString letra = Parecidas::siguienteVariante(m_banco, elegida.temaId, elegida.numero);
+        const QString letra = siguienteVariante(m_banco, elegida.temaId, elegida.numero);
         if (letra.isEmpty()) {
             QMessageBox::information(this, windowTitle(), QStringLiteral("%1 ya tiene variantes de la a a la z.").arg(elegida.grupo()));
             return false;

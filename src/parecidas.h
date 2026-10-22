@@ -44,8 +44,4 @@ private:
     QVector<Vector> m_vectores;
 };
 
-// Letra libre para una variante nueva del grupo (tema y número): la primera que no se usa, o una cadena vacía si
-// están usadas todas, de la «a» a la «z». Una pregunta sin letra cuenta como la «a», para que la nueva no sea otra «a».
-QString siguienteVariante(const QVector<Pregunta> &banco, int temaId, int numero);
-
 } // namespace Parecidas

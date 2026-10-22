@@ -6,7 +6,6 @@
 #include "dialogopregunta.h"
 #include "dialogotemas.h"
 #include "modelopreguntas.h"
-#include "parecidas.h"
 #include "utilidades.h"
 
 #include <QAction>
@@ -255,7 +254,7 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     lr->addWidget(m_infoGeneracion);
     m_avisos = new QLabel;
     m_avisos->setWordWrap(true);
-    m_avisos->setStyleSheet(QStringLiteral("background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; padding: 6px"));
+    m_avisos->setStyleSheet(QLatin1String(kEstiloAviso));
     m_avisos->hide();
     lr->addWidget(m_avisos);
     m_visorExamen = new QTextBrowser;
@@ -859,16 +858,6 @@ bool VentanaPrincipal::hayExamen() const
     return !m_resultado.modelos.isEmpty() && !m_resultado.modelos.first().preguntas.isEmpty();
 }
 
-void VentanaPrincipal::ponerDocumento(QTextBrowser *visor, QTextDocument *doc)
-{
-    // El documento inicial lo borra el propio visor al sustituirlo; los creados aquí (hijos del visor), no.
-    QTextDocument *anterior = visor->document();
-    const bool propio = anterior && anterior->parent() == visor;
-    visor->setDocument(doc);
-    if (propio)
-        anterior->deleteLater();
-}
-
 void VentanaPrincipal::mostrarModelo()
 {
     const int i = m_selectorModelo->currentIndex();
@@ -1169,11 +1158,7 @@ void VentanaPrincipal::seleccionCambiada()
         m_ficha->clear();
         return;
     }
-    QString nombreTema;
-    for (const Tema &t : std::as_const(m_temas))
-        if (t.id == p.temaId)
-            nombreTema = t.nombre();
-    QString html = Maquetador::fichaPreguntaHtml(p, nombreTema);
+    QString html = Maquetador::fichaPreguntaHtml(p, nombreTema(m_temas, p.temaId));
     const QStringList usos = m_bd.usosDe(p.codigoCompleto());
     if (!usos.isEmpty())
         html.replace(QStringLiteral("</body>"), QStringLiteral("<p><b>Ha salido en:</b> %1</p></body>")
@@ -1205,11 +1190,7 @@ void VentanaPrincipal::nuevaPregunta()
     for (const Tema &t : std::as_const(m_temas))
         if (t.numero == temaFiltro || (temaFiltro == 0 && p.temaId == 0))
             p.temaId = t.id, p.temaNumero = t.numero;
-    int maximo = 0;
-    for (const Pregunta &q : std::as_const(m_preguntas))
-        if (q.temaId == p.temaId)
-            maximo = qMax(maximo, q.numero);
-    p.numero = maximo + 1;
+    p.numero = siguienteNumero(m_preguntas, p.temaId);
     editar(p);
 }
 
@@ -1229,7 +1210,7 @@ void VentanaPrincipal::duplicarPregunta()
         return;
     // Nueva variante del mismo número: siguiente letra libre.
     p.id = 0;
-    p.variante = Parecidas::siguienteVariante(m_preguntas, p.temaId, p.numero);
+    p.variante = siguienteVariante(m_preguntas, p.temaId, p.numero);
     if (p.variante.isEmpty()) {
         QMessageBox::information(this, windowTitle(), QStringLiteral("%1 ya tiene variantes de la a a la z.").arg(p.grupo()));
         return;

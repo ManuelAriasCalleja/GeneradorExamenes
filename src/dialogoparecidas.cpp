@@ -1,5 +1,6 @@
 #include "dialogoparecidas.h"
 #include "maquetador.h"
+#include "utilidades.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -7,7 +8,6 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QTextBrowser>
-#include <QTextDocument>
 #include <QVBoxLayout>
 
 DialogoParecidas::DialogoParecidas(const Pregunta &nueva, const QVector<Parecidas::Parecida> &parecidas,
@@ -65,16 +65,7 @@ Pregunta DialogoParecidas::elegida() const
 void DialogoParecidas::mostrarElegida()
 {
     const Pregunta p = elegida();
-    QString nombreTema;
-    for (const Tema &t : std::as_const(m_temas))
-        if (t.id == p.temaId)
-            nombreTema = t.nombre();
-    // El documento inicial lo borra el propio visor al sustituirlo; los creados aquí (hijos del visor), no.
-    QTextDocument *anterior = m_ficha->document();
-    const bool propio = anterior && anterior->parent() == m_ficha;
-    m_ficha->setDocument(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema), {p}, m_ficha));
-    if (propio)
-        anterior->deleteLater();
+    ponerDocumento(m_ficha, Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema(m_temas, p.temaId)), {p}, m_ficha));
 
     // Una variante es del mismo tema; con una pregunta de otro tema, se enlazan como pseudorrepetidas.
     const bool mismoTema = p.temaNumero == m_nueva.temaNumero;

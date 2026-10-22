@@ -30,11 +30,6 @@ private:
     QHash<QString, QString> m_padre;
 };
 
-QString claveGrupo(int tema, int numero)
-{
-    return QStringLiteral("T%1-%2").arg(tema).arg(numero);
-}
-
 bool usable(const Pregunta &p, bool incluirParaRevisar)
 {
     return p.activa() && (incluirParaRevisar || !p.revisar);
@@ -174,7 +169,7 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
             // Primero las que aún no han salido en esta convocatoria (si no se quieren repetir) y, de ellas, las
             // que no se han usado antes o hace más tiempo.
             std::stable_sort(numeros.begin(), numeros.end(), [&](int a, int b) {
-                const QString ra = pseudo.raiz(claveGrupo(tema, a)), rb = pseudo.raiz(claveGrupo(tema, b));
+                const QString ra = pseudo.raiz(Pregunta::claveGrupo(tema, a)), rb = pseudo.raiz(Pregunta::claveGrupo(tema, b));
                 if (config.noRepetirEntreModelos && usosGrupo.value(ra) != usosGrupo.value(rb))
                     return usosGrupo.value(ra) < usosGrupo.value(rb);
                 return usoAnterior.value(ra) < usoAnterior.value(rb);
@@ -185,7 +180,7 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
             for (int num : numeros) {
                 if (elegidas == pedidas)
                     break;
-                const QString raiz = pseudo.raiz(claveGrupo(tema, num));
+                const QString raiz = pseudo.raiz(Pregunta::claveGrupo(tema, num));
                 if (usadosModelo.contains(raiz))
                     continue;   // pseudorrepetida con otra ya elegida en este modelo
                 if (usosGrupo.value(raiz) > 0)
@@ -223,7 +218,7 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
             }
             if (repetida && config.noRepetirEntreModelos && !temasAvisoRepeticion.contains(tema)) {
                 temasAvisoRepeticion.insert(tema);
-                res.avisos << QStringLiteral("Tema %1: no hay preguntas suficientes para no repetir entre modelos; "
+                res.avisos << QStringLiteral("Tema %1: no hay preguntas suficientes para no repetir entre exámenes; "
                                              "a partir del examen «%2» se repiten algunas.")
                                   .arg(tema).arg(modelo.nombre);
             }
@@ -232,14 +227,8 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
         if (config.ordenAleatorio) {
             std::shuffle(modelo.preguntas.begin(), modelo.preguntas.end(), rng);
         } else {
-            std::sort(modelo.preguntas.begin(), modelo.preguntas.end(), [](const PreguntaExamen &a, const PreguntaExamen &b) {
-                const Pregunta &x = a.pregunta, &y = b.pregunta;
-                if (x.temaNumero != y.temaNumero)
-                    return x.temaNumero < y.temaNumero;
-                if (x.numero != y.numero)
-                    return x.numero < y.numero;
-                return x.variante < y.variante;
-            });
+            std::sort(modelo.preguntas.begin(), modelo.preguntas.end(),
+                      [](const PreguntaExamen &a, const PreguntaExamen &b) { return a.pregunta.antesQue(b.pregunta); });
         }
         if (config.barajarOpciones)
             repartirCorrectas(modelo.preguntas, rng);

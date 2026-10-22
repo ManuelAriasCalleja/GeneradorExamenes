@@ -54,7 +54,7 @@ QVariant ModeloPreguntas::data(const QModelIndex &index, int role) const
             return t.simplified();
         }
         case ColCorrecta:
-            return QString(QChar('A' + p.correcta));
+            return QString(Pregunta::letraMayuscula(p.correcta));
         }
     } else if (role == Qt::ToolTipRole && index.column() == ColEnunciado) {
         QString t = p.enunciado;
@@ -136,12 +136,7 @@ bool FiltroPreguntas::lessThan(const QModelIndex &a, const QModelIndex &b) const
     const auto *m = static_cast<const ModeloPreguntas *>(sourceModel());
     const Pregunta &x = m->pregunta(a.row());
     const Pregunta &y = m->pregunta(b.row());
-    if (a.column() == ModeloPreguntas::ColTema || a.column() == ModeloPreguntas::ColCodigo) {
-        if (x.temaNumero != y.temaNumero)
-            return x.temaNumero < y.temaNumero;
-        if (x.numero != y.numero)
-            return x.numero < y.numero;
-        return x.variante < y.variante;
-    }
+    if (a.column() == ModeloPreguntas::ColTema || a.column() == ModeloPreguntas::ColCodigo)
+        return x.antesQue(y);
     return QSortFilterProxyModel::lessThan(a, b);
 }

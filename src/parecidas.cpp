@@ -124,16 +124,4 @@ QVector<Parecida> Indice::masParecidas(const Pregunta &p, int cuantas, double mi
     return res;
 }
 
-QString siguienteVariante(const QVector<Pregunta> &banco, int temaId, int numero)
-{
-    QSet<QString> usadas;
-    for (const Pregunta &q : banco)
-        if (q.temaId == temaId && q.numero == numero)
-            usadas.insert(q.variante.isEmpty() ? QStringLiteral("a") : q.variante);
-    for (char letra = 'a'; letra <= 'z'; ++letra)
-        if (!usadas.contains(QString(QLatin1Char(letra))))
-            return QString(QLatin1Char(letra));
-    return QString();
-}
-
 } // namespace Parecidas

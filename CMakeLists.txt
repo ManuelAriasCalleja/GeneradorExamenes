@@ -16,7 +16,7 @@ qt_standard_project_setup()
 
 qt_add_executable(GeneradorExamenesFI
     src/main.cpp
-    src/pregunta.h
+    src/pregunta.h src/pregunta.cpp
     src/utilidades.h
     src/basedatos.h src/basedatos.cpp
     src/generador.h src/generador.cpp

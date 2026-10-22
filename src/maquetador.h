@@ -37,6 +37,8 @@ struct DatosConvocatoria
 class Maquetador
 {
 public:
+    static constexpr const char *kColorCorrecta = "#0a7d32";   // verde de las respuestas correctas
+
     // Enunciado (texto con bloques ``` y tablas |) a HTML. 'prefijo' (ya en HTML) se pone al principio.
     static QString enunciadoHtml(const QString &texto, const QString &prefijo = QString());
     static QString escapar(const QString &texto);

@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QString>
 #include <QStringList>
+#include <QVector>
 
 // Un tema (capítulo) del libro.
 struct Tema
@@ -39,7 +40,28 @@ struct Pregunta
 
     QString codigo() const { return QString::number(numero) + variante; }
     QString codigoCompleto() const { return QStringLiteral("T%1-%2").arg(temaNumero).arg(codigo()); }
-    QString grupo() const { return QStringLiteral("T%1-%2").arg(temaNumero).arg(numero); }
+    // Grupo de variantes, «T3-5»: es también lo que se escribe en «pseudorrepetida con».
+    QString grupo() const { return claveGrupo(temaNumero, numero); }
+    static QString claveGrupo(int tema, int numero) { return QStringLiteral("T%1-%2").arg(tema).arg(numero); }
     bool activa() const { return estado == QLatin1String("activa"); }
-    static QChar letra(int i) { return QChar('a' + i); }
+    static QChar letra(int i) { return QChar('a' + i); }            // de la opción: a, b, c, d
+    static QChar letraMayuscula(int i) { return QChar('A' + i); }   // de la respuesta en soluciones y plantillas: A, B, C, D
+
+    // Orden del banco y de los exámenes: tema, número y variante.
+    bool antesQue(const Pregunta &otra) const
+    {
+        if (temaNumero != otra.temaNumero)
+            return temaNumero < otra.temaNumero;
+        if (numero != otra.numero)
+            return numero < otra.numero;
+        return variante < otra.variante;
+    }
 };
+
+// Nombre del tema con ese id («Tema 3: Sistemas operativos»), o vacío si no está.
+QString nombreTema(const QVector<Tema> &temas, int temaId);
+// Numeración de una pregunta nueva en el banco: el primer número libre de un tema, y la primera letra libre para
+// una variante nueva de un grupo (vacía si están usadas de la «a» a la «z»; una pregunta sin letra cuenta como la
+// «a», para que la nueva no sea otra «a»).
+int siguienteNumero(const QVector<Pregunta> &banco, int temaId);
+QString siguienteVariante(const QVector<Pregunta> &banco, int temaId, int numero);

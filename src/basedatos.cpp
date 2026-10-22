@@ -38,7 +38,7 @@ QJsonObject preguntaAJson(const Pregunta &p)
     jp[QStringLiteral("revisar")] = p.revisar;
     jp[QStringLiteral("enunciado")] = p.enunciado;
     jp[QStringLiteral("opciones")] = QJsonArray::fromStringList(p.opciones);
-    jp[QStringLiteral("correcta")] = QString(QChar('A' + p.correcta));
+    jp[QStringLiteral("correcta")] = QString(Pregunta::letraMayuscula(p.correcta));
     jp[QStringLiteral("referencia")] = p.referencia;
     jp[QStringLiteral("explicacion")] = p.explicacion;
     jp[QStringLiteral("notas")] = p.notas;
@@ -402,7 +402,7 @@ bool BaseDatos::guardarPregunta(Pregunta &p)
     q.addBindValue(texto(p.enunciado));
     for (int i = 0; i < 4; ++i)
         q.addBindValue(texto(p.opciones.value(i)));
-    q.addBindValue(QString(QChar('A' + p.correcta)));
+    q.addBindValue(QString(Pregunta::letraMayuscula(p.correcta)));
     q.addBindValue(texto(p.referencia));
     q.addBindValue(texto(p.explicacion));
     q.addBindValue(texto(p.notas));

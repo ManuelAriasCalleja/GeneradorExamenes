@@ -3,6 +3,23 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QRegularExpression>
+#include <QTextBrowser>
+#include <QTextDocument>
+
+// Recuadros de la interfaz: avisos (amarillo) e información (azul).
+constexpr const char *kEstiloAviso = "background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; padding: 6px";
+constexpr const char *kEstiloInformacion = "background: #e7f1fb; color: #0b3c6b; border: 1px solid #b6d4f2; padding: 6px";
+
+// Pone un documento en un visor. El documento inicial lo borra el propio visor al sustituirlo; los puestos con esta
+// función (creados como hijos del visor) se borran aquí al poner el siguiente.
+inline void ponerDocumento(QTextBrowser *visor, QTextDocument *doc)
+{
+    QTextDocument *anterior = visor->document();
+    const bool propio = anterior && anterior->parent() == visor;
+    visor->setDocument(doc);
+    if (propio)
+        anterior->deleteLater();
+}
 
 // Nombre de fichero sin tildes, espacios ni símbolos: «2026 Junio», «Unión Europea» → «2026_Junio», «Union_Europea».
 inline QString limpiarNombreFichero(QString s)
