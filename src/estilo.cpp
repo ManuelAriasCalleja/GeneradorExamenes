@@ -177,15 +177,16 @@ void revisarReferencia(const Pregunta &p, QVector<Aviso> &avisos)
     else if (kTemasPag.contains(p.temaNumero) && !pag)
         avisar(QStringLiteral("En el tema %1 la referencia tiene la forma %2").arg(p.temaNumero).arg(formatoPag));
 
-    // Si no se ha visto nada concreto, el formato completo («sección» o «subsección», y página o intervalo).
+    // Si no se ha visto nada concreto, el formato completo: «sección» o «subsección», y una página («y
+    // siguientes») o varias («N-M», «N y M», «N, M y K»).
     if (avisos.size() == antes) {
         static const QRegularExpression completoVease(
-            QStringLiteral("^Véase la página \\d+( \\((sub)?secci[oó]n [^)]+\\))? del libro de teoría\\.$"
-                           "|^Véanse las páginas \\d+(-| y )\\d+( \\((sub)?secci[oó]n(es)? [^)]+\\))? del libro de teoría\\.$"),
+            QStringLiteral("^Véase la página \\d+( y siguientes)?( \\((sub)?secci[oó]n [^)]+\\))? del libro de teoría\\.$"
+                           "|^Véanse las páginas \\d+(-\\d+|(, \\d+)* y \\d+)( \\((sub)?secci[oó]n(es)? [^)]+\\))? del libro de teoría\\.$"),
             kUnicode);
         static const QRegularExpression completoPag(
             QStringLiteral("^Pág\\. \\d+ libro \\((sub)?secci[oó]n [^)]+\\)\\.$"
-                           "|^Págs\\. \\d+(-| y )\\d+ libro \\((sub)?secci[oó]n(es)? [^)]+\\)\\.$"),
+                           "|^Págs\\. \\d+(-\\d+|(, \\d+)* y \\d+) libro \\((sub)?secci[oó]n(es)? [^)]+\\)\\.$"),
             kUnicode);
         if (vease && !completoVease.match(r).hasMatch())
             avisar(QStringLiteral("La referencia no sigue la forma habitual: %1").arg(formatoVease));

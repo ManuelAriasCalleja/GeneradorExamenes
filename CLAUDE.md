@@ -14,6 +14,10 @@ exportados (PDF, HTML, LaTeX) tampoco se guardan dentro del proyecto.
 desde aquí. Si falta: `ln -s "<directorio de la asignatura>" asignatura`. El programa no lo usa: abre el
 último banco que se abrió, cuya ruta guarda en su fichero de configuración (`~/.config/UNED-FI/GeneradorExamenesFI.conf`).
 
+## GitHub
+El repositorio está en GitHub con **GitHub Actions desactivado**: no se compila ni se comprueba nada allí (no
+hay minutos). No añadir flujos de trabajo (`.github/workflows`) ni otras comprobaciones automáticas.
+
 Hay dos bancos de preguntas que **no deben mezclarse**:
 - el actual (ver11), hecho por el equipo docente: `asignatura/BancoPreguntas/preguntas.db` y
   `asignatura/BancoPreguntas/preguntas_fi.json`;
