@@ -163,7 +163,15 @@ python3 herramientas/importar_docx.py asignatura/FI_preguntas_..._ver12.docx asi
         --imagenes asignatura/BancoPreguntas/imagenes
 ```
 
-y en el programa *Archivo → Importar preguntas (JSON)…* (añadir/actualizar o reemplazar todo). Antes de
+y en el programa *Archivo → Importar preguntas (JSON)…* (añadir/actualizar o reemplazar todo). El JSON del que
+se importa todo el banco queda **enlazado** con él como su copia en texto: cuando la base de datos y ese JSON
+dejan de coincidir (por ejemplo, tras corregir una pregunta en el programa), la barra de estado lo avisa y dice
+en qué se diferencian (preguntas distintas, solo en uno de los dos, temas renombrados); pulsando el aviso, o con
+*Archivo → Actualizar el JSON del banco…*, se sobrescribe el JSON con el contenido de la base de datos (la
+primera vez, si no hay ninguno enlazado, pide cuál). Con *Archivo → Mantener el JSON del banco al día* marcado,
+el programa lo reescribe él solo tras cada cambio del banco; nunca toca un JSON que ya no coincida con la base
+de datos (por ejemplo, uno recién generado desde el .docx y aún sin importar), solo avisa. El enlace y esta
+opción se guardan dentro de la base de datos, con la ruta del JSON relativa a ella. Antes de
 reemplazar todo, el programa guarda una copia de seguridad de la base de datos en la carpeta `copias/` junto a
 ella, con la fecha y la hora en el nombre (`copias/preguntas_2026-10-22_153045.db`), y al terminar dice dónde la
 ha dejado; si la importación falla, la base de datos no cambia y la copia se quita. Para volver atrás, basta con

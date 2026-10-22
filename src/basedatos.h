@@ -62,6 +62,23 @@ public:
     // (copias/preguntas_2026-10-22_153045.db), y devuelve su ruta; vacía si falla (el motivo, en ultimoError()).
     QString copiaSeguridad();
 
+    // Ajustes del banco, que van con él en la base de datos: el valor de una clave ('porDefecto' si no está).
+    QString ajuste(const QString &clave, const QString &porDefecto = QString());
+    bool guardarAjuste(const QString &clave, const QString &valor);
+
+    // JSON enlazado con el banco: su copia en texto (preguntas_fi.json), que es el último JSON del que se importó
+    // todo o el elegido en «Actualizar el JSON del banco». El programa avisa cuando no coinciden y, si se pide,
+    // lo reescribe tras cada cambio. La ruta se guarda relativa a la carpeta de la base de datos, para que siga
+    // valiendo si se copian juntos a otro ordenador.
+    QString jsonEnlazado();   // ruta absoluta; vacía si no hay
+    bool enlazarJson(const QString &ruta);
+    bool jsonAutomatico();
+    bool fijarJsonAutomatico(bool automatico);
+    // En qué se diferencia el banco de un JSON, sin contar los id: «3 preguntas distintas: T1-7, T2-3a, T4-1»,
+    // «1 pregunta solo en la base de datos: T5-2», «2 preguntas solo en el JSON: …», «Temas con otro título o
+    // autor: T3». Vacío si coinciden; si el fichero no se puede leer, una sola línea que lo dice.
+    QStringList diferenciasConJson(const QString &ruta);
+
     // Historial de convocatorias. Cada examen registrado guarda una copia de sus preguntas tal como salieron (con
     // el orden de las opciones), para poder volver a exportarlo aunque después se corrijan. Las preguntas se
     // enlazan con el banco por su código (T1-7a), que no cambia al reimportar el JSON.

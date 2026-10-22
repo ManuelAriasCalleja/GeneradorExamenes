@@ -106,6 +106,14 @@ VentanaPrincipal::VentanaPrincipal(QWidget *parent)
     pestanas->addTab(crearPestanaBanco(), QStringLiteral("Banco de preguntas"));
     setCentralWidget(pestanas);
     crearMenus();
+    // Aviso de que el JSON del banco no coincide con la base de datos; pulsándolo se actualiza.
+    m_avisoJson = new QPushButton;
+    m_avisoJson->setFlat(true);
+    m_avisoJson->setCursor(Qt::PointingHandCursor);
+    m_avisoJson->setStyleSheet(QString::fromLatin1(kEstiloAviso) + QStringLiteral("; padding: 1px 6px"));
+    m_avisoJson->hide();
+    connect(m_avisoJson, &QPushButton::clicked, this, &VentanaPrincipal::actualizarJsonBanco);
+    statusBar()->addPermanentWidget(m_avisoJson);
     leerConfiguracion();
 }
 
@@ -436,6 +444,17 @@ void VentanaPrincipal::crearMenus()
     archivo->addAction(QStringLiteral("&Importar preguntas (JSON)…"), this, &VentanaPrincipal::importarJson);
     archivo->addAction(QStringLiteral("&Exportar preguntas (JSON)…"), this, &VentanaPrincipal::exportarJson);
     archivo->addSeparator();
+    QAction *actualizarJson = archivo->addAction(QStringLiteral("Actuali&zar el JSON del banco…"), this, &VentanaPrincipal::actualizarJsonBanco);
+    actualizarJson->setToolTip(QStringLiteral("Sobrescribe el JSON enlazado con el banco (la primera vez pide cuál es) con el "
+                                              "contenido de la base de datos"));
+    m_accionJsonAuto = archivo->addAction(QStringLiteral("&Mantener el JSON del banco al día"));
+    m_accionJsonAuto->setCheckable(true);
+    m_accionJsonAuto->setToolTip(QStringLiteral("Tras cada cambio en el banco (pregunta o tema guardado o borrado) se reescribe "
+                                                "el JSON enlazado, si antes coincidía con la base de datos. Un JSON que ya no "
+                                                "coincida (por ejemplo, recién generado desde el .docx) no se toca: se avisa."));
+    archivo->setToolTipsVisible(true);
+    connect(m_accionJsonAuto, &QAction::toggled, this, &VentanaPrincipal::cambiarJsonAutomatico);
+    archivo->addSeparator();
     archivo->addAction(QStringLiteral("&Historial de convocatorias…"), this, &VentanaPrincipal::historialConvocatorias);
     archivo->addSeparator();
     archivo->addAction(QStringLiteral("&Salir"), QKeySequence::Quit, this, &QWidget::close);
@@ -548,6 +567,10 @@ void VentanaPrincipal::importarJson()
         QMessageBox::warning(this, windowTitle(), QStringLiteral("Error al importar:\n%1").arg(m_bd.ultimoError()));
         return;
     }
+    // El JSON del que viene todo el banco pasa a ser su copia en texto; si solo se han añadido preguntas, el que
+    // hubiera enlazado sigue siéndolo.
+    if (caja.clickedButton() == reemplazar || m_bd.jsonEnlazado().isEmpty())
+        m_bd.enlazarJson(ruta);
     recargarDatos();
     QString mensaje = QStringLiteral("Se han importado %1 preguntas.").arg(n);
     if (!copia.isEmpty())
@@ -569,11 +592,80 @@ void VentanaPrincipal::exportarJson()
         statusBar()->showMessage(QStringLiteral("Preguntas exportadas a %1").arg(ruta), 5000);
 }
 
+void VentanaPrincipal::actualizarJsonBanco()
+{
+    QString json = m_bd.jsonEnlazado();
+    if (json.isEmpty()) {
+        json = QFileDialog::getSaveFileName(this, QStringLiteral("JSON del banco de preguntas"),
+                                            QFileInfo(m_bd.ruta()).absolutePath() + QStringLiteral("/preguntas.json"),
+                                            QStringLiteral("JSON (*.json)"), nullptr, QFileDialog::DontConfirmOverwrite);
+        if (json.isEmpty())
+            return;
+        m_bd.enlazarJson(json);
+    }
+    if (QFileInfo::exists(json)) {
+        const QStringList diferencias = m_bd.diferenciasConJson(json);
+        if (diferencias.isEmpty()) {
+            comprobarJson();
+            QMessageBox::information(this, windowTitle(), QStringLiteral("El JSON del banco ya coincide con la base de datos:\n%1")
+                                                              .arg(QDir::toNativeSeparators(json)));
+            return;
+        }
+        if (!confirmar(this, QStringLiteral("Actualizar el JSON del banco"),
+                       QStringLiteral("El JSON del banco no coincide con la base de datos:\n%1\n\n%2\n\n"
+                                      "¿Sobrescribirlo con el contenido de la base de datos?")
+                           .arg(QDir::toNativeSeparators(json), diferencias.join(QLatin1Char('\n'))))) {
+            comprobarJson();
+            return;
+        }
+    }
+    if (!m_bd.exportarJson(json))
+        QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo escribir el JSON:\n%1").arg(m_bd.ultimoError()));
+    else
+        statusBar()->showMessage(QStringLiteral("JSON del banco actualizado: %1").arg(QDir::toNativeSeparators(json)), 8000);
+    comprobarJson();
+}
+
+void VentanaPrincipal::cambiarJsonAutomatico(bool activar)
+{
+    m_bd.fijarJsonAutomatico(activar);
+    // Para mantenerlo al día hay que partir de un JSON igual que el banco: se elige (si no lo hay) y se actualiza.
+    if (activar && !m_jsonCoincide)
+        actualizarJsonBanco();
+    comprobarJson();
+}
+
+void VentanaPrincipal::comprobarJson()
+{
+    m_accionJsonAuto->blockSignals(true);
+    m_accionJsonAuto->setChecked(m_bd.jsonAutomatico());
+    m_accionJsonAuto->blockSignals(false);
+    const QString json = m_bd.jsonEnlazado();
+    const QStringList diferencias = json.isEmpty() ? QStringList() : m_bd.diferenciasConJson(json);
+    m_jsonCoincide = !json.isEmpty() && diferencias.isEmpty();
+    m_avisoJson->setVisible(!diferencias.isEmpty());
+    if (diferencias.isEmpty())
+        return;
+    m_avisoJson->setText(QStringLiteral("El JSON del banco no coincide con la base de datos: actualizarlo…"));
+    m_avisoJson->setToolTip(QStringLiteral("%1\n\n%2\n\nPulse para sobrescribir el JSON con el contenido de la base de datos.")
+                                .arg(QDir::toNativeSeparators(json), diferencias.join(QLatin1Char('\n'))));
+}
+
+void VentanaPrincipal::bancoEditado(int seleccionarId)
+{
+    if (m_bd.jsonAutomatico() && m_jsonCoincide) {
+        const QString json = m_bd.jsonEnlazado();
+        if (!json.isEmpty() && !m_bd.exportarJson(json))
+            QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo actualizar el JSON del banco:\n%1").arg(m_bd.ultimoError()));
+    }
+    recargarDatos(seleccionarId);
+}
+
 void VentanaPrincipal::gestionarTemas()
 {
     DialogoTemas d(&m_bd, this);
     if (d.exec() == QDialog::Accepted)
-        recargarDatos();
+        bancoEditado();
 }
 
 void VentanaPrincipal::revisarEstilo()
@@ -654,6 +746,7 @@ void VentanaPrincipal::recargarDatos(int seleccionarId)
     statusBar()->showMessage(QStringLiteral("Base de datos: %1  ·  %2 temas, %3 preguntas (%4 activas)")
                                  .arg(QDir::toNativeSeparators(m_bd.ruta()))
                                  .arg(m_temas.size()).arg(m_preguntas.size()).arg(activas));
+    comprobarJson();
 }
 
 // Rejilla de "preguntas por tema" de la pestaña de examen.
@@ -1160,7 +1253,7 @@ void VentanaPrincipal::editar(Pregunta p)
     while (d.exec() == QDialog::Accepted) {
         Pregunta nueva = d.pregunta();
         if (m_bd.guardarPregunta(nueva)) {
-            recargarDatos(nueva.id);
+            bancoEditado(nueva.id);
             return;
         }
         QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo guardar la pregunta:\n%1").arg(m_bd.ultimoError()));
@@ -1216,5 +1309,5 @@ void VentanaPrincipal::eliminarPregunta()
         return;
     if (!m_bd.borrarPregunta(p.id))
         QMessageBox::warning(this, windowTitle(), m_bd.ultimoError());
-    recargarDatos();
+    bancoEditado();
 }

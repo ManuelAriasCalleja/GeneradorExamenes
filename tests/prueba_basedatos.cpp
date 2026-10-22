@@ -181,6 +181,63 @@ private slots:
         QCOMPARE(describir(vacia.preguntas()), nuevas);
     }
 
+    void jsonEnlazadoYDiferencias()
+    {
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd, 3, 10), qPrintable(bd.ultimoError()));
+        QVERIFY(bd.jsonEnlazado().isEmpty());
+        QVERIFY(!bd.jsonAutomatico());
+        // No se puede leer: una sola línea que lo dice.
+        QCOMPARE(bd.diferenciasConJson(m_dir.filePath(QStringLiteral("no_existe.json"))).size(), 1);
+
+        // Enlazado, guardado relativo a la base de datos y recuperado al volver a abrirla.
+        const QString json = m_dir.filePath(QStringLiteral("enlazado.json"));
+        QVERIFY(bd.exportarJson(json));
+        QVERIFY(bd.enlazarJson(json));
+        QVERIFY(bd.fijarJsonAutomatico(true));
+        QCOMPARE(bd.ajuste(QStringLiteral("json_enlazado")), QStringLiteral("enlazado.json"));
+        const QString ruta = bd.ruta();
+        bd.cerrar();
+        QVERIFY(bd.abrir(ruta));
+        QCOMPARE(bd.jsonEnlazado(), QFileInfo(json).absoluteFilePath());
+        QVERIFY(bd.jsonAutomatico());
+        QVERIFY(bd.diferenciasConJson(json).isEmpty());
+
+        // Una pregunta cambiada, otra borrada y otra nueva en la base de datos; un tema renombrado.
+        QVector<Pregunta> preguntas = bd.preguntas();
+        Pregunta cambiada = preguntas.at(2);
+        cambiada.explicacion = QStringLiteral("Explicación añadida.");
+        QVERIFY(bd.guardarPregunta(cambiada));
+        QVERIFY(bd.borrarPregunta(preguntas.at(5).id));
+        Pregunta nueva = preguntas.at(7);
+        nueva.id = 0;
+        nueva.numero = 99;
+        QVERIFY(bd.guardarPregunta(nueva));
+        QVector<Tema> temas = bd.temas();
+        temas[1].titulo = QStringLiteral("Otro título");
+        QVERIFY(bd.guardarTemas(temas, {}));
+        const QStringList diferencias = bd.diferenciasConJson(json);
+        QCOMPARE(diferencias.size(), 4);
+        QCOMPARE(diferencias.at(0), QStringLiteral("1 pregunta distinta: %1").arg(cambiada.codigoCompleto()));
+        QCOMPARE(diferencias.at(1), QStringLiteral("1 pregunta solo en la base de datos: %1").arg(nueva.codigoCompleto()));
+        QCOMPARE(diferencias.at(2), QStringLiteral("1 pregunta solo en el JSON: %1").arg(preguntas.at(5).codigoCompleto()));
+        QCOMPARE(diferencias.at(3), QStringLiteral("1 tema con otro título o autor: T2"));
+        // Al reescribir el JSON vuelven a coincidir.
+        QVERIFY(bd.exportarJson(json));
+        QVERIFY(bd.diferenciasConJson(json).isEmpty());
+
+        // Con muchas diferencias, la lista de códigos se acorta.
+        for (Pregunta p : bd.preguntas())
+            if (p.temaNumero == 1) {
+                p.notas = QStringLiteral("nota");
+                QVERIFY(bd.guardarPregunta(p));
+            }
+        const QStringList muchas = bd.diferenciasConJson(json);
+        QCOMPARE(muchas.size(), 1);
+        QVERIFY2(muchas.first().startsWith(QStringLiteral("14 preguntas distintas: ")) && muchas.first().endsWith(QStringLiteral(", …")),
+                 qPrintable(muchas.first()));
+    }
+
     void historialRegistrarYCargar()
     {
         BaseDatos bd;

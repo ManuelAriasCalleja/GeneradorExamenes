@@ -10,6 +10,7 @@
 
 class FiltroPreguntas;
 class ModeloPreguntas;
+class QAction;
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
@@ -47,6 +48,8 @@ private slots:
     void nuevaBaseDatos();
     void importarJson();
     void exportarJson();
+    void actualizarJsonBanco();
+    void cambiarJsonAutomatico(bool activar);
     void gestionarTemas();
     void revisarEstilo();
     void acercaDe();
@@ -87,6 +90,11 @@ private:
     QWidget *crearPestanaBanco();
     void crearMenus();
     void recargarDatos(int seleccionarId = 0);
+    // Tras un cambio del banco hecho desde el programa (pregunta o tema guardado o borrado): reescribe el JSON
+    // enlazado si se pidió mantenerlo al día (y antes del cambio coincidía) y recarga los datos.
+    void bancoEditado(int seleccionarId = 0);
+    // Compara el banco con su JSON enlazado y enseña (u oculta) el aviso de la barra de estado.
+    void comprobarJson();
     void reconstruirTemas();
     void leerConfiguracion();
     void guardarConfiguracion();
@@ -124,6 +132,9 @@ private:
     QVector<Tema> m_temas;
     QVector<Pregunta> m_preguntas;
     ResultadoGeneracion m_resultado;
+    QPushButton *m_avisoJson;               // en la barra de estado: el JSON enlazado no coincide con el banco
+    QAction *m_accionJsonAuto;
+    bool m_jsonCoincide = false;            // el JSON enlazado existe y coincide con el banco
 
     // Pestaña de examen
     QLineEdit *m_asignatura;

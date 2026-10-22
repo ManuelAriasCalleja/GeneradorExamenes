@@ -47,6 +47,25 @@ QJsonObject preguntaAJson(const Pregunta &p)
     return jp;
 }
 
+// Lo que se compara entre el banco y su JSON: la pregunta entera menos los id (que cambian de una base de datos a
+// otra).
+QString huella(const Pregunta &p)
+{
+    return QStringList{p.enunciado, p.opciones.join(QLatin1Char('|')), QString::number(p.correcta), p.referencia, p.estado,
+                       QString::number(p.old), QString::number(p.revisar), p.pseudoCon, p.explicacion, p.notas,
+                       QString::fromLatin1(p.imagen.toBase64())}
+        .join(QLatin1Char('#'));
+}
+
+QString huella(const Tema &t)
+{
+    return t.titulo + QLatin1Char('#') + t.autor;
+}
+
+// Lee un JSON con el formato de herramientas/importar_docx.py: los temas y, en 'preguntas', las preguntas con el
+// número de su tema (sin id). Si falla, deja el motivo en 'error'.
+bool leerJson(const QString &ruta, QVector<Tema> *temas, QVector<Pregunta> *preguntas, QString *error);
+
 Pregunta preguntaDeJson(const QJsonObject &jp)
 {
     Pregunta p;
@@ -67,6 +86,36 @@ Pregunta preguntaDeJson(const QJsonObject &jp)
     p.pseudoCon = jp.value(QStringLiteral("pseudo_con")).toString();
     p.imagen = QByteArray::fromBase64(jp.value(QStringLiteral("imagen")).toString().toLatin1());
     return p;
+}
+
+bool leerJson(const QString &ruta, QVector<Tema> *temas, QVector<Pregunta> *preguntas, QString *error)
+{
+    QFile f(ruta);
+    if (!f.open(QIODevice::ReadOnly)) {
+        *error = QStringLiteral("No se puede abrir %1: %2").arg(ruta, f.errorString());
+        return false;
+    }
+    QJsonParseError err;
+    const QJsonDocument doc = QJsonDocument::fromJson(f.readAll(), &err);
+    if (doc.isNull()) {
+        *error = QStringLiteral("JSON no válido: %1").arg(err.errorString());
+        return false;
+    }
+    const QJsonArray jtemas = doc.object().value(QStringLiteral("temas")).toArray();
+    for (const QJsonValue &vt : jtemas) {
+        const QJsonObject jt = vt.toObject();
+        Tema t;
+        t.numero = jt.value(QStringLiteral("numero")).toInt();
+        t.titulo = jt.value(QStringLiteral("titulo")).toString();
+        t.autor = jt.value(QStringLiteral("autor")).toString();
+        temas->append(t);
+        for (const QJsonValue &vp : jt.value(QStringLiteral("preguntas")).toArray()) {
+            Pregunta p = preguntaDeJson(vp.toObject());
+            p.temaNumero = t.numero;
+            preguntas->append(p);
+        }
+    }
+    return true;
 }
 
 // Transacción que se deshace sola si no se llega a confirmar (al salir de una función por un error).
@@ -223,6 +272,8 @@ bool BaseDatos::crearEsquema()
                " imagen BLOB,"
                " UNIQUE (tema_id, numero, variante))"))
         && ejecutar(QStringLiteral("CREATE INDEX IF NOT EXISTS idx_preguntas_tema ON preguntas(tema_id, numero)"))
+        // Ajustes que van con el banco (json_enlazado, json_automatico...).
+        && ejecutar(QStringLiteral("CREATE TABLE IF NOT EXISTS ajustes (clave TEXT PRIMARY KEY, valor TEXT NOT NULL)"))
         // Historial de convocatorias ('registrado' es la fecha y hora en ISO 8601; 'orden', el de las opciones
         // mostradas, p. ej. "2031"; 'pregunta', la copia en JSON de la pregunta tal como salió).
         && ejecutar(QStringLiteral(
@@ -450,17 +501,10 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
 {
     if (copia)
         copia->clear();
-    QFile f(ruta);
-    if (!f.open(QIODevice::ReadOnly)) {
-        m_error = QStringLiteral("No se puede abrir %1: %2").arg(ruta, f.errorString());
+    QVector<Tema> temas;
+    QVector<Pregunta> preguntas;
+    if (!leerJson(ruta, &temas, &preguntas, &m_error))
         return -1;
-    }
-    QJsonParseError err;
-    const QJsonDocument doc = QJsonDocument::fromJson(f.readAll(), &err);
-    if (doc.isNull()) {
-        m_error = QStringLiteral("JSON no válido: %1").arg(err.errorString());
-        return -1;
-    }
 
     // Antes de borrar el banco, copia de seguridad (si hay algo que borrar: las preguntas van con sus temas). Si
     // la copia falla, no se toca nada.
@@ -490,30 +534,26 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
     if (reemplazar && !(ejecutar(QStringLiteral("DELETE FROM preguntas")) && ejecutar(QStringLiteral("DELETE FROM temas"))))
         return fallo();
 
-    int n = 0;
-    const QJsonArray temas = doc.object().value(QStringLiteral("temas")).toArray();
-    for (const QJsonValue &vt : temas) {
-        const QJsonObject jt = vt.toObject();
-        const int temaId = idTema(jt.value(QStringLiteral("numero")).toInt(),
-                                  jt.value(QStringLiteral("titulo")).toString(),
-                                  jt.value(QStringLiteral("autor")).toString(), true);
+    QHash<int, int> idDelTema;   // número de tema -> id
+    for (const Tema &t : temas) {
+        const int temaId = idTema(t.numero, t.titulo, t.autor, true);
         if (temaId == 0)
             return fallo();
-        for (const QJsonValue &vp : jt.value(QStringLiteral("preguntas")).toArray()) {
-            Pregunta p = preguntaDeJson(vp.toObject());
-            p.temaId = temaId;
-
-            // Si ya existe (mismo tema, número y variante) se actualiza.
-            QSqlQuery q = consultar(QStringLiteral("SELECT id FROM preguntas WHERE tema_id = ? AND numero = ? AND variante = ?"),
-                                    {temaId, p.numero, p.variante});
-            if (q.next())
-                p.id = q.value(0).toInt();
-            if (!guardarPregunta(p)) {
-                m_error = QStringLiteral("Tema %1, pregunta %2: %3").arg(jt.value(QStringLiteral("numero")).toInt()).arg(p.codigo(), m_error);
-                return fallo();
-            }
-            ++n;
+        idDelTema.insert(t.numero, temaId);
+    }
+    int n = 0;
+    for (Pregunta p : preguntas) {
+        p.temaId = idDelTema.value(p.temaNumero);
+        // Si ya existe (mismo tema, número y variante) se actualiza.
+        QSqlQuery q = consultar(QStringLiteral("SELECT id FROM preguntas WHERE tema_id = ? AND numero = ? AND variante = ?"),
+                                {p.temaId, p.numero, p.variante});
+        if (q.next())
+            p.id = q.value(0).toInt();
+        if (!guardarPregunta(p)) {
+            m_error = QStringLiteral("Tema %1, pregunta %2: %3").arg(p.temaNumero).arg(p.codigo(), m_error);
+            return fallo();
         }
+        ++n;
     }
     if (!transaccion.confirmar()) {
         m_error = m_db.lastError().text();
@@ -522,6 +562,99 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
     if (copia)
         *copia = rutaCopia;
     return n;
+}
+
+QString BaseDatos::ajuste(const QString &clave, const QString &porDefecto)
+{
+    QSqlQuery q = consultar(QStringLiteral("SELECT valor FROM ajustes WHERE clave = ?"), {clave});
+    return q.next() ? q.value(0).toString() : porDefecto;
+}
+
+bool BaseDatos::guardarAjuste(const QString &clave, const QString &valor)
+{
+    return ejecutar(QStringLiteral("INSERT OR REPLACE INTO ajustes (clave, valor) VALUES (?, ?)"), {clave, valor});
+}
+
+QString BaseDatos::jsonEnlazado()
+{
+    const QString relativa = ajuste(QStringLiteral("json_enlazado"));
+    if (relativa.isEmpty())
+        return {};
+    return QDir::cleanPath(QDir(QFileInfo(m_ruta).absolutePath()).absoluteFilePath(relativa));
+}
+
+bool BaseDatos::enlazarJson(const QString &ruta)
+{
+    const QDir carpeta(QFileInfo(m_ruta).absolutePath());
+    return guardarAjuste(QStringLiteral("json_enlazado"), carpeta.relativeFilePath(QFileInfo(ruta).absoluteFilePath()));
+}
+
+bool BaseDatos::jsonAutomatico()
+{
+    return ajuste(QStringLiteral("json_automatico")) == QLatin1String("1");
+}
+
+bool BaseDatos::fijarJsonAutomatico(bool automatico)
+{
+    return guardarAjuste(QStringLiteral("json_automatico"), automatico ? QStringLiteral("1") : QStringLiteral("0"));
+}
+
+QStringList BaseDatos::diferenciasConJson(const QString &ruta)
+{
+    QVector<Tema> temasJson;
+    QVector<Pregunta> preguntasJson;
+    QString error;
+    if (!leerJson(ruta, &temasJson, &preguntasJson, &error))
+        return {error};
+
+    // «3 preguntas distintas: T1-7, T2-3a, T4-1» (como mucho ocho códigos; luego, puntos suspensivos).
+    auto linea = [](const QStringList &codigos, const QString &singular, const QString &plural) {
+        if (codigos.isEmpty())
+            return QString();
+        QStringList muestra = codigos.mid(0, 8);
+        if (codigos.size() > 8)
+            muestra << QStringLiteral("…");
+        return QStringLiteral("%1 %2: %3").arg(codigos.size()).arg(codigos.size() == 1 ? singular : plural, muestra.join(QStringLiteral(", ")));
+    };
+    QStringList diferencias;
+
+    QHash<QString, QString> huellasJson;   // código completo -> huella
+    for (const Pregunta &p : preguntasJson)
+        huellasJson.insert(p.codigoCompleto(), huella(p));
+    QStringList distintas, soloBd, soloJson;
+    for (const Pregunta &p : preguntas()) {
+        const QString codigo = p.codigoCompleto();
+        if (!huellasJson.contains(codigo))
+            soloBd << codigo;
+        else if (huellasJson.take(codigo) != huella(p))
+            distintas << codigo;
+    }
+    soloJson = huellasJson.keys();
+    std::sort(soloJson.begin(), soloJson.end());
+    diferencias << linea(distintas, QStringLiteral("pregunta distinta"), QStringLiteral("preguntas distintas"))
+                << linea(soloBd, QStringLiteral("pregunta solo en la base de datos"), QStringLiteral("preguntas solo en la base de datos"))
+                << linea(soloJson, QStringLiteral("pregunta solo en el JSON"), QStringLiteral("preguntas solo en el JSON"));
+
+    QHash<int, QString> temasDelJson;   // número -> huella
+    for (const Tema &t : temasJson)
+        temasDelJson.insert(t.numero, huella(t));
+    QStringList temasDistintos, temasSoloBd, temasSoloJson;
+    for (const Tema &t : temas()) {
+        const QString codigo = QStringLiteral("T%1").arg(t.numero);
+        if (!temasDelJson.contains(t.numero))
+            temasSoloBd << codigo;
+        else if (temasDelJson.take(t.numero) != huella(t))
+            temasDistintos << codigo;
+    }
+    QList<int> numerosSoloJson = temasDelJson.keys();
+    std::sort(numerosSoloJson.begin(), numerosSoloJson.end());
+    for (int numero : numerosSoloJson)
+        temasSoloJson << QStringLiteral("T%1").arg(numero);
+    diferencias << linea(temasDistintos, QStringLiteral("tema con otro título o autor"), QStringLiteral("temas con otro título o autor"))
+                << linea(temasSoloBd, QStringLiteral("tema solo en la base de datos"), QStringLiteral("temas solo en la base de datos"))
+                << linea(temasSoloJson, QStringLiteral("tema solo en el JSON"), QStringLiteral("temas solo en el JSON"));
+    diferencias.removeAll(QString());
+    return diferencias;
 }
 
 bool BaseDatos::exportarJson(const QString &ruta)

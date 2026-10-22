@@ -9,6 +9,7 @@
 #include "ventanaprincipal.h"
 
 #include <QAbstractButton>
+#include <QAction>
 #include <QApplication>
 #include <QButtonGroup>
 #include <QComboBox>
@@ -21,6 +22,7 @@
 #include <QSettings>
 #include <QSpinBox>
 #include <QStandardPaths>
+#include <QTableView>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QToolButton>
@@ -192,6 +194,66 @@ private slots:
             if (l->text().startsWith(QStringLiteral("Nota:")))
                 nota = l->text();
         QCOMPARE(nota, QStringLiteral("Nota: 3,70 / 10,00"));
+    }
+
+    void ventanaAvisaDelJson()
+    {
+        QTemporaryDir dir;
+        const QString rutaBd = dir.filePath(QStringLiteral("banco.db"));
+        const QString json = dir.filePath(QStringLiteral("banco.json"));
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(rutaBd));
+            QVERIFY(llenarBaseDatos(bd, 2, bancoInventado(2, 6)));
+            QVERIFY(bd.exportarJson(json));
+            QVERIFY(bd.enlazarJson(json));
+            Pregunta p = bd.preguntas().first();
+            p.notas = QStringLiteral("cambiada después de exportar");
+            QVERIFY(bd.guardarPregunta(p));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(rutaBd));
+        QPushButton *aviso = nullptr;
+        for (QPushButton *b : v.findChildren<QPushButton *>())
+            if (b->text().startsWith(QStringLiteral("El JSON del banco no coincide")))
+                aviso = b;
+        QVERIFY(aviso);
+        QVERIFY(aviso->isVisible());
+        QVERIFY2(aviso->toolTip().contains(QStringLiteral("1 pregunta distinta: T1-1")), qPrintable(aviso->toolTip()));
+
+        // Al actualizarlo (confirmando), el JSON vuelve a coincidir y el aviso desaparece.
+        QString texto;
+        responder(QStringLiteral("Sí"), &texto);
+        aviso->click();
+        QVERIFY2(texto.contains(QStringLiteral("1 pregunta distinta: T1-1")), qPrintable(texto));
+        QVERIFY(!aviso->isVisible());
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(rutaBd));
+            QVERIFY(bd.diferenciasConJson(json).isEmpty());
+        }
+
+        // Con «Mantener el JSON al día», borrar una pregunta reescribe el JSON.
+        QAction *automatico = nullptr;
+        for (QAction *a : v.findChildren<QAction *>())
+            if (a->text().startsWith(QStringLiteral("&Mantener el JSON")))
+                automatico = a;
+        QVERIFY(automatico);
+        automatico->setChecked(true);
+        auto *tabla = v.findChild<QTableView *>();
+        QVERIFY(tabla);
+        tabla->setCurrentIndex(tabla->model()->index(0, 0));
+        responder(QStringLiteral("Sí"));
+        QMetaObject::invokeMethod(&v, "eliminarPregunta");
+        QVERIFY(!aviso->isVisible());
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(rutaBd));
+            QCOMPARE(bd.preguntas().size(), bancoInventado(2, 6).size() - 1);
+            QVERIFY(bd.jsonAutomatico());
+            QVERIFY2(bd.diferenciasConJson(json).isEmpty(), qPrintable(bd.diferenciasConJson(json).join(QLatin1Char('\n'))));
+        }
     }
 
     void ventanaGeneraYExporta()
