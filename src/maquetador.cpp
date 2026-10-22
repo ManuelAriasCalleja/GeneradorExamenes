@@ -1,4 +1,5 @@
 #include "maquetador.h"
+#include "enunciado.h"
 
 #include <QAbstractTextDocumentLayout>
 #include <QFontMetricsF>
@@ -228,86 +229,47 @@ QString Maquetador::formatoPuntos(double v)
 QString Maquetador::enunciadoHtml(const QString &texto, const QString &prefijo)
 {
     QString html;
-    QStringList parrafo, codigo;
-    QVector<QStringList> filas;
-    bool enCodigo = false;
     bool prefijoPuesto = prefijo.isEmpty();
     const QString estiloParrafo = QStringLiteral("margin-top:0px; margin-bottom:2px");
-
+    // El prefijo («3.- ») va al principio del primer párrafo; si antes hay código o una tabla, en un párrafo propio.
     auto ponerPrefijoSolo = [&]() {
         if (!prefijoPuesto) {
             html += QStringLiteral("<p style=\"%1\">%2</p>").arg(estiloParrafo, prefijo);
             prefijoPuesto = true;
         }
     };
-    auto volcarParrafo = [&]() {
-        if (parrafo.isEmpty())
-            return;
-        QString contenido = parrafo.join(QStringLiteral("<br>"));
-        if (!prefijoPuesto) {
-            contenido = prefijo + contenido;
-            prefijoPuesto = true;
-        }
-        html += QStringLiteral("<p style=\"%1\">%2</p>").arg(estiloParrafo, contenido);
-        parrafo.clear();
-    };
-    auto volcarTabla = [&]() {
-        if (filas.isEmpty())
-            return;
-        ponerPrefijoSolo();
-        html += QStringLiteral("<table cellspacing=\"0\" cellpadding=\"3\" style=\"margin-left:26px; margin-top:3px; margin-bottom:3px; border-collapse:collapse; border:1px solid #000; font-weight:normal; font-style:normal\">");
-        for (const QStringList &fila : filas) {
-            html += QStringLiteral("<tr>");
-            for (const QString &c : fila)
-                html += QStringLiteral("<td style=\"border:1px solid #000\">%1</td>").arg(escapar(c));
-            html += QStringLiteral("</tr>");
-        }
-        html += QStringLiteral("</table>");
-        filas.clear();
-    };
-    auto volcarCodigo = [&]() {
-        ponerPrefijoSolo();
-        html += QStringLiteral("<pre style=\"margin-left:26px; margin-top:2px; margin-bottom:2px; font-family:%1; font-weight:normal; font-style:normal\">%2</pre>")
-                    .arg(QLatin1String(kFuenteCodigo), escapar(codigo.join(QLatin1Char('\n'))));
-        codigo.clear();
-    };
-
-    const QStringList lineas = texto.split(QLatin1Char('\n'));
-    for (const QString &linea : lineas) {
-        const QString t = linea.trimmed();
-        if (t.startsWith(QLatin1String("```"))) {
-            if (enCodigo) {
-                volcarCodigo();
-                enCodigo = false;
-            } else {
-                volcarParrafo();
-                volcarTabla();
-                enCodigo = true;
+    for (const Enunciado::Bloque &b : Enunciado::bloques(texto)) {
+        switch (b.tipo) {
+        case Enunciado::Bloque::Parrafo: {
+            QStringList lineas;
+            for (const QString &linea : b.lineas)
+                lineas << escapar(linea);
+            QString contenido = lineas.join(QStringLiteral("<br>"));
+            if (!prefijoPuesto) {
+                contenido = prefijo + contenido;
+                prefijoPuesto = true;
             }
-            continue;
+            html += QStringLiteral("<p style=\"%1\">%2</p>").arg(estiloParrafo, contenido);
+            break;
         }
-        if (enCodigo) {
-            codigo << linea;
-            continue;
+        case Enunciado::Bloque::Tabla:
+            ponerPrefijoSolo();
+            html += QStringLiteral("<table cellspacing=\"0\" cellpadding=\"3\" style=\"margin-left:26px; margin-top:3px; margin-bottom:3px; border-collapse:collapse; border:1px solid #000; font-weight:normal; font-style:normal\">");
+            for (const QStringList &fila : b.filas) {
+                html += QStringLiteral("<tr>");
+                for (const QString &c : fila)
+                    html += QStringLiteral("<td style=\"border:1px solid #000\">%1</td>").arg(escapar(c));
+                html += QStringLiteral("</tr>");
+            }
+            html += QStringLiteral("</table>");
+            break;
+        case Enunciado::Bloque::Codigo:
+            ponerPrefijoSolo();
+            html += QStringLiteral("<pre style=\"margin-left:26px; margin-top:2px; margin-bottom:2px; font-family:%1; font-weight:normal; font-style:normal\">%2</pre>")
+                        .arg(QLatin1String(kFuenteCodigo), escapar(b.lineas.join(QLatin1Char('\n'))));
+            break;
         }
-        if (t.startsWith(QLatin1Char('|'))) {
-            volcarParrafo();
-            QString contenido = t.mid(1);
-            if (contenido.endsWith(QLatin1Char('|')))
-                contenido.chop(1);
-            QStringList celdas = contenido.split(QLatin1Char('|'));
-            for (QString &c : celdas)
-                c = c.trimmed();
-            filas << celdas;
-            continue;
-        }
-        volcarTabla();
-        parrafo << escapar(linea);
     }
-    if (enCodigo)
-        volcarCodigo();
-    volcarParrafo();
-    volcarTabla();
     ponerPrefijoSolo();
     return html;
 }
@@ -747,91 +709,54 @@ QString opcionesLatex(const PreguntaExamen &pe, bool soluciones, int n)
 QString enunciadoLatex(const QString &texto, const QString &prefijo)
 {
     QString tex;
-    QStringList parrafo, codigo;
-    QVector<QStringList> filas;
-    bool enCodigo = false;
     bool prefijoPuesto = prefijo.isEmpty();
-
     auto ponerPrefijoSolo = [&]() {
         if (!prefijoPuesto) {
             tex += QStringLiteral("\\enunciado{%1}\n").arg(prefijo);
             prefijoPuesto = true;
         }
     };
-    auto volcarParrafo = [&]() {
-        if (parrafo.isEmpty())
-            return;
-        QString contenido = parrafo.join(QStringLiteral("\\\\\n"));
-        if (!prefijoPuesto) {
-            contenido = prefijo + contenido;
-            prefijoPuesto = true;
-        }
-        tex += QStringLiteral("\\enunciado{%1}\n").arg(contenido);
-        parrafo.clear();
-    };
-    auto volcarTabla = [&]() {
-        if (filas.isEmpty())
-            return;
-        ponerPrefijoSolo();
-        int columnas = 0;
-        for (const QStringList &fila : std::as_const(filas))
-            columnas = qMax(columnas, int(fila.size()));
-        tex += QStringLiteral("\\par\\smallskip\\sangria\\begin{tabular}{|%1}\\hline\n").arg(QStringLiteral("l|").repeated(columnas));
-        for (const QStringList &fila : std::as_const(filas)) {
-            QStringList celdas;
-            for (const QString &c : fila)
-                celdas << Maquetador::escaparLatex(c);
-            while (celdas.size() < columnas)
-                celdas << QString();
-            tex += celdas.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\ \\hline\n");
-        }
-        tex += QStringLiteral("\\end{tabular}\\par\\smallskip\n");
-        filas.clear();
-    };
-    auto volcarCodigo = [&]() {
-        ponerPrefijoSolo();
-        tex += QStringLiteral("\\begin{Verbatim}[xleftmargin=8mm,formatcom=\\normalfont\\ttfamily]\n%1\n\\end{Verbatim}\n")
-                   .arg(codigo.join(QLatin1Char('\n')));
-        codigo.clear();
-    };
-
-    const QStringList lineas = texto.split(QLatin1Char('\n'));
-    for (const QString &linea : lineas) {
-        const QString t = linea.trimmed();
-        if (t.startsWith(QLatin1String("```"))) {
-            if (enCodigo) {
-                volcarCodigo();
-                enCodigo = false;
-            } else {
-                volcarParrafo();
-                volcarTabla();
-                enCodigo = true;
+    for (const Enunciado::Bloque &b : Enunciado::bloques(texto)) {
+        switch (b.tipo) {
+        case Enunciado::Bloque::Parrafo: {
+            QStringList lineas;
+            for (const QString &linea : b.lineas)
+                if (!linea.trimmed().isEmpty())   // una línea vacía con \\ daría error en LaTeX
+                    lineas << Maquetador::escaparLatex(linea);
+            if (lineas.isEmpty())
+                break;
+            QString contenido = lineas.join(QStringLiteral("\\\\\n"));
+            if (!prefijoPuesto) {
+                contenido = prefijo + contenido;
+                prefijoPuesto = true;
             }
-            continue;
+            tex += QStringLiteral("\\enunciado{%1}\n").arg(contenido);
+            break;
         }
-        if (enCodigo) {
-            codigo << linea;
-            continue;
+        case Enunciado::Bloque::Tabla: {
+            ponerPrefijoSolo();
+            int columnas = 0;
+            for (const QStringList &fila : b.filas)
+                columnas = qMax(columnas, int(fila.size()));
+            tex += QStringLiteral("\\par\\smallskip\\sangria\\begin{tabular}{|%1}\\hline\n").arg(QStringLiteral("l|").repeated(columnas));
+            for (const QStringList &fila : b.filas) {
+                QStringList celdas;
+                for (const QString &c : fila)
+                    celdas << Maquetador::escaparLatex(c);
+                while (celdas.size() < columnas)
+                    celdas << QString();
+                tex += celdas.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\ \\hline\n");
+            }
+            tex += QStringLiteral("\\end{tabular}\\par\\smallskip\n");
+            break;
         }
-        if (t.startsWith(QLatin1Char('|'))) {
-            volcarParrafo();
-            QString contenido = t.mid(1);
-            if (contenido.endsWith(QLatin1Char('|')))
-                contenido.chop(1);
-            QStringList celdas = contenido.split(QLatin1Char('|'));
-            for (QString &c : celdas)
-                c = c.trimmed();
-            filas << celdas;
-            continue;
+        case Enunciado::Bloque::Codigo:
+            ponerPrefijoSolo();
+            tex += QStringLiteral("\\begin{Verbatim}[xleftmargin=8mm,formatcom=\\normalfont\\ttfamily]\n%1\n\\end{Verbatim}\n")
+                       .arg(b.lineas.join(QLatin1Char('\n')));
+            break;
         }
-        volcarTabla();
-        if (!t.isEmpty())   // una línea vacía con \\ daría error en LaTeX
-            parrafo << Maquetador::escaparLatex(linea);
     }
-    if (enCodigo)
-        volcarCodigo();
-    volcarParrafo();
-    volcarTabla();
     ponerPrefijoSolo();
     return tex;
 }

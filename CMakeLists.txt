@@ -20,6 +20,7 @@ qt_add_executable(GeneradorExamenesFI
     src/utilidades.h
     src/basedatos.h src/basedatos.cpp
     src/generador.h src/generador.cpp
+    src/enunciado.h src/enunciado.cpp
     src/estilo.h src/estilo.cpp
     src/parecidas.h src/parecidas.cpp
     src/maquetador.h src/maquetador.cpp

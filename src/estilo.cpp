@@ -1,4 +1,5 @@
 #include "estilo.h"
+#include "enunciado.h"
 
 #include <QRegularExpression>
 #include <QSet>
@@ -26,15 +27,14 @@ struct Partes
 Partes partesDe(const QString &enunciado)
 {
     Partes partes;
-    bool enCodigo = false;
-    for (const QString &linea : enunciado.split(QLatin1Char('\n'))) {
-        const QString l = linea.trimmed();
-        if (l.startsWith(QLatin1String("```")))
-            enCodigo = !enCodigo;
-        else if (enCodigo)
-            partes.codigo << linea;
-        else if (!l.isEmpty() && !l.startsWith(QLatin1Char('|')))
-            partes.texto << l;
+    for (const Enunciado::Bloque &b : Enunciado::bloques(enunciado)) {
+        if (b.tipo == Enunciado::Bloque::Codigo) {
+            partes.codigo << b.lineas;
+        } else if (b.tipo == Enunciado::Bloque::Parrafo) {
+            for (const QString &linea : b.lineas)
+                if (!linea.trimmed().isEmpty())
+                    partes.texto << linea.trimmed();
+        }
     }
     return partes;
 }
