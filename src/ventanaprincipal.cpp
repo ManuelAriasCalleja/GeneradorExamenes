@@ -6,6 +6,7 @@
 #include "dialogopregunta.h"
 #include "dialogotemas.h"
 #include "modelopreguntas.h"
+#include "parecidas.h"
 #include "utilidades.h"
 
 #include <QAction>
@@ -1189,7 +1190,7 @@ void VentanaPrincipal::editar(Pregunta p)
         QMessageBox::information(this, windowTitle(), QStringLiteral("Primero cree algún tema (Editar → Temas)."));
         return;
     }
-    DialogoPregunta d(m_temas, p, this);
+    DialogoPregunta d(m_temas, m_preguntas, p, this);
     while (d.exec() == QDialog::Accepted) {
         Pregunta nueva = d.pregunta();
         if (m_bd.guardarPregunta(nueva)) {
@@ -1230,15 +1231,8 @@ void VentanaPrincipal::duplicarPregunta()
     if (!ok)
         return;
     // Nueva variante del mismo número: siguiente letra libre.
-    QString usadas;
-    for (const Pregunta &q : std::as_const(m_preguntas))
-        if (q.temaId == p.temaId && q.numero == p.numero)
-            usadas += q.variante.isEmpty() ? QStringLiteral(" ") : q.variante;
-    QChar letra = QLatin1Char('a');
-    while (usadas.contains(letra) && letra < QLatin1Char('z'))
-        letra = QChar(letra.unicode() + 1);
     p.id = 0;
-    p.variante = letra;
+    p.variante = Parecidas::siguienteVariante(m_preguntas, p.temaId, p.numero);
     p.old = false;
     editar(p);
 }

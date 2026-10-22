@@ -1,4 +1,5 @@
 #include "dialogopregunta.h"
+#include "dialogoparecidas.h"
 #include "estilo.h"
 #include "maquetador.h"
 
@@ -24,10 +25,12 @@
 #include <QSpinBox>
 #include <QTextBrowser>
 #include <QTextDocument>
+#include <QTimer>
 #include <QVBoxLayout>
 
-DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const Pregunta &pregunta, QWidget *parent)
-    : QDialog(parent), m_temas(temas), m_original(pregunta), m_imagen(pregunta.imagen)
+DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregunta> &banco, const Pregunta &pregunta,
+                                 QWidget *parent)
+    : QDialog(parent), m_temas(temas), m_banco(banco), m_indice(banco), m_original(pregunta), m_imagen(pregunta.imagen)
 {
     setWindowTitle(pregunta.id ? QStringLiteral("Editar pregunta %1").arg(pregunta.codigoCompleto())
                                : QStringLiteral("Nueva pregunta"));
@@ -144,6 +147,16 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const Pregunta &pre
     m_avisosEstilo->setWordWrap(true);
     m_avisosEstilo->setStyleSheet(QStringLiteral("background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; padding: 6px"));
     lp->addWidget(m_avisosEstilo);
+    m_parecidas = new QLabel;
+    m_parecidas->setWordWrap(true);
+    m_parecidas->setStyleSheet(QStringLiteral("background: #e7f1fb; color: #0b3c6b; border: 1px solid #b6d4f2; padding: 6px"));
+    m_parecidas->setToolTip(QStringLiteral("Si es la misma idea que una de ellas, guárdela como su variante (mismo número, "
+                                           "otra letra) o, si es de otro tema, enlácela en «Pseudorrepetida con»."));
+    lp->addWidget(m_parecidas);
+    m_temporizadorParecidas = new QTimer(this);
+    m_temporizadorParecidas->setSingleShot(true);
+    m_temporizadorParecidas->setInterval(300);
+    connect(m_temporizadorParecidas, &QTimer::timeout, this, &DialogoPregunta::actualizarParecidas);
 
     auto *divisor = new QSplitter;
     divisor->addWidget(formulario);
@@ -172,9 +185,11 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const Pregunta &pre
     connect(m_numero, &QSpinBox::valueChanged, this, &DialogoPregunta::actualizarVistaPrevia);
     connect(m_variante, &QLineEdit::textChanged, this, &DialogoPregunta::actualizarVistaPrevia);
     connect(m_tema, &QComboBox::currentIndexChanged, this, &DialogoPregunta::actualizarVistaPrevia);
+    connect(m_pseudo, &QLineEdit::textChanged, this, &DialogoPregunta::actualizarVistaPrevia);
 
     mostrarImagen();
     actualizarVistaPrevia();
+    actualizarParecidas();
 }
 
 Pregunta DialogoPregunta::pregunta() const
@@ -218,7 +233,9 @@ void DialogoPregunta::accept()
         QMessageBox::warning(this, windowTitle(), error);
         return;
     }
-    const QVector<Estilo::Aviso> avisos = Estilo::revisar(p);
+    if (!decidirSiEsVariante())
+        return;
+    const QVector<Estilo::Aviso> avisos = Estilo::revisar(pregunta());
     if (!avisos.isEmpty()) {
         QStringList lineas;
         for (const Estilo::Aviso &a : avisos)
@@ -253,6 +270,47 @@ void DialogoPregunta::actualizarVistaPrevia()
         avisos << QStringLiteral("• ") + a.texto.toHtmlEscaped();
     m_avisosEstilo->setText(QStringLiteral("<b>Pautas de estilo</b><br>") + avisos.join(QStringLiteral("<br>")));
     m_avisosEstilo->setVisible(!avisos.isEmpty());
+    m_temporizadorParecidas->start();
+}
+
+void DialogoPregunta::actualizarParecidas()
+{
+    QStringList codigos;
+    for (const Parecidas::Parecida &q : m_indice.masParecidas(pregunta(), 3, Parecidas::kMinimoMostrar))
+        codigos << QStringLiteral("%1 (%2 %)").arg(q.pregunta.codigoCompleto()).arg(qRound(q.parecido * 100));
+    m_parecidas->setText(QStringLiteral("<b>Preguntas parecidas</b> (de otros números): ") + codigos.join(QStringLiteral(", ")));
+    m_parecidas->setVisible(!codigos.isEmpty());
+}
+
+bool DialogoPregunta::decidirSiEsVariante()
+{
+    const Pregunta p = pregunta();
+    if (m_original.id != 0)
+        return true;
+    for (const Pregunta &q : std::as_const(m_banco))
+        if (q.temaId == p.temaId && q.numero == p.numero)
+            return true;   // ya es variante de una pregunta que existe
+    const QVector<Parecidas::Parecida> parecidas = m_indice.masParecidas(p, 5, Parecidas::kMinimoMostrar);
+    if (parecidas.isEmpty() || parecidas.first().parecido < Parecidas::kMinimoPreguntar)
+        return true;
+
+    DialogoParecidas dialogo(p, parecidas, m_temas, this);
+    dialogo.exec();
+    const Pregunta elegida = dialogo.elegida();
+    switch (dialogo.decision()) {
+    case DialogoParecidas::SeguirEditando:
+        return false;
+    case DialogoParecidas::ComoVariante:
+        m_numero->setValue(elegida.numero);
+        m_variante->setText(Parecidas::siguienteVariante(m_banco, elegida.temaId, elegida.numero));
+        break;
+    case DialogoParecidas::ComoPseudorrepetida:
+        m_pseudo->setText(elegida.grupo());
+        break;
+    case DialogoParecidas::ComoNueva:
+        break;
+    }
+    return true;
 }
 
 void DialogoPregunta::mostrarImagen()

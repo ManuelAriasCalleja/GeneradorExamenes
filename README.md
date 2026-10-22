@@ -98,6 +98,14 @@ referencia al libro según el tema. Son avisos: al guardar se pide confirmación
 solo los del enunciado, las opciones o la referencia), abre cada pregunta para corregirla y guarda el informe
 en un fichero de texto, solo con los códigos de las preguntas y los avisos.
 
+El editor muestra también las preguntas del banco más parecidas a la que se escribe (de otros números; las
+variantes de la misma no cuentan). Al guardar una pregunta nueva con un número que no existe, si se parece mucho
+a otras, las enseña con su ficha para compararlas y propone guardarla como la siguiente variante de una de ellas
+(si es del mismo tema) o enlazarla como pseudorrepetida (si es de otro), para que nunca salgan juntas en un
+examen. El parecido compara trozos de palabras del enunciado y de las opciones; con los dos bancos, la variante
+de una pregunta sale entre las tres más parecidas en ocho de cada diez casos. *Duplicar como variante* y las
+variantes nuevas toman la siguiente letra libre (si la pregunta existente no tiene letra, cuenta como la «a»).
+
 ## Ficheros
 
 | Ruta | Contenido |
