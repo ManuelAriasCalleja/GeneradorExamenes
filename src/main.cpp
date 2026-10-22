@@ -27,11 +27,17 @@ int main(int argc, char *argv[])
         icono.addFile(QStringLiteral(":/recursos/icono/icono_%1.png").arg(lado), QSize(lado, lado));
     QApplication::setWindowIcon(icono);
 
-    // Diálogos estándar de Qt en castellano, si están instaladas las traducciones.
+    // Diálogos estándar de Qt en castellano, si están instaladas las traducciones: junto al programa en el paquete
+    // de Windows (windeployqt puede juntarlas en qt_es.qm) o donde estén las de Qt.
     QTranslator traductor;
-    if (traductor.load(QLocale(QLocale::Spanish), QStringLiteral("qtbase"), QStringLiteral("_"),
-                       QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
-        app.installTranslator(&traductor);
+    for (const QString &carpeta : {QCoreApplication::applicationDirPath() + QStringLiteral("/translations"),
+                                   QLibraryInfo::path(QLibraryInfo::TranslationsPath)}) {
+        if (traductor.load(QLocale(QLocale::Spanish), QStringLiteral("qtbase"), QStringLiteral("_"), carpeta)
+            || traductor.load(QLocale(QLocale::Spanish), QStringLiteral("qt"), QStringLiteral("_"), carpeta)) {
+            app.installTranslator(&traductor);
+            break;
+        }
+    }
 
     QCommandLineParser opciones;
     opciones.setApplicationDescription(QStringLiteral("Generador de exámenes tipo test de Fundamentos de Informática"));

@@ -25,8 +25,19 @@ Para tenerlo en el menú del escritorio (Cinnamon, GNOME, KDE…) con su icono: 
 escritorio, también la actualiza. Si se mueve el proyecto, hay que volver a ejecutarlo.
 
 En Windows se compila igual con CMake (o desde Qt Creator), con Qt 6 para MinGW o MSVC. Sale como aplicación
-gráfica, sin ventana de consola, y el `.exe` lleva el icono (`recursos/icono.rc`). Para usarlo en otro
-ordenador hay que copiar a su lado las bibliotecas de Qt con `windeployqt GeneradorExamenesFI.exe`.
+gráfica, sin ventana de consola, y el `.exe` lleva el icono (`recursos/icono.rc`).
+
+Para llevarlo a otros ordenadores con Windows, se prepara un paquete (compilado en Release):
+
+```bat
+cmake --build build --target paquete
+```
+
+Deja `build\GeneradorExamenesFI-<versión>-windows.zip`, con una carpeta que contiene el programa, las bibliotecas de Qt
+que necesita (las copia `windeployqt`, con las traducciones al castellano de los diálogos), las del compilador
+(MinGW o Visual Studio) y un `LEEME.txt` para quien lo reciba (`recursos/LEEME_windows.txt`). Se descomprime y
+funciona sin instalar nada; no lleva preguntas. Desde Qt Creator: *Proyectos → Compilar → Pasos de compilación*,
+marcar el objetivo `paquete`. Para comprobar que no falta nada, conviene probarlo en un ordenador sin Qt.
 
 ### Pruebas automáticas
 
@@ -127,7 +138,7 @@ variantes nuevas toman la siguiente letra libre (si la pregunta existente no tie
 | `PENDIENTE.md` | Mejoras aceptadas que quedan por hacer. |
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |
-| `recursos/` | Foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. |
+| `recursos/` | Foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `LEEME_windows.txt` va en el paquete de Windows. |
 | `src/` | Código fuente del programa. |
 | `tests/` | Pruebas automáticas, con datos inventados. |
 
