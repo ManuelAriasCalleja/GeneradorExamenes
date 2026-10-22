@@ -60,6 +60,41 @@ const QMap<int, int> kRepartoPorDefecto{{1, 3}, {2, 2}, {3, 3}, {4, 2}};
 // Lista de exámenes la primera vez que se abre el programa; luego se recuerda la que se haya hecho.
 const QStringList kExamenesPorDefecto{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")};
 
+// Lee de la configuración el valor de un control (si no está, se queda con el que tiene) y el valor que hay que
+// guardar de él, según su tipo.
+void leerAjuste(const QSettings &s, const QString &clave, QWidget *control)
+{
+    if (auto *c = qobject_cast<QCheckBox *>(control))
+        c->setChecked(s.value(clave, c->isChecked()).toBool());
+    else if (auto *n = qobject_cast<QSpinBox *>(control))
+        n->setValue(s.value(clave, n->value()).toInt());
+    else if (auto *d = qobject_cast<QDoubleSpinBox *>(control))
+        d->setValue(s.value(clave, d->value()).toDouble());
+    else if (auto *l = qobject_cast<QLineEdit *>(control))
+        l->setText(s.value(clave, l->text()).toString());
+    else if (auto *t = qobject_cast<QPlainTextEdit *>(control))
+        t->setPlainText(s.value(clave, t->toPlainText()).toString());
+    else if (auto *b = qobject_cast<QComboBox *>(control))
+        b->setCurrentText(s.value(clave, b->currentText()).toString());
+}
+
+QVariant valorAjuste(const QWidget *control)
+{
+    if (auto *c = qobject_cast<const QCheckBox *>(control))
+        return c->isChecked();
+    if (auto *n = qobject_cast<const QSpinBox *>(control))
+        return n->value();
+    if (auto *d = qobject_cast<const QDoubleSpinBox *>(control))
+        return d->value();
+    if (auto *l = qobject_cast<const QLineEdit *>(control))
+        return l->text();
+    if (auto *t = qobject_cast<const QPlainTextEdit *>(control))
+        return t->toPlainText();
+    if (auto *b = qobject_cast<const QComboBox *>(control))
+        return b->currentText().trimmed();
+    return QVariant();
+}
+
 } // namespace
 
 VentanaPrincipal::VentanaPrincipal(QWidget *parent)
@@ -167,6 +202,8 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     m_fallo->setRange(0, 10);
     m_fallo->setSingleStep(0.05);
     m_fallo->setPrefix(QStringLiteral("- "));
+    m_acierto->setValue(DatosConvocatoria().puntosAcierto);
+    m_fallo->setValue(DatosConvocatoria().puntosFallo);
     fPunt->addRow(m_puntuacionAuto);
     fPunt->addRow(QStringLiteral("Acierto:"), m_acierto);
     fPunt->addRow(QStringLiteral("Fallo:"), m_fallo);
@@ -631,25 +668,12 @@ void VentanaPrincipal::leerConfiguracion()
 {
     QSettings s;
     restoreGeometry(s.value(QStringLiteral("ventana/geometria")).toByteArray());
-    m_asignatura->setText(s.value(QStringLiteral("examen/asignatura"), m_asignatura->text()).toString());
-    m_duracion->setValue(s.value(QStringLiteral("examen/duracion"), 60).toInt());
-    m_instrucciones->setPlainText(s.value(QStringLiteral("examen/instrucciones"), m_instrucciones->toPlainText()).toString());
-    m_anio->setValue(s.value(QStringLiteral("examen/anio"), m_anio->value()).toInt());
-    m_convocatoria->setCurrentText(s.value(QStringLiteral("examen/nombreConvocatoria"), m_convocatoria->currentText()).toString());
+    for (const Ajuste &a : ajustes())
+        leerAjuste(s, a.clave, a.control);
     const QStringList examenes = s.value(QStringLiteral("examenes/nombres"), kExamenesPorDefecto).toStringList();
     const QStringList marcados = s.value(QStringLiteral("examenes/marcados"), examenes).toStringList();
     for (const QString &nombre : examenes)
         anadirExamen(nombre, marcados.contains(nombre));
-    m_noRepetir->setChecked(s.value(QStringLiteral("examen/noRepetir"), true).toBool());
-    m_evitarRecientes->setChecked(s.value(QStringLiteral("examen/evitarRecientes"), true).toBool());
-    m_numRecientes->setValue(s.value(QStringLiteral("examen/numRecientes"), 3).toInt());
-    m_evitarOld->setChecked(s.value(QStringLiteral("examen/evitarOld"), true).toBool());
-    m_incluirRevisar->setChecked(s.value(QStringLiteral("examen/incluirRevisar"), true).toBool());
-    m_ordenAleatorio->setChecked(s.value(QStringLiteral("examen/ordenAleatorio"), false).toBool());
-    m_barajarOpciones->setChecked(s.value(QStringLiteral("examen/barajarOpciones"), false).toBool());
-    m_puntuacionAuto->setChecked(s.value(QStringLiteral("examen/puntuacionAuto"), true).toBool());
-    m_acierto->setValue(s.value(QStringLiteral("examen/acierto"), 1.0).toDouble());
-    m_fallo->setValue(s.value(QStringLiteral("examen/fallo"), 0.3).toDouble());
     const QVariantMap cantidades = s.value(QStringLiteral("examen/temas")).toMap();
     if (cantidades.isEmpty()) {
         m_cantidadesGuardadas = kRepartoPorDefecto;
@@ -665,11 +689,8 @@ void VentanaPrincipal::guardarConfiguracion()
 {
     QSettings s;
     s.setValue(QStringLiteral("ventana/geometria"), saveGeometry());
-    s.setValue(QStringLiteral("examen/asignatura"), m_asignatura->text());
-    s.setValue(QStringLiteral("examen/duracion"), m_duracion->value());
-    s.setValue(QStringLiteral("examen/instrucciones"), m_instrucciones->toPlainText());
-    s.setValue(QStringLiteral("examen/anio"), m_anio->value());
-    s.setValue(QStringLiteral("examen/nombreConvocatoria"), m_convocatoria->currentText().trimmed());
+    for (const Ajuste &a : ajustes())
+        s.setValue(a.clave, valorAjuste(a.control));
     QStringList examenes, marcados;
     for (int i = 0; i < m_listaExamenes->count(); ++i) {
         const QListWidgetItem *item = m_listaExamenes->item(i);
@@ -682,20 +703,32 @@ void VentanaPrincipal::guardarConfiguracion()
     }
     s.setValue(QStringLiteral("examenes/nombres"), examenes);
     s.setValue(QStringLiteral("examenes/marcados"), marcados);
-    s.setValue(QStringLiteral("examen/noRepetir"), m_noRepetir->isChecked());
-    s.setValue(QStringLiteral("examen/evitarRecientes"), m_evitarRecientes->isChecked());
-    s.setValue(QStringLiteral("examen/numRecientes"), m_numRecientes->value());
-    s.setValue(QStringLiteral("examen/evitarOld"), m_evitarOld->isChecked());
-    s.setValue(QStringLiteral("examen/incluirRevisar"), m_incluirRevisar->isChecked());
-    s.setValue(QStringLiteral("examen/ordenAleatorio"), m_ordenAleatorio->isChecked());
-    s.setValue(QStringLiteral("examen/barajarOpciones"), m_barajarOpciones->isChecked());
-    s.setValue(QStringLiteral("examen/puntuacionAuto"), m_puntuacionAuto->isChecked());
-    s.setValue(QStringLiteral("examen/acierto"), m_acierto->value());
-    s.setValue(QStringLiteral("examen/fallo"), m_fallo->value());
     QVariantMap cantidades;
     for (auto it = m_cantidades.cbegin(); it != m_cantidades.cend(); ++it)
         cantidades.insert(QString::number(it.key()), it.value()->value());
     s.setValue(QStringLiteral("examen/temas"), cantidades);
+}
+
+QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
+{
+    // En este orden se leen: «Automática» antes que los puntos, para que se queden los guardados.
+    return {
+        {QStringLiteral("examen/asignatura"), m_asignatura},
+        {QStringLiteral("examen/duracion"), m_duracion},
+        {QStringLiteral("examen/instrucciones"), m_instrucciones},
+        {QStringLiteral("examen/anio"), m_anio},
+        {QStringLiteral("examen/nombreConvocatoria"), m_convocatoria},
+        {QStringLiteral("examen/noRepetir"), m_noRepetir},
+        {QStringLiteral("examen/evitarRecientes"), m_evitarRecientes},
+        {QStringLiteral("examen/numRecientes"), m_numRecientes},
+        {QStringLiteral("examen/evitarOld"), m_evitarOld},
+        {QStringLiteral("examen/incluirRevisar"), m_incluirRevisar},
+        {QStringLiteral("examen/ordenAleatorio"), m_ordenAleatorio},
+        {QStringLiteral("examen/barajarOpciones"), m_barajarOpciones},
+        {QStringLiteral("examen/puntuacionAuto"), m_puntuacionAuto},
+        {QStringLiteral("examen/acierto"), m_acierto},
+        {QStringLiteral("examen/fallo"), m_fallo},
+    };
 }
 
 void VentanaPrincipal::closeEvent(QCloseEvent *evento)

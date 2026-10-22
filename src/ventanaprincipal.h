@@ -84,6 +84,14 @@ private:
     void reconstruirTemas();
     void leerConfiguracion();
     void guardarConfiguracion();
+    // Ajustes que se guardan tal cual en la configuración: su clave y el control que los muestra. El valor por
+    // defecto es el que tiene el control al crearlo.
+    struct Ajuste
+    {
+        QString clave;
+        QWidget *control;
+    };
+    QVector<Ajuste> ajustes() const;
     bool hayExamen() const;
     Pregunta preguntaSeleccionada(bool *ok);
     void editar(Pregunta p);
