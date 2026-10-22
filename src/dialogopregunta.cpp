@@ -41,11 +41,41 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     auto *lf = new QVBoxLayout(formulario);
     lf->setContentsMargins(0, 0, 0, 0);
 
-    // Identificación
+    lf->addWidget(crearIdentificacion(pregunta));
+    lf->addWidget(crearTextos(pregunta), 1);
+    lf->addWidget(crearImagen());
+    lf->addWidget(crearReferencia(pregunta));
+
+    auto *divisor = new QSplitter;
+    divisor->addWidget(formulario);
+    divisor->addWidget(crearVistaPrevia());
+    divisor->setStretchFactor(0, 3);
+    divisor->setStretchFactor(1, 2);
+
+    // Botones con texto propio: los estándar (Save, Cancel) vuelven al inglés si no están las traducciones de Qt.
+    auto *botones = new QDialogButtonBox;
+    botones->addButton(QStringLiteral("Guardar"), QDialogButtonBox::AcceptRole)->setDefault(true);
+    botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
+    connect(botones, &QDialogButtonBox::accepted, this, &DialogoPregunta::accept);
+    connect(botones, &QDialogButtonBox::rejected, this, &DialogoPregunta::reject);
+
+    auto *l = new QVBoxLayout(this);
+    l->addWidget(divisor, 1);
+    l->addWidget(botones);
+
+    conectar(pregunta);
+
+    mostrarImagen();
+    actualizarVistaPrevia();
+    actualizarParecidas();
+}
+
+QGroupBox *DialogoPregunta::crearIdentificacion(const Pregunta &pregunta)
+{
     auto *gId = new QGroupBox(QStringLiteral("Identificación"));
     auto *fid = new QGridLayout(gId);
     m_tema = new QComboBox;
-    for (const Tema &t : temas)
+    for (const Tema &t : std::as_const(m_temas))
         m_tema->addItem(t.nombre(), t.id);
     m_tema->setCurrentIndex(qMax(0, m_tema->findData(pregunta.temaId)));
     m_numero = new QSpinBox;
@@ -84,9 +114,11 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     fid->addWidget(m_revisar, 2, 3, 1, 3);
     fid->addWidget(new QLabel(QStringLiteral("Pseudorrepetida con:")), 3, 0, 1, 2);
     fid->addWidget(m_pseudo, 3, 2, 1, 4);
-    lf->addWidget(gId);
+    return gId;
+}
 
-    // Enunciado y opciones
+QGroupBox *DialogoPregunta::crearTextos(const Pregunta &pregunta)
+{
     auto *gTexto = new QGroupBox(QStringLiteral("Enunciado y respuestas"));
     auto *ft = new QGridLayout(gTexto);
     m_enunciado = new QPlainTextEdit(pregunta.enunciado);
@@ -109,9 +141,11 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     auto *nota = new QLabel(QStringLiteral("El botón marcado indica la respuesta correcta."));
     nota->setStyleSheet(QStringLiteral("color: gray"));
     ft->addWidget(nota, 6, 1, 1, 2);
-    lf->addWidget(gTexto, 1);
+    return gTexto;
+}
 
-    // Imagen
+QGroupBox *DialogoPregunta::crearImagen()
+{
     auto *gImg = new QGroupBox(QStringLiteral("Imagen (opcional, se muestra bajo el enunciado)"));
     auto *li = new QHBoxLayout(gImg);
     m_vistaImagen = new QLabel;
@@ -123,9 +157,11 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     li->addWidget(m_vistaImagen, 1);
     li->addWidget(bCargar);
     li->addWidget(bQuitar);
-    lf->addWidget(gImg);
+    return gImg;
+}
 
-    // Otros datos
+QGroupBox *DialogoPregunta::crearReferencia(const Pregunta &pregunta)
+{
     auto *gOtros = new QGroupBox(QStringLiteral("Referencia y notas"));
     auto *fo = new QFormLayout(gOtros);
     m_referencia = new QLineEdit(pregunta.referencia);
@@ -137,9 +173,11 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     fo->addRow(QStringLiteral("Referencia:"), m_referencia);
     fo->addRow(QStringLiteral("Explicación:"), m_explicacion);
     fo->addRow(QStringLiteral("Notas internas:"), m_notas);
-    lf->addWidget(gOtros);
+    return gOtros;
+}
 
-    // Vista previa
+QGroupBox *DialogoPregunta::crearVistaPrevia()
+{
     auto *gPrevia = new QGroupBox(QStringLiteral("Vista previa"));
     auto *lp = new QVBoxLayout(gPrevia);
     m_vistaPrevia = new QTextBrowser;
@@ -158,24 +196,12 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     m_temporizadorParecidas->setSingleShot(true);
     m_temporizadorParecidas->setInterval(300);
     connect(m_temporizadorParecidas, &QTimer::timeout, this, &DialogoPregunta::actualizarParecidas);
+    return gPrevia;
+}
 
-    auto *divisor = new QSplitter;
-    divisor->addWidget(formulario);
-    divisor->addWidget(gPrevia);
-    divisor->setStretchFactor(0, 3);
-    divisor->setStretchFactor(1, 2);
-
-    // Botones con texto propio: los estándar (Save, Cancel) vuelven al inglés si no están las traducciones de Qt.
-    auto *botones = new QDialogButtonBox;
-    botones->addButton(QStringLiteral("Guardar"), QDialogButtonBox::AcceptRole)->setDefault(true);
-    botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
-    connect(botones, &QDialogButtonBox::accepted, this, &DialogoPregunta::accept);
-    connect(botones, &QDialogButtonBox::rejected, this, &DialogoPregunta::reject);
-
-    auto *l = new QVBoxLayout(this);
-    l->addWidget(divisor, 1);
-    l->addWidget(botones);
-
+// La vista previa, los avisos y las parecidas se actualizan con cada cambio.
+void DialogoPregunta::conectar(const Pregunta &pregunta)
+{
     for (int i = 0; i < 4; ++i) {
         connect(m_opciones[i], &QLineEdit::textChanged, this, &DialogoPregunta::actualizarVistaPrevia);
         connect(m_correcta[i], &QRadioButton::toggled, this, &DialogoPregunta::actualizarVistaPrevia);
@@ -192,10 +218,6 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     if (pregunta.id == 0 && pregunta.variante.isEmpty())
         connect(m_tema, &QComboBox::currentIndexChanged, this,
                 [this]() { m_numero->setValue(siguienteNumero(m_banco, m_tema->currentData().toInt())); });
-
-    mostrarImagen();
-    actualizarVistaPrevia();
-    actualizarParecidas();
 }
 
 Pregunta DialogoPregunta::pregunta() const

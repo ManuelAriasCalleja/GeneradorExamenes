@@ -120,6 +120,35 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     auto *config = new QWidget;
     auto *lc = new QVBoxLayout(config);
 
+    lc->addWidget(crearGrupoConvocatoria());
+    lc->addWidget(crearGrupoExamenes());
+    lc->addWidget(crearGrupoTemas());
+    lc->addWidget(crearGrupoPuntuacion());
+    lc->addWidget(crearGrupoOpciones());
+    auto *bGenerar = new QPushButton(QStringLiteral("Generar exámenes"));
+    bGenerar->setMinimumHeight(36);
+    QFont f = bGenerar->font();
+    f.setBold(true);
+    bGenerar->setFont(f);
+    connect(bGenerar, &QPushButton::clicked, this, &VentanaPrincipal::generar);
+    lc->addWidget(bGenerar);
+    lc->addStretch();
+
+    auto *scroll = new QScrollArea;
+    scroll->setWidget(config);
+    scroll->setWidgetResizable(true);
+    scroll->setMinimumWidth(400);
+
+    auto *divisor = new QSplitter;
+    divisor->addWidget(scroll);
+    divisor->addWidget(crearPanelResultados());
+    divisor->setStretchFactor(1, 1);
+    divisor->setSizes({430, 800});
+    return divisor;
+}
+
+QWidget *VentanaPrincipal::crearGrupoConvocatoria()
+{
     auto *gConv = new QGroupBox(QStringLiteral("Convocatoria"));
     auto *fConv = new QFormLayout(gConv);
     m_asignatura = new QLineEdit(QStringLiteral("Fundamentos de Informática"));
@@ -141,8 +170,11 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     fConv->addRow(QStringLiteral("Año:"), m_anio);
     fConv->addRow(QStringLiteral("Duración:"), m_duracion);
     fConv->addRow(QStringLiteral("Instrucciones:"), m_instrucciones);
-    lc->addWidget(gConv);
+    return gConv;
+}
 
+QWidget *VentanaPrincipal::crearGrupoExamenes()
+{
     auto *gExamenes = new QGroupBox(QStringLiteral("Exámenes"));
     auto *le = new QVBoxLayout(gExamenes);
     m_listaExamenes = new QListWidget;
@@ -166,8 +198,11 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     botonExamenes(QStringLiteral("Todos"), [marcarTodos]() { marcarTodos(true); });
     botonExamenes(QStringLiteral("Ninguno"), [marcarTodos]() { marcarTodos(false); });
     le->addLayout(botonesExamenes);
-    lc->addWidget(gExamenes);
+    return gExamenes;
+}
 
+QWidget *VentanaPrincipal::crearGrupoTemas()
+{
     auto *gTemas = new QGroupBox(QStringLiteral("Preguntas por tema"));
     auto *lt = new QVBoxLayout(gTemas);
     m_contenedorTemas = new QWidget;
@@ -188,8 +223,11 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     lt->addLayout(repartos);
     m_total = new QLabel;
     lt->addWidget(m_total);
-    lc->addWidget(gTemas);
+    return gTemas;
+}
 
+QWidget *VentanaPrincipal::crearGrupoPuntuacion()
+{
     auto *gPunt = new QGroupBox(QStringLiteral("Puntuación"));
     auto *fPunt = new QFormLayout(gPunt);
     m_puntuacionAuto = new QCheckBox(QStringLiteral("Automática (10 puntos; cada fallo resta el 30 %)"));
@@ -208,8 +246,11 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     fPunt->addRow(QStringLiteral("Acierto:"), m_acierto);
     fPunt->addRow(QStringLiteral("Fallo:"), m_fallo);
     connect(m_puntuacionAuto, &QCheckBox::toggled, this, &VentanaPrincipal::actualizarPuntuacion);
-    lc->addWidget(gPunt);
+    return gPunt;
+}
 
+QWidget *VentanaPrincipal::crearGrupoOpciones()
+{
     auto *gOpc = new QGroupBox(QStringLiteral("Opciones"));
     auto *fOpc = new QFormLayout(gOpc);
     m_noRepetir = new QCheckBox(QStringLiteral("No repetir preguntas entre exámenes"));
@@ -249,23 +290,11 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     fOpc->addRow(m_ordenAleatorio);
     fOpc->addRow(m_barajarOpciones);
     fOpc->addRow(QStringLiteral("Semilla:"), m_semilla);
-    lc->addWidget(gOpc);
+    return gOpc;
+}
 
-    auto *bGenerar = new QPushButton(QStringLiteral("Generar exámenes"));
-    bGenerar->setMinimumHeight(36);
-    QFont f = bGenerar->font();
-    f.setBold(true);
-    bGenerar->setFont(f);
-    connect(bGenerar, &QPushButton::clicked, this, &VentanaPrincipal::generar);
-    lc->addWidget(bGenerar);
-    lc->addStretch();
-
-    auto *scroll = new QScrollArea;
-    scroll->setWidget(config);
-    scroll->setWidgetResizable(true);
-    scroll->setMinimumWidth(400);
-
-    // --- Panel de resultados
+QWidget *VentanaPrincipal::crearPanelResultados()
+{
     auto *resultados = new QWidget;
     auto *lr = new QVBoxLayout(resultados);
     auto *barra = new QHBoxLayout;
@@ -322,13 +351,7 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
 
     connect(m_selectorModelo, &QComboBox::currentIndexChanged, this, &VentanaPrincipal::mostrarModelo);
     connect(m_verSoluciones, &QCheckBox::toggled, this, &VentanaPrincipal::mostrarModelo);
-
-    auto *divisor = new QSplitter;
-    divisor->addWidget(scroll);
-    divisor->addWidget(resultados);
-    divisor->setStretchFactor(1, 1);
-    divisor->setSizes({430, 800});
-    return divisor;
+    return resultados;
 }
 
 QWidget *VentanaPrincipal::crearPestanaBanco()

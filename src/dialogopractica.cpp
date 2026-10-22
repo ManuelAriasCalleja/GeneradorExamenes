@@ -41,61 +41,8 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
 
     auto *contenido = new QWidget;
     auto *lc = new QVBoxLayout(contenido);
-    for (int i = 0; i < modelo.preguntas.size(); ++i) {
-        const PreguntaExamen &pe = modelo.preguntas.at(i);
-        auto *marco = new QFrame;
-        marco->setFrameShape(QFrame::StyledPanel);
-        auto *g = new QGridLayout(marco);
-        g->setColumnStretch(1, 1);
-
-        auto *enunciado = new QLabel(QStringLiteral("<div style=\"font-weight:bold; font-style:italic\">%1</div>")
-                                         .arg(Maquetador::enunciadoHtml(pe.pregunta.enunciado, QStringLiteral("%1.- ").arg(i + 1))));
-        enunciado->setWordWrap(true);
-        enunciado->setTextFormat(Qt::RichText);
-        g->addWidget(enunciado, 0, 0, 1, 3);
-        int fila = 1;
-        if (!pe.pregunta.imagen.isEmpty()) {
-            QImage img;
-            if (img.loadFromData(pe.pregunta.imagen)) {
-                auto *dibujo = new QLabel;
-                dibujo->setPixmap(QPixmap::fromImage(img.scaledToHeight(qMin(img.height(), 150), Qt::SmoothTransformation)));
-                g->addWidget(dibujo, fila++, 1);
-            }
-        }
-
-        Fila f;
-        f.grupo = new QButtonGroup(this);
-        for (int k = 0; k < 4; ++k) {
-            auto *radio = new QRadioButton(QStringLiteral("%1)").arg(Pregunta::letra(k)));
-            f.grupo->addButton(radio, k);
-            f.opciones[k] = new QLabel(Maquetador::escapar(pe.opcion(k)));
-            f.opciones[k]->setWordWrap(true);
-            f.opciones[k]->setProperty("radio", QVariant::fromValue<QObject *>(radio));
-            f.opciones[k]->installEventFilter(this);
-            g->addWidget(radio, fila, 0, Qt::AlignTop);
-            g->addWidget(f.opciones[k], fila, 1);
-            ++fila;
-        }
-        auto *blanco = new QToolButton;
-        blanco->setText(QStringLiteral("Dejar en blanco"));
-        blanco->setAutoRaise(true);
-        QButtonGroup *grupo = f.grupo;
-        connect(blanco, &QToolButton::clicked, this, [grupo, this]() {
-            if (m_corregido || !grupo->checkedButton())
-                return;
-            grupo->setExclusive(false);
-            grupo->checkedButton()->setChecked(false);
-            grupo->setExclusive(true);
-        });
-        g->addWidget(blanco, 1, 2, Qt::AlignTop | Qt::AlignRight);
-        f.blanco = blanco;
-        f.resultado = new QLabel;
-        f.resultado->setWordWrap(true);
-        f.resultado->hide();
-        g->addWidget(f.resultado, fila, 0, 1, 3);
-        m_filas << f;
-        lc->addWidget(marco);
-    }
+    for (int i = 0; i < modelo.preguntas.size(); ++i)
+        lc->addWidget(crearPregunta(i + 1, modelo.preguntas.at(i)));
     lc->addStretch();
 
     auto *scroll = new QScrollArea;
@@ -119,6 +66,63 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
     connect(m_temporizador, &QTimer::timeout, this, &DialogoPractica::tic);
     m_temporizador->start(1000);
     tic();
+}
+
+// Recuadro de una pregunta: enunciado, imagen, las cuatro opciones para marcar y «Dejar en blanco».
+QWidget *DialogoPractica::crearPregunta(int numero, const PreguntaExamen &pe)
+{
+    auto *marco = new QFrame;
+    marco->setFrameShape(QFrame::StyledPanel);
+    auto *g = new QGridLayout(marco);
+    g->setColumnStretch(1, 1);
+
+    auto *enunciado = new QLabel(QStringLiteral("<div style=\"font-weight:bold; font-style:italic\">%1</div>")
+                                     .arg(Maquetador::enunciadoHtml(pe.pregunta.enunciado, QStringLiteral("%1.- ").arg(numero))));
+    enunciado->setWordWrap(true);
+    enunciado->setTextFormat(Qt::RichText);
+    g->addWidget(enunciado, 0, 0, 1, 3);
+    int fila = 1;
+    if (!pe.pregunta.imagen.isEmpty()) {
+        QImage img;
+        if (img.loadFromData(pe.pregunta.imagen)) {
+            auto *dibujo = new QLabel;
+            dibujo->setPixmap(QPixmap::fromImage(img.scaledToHeight(qMin(img.height(), 150), Qt::SmoothTransformation)));
+            g->addWidget(dibujo, fila++, 1);
+        }
+    }
+
+    Fila f;
+    f.grupo = new QButtonGroup(this);
+    for (int k = 0; k < 4; ++k) {
+        auto *radio = new QRadioButton(QStringLiteral("%1)").arg(Pregunta::letra(k)));
+        f.grupo->addButton(radio, k);
+        f.opciones[k] = new QLabel(Maquetador::escapar(pe.opcion(k)));
+        f.opciones[k]->setWordWrap(true);
+        f.opciones[k]->setProperty("radio", QVariant::fromValue<QObject *>(radio));
+        f.opciones[k]->installEventFilter(this);
+        g->addWidget(radio, fila, 0, Qt::AlignTop);
+        g->addWidget(f.opciones[k], fila, 1);
+        ++fila;
+    }
+    auto *blanco = new QToolButton;
+    blanco->setText(QStringLiteral("Dejar en blanco"));
+    blanco->setAutoRaise(true);
+    QButtonGroup *grupo = f.grupo;
+    connect(blanco, &QToolButton::clicked, this, [grupo, this]() {
+        if (m_corregido || !grupo->checkedButton())
+            return;
+        grupo->setExclusive(false);
+        grupo->checkedButton()->setChecked(false);
+        grupo->setExclusive(true);
+    });
+    g->addWidget(blanco, 1, 2, Qt::AlignTop | Qt::AlignRight);
+    f.blanco = blanco;
+    f.resultado = new QLabel;
+    f.resultado->setWordWrap(true);
+    f.resultado->hide();
+    g->addWidget(f.resultado, fila, 0, 1, 3);
+    m_filas << f;
+    return marco;
 }
 
 bool DialogoPractica::eventFilter(QObject *objeto, QEvent *evento)

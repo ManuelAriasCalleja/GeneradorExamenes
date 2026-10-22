@@ -8,6 +8,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QGroupBox;
 class QLabel;
 class QLineEdit;
 class QPlainTextEdit;
@@ -37,6 +38,12 @@ private slots:
     void quitarImagen();
 
 private:
+    QGroupBox *crearIdentificacion(const Pregunta &pregunta);
+    QGroupBox *crearTextos(const Pregunta &pregunta);
+    QGroupBox *crearImagen();
+    QGroupBox *crearReferencia(const Pregunta &pregunta);
+    QGroupBox *crearVistaPrevia();
+    void conectar(const Pregunta &pregunta);
     void mostrarImagen();
     // Al guardar una pregunta nueva con un número que no existe y que se parece mucho a otras, propone hacerla
     // variante de una (o enlazarla como pseudorrepetida). Devuelve false si se prefiere seguir editando.

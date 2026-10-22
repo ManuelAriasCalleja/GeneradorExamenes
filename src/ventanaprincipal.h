@@ -78,6 +78,12 @@ private slots:
 
 private:
     QWidget *crearPestanaExamen();
+    QWidget *crearGrupoConvocatoria();
+    QWidget *crearGrupoExamenes();
+    QWidget *crearGrupoTemas();
+    QWidget *crearGrupoPuntuacion();
+    QWidget *crearGrupoOpciones();
+    QWidget *crearPanelResultados();
     QWidget *crearPestanaBanco();
     void crearMenus();
     void recargarDatos(int seleccionarId = 0);

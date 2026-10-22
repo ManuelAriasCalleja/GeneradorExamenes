@@ -34,6 +34,8 @@ private:
         QWidget *blanco = nullptr;
     };
 
+    QWidget *crearPregunta(int numero, const PreguntaExamen &pe);
+
     Modelo m_modelo;
     DatosConvocatoria m_datos;
     QVector<Fila> m_filas;
