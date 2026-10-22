@@ -94,6 +94,153 @@ void repartirCorrectas(QVector<PreguntaExamen> &preguntas, QRandomGenerator &rng
     }
 }
 
+// Estado de la elección de las preguntas de una convocatoria: las preguntas que se pueden usar, por tema y número;
+// los grupos enlazados como pseudorrepetidos; cuánto se usó antes cada uno, y lo que ya se ha elegido.
+class Seleccion
+{
+public:
+    Seleccion(const QVector<Pregunta> &banco, const ConfigExamen &config, QRandomGenerator &rng);
+
+    // Las 'pedidas' preguntas de un tema para un examen. 'usadosModelo' son los grupos ya elegidos en ese examen,
+    // que no se repiten en él; 'repetida' se pone a true si hay que repetir un grupo de otro examen.
+    QVector<PreguntaExamen> elegirDelTema(int tema, int pedidas, QSet<QString> &usadosModelo, bool &repetida);
+    // Avisos de los temas en que no han quedado bastantes preguntas sin usar antes.
+    QStringList avisosUsoAnterior() const;
+
+private:
+    // Uso anterior de una pregunta: 0 = nunca; 1 = marcada «old» (si se evitan); 2 o más = salió en una
+    // convocatoria registrada (cuanto más reciente, más alto).
+    int usoAnterior(const Pregunta &p) const;
+    // Variante al azar entre las mejores: las que no se han usado en esta convocatoria y, de ellas, las que no han
+    // salido antes o hace más tiempo.
+    Pregunta elegirVariante(const QVector<Pregunta> &variantes);
+    QString raiz(int tema, int numero) { return m_pseudo.raiz(Pregunta::claveGrupo(tema, numero)); }
+
+    const ConfigExamen &m_config;
+    QRandomGenerator &m_rng;
+    QMap<int, QMap<int, QVector<Pregunta>>> m_porTema;   // tema -> número de pregunta -> variantes
+    ConjuntosDisjuntos m_pseudo;
+    int m_masAntigua = 0;                    // antigüedad de la convocatoria más antigua de usoReciente
+    QHash<QString, int> m_usoAnteriorGrupo;  // el de la pregunta más usada de cada grupo y sus pseudorrepetidas
+    QMap<int, int> m_usadasAntes;            // tema -> mayor uso anterior de las preguntas elegidas
+    QHash<QString, int> m_usosGrupo;         // veces que se ha usado cada grupo en la convocatoria
+    QSet<int> m_idsUsados;                   // preguntas concretas ya usadas
+};
+
+Seleccion::Seleccion(const QVector<Pregunta> &banco, const ConfigExamen &config, QRandomGenerator &rng)
+    : m_config(config), m_rng(rng)
+{
+    for (const Pregunta &p : banco) {
+        if (!usable(p, config.incluirParaRevisar))
+            continue;
+        m_porTema[p.temaNumero][p.numero].append(p);
+        if (!p.pseudoCon.trimmed().isEmpty())
+            m_pseudo.unir(p.grupo(), p.pseudoCon.trimmed().toUpper());
+    }
+    for (int a : config.usoReciente)
+        m_masAntigua = qMax(m_masAntigua, a);
+    for (const QMap<int, QVector<Pregunta>> &grupos : std::as_const(m_porTema))
+        for (const QVector<Pregunta> &variantes : grupos)
+            for (const Pregunta &p : variantes) {
+                const QString r = m_pseudo.raiz(p.grupo());
+                m_usoAnteriorGrupo[r] = qMax(m_usoAnteriorGrupo.value(r), usoAnterior(p));
+            }
+}
+
+int Seleccion::usoAnterior(const Pregunta &p) const
+{
+    const int a = m_config.usoReciente.value(p.codigoCompleto());
+    if (a > 0)
+        return 2 + m_masAntigua - a;
+    return m_config.evitarOld && p.old ? 1 : 0;
+}
+
+QVector<PreguntaExamen> Seleccion::elegirDelTema(int tema, int pedidas, QSet<QString> &usadosModelo, bool &repetida)
+{
+    const QMap<int, QVector<Pregunta>> grupos = m_porTema.value(tema);
+    QVector<int> numeros = grupos.keys();
+    std::shuffle(numeros.begin(), numeros.end(), m_rng);
+    // Primero las que aún no han salido en esta convocatoria (si no se quieren repetir) y, de ellas, las que no se
+    // han usado antes o hace más tiempo.
+    std::stable_sort(numeros.begin(), numeros.end(), [&](int a, int b) {
+        const QString ra = raiz(tema, a), rb = raiz(tema, b);
+        if (m_config.noRepetirEntreModelos && m_usosGrupo.value(ra) != m_usosGrupo.value(rb))
+            return m_usosGrupo.value(ra) < m_usosGrupo.value(rb);
+        return m_usoAnteriorGrupo.value(ra) < m_usoAnteriorGrupo.value(rb);
+    });
+
+    QVector<PreguntaExamen> elegidas;
+    for (int num : numeros) {
+        if (elegidas.size() == pedidas)
+            break;
+        const QString r = raiz(tema, num);
+        if (usadosModelo.contains(r))
+            continue;   // pseudorrepetida con otra ya elegida en este examen
+        if (m_usosGrupo.value(r) > 0)
+            repetida = true;
+        usadosModelo.insert(r);
+        m_usosGrupo[r] += 1;
+        if (m_usoAnteriorGrupo.value(r) > 0)
+            m_usadasAntes[tema] = qMax(m_usadasAntes.value(tema), m_usoAnteriorGrupo.value(r));
+        PreguntaExamen pe;
+        pe.pregunta = elegirVariante(grupos.value(num));
+        elegidas << pe;
+    }
+    return elegidas;
+}
+
+Pregunta Seleccion::elegirVariante(const QVector<Pregunta> &variantes)
+{
+    auto coste = [this](const Pregunta &v) { return std::make_pair(m_idsUsados.contains(v.id) ? 1 : 0, usoAnterior(v)); };
+    std::pair<int, int> mejor = coste(variantes.first());
+    for (const Pregunta &v : variantes)
+        mejor = std::min(mejor, coste(v));
+    QVector<Pregunta> candidatas;
+    for (const Pregunta &v : variantes)
+        if (coste(v) == mejor)
+            candidatas.append(v);
+    const Pregunta elegida = candidatas.at(m_rng.bounded(qsizetype(candidatas.size())));
+    m_idsUsados.insert(elegida.id);
+    return elegida;
+}
+
+QStringList Seleccion::avisosUsoAnterior() const
+{
+    QStringList avisos;
+    for (auto it = m_usadasAntes.cbegin(); it != m_usadasAntes.cend(); ++it)
+        avisos << (it.value() >= 2 ? QStringLiteral("Tema %1: no quedan bastantes preguntas sin usar en las últimas "
+                                                     "convocatorias registradas; se repiten algunas (o variantes suyas).")
+                                   : QStringLiteral("Tema %1: no quedan bastantes preguntas sin la marca «old»; "
+                                                     "se usan algunas (o variantes suyas)."))
+                      .arg(it.key());
+    return avisos;
+}
+
+// Por tema y número, como en los exámenes oficiales, o al azar.
+void ordenar(QVector<PreguntaExamen> &preguntas, bool alAzar, QRandomGenerator &rng)
+{
+    if (alAzar)
+        std::shuffle(preguntas.begin(), preguntas.end(), rng);
+    else
+        std::sort(preguntas.begin(), preguntas.end(),
+                  [](const PreguntaExamen &a, const PreguntaExamen &b) { return a.pregunta.antesQue(b.pregunta); });
+}
+
+// Aviso si la correcta queda muy desigualmente repartida: una letra con dos o más de las que le tocarían.
+QString avisoReparto(const Modelo &modelo, bool barajadas)
+{
+    const std::array<int, 4> cuenta = modelo.correctasPorLetra();
+    const int n = modelo.preguntas.size();
+    const int masRepetida = int(std::max_element(cuenta.begin(), cuenta.end()) - cuenta.begin());
+    if (n < 4 || cuenta[masRepetida] <= (n + 3) / 4 + 1)
+        return QString();
+    return QStringLiteral("«%1»: la respuesta correcta es la %2) en %3 de %4 preguntas%5.")
+        .arg(modelo.nombre, QString(Pregunta::letra(masRepetida)))
+        .arg(cuenta[masRepetida])
+        .arg(n)
+        .arg(barajadas ? QString() : QStringLiteral("; marque «Barajar las opciones» para repartirla"));
+}
+
 } // namespace
 
 QMap<int, int> Generador::gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar)
@@ -115,106 +262,25 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
     while (res.semilla == 0)
         res.semilla = QRandomGenerator::global()->generate();
     QRandomGenerator rng(res.semilla);
-
-    // tema -> número de pregunta -> variantes
-    QMap<int, QMap<int, QVector<Pregunta>>> porTema;
-    ConjuntosDisjuntos pseudo;
-    for (const Pregunta &p : banco) {
-        if (!usable(p, config.incluirParaRevisar))
-            continue;
-        porTema[p.temaNumero][p.numero].append(p);
-        if (!p.pseudoCon.trimmed().isEmpty())
-            pseudo.unir(p.grupo(), p.pseudoCon.trimmed().toUpper());
-    }
-
-    // Uso anterior de cada pregunta: 0 = nunca; 1 = marcada «old» (si se evitan); 2 o más = salió en una
-    // convocatoria registrada (cuanto más reciente, más alto). Cada grupo de variantes y pseudorrepetidas toma el
-    // de su pregunta más usada.
-    int masAntigua = 0;
-    for (int a : config.usoReciente)
-        masAntigua = qMax(masAntigua, a);
-    auto usoAnteriorPregunta = [&](const Pregunta &p) {
-        const int a = config.usoReciente.value(p.codigoCompleto());
-        if (a > 0)
-            return 2 + masAntigua - a;
-        return config.evitarOld && p.old ? 1 : 0;
-    };
-    QHash<QString, int> usoAnterior;
-    for (const QMap<int, QVector<Pregunta>> &grupos : std::as_const(porTema))
-        for (const QVector<Pregunta> &variantes : grupos)
-            for (const Pregunta &p : variantes) {
-                const QString raiz = pseudo.raiz(p.grupo());
-                usoAnterior[raiz] = qMax(usoAnterior.value(raiz), usoAnteriorPregunta(p));
-            }
-    QMap<int, int> usadasAntes;        // tema -> mayor uso anterior de las preguntas elegidas
-
-    QHash<QString, int> usosGrupo;     // veces que se ha usado cada grupo en la convocatoria
-    QSet<int> idsUsados;               // preguntas concretas ya usadas
+    Seleccion seleccion(banco, config, rng);
     QSet<int> temasAvisoRepeticion, temasAvisoFaltan;
 
     for (const QString &nombre : config.nombresModelos) {
         Modelo modelo;
         modelo.nombre = nombre;
         QSet<QString> usadosModelo;
-
         for (auto it = config.preguntasPorTema.cbegin(); it != config.preguntasPorTema.cend(); ++it) {
             const int tema = it.key();
             const int pedidas = it.value();
             if (pedidas <= 0)
                 continue;
-            const QMap<int, QVector<Pregunta>> grupos = porTema.value(tema);
-
-            QVector<int> numeros = grupos.keys();
-            std::shuffle(numeros.begin(), numeros.end(), rng);
-            // Primero las que aún no han salido en esta convocatoria (si no se quieren repetir) y, de ellas, las
-            // que no se han usado antes o hace más tiempo.
-            std::stable_sort(numeros.begin(), numeros.end(), [&](int a, int b) {
-                const QString ra = pseudo.raiz(Pregunta::claveGrupo(tema, a)), rb = pseudo.raiz(Pregunta::claveGrupo(tema, b));
-                if (config.noRepetirEntreModelos && usosGrupo.value(ra) != usosGrupo.value(rb))
-                    return usosGrupo.value(ra) < usosGrupo.value(rb);
-                return usoAnterior.value(ra) < usoAnterior.value(rb);
-            });
-
-            int elegidas = 0;
             bool repetida = false;
-            for (int num : numeros) {
-                if (elegidas == pedidas)
-                    break;
-                const QString raiz = pseudo.raiz(Pregunta::claveGrupo(tema, num));
-                if (usadosModelo.contains(raiz))
-                    continue;   // pseudorrepetida con otra ya elegida en este modelo
-                if (usosGrupo.value(raiz) > 0)
-                    repetida = true;
-                usadosModelo.insert(raiz);
-                usosGrupo[raiz] += 1;
-                if (usoAnterior.value(raiz) > 0)
-                    usadasAntes[tema] = qMax(usadasAntes.value(tema), usoAnterior.value(raiz));
-
-                // Variante al azar entre las mejores: las que no se han usado en esta convocatoria y, de ellas,
-                // las que no han salido antes o hace más tiempo.
-                const QVector<Pregunta> variantes = grupos.value(num);
-                auto coste = [&](const Pregunta &v) {
-                    return std::make_pair(idsUsados.contains(v.id) ? 1 : 0, usoAnteriorPregunta(v));
-                };
-                std::pair<int, int> mejor = coste(variantes.first());
-                for (const Pregunta &v : variantes)
-                    mejor = std::min(mejor, coste(v));
-                QVector<Pregunta> candidatas;
-                for (const Pregunta &v : variantes)
-                    if (coste(v) == mejor)
-                        candidatas.append(v);
-
-                PreguntaExamen pe;
-                pe.pregunta = candidatas.at(rng.bounded(qsizetype(candidatas.size())));
-                idsUsados.insert(pe.pregunta.id);
-                modelo.preguntas.append(pe);
-                ++elegidas;
-            }
-
-            if (elegidas < pedidas && !temasAvisoFaltan.contains(tema)) {
+            const QVector<PreguntaExamen> elegidas = seleccion.elegirDelTema(tema, pedidas, usadosModelo, repetida);
+            modelo.preguntas += elegidas;
+            if (elegidas.size() < pedidas && !temasAvisoFaltan.contains(tema)) {
                 temasAvisoFaltan.insert(tema);
                 res.avisos << QStringLiteral("Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas disponibles.")
-                                  .arg(tema).arg(pedidas).arg(elegidas);
+                                  .arg(tema).arg(pedidas).arg(elegidas.size());
             }
             if (repetida && config.noRepetirEntreModelos && !temasAvisoRepeticion.contains(tema)) {
                 temasAvisoRepeticion.insert(tema);
@@ -223,34 +289,14 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
                                   .arg(tema).arg(modelo.nombre);
             }
         }
-
-        if (config.ordenAleatorio) {
-            std::shuffle(modelo.preguntas.begin(), modelo.preguntas.end(), rng);
-        } else {
-            std::sort(modelo.preguntas.begin(), modelo.preguntas.end(),
-                      [](const PreguntaExamen &a, const PreguntaExamen &b) { return a.pregunta.antesQue(b.pregunta); });
-        }
+        ordenar(modelo.preguntas, config.ordenAleatorio, rng);
         if (config.barajarOpciones)
             repartirCorrectas(modelo.preguntas, rng);
-
-        // Aviso si la correcta queda muy desigualmente repartida: una letra con dos o más de las que le tocarían.
-        const std::array<int, 4> cuenta = modelo.correctasPorLetra();
-        const int n = modelo.preguntas.size();
-        const int masRepetida = int(std::max_element(cuenta.begin(), cuenta.end()) - cuenta.begin());
-        if (n >= 4 && cuenta[masRepetida] > (n + 3) / 4 + 1)
-            res.avisos << QStringLiteral("«%1»: la respuesta correcta es la %2) en %3 de %4 preguntas%5.")
-                              .arg(modelo.nombre, QString(Pregunta::letra(masRepetida)))
-                              .arg(cuenta[masRepetida])
-                              .arg(n)
-                              .arg(config.barajarOpciones ? QString() : QStringLiteral("; marque «Barajar las opciones» para repartirla"));
+        const QString aviso = avisoReparto(modelo, config.barajarOpciones);
+        if (!aviso.isEmpty())
+            res.avisos << aviso;
         res.modelos.append(modelo);
     }
-
-    for (auto it = usadasAntes.cbegin(); it != usadasAntes.cend(); ++it)
-        res.avisos << (it.value() >= 2 ? QStringLiteral("Tema %1: no quedan bastantes preguntas sin usar en las últimas "
-                                                         "convocatorias registradas; se repiten algunas (o variantes suyas).")
-                                       : QStringLiteral("Tema %1: no quedan bastantes preguntas sin la marca «old»; "
-                                                         "se usan algunas (o variantes suyas)."))
-                          .arg(it.key());
+    res.avisos << seleccion.avisosUsoAnterior();
     return res;
 }
