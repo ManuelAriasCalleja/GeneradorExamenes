@@ -142,11 +142,12 @@ private:
     // modelos generados caben en sus páginas (ver Maquetador).
     int nivelMaqueta() const;
     // Exporta los exámenes que se elijan en el diálogo, cada fichero con 'escribir' (ver exportacion.h); 'nota' se
-    // añade al mensaje del final.
+    // añade al mensaje del final. Con 'casillaSoluciones', el diálogo tiene la casilla «Con soluciones» con ese texto,
+    // marcada si lo está 'soluciones', y es ella la que decide.
     using Escritor = bool (*)(const QString &ruta, const QVector<Modelo> &modelos, const DatosConvocatoria &datos,
                               bool soluciones, int nivel);
     void exportar(const QString &titulo, const QString &nombreBase, const QString &extension, Escritor escribir,
-                  bool soluciones, const QString &nota = QString());
+                  bool soluciones, const QString &nota = QString(), const QString &casillaSoluciones = QString());
     void informarExportacion(const QStringList &escritos, const QStringList &fallidos, const QString &nota = QString());
 
     BaseDatos m_bd;

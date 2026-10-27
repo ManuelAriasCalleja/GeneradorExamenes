@@ -4,6 +4,7 @@
 #include <QStringList>
 #include <QVector>
 
+class QCheckBox;
 class QLineEdit;
 class QTableWidget;
 
@@ -28,15 +29,26 @@ public:
     // Ficheros marcados, en el orden de la tabla.
     QVector<Fichero> ficheros() const;
 
+    // Pone la casilla «Con soluciones» (con el texto 'texto' y marcada o no). Al marcarla, los nombres propuestos que
+    // no se hayan cambiado empiezan por 'nombreBaseSoluciones' en lugar de por el 'nombreBase' de los otros.
+    void ofrecerSoluciones(const QString &texto, bool marcada, const QString &nombreBaseSoluciones);
+    bool conSoluciones() const;
+
 public slots:
     void accept() override;
 
 private:
     void elegirCarpeta();
     QString nombreFichero(int fila) const;
+    QString nombrePropuesto(int fila, bool soluciones) const;
+    void cambiarNombres(bool soluciones);
 
     QLineEdit *m_carpeta;
     QTableWidget *m_tabla;
+    QCheckBox *m_soluciones = nullptr;
+    QStringList m_nombres;   // de los exámenes
+    QString m_nombreBase;
+    QString m_nombreBaseSoluciones;
     QString m_extension;
     int m_numModelos;
 };

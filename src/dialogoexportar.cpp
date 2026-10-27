@@ -2,6 +2,7 @@
 #include "dialogoayuda.h"
 #include "utilidades.h"
 
+#include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFileDialog>
@@ -27,7 +28,7 @@ enum Columna { ColExamen = 0, ColFichero = 1 };
 
 DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombres, const QString &nombreBase,
                                  const QString &extension, QWidget *parent)
-    : QDialog(parent), m_extension(extension), m_numModelos(nombres.size())
+    : QDialog(parent), m_nombres(nombres), m_nombreBase(nombreBase), m_extension(extension), m_numModelos(nombres.size())
 {
     setWindowTitle(titulo);
     resize(640, 320);
@@ -51,21 +52,21 @@ DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombr
     m_tabla->verticalHeader()->hide();
     m_tabla->setSelectionMode(QAbstractItemView::NoSelection);
     m_tabla->setEditTriggers(QAbstractItemView::AllEditTriggers);
-    auto anadirFila = [&](const QString &examen, const QString &nombre, bool marcado) {
+    auto anadirFila = [&](const QString &examen, bool marcado) {
         const int f = m_tabla->rowCount();
         m_tabla->insertRow(f);
         auto *marca = new QTableWidgetItem(examen);
         marca->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
         marca->setCheckState(marcado ? Qt::Checked : Qt::Unchecked);
         m_tabla->setItem(f, ColExamen, marca);
-        auto *fichero = new QTableWidgetItem(nombre + QLatin1Char('.') + extension);
+        auto *fichero = new QTableWidgetItem(nombrePropuesto(f, false));
         fichero->setToolTip(QStringLiteral("Pulse sobre el nombre para cambiarlo"));
         m_tabla->setItem(f, ColFichero, fichero);
     };
     for (const QString &nombre : nombres)
-        anadirFila(nombre, QStringLiteral("%1_%2").arg(nombreBase, limpiarNombreFichero(nombre)), true);
+        anadirFila(nombre, true);
     if (nombres.size() > 1)
-        anadirFila(QStringLiteral("Todos los exámenes en un fichero"), nombreBase, false);
+        anadirFila(QStringLiteral("Todos los exámenes en un fichero"), false);
     l->addWidget(m_tabla, 1);
 
     auto *botones = new QDialogButtonBox;
@@ -76,6 +77,41 @@ DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombr
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoExportar::reject);
     DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("exportar"));
     l->addWidget(botones);
+}
+
+// «<base>_<examen>.<extensión>» y, el de todos juntos, «<base>.<extensión>».
+QString DialogoExportar::nombrePropuesto(int fila, bool soluciones) const
+{
+    const QString base = soluciones ? m_nombreBaseSoluciones : m_nombreBase;
+    const QString nombre = fila < m_numModelos ? QStringLiteral("%1_%2").arg(base, limpiarNombreFichero(m_nombres.at(fila))) : base;
+    return nombre + QLatin1Char('.') + m_extension;
+}
+
+void DialogoExportar::ofrecerSoluciones(const QString &texto, bool marcada, const QString &nombreBaseSoluciones)
+{
+    m_nombreBaseSoluciones = nombreBaseSoluciones;
+    m_soluciones = new QCheckBox(texto);
+    // Bajo la carpeta.
+    if (auto *l = qobject_cast<QVBoxLayout *>(layout()))
+        l->insertWidget(1, m_soluciones);
+    m_soluciones->setChecked(marcada);
+    cambiarNombres(marcada);
+    connect(m_soluciones, &QCheckBox::toggled, this, &DialogoExportar::cambiarNombres);
+}
+
+bool DialogoExportar::conSoluciones() const
+{
+    return m_soluciones && m_soluciones->isChecked();
+}
+
+// Los nombres que siguen siendo los propuestos pasan a ser los de con (o sin) soluciones; los cambiados, no.
+void DialogoExportar::cambiarNombres(bool soluciones)
+{
+    for (int f = 0; f < m_tabla->rowCount(); ++f) {
+        QTableWidgetItem *item = m_tabla->item(f, ColFichero);
+        if (item->text() == nombrePropuesto(f, !soluciones))
+            item->setText(nombrePropuesto(f, soluciones));
+    }
 }
 
 QString DialogoExportar::carpeta() const

@@ -1180,13 +1180,17 @@ void VentanaPrincipal::vistaPreviaImpresion()
 }
 
 void VentanaPrincipal::exportar(const QString &titulo, const QString &nombreBase, const QString &extension,
-                                Escritor escribir, bool soluciones, const QString &nota)
+                                Escritor escribir, bool soluciones, const QString &nota, const QString &casillaSoluciones)
 {
     if (!hayExamen())
         return;
     DialogoExportar dialogo(titulo, nombresModelos(), nombreBase, extension, this);
+    if (!casillaSoluciones.isEmpty())
+        dialogo.ofrecerSoluciones(casillaSoluciones, soluciones, nombreBaseFichero() + QStringLiteral("_soluciones"));
     if (dialogo.exec() != QDialog::Accepted)
         return;
+    if (!casillaSoluciones.isEmpty())
+        soluciones = dialogo.conSoluciones();
     const DatosConvocatoria d = datosConvocatoria();
     const int nivel = nivelMaqueta();
     QStringList escritos, fallidos;
@@ -1211,13 +1215,15 @@ void VentanaPrincipal::exportarSolucionesPdf()
 void VentanaPrincipal::exportarHtml()
 {
     exportar(QStringLiteral("Exportar a HTML (editable en Word / LibreOffice)"), nombreBaseFichero(), QStringLiteral("html"),
-             &Exportacion::html, m_verSoluciones->isChecked());
+             &Exportacion::html, m_verSoluciones->isChecked(), QString(),
+             QStringLiteral("Con soluciones (la respuesta correcta y el código de cada pregunta, marcados)"));
 }
 
 void VentanaPrincipal::exportarLatex()
 {
     exportar(QStringLiteral("Exportar a LaTeX"), nombreBaseFichero(), QStringLiteral("tex"), &Exportacion::latex,
-             m_verSoluciones->isChecked(), QStringLiteral("compílelos dos veces con pdflatex"));
+             m_verSoluciones->isChecked(), QStringLiteral("compílelos dos veces con pdflatex"),
+             QStringLiteral("Con soluciones (estructura, plantilla de respuestas y la correcta marcada)"));
 }
 
 void VentanaPrincipal::registrarConvocatoria()

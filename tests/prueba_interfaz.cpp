@@ -365,6 +365,21 @@ private slots:
             });
             QVERIFY(QMetaObject::invokeMethod(&v, slot));
         }
+        // HTML con soluciones: con la casilla del diálogo (sin «Mostrar soluciones»), y «_soluciones» en el nombre.
+        QTimer::singleShot(100, [&carpeta] {
+            QWidget *d = QApplication::activeModalWidget();
+            if (!d)
+                return;
+            d->findChild<QLineEdit *>()->setText(carpeta);
+            d->findChild<QCheckBox *>()->setChecked(true);
+            for (QPushButton *b : d->findChildren<QPushButton *>())
+                if (b->text() == QStringLiteral("Exportar"))
+                    b->click();
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "exportarHtml"));
+        QFile conSoluciones(carpeta + QStringLiteral("/") + QDir(carpeta).entryList({QStringLiteral("*_soluciones_*.html")}).value(0));
+        QVERIFY(conSoluciones.open(QIODevice::ReadOnly));
+        QVERIFY(QString::fromUtf8(conSoluciones.readAll()).contains(QStringLiteral("CON SOLUCIONES")));
         // Con «Letra grande», los ficheros llevan «_letra_grande» en el nombre.
         auto *letraGrande = v.findChild<QCheckBox *>(QString(), Qt::FindChildrenRecursively);
         for (QCheckBox *c : v.findChildren<QCheckBox *>())
@@ -386,8 +401,8 @@ private slots:
         const QStringList ficheros = QDir(carpeta).entryList(QDir::Files);
         QCOMPARE(ficheros.filter(QStringLiteral(".pdf")).size(), 6);
         QCOMPARE(ficheros.filter(QStringLiteral("_letra_grande")).size(), 2);
-        QCOMPARE(ficheros.filter(QStringLiteral("_soluciones")).size(), 2);
-        QCOMPARE(ficheros.filter(QStringLiteral(".html")).size(), 2);
+        QCOMPARE(ficheros.filter(QStringLiteral("_soluciones")).size(), 4);
+        QCOMPARE(ficheros.filter(QStringLiteral(".html")).size(), 4);
         QCOMPARE(ficheros.filter(QStringLiteral(".tex")).size(), 2);
         for (const QString &f : ficheros)
             QVERIFY2(QFileInfo(carpeta + QLatin1Char('/') + f).size() > 1000, qPrintable(f));

@@ -83,7 +83,8 @@ que se ve o se hace en el programa, hay que actualizarlo.
   exportan todos de una vez; también se puede marcar «Todos los exámenes en un fichero». Las soluciones en PDF
   (tabla de estructura por temas como la de las instrucciones, plantilla de respuestas y exámenes con la
   solución marcada) se exportan igual, por examen (`2026_Junio_soluciones_Nacional_Original.pdf`…) o todas
-  juntas.
+  juntas. En HTML y LaTeX, la casilla «Con soluciones» del diálogo (propuesta como esté «Mostrar soluciones») decide
+  si van con ellas, y entonces los nombres llevan también «_soluciones».
   También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar este examen…»): se elige la
   duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar «Empezar».
 - Una pregunta que no convenza se cambia por otra sin volver a generar: botón derecho sobre ella en la vista («Cambiar
@@ -103,8 +104,8 @@ que se ve o se hace en el programa, hay que actualizarlo.
   vista, la impresión y las tres exportaciones, y los ficheros llevan `_letra_grande` en el nombre
   (`2026_Junio_letra_grande_Nacional_Original.pdf`) para no pisar los normales.
 - *Exportar LaTeX…* guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>_imagenes` al
-  lado). Con «Mostrar soluciones» marcado incluye también la estructura, la plantilla de respuestas y las
-  soluciones marcadas. Hay que compilarlo dos veces para que salga el «página / total» del pie:
+  lado). Con la casilla «Con soluciones» del diálogo marcada incluye también la estructura, la plantilla de
+  respuestas y las soluciones marcadas. Hay que compilarlo dos veces para que salga el «página / total» del pie:
   `pdflatex examen.tex && pdflatex examen.tex`.
 - La semilla permite volver a generar exactamente los mismos exámenes, siempre que no hayan cambiado ni el banco
   ni el historial. Para recuperar los de una convocatoria pasada, mejor el historial.
