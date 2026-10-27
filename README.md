@@ -62,7 +62,8 @@ que se ve o se hace en el programa, hay que actualizarlo.
 
 **Generar examen**
 - Convocatoria (Febrero, Junio, Septiembre…) y año: van en la cabecera («Junio 2026»), en el pie de cada página
-  y en el nombre de los ficheros.
+  y en el nombre de los ficheros. Al abrir el programa se propone la próxima convocatoria según la fecha: la primera
+  de febrero, junio y septiembre cuyo mes aún no ha llegado (el 27 de octubre de 2026, Febrero 2027).
 - Lista de exámenes de la convocatoria (Nacional Original, Nacional Reserva…) con casillas: se genera un examen
   por cada nombre marcado, en el orden de la lista. La lista se mantiene de un año a otro; los nombres se
   añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando). El pie de cada página lleva el nombre

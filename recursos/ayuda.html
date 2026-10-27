@@ -65,12 +65,14 @@ historial o hacerlos en pantalla.</li>
 </ul>
 <p>Los menús reúnen lo demás: <i>Archivo</i> (abrir y crear bancos, importar y exportar, historial de
 convocatorias), <i>Editar</i> (temas, nueva pregunta, revisión del estilo) y <i>Ayuda</i>.</p>
-<p>Al cerrar el programa se guardan la convocatoria, la lista de exámenes, el reparto de preguntas, las opciones y el
-tamaño de la ventana, y la próxima vez aparecen como se dejaron.</p>
+<p>Al cerrar el programa se guardan la asignatura, las instrucciones, la lista de exámenes, el reparto de preguntas,
+las opciones y el tamaño de la ventana, y la próxima vez aparecen como se dejaron. La convocatoria y el año, en cambio,
+son al abrir los de la próxima convocatoria (ver <a href="#convocatoria">Convocatoria</a>).</p>
 
 <h3><a name="pasos"></a>Un examen paso a paso</h3>
 <ol>
-<li>En la pestaña <b>Generar examen</b>, elija la convocatoria (Febrero, Junio, Septiembre…) y el año.</li>
+<li>En la pestaña <b>Generar examen</b>, compruebe la convocatoria y el año: el programa propone la próxima
+convocatoria.</li>
 <li>Marque en la lista los exámenes que quiere, por ejemplo «Nacional Original» y «Nacional Reserva».</li>
 <li>Indique cuántas preguntas quiere de cada tema, o pulse <b>T1–T4</b>, <b>T5–T8</b> o <b>T1–T8</b> para poner el
 reparto habitual.</li>
@@ -95,6 +97,9 @@ lista) y aparecen a la derecha. Si se vuelve a generar, se sustituyen por otros.
 <li><b>Convocatoria</b>: elija Febrero, Junio o Septiembre, o escriba otro nombre. Con el año forma «Junio 2026», que
 va en la cabecera, en el pie de cada página y en el nombre de los ficheros que se exportan.</li>
 <li><b>Año</b>.</li>
+<li>Al abrir el programa, la convocatoria y el año son los de la próxima convocatoria según la fecha: la primera de
+febrero, junio y septiembre cuyo mes aún no ha llegado: de septiembre a enero, la de febrero; de febrero a mayo, la
+de junio; y de junio a agosto, la de septiembre. Si prepara otra, cámbielas.</li>
 <li><b>Instrucciones</b>: el texto del recuadro de instrucciones que hay bajo la cabecera. Debajo de él se añade la
 puntuación. Si un examen no cabe en su página, acortar las instrucciones ayuda.</li>
 </ul>
@@ -552,7 +557,7 @@ y dice cuántas preguntas de cuántos temas se van a exportar.</p>
 <h2><a name="configuracion"></a>Configuración</h2>
 
 <p>El programa guarda en un fichero de configuración la ruta del último banco abierto y lo que se deja en la ventana:
-los datos de la convocatoria, la lista de exámenes, el reparto de preguntas, las opciones, la puntuación, la carpeta
+la asignatura y las instrucciones, la lista de exámenes, el reparto de preguntas, las opciones, la puntuación, la carpeta
 de las exportaciones, la duración de los exámenes de práctica y el tamaño de la ventana. Está en:</p>
 <ul>
 <li>Linux: <tt>~/.config/UNED-FI/GeneradorExamenesFI.conf</tt></li>

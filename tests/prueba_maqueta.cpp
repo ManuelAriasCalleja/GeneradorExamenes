@@ -5,6 +5,7 @@
 #include "generador.h"
 #include "maquetador.h"
 
+#include <QDate>
 #include <QDir>
 #include <QFile>
 #include <QTemporaryDir>
@@ -44,6 +45,32 @@ class PruebaMaqueta : public QObject
     Q_OBJECT
 
 private slots:
+    void proximaConvocatoria_data()
+    {
+        QTest::addColumn<QDate>("hoy");
+        QTest::addColumn<QString>("convocatoria");
+        QTest::addColumn<int>("anio");
+        QTest::newRow("octubre") << QDate(2026, 10, 27) << QStringLiteral("Febrero") << 2027;
+        QTest::newRow("diciembre") << QDate(2026, 12, 31) << QStringLiteral("Febrero") << 2027;
+        QTest::newRow("enero") << QDate(2027, 1, 1) << QStringLiteral("Febrero") << 2027;
+        QTest::newRow("febrero") << QDate(2027, 2, 1) << QStringLiteral("Junio") << 2027;
+        QTest::newRow("mayo") << QDate(2027, 5, 31) << QStringLiteral("Junio") << 2027;
+        QTest::newRow("junio") << QDate(2027, 6, 1) << QStringLiteral("Septiembre") << 2027;
+        QTest::newRow("agosto") << QDate(2027, 8, 31) << QStringLiteral("Septiembre") << 2027;
+        QTest::newRow("septiembre") << QDate(2027, 9, 1) << QStringLiteral("Febrero") << 2028;
+    }
+
+    void proximaConvocatoria()
+    {
+        QFETCH(QDate, hoy);
+        QFETCH(QString, convocatoria);
+        QFETCH(int, anio);
+        const DatosConvocatoria d = DatosConvocatoria::proxima(hoy);
+        QCOMPARE(d.convocatoria, convocatoria);
+        QCOMPARE(d.anio, anio);
+        QVERIFY(DatosConvocatoria::ordinarias().contains(d.convocatoria));
+    }
+
     void paginasObjetivo()
     {
         QCOMPARE(Maquetador::paginasObjetivo(0), 1);

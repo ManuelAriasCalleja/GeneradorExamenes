@@ -10,6 +10,7 @@
 #include <QMap>
 #include <QPainter>
 #include <QBuffer>
+#include <QDate>
 #include <QPagedPaintDevice>
 #include <QPdfWriter>
 #include <QScreen>
@@ -21,6 +22,10 @@
 #include <memory>
 
 namespace {
+
+// Convocatorias ordinarias y su mes.
+const QList<QPair<int, QString>> kConvocatoriasOrdinarias{
+    {2, QStringLiteral("Febrero")}, {6, QStringLiteral("Junio")}, {9, QStringLiteral("Septiembre")}};
 
 const char *const kFuente = "'Liberation Sans', Arial, 'DejaVu Sans', sans-serif";
 const char *const kFuenteCodigo = "'DejaVu Sans Mono', 'Liberation Mono', monospace";
@@ -222,6 +227,29 @@ QStringList codigosDelTema(const Modelo &m, int tema)
 }
 
 } // namespace
+
+QStringList DatosConvocatoria::ordinarias()
+{
+    QStringList nombres;
+    for (const auto &c : kConvocatoriasOrdinarias)
+        nombres << c.second;
+    return nombres;
+}
+
+DatosConvocatoria DatosConvocatoria::proxima(const QDate &hoy)
+{
+    DatosConvocatoria d;
+    for (const auto &c : kConvocatoriasOrdinarias) {
+        if (c.first > hoy.month()) {
+            d.convocatoria = c.second;
+            d.anio = hoy.year();
+            return d;
+        }
+    }
+    d.convocatoria = kConvocatoriasOrdinarias.first().second;
+    d.anio = hoy.year() + 1;
+    return d;
+}
 
 QString Maquetador::escapar(const QString &texto)
 {

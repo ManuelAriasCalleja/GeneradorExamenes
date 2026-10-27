@@ -5,6 +5,7 @@
 #include <QString>
 #include <QVector>
 
+class QDate;
 class QPagedPaintDevice;
 class QPdfWriter;
 class QTextDocument;
@@ -25,6 +26,12 @@ struct DatosConvocatoria
     {
         return anio > 0 ? QStringLiteral("%1 %2").arg(convocatoria).arg(anio).trimmed() : convocatoria;
     }
+
+    // Convocatorias ordinarias, en el orden del curso: Febrero, Junio y Septiembre.
+    static QStringList ordinarias();
+    // La próxima convocatoria ordinaria, con su año: la primera cuyo mes aún no ha llegado. El 27 de octubre de 2026 es
+    // Febrero de 2027; en junio ya es Septiembre, porque los exámenes de la del mes en curso estarán hechos.
+    static DatosConvocatoria proxima(const QDate &hoy);
 };
 
 // Convierte preguntas y exámenes a HTML (subconjunto que entiende QTextDocument) y los imprime.

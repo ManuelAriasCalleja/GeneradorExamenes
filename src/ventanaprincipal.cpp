@@ -162,12 +162,15 @@ QWidget *VentanaPrincipal::crearGrupoConvocatoria()
     auto *gConv = new QGroupBox(QStringLiteral("Convocatoria"));
     auto *fConv = new QFormLayout(gConv);
     m_asignatura = new QLineEdit(QStringLiteral("Fundamentos de Informática"));
+    // La convocatoria y el año no se guardan en la configuración: al abrir se propone la próxima.
+    const DatosConvocatoria proxima = DatosConvocatoria::proxima(QDate::currentDate());
     m_convocatoria = new QComboBox;
     m_convocatoria->setEditable(true);
-    m_convocatoria->addItems({QStringLiteral("Febrero"), QStringLiteral("Junio"), QStringLiteral("Septiembre")});
+    m_convocatoria->addItems(DatosConvocatoria::ordinarias());
+    m_convocatoria->setCurrentText(proxima.convocatoria);
     m_anio = new QSpinBox;
     m_anio->setRange(2000, 2100);
-    m_anio->setValue(QDate::currentDate().year());
+    m_anio->setValue(proxima.anio);
     m_instrucciones = new QPlainTextEdit(DatosConvocatoria().instrucciones);
     m_instrucciones->setMaximumHeight(52);
     m_instrucciones->setTabChangesFocus(true);
@@ -868,8 +871,6 @@ QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
     return {
         {QStringLiteral("examen/asignatura"), m_asignatura},
         {QStringLiteral("examen/instrucciones"), m_instrucciones},
-        {QStringLiteral("examen/anio"), m_anio},
-        {QStringLiteral("examen/nombreConvocatoria"), m_convocatoria},
         {QStringLiteral("examen/noRepetir"), m_noRepetir},
         {QStringLiteral("examen/evitarRecientes"), m_evitarRecientes},
         {QStringLiteral("examen/numRecientes"), m_numRecientes},

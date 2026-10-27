@@ -15,6 +15,7 @@
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDate>
 #include <QDir>
 #include <QLabel>
 #include <QLineEdit>
@@ -277,6 +278,28 @@ private slots:
             QVERIFY(bd.jsonAutomatico());
             QVERIFY2(bd.diferenciasConJson(json).isEmpty(), qPrintable(bd.diferenciasConJson(json).join(QLatin1Char('\n'))));
         }
+    }
+
+    void ventanaProponeLaProximaConvocatoria()
+    {
+        // Aunque la configuración tenga otra (la de una versión anterior, o una cargada del historial).
+        QSettings().setValue(QStringLiteral("examen/nombreConvocatoria"), QStringLiteral("Septiembre"));
+        QSettings().setValue(QStringLiteral("examen/anio"), 2001);
+        VentanaPrincipal v;
+        const DatosConvocatoria proxima = DatosConvocatoria::proxima(QDate::currentDate());
+        QComboBox *convocatoria = nullptr;
+        for (QComboBox *c : v.findChildren<QComboBox *>())
+            if (c->isEditable())
+                convocatoria = c;
+        QVERIFY(convocatoria);
+        QCOMPARE(convocatoria->currentText(), proxima.convocatoria);
+        QSpinBox *anio = nullptr;
+        for (QSpinBox *s : v.findChildren<QSpinBox *>())
+            if (s->minimum() == 2000)
+                anio = s;
+        QVERIFY(anio);
+        QCOMPARE(anio->value(), proxima.anio);
+        QSettings().clear();
     }
 
     void ventanaGeneraYExporta()
