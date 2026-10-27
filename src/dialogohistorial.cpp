@@ -80,7 +80,9 @@ void DialogoHistorial::rellenar()
     m_arbol->resizeColumnToContents(ColPreguntas);
     m_arbol->resizeColumnToContents(ColRegistrado);
     if (m_arbol->topLevelItemCount() == 0) {
-        auto *vacio = new QTreeWidgetItem(m_arbol, {QStringLiteral("Todavía no hay ninguna convocatoria registrada.")});
+        auto *vacio = new QTreeWidgetItem(m_arbol, {QStringLiteral("Todavía no hay ninguna convocatoria registrada. Las "
+                                                                   "anteriores al programa se registran con Archivo → "
+                                                                   "Registrar exámenes anteriores…")});
         vacio->setFlags(Qt::NoItemFlags);
     }
 }

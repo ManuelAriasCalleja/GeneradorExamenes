@@ -69,6 +69,13 @@ convocatorias), <i>Editar</i> (temas, nueva pregunta, revisión del estilo) y <i
 las opciones y el tamaño de la ventana, y la próxima vez aparecen como se dejaron. La convocatoria y el año, en cambio,
 son al abrir los de la próxima convocatoria (ver <a href="#convocatoria">Convocatoria</a>).</p>
 
+<h3><a name="primera-vez"></a>La primera vez</h3>
+<p>Para no repetir preguntas de las últimas convocatorias, el programa las busca en su
+<a href="#historial">historial</a>, donde se guardan los exámenes que se generan con él. Las convocatorias
+anteriores a usar el programa no están, y sus preguntas podrían volver a salir. Antes de generar los primeros
+exámenes, registre las anteriores con <i>Archivo → Registrar exámenes anteriores…</i> a partir de sus PDF (ver
+<a href="#anteriores">Registrar exámenes anteriores</a>). Mientras no haya ninguna registrada, al generar se avisa.</p>
+
 <h3><a name="pasos"></a>Un examen paso a paso</h3>
 <ol>
 <li>En la pestaña <b>Generar examen</b>, compruebe la convocatoria y el año: el programa propone la próxima
@@ -342,6 +349,30 @@ la ficha de cada pregunta, en la pestaña <b>Banco de preguntas</b>, dice en qu�
 Registre solo los exámenes definitivos: los que se registran cuentan como ya salidos al generar los de las
 convocatorias siguientes.
 </td></tr></table>
+
+<h3><a name="anteriores"></a>Registrar exámenes anteriores</h3>
+<p>Los exámenes de las convocatorias hechas fuera del programa (las anteriores a usarlo) se registran con
+<i>Archivo → Registrar exámenes anteriores…</i>. Así sus preguntas se evitan al generar las siguientes, como las de
+las convocatorias generadas.</p>
+<ol>
+<li>Pulse <b>Añadir PDF…</b> y elija los PDF de los exámenes de la convocatoria (varios a la vez). Si un examen solo
+está en Word, ábralo, seleccione todo su texto, cópielo y pulse <b>Pegar texto…</b>.</li>
+<li>El programa separa cada examen en preguntas, numeradas «1.-», «2.-»…, con sus opciones «a)»…«d)», y reconoce
+cada una en el banco por su parecido. También saca en qué orden salieron sus opciones.</li>
+<li>La convocatoria, el año y el nombre de cada examen se proponen a partir del nombre del fichero
+(<tt>2026_02_05_ae_original_ex_fi.pdf</tt> es «América Este Original» de Febrero 2026), con los nombres de la lista
+de exámenes. Compruébelos: el nombre se cambia con un doble clic.</li>
+<li>Revise las preguntas de cada examen (se ven al elegirlo en la lista). Las dudosas, que se parecen poco a la
+reconocida o casi lo mismo a otra, salen en amarillo. Al dejar el ratón sobre el código se ve el enunciado de esa
+pregunta en el banco y, sobre «En el examen», el texto leído. Para corregir una, haga doble clic en su código y
+escriba el bueno (<tt>T1-7a</tt>).</li>
+<li>Pulse <b>Registrar</b>. Los exámenes quedan en el historial como los generados, con la puntuación de siempre (10
+puntos y cada fallo resta el 30 %). Si ya había registrados con el mismo nombre en esa convocatoria, se
+sustituyen.</li>
+</ol>
+<p>Se registran las preguntas tal como están ahora en el banco, no el texto del PDF: al cargar uno de estos exámenes
+desde el historial, sale con las preguntas actuales. Para leer los PDF, el programa necesita la biblioteca Qt PDF; si
+<b>Añadir PDF…</b> está desactivado, copie y pegue el texto.</p>
 
 <h3><a name="consultar-historial"></a>Cargar o eliminar convocatorias</h3>
 <p><i>Archivo → Historial de convocatorias…</i> muestra las convocatorias registradas (por ejemplo, «Junio 2026») con
@@ -626,6 +657,12 @@ aparece lo buscado.</td></tr>
 <h3><a name="problema-banco"></a>Al abrir, dice que no encuentra el banco de preguntas</h3>
 <p>El fichero del último banco se ha movido, se ha cambiado de nombre o está en un disco que no está conectado. Pulse
 <b>Abrir banco…</b> y búsquelo; desde entonces el programa lo abrirá desde su nuevo sitio.</p>
+
+<h3><a name="problema-historial"></a>«No hay ninguna convocatoria registrada en el historial»</h3>
+<p>Mientras el historial esté vacío, no se evitan las preguntas de las convocatorias anteriores. Si se hicieron fuera
+del programa, regístrelas a partir de sus PDF (ver <a href="#anteriores">Registrar exámenes anteriores</a>); si se
+generaron con él, regístrelas con <b>Registrar convocatoria…</b> o desactive la opción «Evitar las preguntas de las
+últimas N convocatorias».</p>
 
 <h3><a name="problema-faltan"></a>«Se pidieron N preguntas pero solo hay M distintas disponibles»</h3>
 <p>El tema no tiene bastantes preguntas activas distintas (las variantes cuentan como una). Pida menos preguntas de

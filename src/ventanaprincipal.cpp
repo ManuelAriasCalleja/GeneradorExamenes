@@ -1,4 +1,5 @@
 #include "ventanaprincipal.h"
+#include "dialogoanteriores.h"
 #include "dialogoayuda.h"
 #include "dialogoestilo.h"
 #include "dialogoexportar.h"
@@ -484,6 +485,9 @@ void VentanaPrincipal::crearMenus()
     connect(m_accionJsonAuto, &QAction::toggled, this, &VentanaPrincipal::cambiarJsonAutomatico);
     archivo->addSeparator();
     archivo->addAction(QStringLiteral("&Historial de convocatorias…"), this, &VentanaPrincipal::historialConvocatorias);
+    archivo->addAction(QStringLiteral("&Registrar exámenes anteriores…"), this, &VentanaPrincipal::registrarAnteriores)
+        ->setToolTip(QStringLiteral("Registra en el historial los exámenes de una convocatoria hecha fuera del programa (de "
+                                    "sus PDF o su texto), para que se eviten sus preguntas al generar"));
     archivo->addSeparator();
     archivo->addAction(QStringLiteral("&Salir"), QKeySequence::Quit, this, &QWidget::close);
 
@@ -1024,6 +1028,10 @@ void VentanaPrincipal::generar()
     }
     config.usoReciente = usoReciente(config.nombresModelos);
     m_resultado = Generador::generar(m_preguntas, config);
+    if (m_evitarRecientes->isChecked() && m_bd.examenesRegistrados().isEmpty())
+        m_resultado.avisos << QStringLiteral("No hay ninguna convocatoria registrada en el historial, así que no se evitan las "
+                                             "preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con "
+                                             "Archivo → Registrar exámenes anteriores…");
     m_configResultado = config;
     guardarConfiguracion();
     presentarResultado();
@@ -1243,6 +1251,18 @@ void VentanaPrincipal::historialConvocatorias()
     if (dialogo.exec() == QDialog::Accepted)
         cargarRegistrados(dialogo.examenesElegidos());
     seleccionCambiada();   // por si se ha eliminado algún examen
+}
+
+void VentanaPrincipal::registrarAnteriores()
+{
+    QStringList nombres;
+    for (int i = 0; i < m_listaExamenes->count(); ++i)
+        nombres << m_listaExamenes->item(i)->text().trimmed();
+    DialogoAnteriores dialogo(&m_bd, m_preguntas, datosConvocatoria(), nombres, this);
+    if (dialogo.exec() != QDialog::Accepted)
+        return;
+    statusBar()->showMessage(QStringLiteral("Registrados en el historial los exámenes de %1").arg(dialogo.convocatoriaYAnio()), 8000);
+    seleccionCambiada();   // la ficha de la pregunta dice en qué exámenes ha salido
 }
 
 void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)

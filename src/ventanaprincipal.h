@@ -74,6 +74,7 @@ private slots:
     void exportarLatex();
     void registrarConvocatoria();
     void historialConvocatorias();
+    void registrarAnteriores();
     void practicar();
     void cambiarPregunta();   // la del número elegido bajo la vista
     void deshacerCambio();

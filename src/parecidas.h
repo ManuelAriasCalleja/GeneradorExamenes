@@ -26,6 +26,9 @@ struct Parecida
     double parecido;   // de 0 a 1
 };
 
+// Parecido (de 0 a 1) de dos textos cortos, como dos opciones, con los mismos trozos que el índice pero sin pesos.
+double parecidoTextos(const QString &a, const QString &b);
+
 class Indice
 {
 public:

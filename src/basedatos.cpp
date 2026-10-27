@@ -145,20 +145,6 @@ private:
 
 using ClaveConvocatoria = QPair<int, QString>;   // año y convocatoria
 
-// Mes de una convocatoria que se llama como un mes («Junio», «Septiembre (reserva)»...); 0 si no.
-int mesDe(const QString &convocatoria)
-{
-    static const QStringList meses{
-        QStringLiteral("enero"), QStringLiteral("febrero"), QStringLiteral("marzo"), QStringLiteral("abril"),
-        QStringLiteral("mayo"), QStringLiteral("junio"), QStringLiteral("julio"), QStringLiteral("agosto"),
-        QStringLiteral("septiembre"), QStringLiteral("octubre"), QStringLiteral("noviembre"), QStringLiteral("diciembre")};
-    const QString c = convocatoria.trimmed().toLower();
-    for (int i = 0; i < meses.size(); ++i)
-        if (c.startsWith(meses.at(i)))
-            return i + 1;
-    return 0;
-}
-
 // Convocatorias de la más reciente a la más antigua: por año, por mes y, si no se sabe el mes, por el último
 // examen registrado de cada una ('ultimoId').
 void ordenarConvocatorias(QList<ClaveConvocatoria> &claves, const QHash<ClaveConvocatoria, int> &ultimoId)
@@ -166,8 +152,9 @@ void ordenarConvocatorias(QList<ClaveConvocatoria> &claves, const QHash<ClaveCon
     std::sort(claves.begin(), claves.end(), [&](const ClaveConvocatoria &a, const ClaveConvocatoria &b) {
         if (a.first != b.first)
             return a.first > b.first;
-        if (mesDe(a.second) != mesDe(b.second))
-            return mesDe(a.second) > mesDe(b.second);
+        const int mesA = DatosConvocatoria::mesDe(a.second), mesB = DatosConvocatoria::mesDe(b.second);
+        if (mesA != mesB)
+            return mesA > mesB;
         return ultimoId.value(a) > ultimoId.value(b);
     });
 }

@@ -2,6 +2,7 @@
 
 #include "basedatos.h"
 #include "datos_prueba.h"
+#include "dialogoanteriores.h"
 #include "dialogoayuda.h"
 #include "dialogoparecidas.h"
 #include "dialogopractica.h"
@@ -455,6 +456,39 @@ private slots:
         QCOMPARE(numero->value(), 5);
     }
 
+    void registrarExamenesAnteriores()
+    {
+        QTemporaryDir dir;
+        BaseDatos bd;
+        QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+        QVERIFY(llenarBaseDatos(bd, 4, bancoVariado()));
+        // Un examen de cinco preguntas del banco, como texto pegado.
+        QString texto = QStringLiteral("Examen inventado\n");
+        const QVector<Pregunta> banco = bd.preguntas();
+        for (int i = 0; i < 5; ++i) {
+            texto += QStringLiteral("%1.- %2\n").arg(i + 1).arg(banco.at(i).enunciado);
+            for (int k = 0; k < 4; ++k)
+                texto += QStringLiteral("%1) %2\n").arg(Pregunta::letra(k)).arg(banco.at(i).opciones.at(k));
+        }
+        DialogoAnteriores d(&bd, banco, DatosConvocatoria(), {QStringLiteral("Nacional Original")});
+        d.show();
+        QVERIFY(d.anadirExamen(texto));
+        d.findChild<QComboBox *>()->setCurrentText(QStringLiteral("Febrero"));
+        d.findChild<QSpinBox *>()->setValue(2026);
+        QString pregunta;
+        responder(QStringLiteral("Sí"), &pregunta);
+        d.accept();
+        QCOMPARE(d.result(), int(QDialog::Accepted));
+        QVERIFY2(pregunta.contains(QStringLiteral("1 exámenes de Febrero 2026")), qPrintable(pregunta));
+        const QVector<ExamenRegistrado> registrados = bd.examenesRegistrados();
+        QCOMPARE(registrados.size(), 1);
+        QCOMPARE(registrados.first().datos.convocatoriaYAnio(), QStringLiteral("Febrero 2026"));
+        QCOMPARE(registrados.first().nombre, QStringLiteral("Examen 1"));
+        QCOMPARE(registrados.first().numPreguntas, 5);
+        // Sus preguntas cuentan ya como salidas al generar la convocatoria siguiente.
+        QCOMPARE(bd.usoReciente(1, 2026, QStringLiteral("Junio"), {}).size(), 5);
+    }
+
     void ayudaTieneLosApartados()
     {
         DialogoAyuda ayuda;
@@ -464,7 +498,7 @@ private slots:
         QVERIFY2(!secciones.contains(QString()), "hay un título sin ancla: el índice no puede llevar a él");
         // Los apartados a los que llevan F1 y el botón «Ayuda» de cada parte del programa.
         for (const char *s : {"generar", "banco", "editor", "parecidas", "temas", "practicar", "estilo", "exportar",
-                              "historial", "moodle"})
+                              "historial", "anteriores", "moodle"})
             QVERIFY2(secciones.contains(QLatin1String(s)), s);
 
         // Los enlaces del manual llevan a anclas que existen.

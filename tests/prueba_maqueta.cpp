@@ -71,6 +71,26 @@ private slots:
         QVERIFY(DatosConvocatoria::ordinarias().contains(d.convocatoria));
     }
 
+    void convocatoriaAnterior()
+    {
+        auto anterior = [](const QDate &hoy) { return DatosConvocatoria::anterior(hoy).convocatoriaYAnio(); };
+        QCOMPARE(anterior(QDate(2026, 10, 27)), QStringLiteral("Septiembre 2026"));
+        QCOMPARE(anterior(QDate(2027, 1, 31)), QStringLiteral("Septiembre 2026"));
+        QCOMPARE(anterior(QDate(2027, 2, 1)), QStringLiteral("Febrero 2027"));
+        QCOMPARE(anterior(QDate(2027, 5, 31)), QStringLiteral("Febrero 2027"));
+        QCOMPARE(anterior(QDate(2027, 6, 1)), QStringLiteral("Junio 2027"));
+        QCOMPARE(anterior(QDate(2027, 9, 1)), QStringLiteral("Septiembre 2027"));
+        // Siempre la anterior a la próxima.
+        for (QDate d(2026, 1, 1); d.year() == 2026; d = d.addDays(1)) {
+            const DatosConvocatoria a = DatosConvocatoria::anterior(d), p = DatosConvocatoria::proxima(d);
+            QVERIFY(a.anio * 12 + DatosConvocatoria::mesDe(a.convocatoria) < p.anio * 12 + DatosConvocatoria::mesDe(p.convocatoria));
+        }
+        QCOMPARE(DatosConvocatoria::mesDe(QStringLiteral("septiembre (reserva)")), 9);
+        QCOMPARE(DatosConvocatoria::mesDe(QStringLiteral("Extraordinaria")), 0);
+        QCOMPARE(DatosConvocatoria::nombreDeMes(2), QStringLiteral("Febrero"));
+        QCOMPARE(DatosConvocatoria::nombreDeMes(13), QString());
+    }
+
     void paginasObjetivo()
     {
         QCOMPARE(Maquetador::paginasObjetivo(0), 1);

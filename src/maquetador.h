@@ -29,9 +29,15 @@ struct DatosConvocatoria
 
     // Convocatorias ordinarias, en el orden del curso: Febrero, Junio y Septiembre.
     static QStringList ordinarias();
+    // Mes de una convocatoria que se llama como un mes («Junio», «Septiembre (reserva)»...); 0 si no.
+    static int mesDe(const QString &convocatoria);
+    // Nombre del mes, como el de una convocatoria: «Febrero» para el 2; vacío si no es un mes.
+    static QString nombreDeMes(int mes);
     // La próxima convocatoria ordinaria, con su año: la primera cuyo mes aún no ha llegado. El 27 de octubre de 2026 es
     // Febrero de 2027; en junio ya es Septiembre, porque los exámenes de la del mes en curso estarán hechos.
     static DatosConvocatoria proxima(const QDate &hoy);
+    // La última convocatoria ordinaria, con su año: la anterior a la próxima (en octubre de 2026, Septiembre de 2026).
+    static DatosConvocatoria anterior(const QDate &hoy);
 };
 
 // Convierte preguntas y exámenes a HTML (subconjunto que entiende QTextDocument) y los imprime.

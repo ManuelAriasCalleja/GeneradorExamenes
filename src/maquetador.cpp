@@ -23,6 +23,11 @@
 
 namespace {
 
+const QStringList kMeses{QStringLiteral("Enero"), QStringLiteral("Febrero"), QStringLiteral("Marzo"), QStringLiteral("Abril"),
+                         QStringLiteral("Mayo"), QStringLiteral("Junio"), QStringLiteral("Julio"), QStringLiteral("Agosto"),
+                         QStringLiteral("Septiembre"), QStringLiteral("Octubre"), QStringLiteral("Noviembre"),
+                         QStringLiteral("Diciembre")};
+
 // Convocatorias ordinarias y su mes.
 const QList<QPair<int, QString>> kConvocatoriasOrdinarias{
     {2, QStringLiteral("Febrero")}, {6, QStringLiteral("Junio")}, {9, QStringLiteral("Septiembre")}};
@@ -236,6 +241,20 @@ QStringList DatosConvocatoria::ordinarias()
     return nombres;
 }
 
+int DatosConvocatoria::mesDe(const QString &convocatoria)
+{
+    const QString c = convocatoria.trimmed();
+    for (int i = 0; i < kMeses.size(); ++i)
+        if (c.startsWith(kMeses.at(i), Qt::CaseInsensitive))
+            return i + 1;
+    return 0;
+}
+
+QString DatosConvocatoria::nombreDeMes(int mes)
+{
+    return kMeses.value(mes - 1);
+}
+
 DatosConvocatoria DatosConvocatoria::proxima(const QDate &hoy)
 {
     DatosConvocatoria d;
@@ -248,6 +267,21 @@ DatosConvocatoria DatosConvocatoria::proxima(const QDate &hoy)
     }
     d.convocatoria = kConvocatoriasOrdinarias.first().second;
     d.anio = hoy.year() + 1;
+    return d;
+}
+
+DatosConvocatoria DatosConvocatoria::anterior(const QDate &hoy)
+{
+    DatosConvocatoria d;
+    for (auto it = kConvocatoriasOrdinarias.crbegin(); it != kConvocatoriasOrdinarias.crend(); ++it) {
+        if (it->first <= hoy.month()) {
+            d.convocatoria = it->second;
+            d.anio = hoy.year();
+            return d;
+        }
+    }
+    d.convocatoria = kConvocatoriasOrdinarias.last().second;
+    d.anio = hoy.year() - 1;
     return d;
 }
 

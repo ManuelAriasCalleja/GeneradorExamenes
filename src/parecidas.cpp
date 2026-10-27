@@ -70,6 +70,23 @@ double coseno(const QHash<QString, double> &a, const QHash<QString, double> &b)
 
 } // namespace
 
+double parecidoTextos(const QString &a, const QString &b)
+{
+    auto normalizado = [](const QString &texto) {
+        QHash<QString, double> v;
+        for (const QString &t : trozos(texto))
+            v[t] += 1;
+        double norma = 0;
+        for (double x : std::as_const(v))
+            norma += x * x;
+        norma = qSqrt(norma);
+        for (auto it = v.begin(); it != v.end(); ++it)
+            it.value() /= norma;
+        return v;
+    };
+    return coseno(normalizado(a), normalizado(b));
+}
+
 Indice::Indice(const QVector<Pregunta> &banco)
     : m_banco(banco)
 {

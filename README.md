@@ -6,7 +6,8 @@ con el número de preguntas que se indique de cada tema.
 ## Compilar y ejecutar
 
 Requisitos: Qt 6 (módulos Widgets, Sql con el driver SQLite y PrintSupport), CMake ≥ 3.19 y un compilador C++17.
-En Debian/Ubuntu: `sudo apt install qt6-base-dev libqt6sql6-sqlite cmake g++`.
+En Debian/Ubuntu: `sudo apt install qt6-base-dev libqt6sql6-sqlite cmake g++`. Opcionalmente, Qt PDF (6.4 o
+posterior; `qt6-pdf-dev`) para leer los PDF de los exámenes anteriores; sin él, se pega su texto.
 
 ```sh
 cmake -S . -B build
@@ -25,7 +26,9 @@ Para tenerlo en el menú del escritorio (Cinnamon, GNOME, KDE…) con su icono: 
 escritorio, también la actualiza. Si se mueve el proyecto, hay que volver a ejecutarlo.
 
 En Windows se compila igual con CMake (o desde Qt Creator), con Qt 6 para MinGW o MSVC. Sale como aplicación
-gráfica, sin ventana de consola, y el `.exe` lleva el icono (`recursos/icono.rc`).
+gráfica, sin ventana de consola, y el `.exe` lleva el icono (`recursos/icono.rc`). Si el Qt instalado incluye Qt PDF,
+se usa para leer los PDF de los exámenes anteriores y `windeployqt` lo copia al paquete; si no, esos exámenes se
+registran pegando su texto.
 
 Para llevarlo a otros ordenadores con Windows, se prepara un paquete (compilado en Release):
 
@@ -49,7 +52,8 @@ Están en `tests/`, con Qt Test (incluido en `qt6-base-dev`), y tardan unos segu
 (reparto por tema, variantes y pseudorrepetidas, reparto de la correcta, preguntas ya usadas, cambio de una pregunta), el comprobador de
 estilo, el formato de los enunciados, la base de datos (JSON, copia de seguridad, transacciones, historial, temas),
 la maqueta (que un examen de 10 preguntas quepa en un folio, y la versión con letra grande) y las exportaciones, las
-parecidas, el cuestionario de Moodle, los recorridos principales de la interfaz y la ayuda (que tenga los apartados a
+parecidas, el cuestionario de Moodle, la lectura de los exámenes anteriores (texto, PDF y nombre del fichero), los
+recorridos principales de la interfaz y la ayuda (que tenga los apartados a
 los que lleva cada ventana y que sus enlaces lleven a algún sitio). Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
 trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`. Para no compilarlas:
 `cmake -S . -B build -DPRUEBAS=OFF`.
@@ -110,6 +114,13 @@ que se ve o se hace en el programa, hay que actualizarlo.
   convocatoria (o un solo examen) en la ventana para verla, exportarla, imprimirla o practicarla tal como salió,
   aunque después se hayan corregido sus preguntas, o eliminarla del historial. La ficha de cada pregunta, en el
   banco, dice en qué exámenes registrados ha salido.
+- *Archivo → Registrar exámenes anteriores…* registra en el historial las convocatorias hechas fuera del programa,
+  para que sus preguntas también se eviten: se eligen los PDF de sus exámenes (con Qt PDF) o se pega su texto, el
+  programa separa las preguntas («1.-», «a)»…), reconoce cada una en el banco con el índice de parecidas (y el orden
+  de sus opciones), propone la convocatoria y el nombre de cada examen a partir del fichero
+  (`2026_02_05_ae_original_ex_fi.pdf` → «América Este Original», Febrero 2026) y enseña las dudosas para corregir su
+  código. Con los once exámenes de febrero de 2026 reconoce las 110 preguntas sin dudas. Mientras el historial esté
+  vacío, al generar se avisa de que no se evitan las convocatorias anteriores.
 
 **Reglas al elegir preguntas**
 - Las variantes de una misma pregunta (3a, 3b…) nunca salen juntas en un examen; tampoco las

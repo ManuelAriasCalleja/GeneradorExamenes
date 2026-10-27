@@ -13,6 +13,7 @@ endif()
 
 find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Sql PrintSupport)
 find_package(Qt6 6.2 COMPONENTS Test)   # solo para las pruebas automáticas
+find_package(Qt6 6.2 COMPONENTS Pdf)    # opcional: leer los PDF de los exámenes anteriores
 qt_standard_project_setup()
 
 # Todo el programa salvo main.cpp, en una biblioteca que comparten el ejecutable y las pruebas.
@@ -37,6 +38,8 @@ qt_add_library(nucleo STATIC
     src/moodle.h src/moodle.cpp
     src/dialogomoodle.h src/dialogomoodle.cpp
     src/dialogoayuda.h src/dialogoayuda.cpp
+    src/examenesanteriores.h src/examenesanteriores.cpp
+    src/dialogoanteriores.h src/dialogoanteriores.cpp
     src/ventanaprincipal.h src/ventanaprincipal.cpp
 )
 target_include_directories(nucleo PUBLIC src)
@@ -46,6 +49,13 @@ qt_add_resources(nucleo "ayuda"
     FILES recursos/ayuda.html
 )
 target_link_libraries(nucleo PUBLIC Qt6::Widgets Qt6::Sql Qt6::PrintSupport)
+# Con Qt PDF (6.4 o posterior), «Registrar exámenes anteriores» lee los PDF; sin él, solo el texto pegado.
+if(Qt6Pdf_FOUND AND Qt6_VERSION VERSION_GREATER_EQUAL 6.4)
+    target_link_libraries(nucleo PUBLIC Qt6::Pdf)
+    target_compile_definitions(nucleo PRIVATE LEER_PDF)
+else()
+    message(STATUS "Sin Qt PDF: los exámenes anteriores no se podrán leer de sus PDF, solo pegando su texto.")
+endif()
 # La versión del proyecto se usa en el diálogo «Acerca de», para no tenerla escrita a mano en dos sitios.
 target_compile_definitions(nucleo PRIVATE VERSION_APLICACION="${PROJECT_VERSION}")
 
@@ -121,7 +131,7 @@ endif()
 option(PRUEBAS "Compilar las pruebas automáticas" ON)
 if(PRUEBAS AND Qt6Test_FOUND)
     enable_testing()
-    foreach(prueba generador estilo enunciado basedatos maqueta parecidas moodle interfaz bancos_reales)
+    foreach(prueba generador estilo enunciado basedatos maqueta parecidas moodle anteriores interfaz bancos_reales)
         qt_add_executable(prueba_${prueba} tests/prueba_${prueba}.cpp tests/datos_prueba.h)
         target_link_libraries(prueba_${prueba} PRIVATE nucleo Qt6::Test)
         add_test(NAME ${prueba} COMMAND prueba_${prueba})
