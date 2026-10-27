@@ -155,6 +155,7 @@ private:
     QVector<Pregunta> m_preguntas;
     ResultadoGeneracion m_resultado;
     QString m_origenResultado;              // «Registrada el …» si viene del historial
+    bool m_semillaFija = false;             // m_resultado se generó con la semilla escrita en Opciones
     // Para cambiar preguntas: la configuración con que se generó m_resultado (o, si viene del historial, la de la
     // ventana al cargarlo); los grupos quitados de cada examen, que no se vuelven a proponer mientras haya otros; y
     // los cambios hechos, para deshacerlos.

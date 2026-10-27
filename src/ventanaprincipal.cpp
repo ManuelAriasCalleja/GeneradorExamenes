@@ -300,7 +300,13 @@ QWidget *VentanaPrincipal::crearGrupoOpciones()
     m_semilla = new QLineEdit;
     m_semilla->setValidator(new QIntValidator(0, 2147483647, m_semilla));
     m_semilla->setPlaceholderText(QStringLiteral("aleatoria"));
-    m_semilla->setToolTip(QStringLiteral("Con la misma semilla y la misma configuración se obtienen los mismos exámenes"));
+    m_semilla->setClearButtonEnabled(true);
+    m_semilla->setToolTip(QStringLiteral("Con la misma semilla y la misma configuración se obtienen los mismos exámenes.\n"
+                                         "Vacía, cada vez salen otros."));
+    // Con una semilla escrita, todas las generaciones salen iguales: que se note.
+    connect(m_semilla, &QLineEdit::textChanged, this, [this](const QString &texto) {
+        m_semilla->setStyleSheet(texto.isEmpty() ? QString() : QStringLiteral("background: #fff3cd; color: #664d03"));
+    });
     fOpc->addRow(m_noRepetir);
     fOpc->addRow(filaRecientes);
     fOpc->addRow(m_evitarOld);
@@ -1034,6 +1040,11 @@ void VentanaPrincipal::generar()
     }
     config.usoReciente = usoReciente(config.nombresModelos);
     m_resultado = Generador::generar(m_preguntas, config);
+    m_semillaFija = config.semilla != 0;
+    if (m_semillaFija)
+        statusBar()->showMessage(QStringLiteral("Generados con la semilla fija %1: cada vez salen los mismos exámenes. "
+                                                "Borre el campo «Semilla» para que salgan otros.").arg(config.semilla),
+                                 10000);
     if (m_evitarRecientes->isChecked() && m_bd.examenesRegistrados().isEmpty())
         m_resultado.avisos << QStringLiteral("No hay ninguna convocatoria registrada en el historial, así que no se evitan las "
                                              "preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con "
@@ -1072,6 +1083,8 @@ void VentanaPrincipal::actualizarMaqueta()
     QStringList avisos = m_resultado.avisos;
     QString info = m_origenResultado.isEmpty() ? QString() : m_origenResultado + QStringLiteral("  ·  ");
     info += QStringLiteral("Semilla: %1").arg(m_resultado.semilla);
+    if (m_semillaFija)
+        info += QStringLiteral(" (fija: cada vez salen los mismos exámenes)");
     if (!m_cambios.isEmpty())
         info += m_cambios.size() == 1 ? QStringLiteral(" (con una pregunta cambiada a mano)")
                                       : QStringLiteral(" (con %1 preguntas cambiadas a mano)").arg(m_cambios.size());
@@ -1308,6 +1321,7 @@ void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)
         m_fallo->setValue(d.puntosFallo);
     }
     // Para cambiar preguntas de los exámenes cargados: las opciones de la ventana.
+    m_semillaFija = false;
     m_configResultado = configuracionExamen();
     m_configResultado.nombresModelos = nombresModelos();
     m_configResultado.usoReciente = usoReciente(m_configResultado.nombresModelos);

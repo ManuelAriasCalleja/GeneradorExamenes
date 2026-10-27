@@ -108,7 +108,8 @@ que se ve o se hace en el programa, hay que actualizarlo.
   respuestas y las soluciones marcadas. Hay que compilarlo dos veces para que salga el «página / total» del pie:
   `pdflatex examen.tex && pdflatex examen.tex`.
 - La semilla permite volver a generar exactamente los mismos exámenes, siempre que no hayan cambiado ni el banco
-  ni el historial. Para recuperar los de una convocatoria pasada, mejor el historial.
+  ni el historial. Mientras esté escrita, salen siempre los mismos: el campo se ve en amarillo, la línea gris dice
+  «fija» y al generar se avisa; se borra con la cruz del campo. Para recuperar los de una convocatoria pasada, mejor el historial.
 - *Registrar convocatoria…* guarda en el historial (dentro de la base de datos) los exámenes generados, con una
   copia de sus preguntas tal como salieron y el orden de las opciones. Si ya había exámenes registrados con el
   mismo nombre, convocatoria y año, se sustituyen. En *Archivo → Historial de convocatorias* se puede cargar una

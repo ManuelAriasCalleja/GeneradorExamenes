@@ -538,6 +538,48 @@ private slots:
         QCOMPARE(bd.usoReciente(1, 2026, QStringLiteral("Junio"), {}).size(), 5);
     }
 
+    void ventanaAvisaDeLaSemillaFija()
+    {
+        QTemporaryDir dir;
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+            QVERIFY(llenarBaseDatos(bd, 8, bancoInventado()));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        QLineEdit *semilla = nullptr;
+        for (QLineEdit *l : v.findChildren<QLineEdit *>())
+            if (l->placeholderText() == QStringLiteral("aleatoria"))
+                semilla = l;
+        QVERIFY(semilla);
+        QTextBrowser *visor = nullptr;
+        auto infoDiceFija = [&v] {
+            for (QLabel *l : v.findChildren<QLabel *>())
+                if (l->text().startsWith(QStringLiteral("Semilla:")))
+                    return l->text().contains(QStringLiteral("fija"));
+            return false;
+        };
+        semilla->setText(QStringLiteral("123"));
+        QVERIFY(!semilla->styleSheet().isEmpty());
+        QMetaObject::invokeMethod(&v, "generar");
+        for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
+            if (t->toPlainText().contains(QStringLiteral("Pregunta contestada correctamente")))
+                visor = t;
+        QVERIFY(visor);
+        const QString primera = visor->toPlainText();
+        QVERIFY(infoDiceFija());
+        QMetaObject::invokeMethod(&v, "generar");
+        QCOMPARE(visor->toPlainText(), primera);
+        // Sin semilla, deja de ser fija.
+        semilla->clear();
+        QVERIFY(semilla->styleSheet().isEmpty());
+        QMetaObject::invokeMethod(&v, "generar");
+        QVERIFY(!infoDiceFija());
+        QSettings().clear();
+    }
+
     void ayudaTieneLosApartados()
     {
         DialogoAyuda ayuda;
