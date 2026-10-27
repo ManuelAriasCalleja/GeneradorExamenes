@@ -751,12 +751,11 @@ void VentanaPrincipal::revisarEstilo()
 {
     DialogoEstilo dialogo([this]() { return m_preguntas; },
                           [this](int id) {
-                              for (const Pregunta &p : std::as_const(m_preguntas)) {
-                                  if (p.id == id) {
-                                      editar(p);   // recarga m_preguntas: no se sigue recorriendo
-                                      return;
-                                  }
-                              }
+                              for (const Pregunta &p : std::as_const(m_preguntas))
+                                  if (p.id == id)   // editar() recarga m_preguntas: no se sigue recorriendo
+                                      return editar(p, DialogoPregunta::Siguiente, QStringLiteral("Guardar y siguiente con avisos"))
+                                             == DialogoPregunta::Siguiente;
+                              return false;
                           },
                           m_bd.ruta(), this);
     dialogo.exec();
@@ -1496,21 +1495,25 @@ void VentanaPrincipal::seleccionCambiada()
     ponerDocumento(m_ficha, Maquetador::crearDocumento(html, {p}, m_ficha));
 }
 
-void VentanaPrincipal::editar(Pregunta p)
+DialogoPregunta::Despues VentanaPrincipal::editar(Pregunta p, DialogoPregunta::Despues boton, const QString &texto)
 {
     if (m_temas.isEmpty()) {
         QMessageBox::information(this, windowTitle(), QStringLiteral("Primero cree algún tema (Editar → Temas)."));
-        return;
+        return DialogoPregunta::Cerrar;
     }
     DialogoPregunta d(m_temas, m_preguntas, p, this);
+    if (boton != DialogoPregunta::Cerrar)
+        d.anadirBoton(boton, texto);
     while (d.exec() == QDialog::Accepted) {
         Pregunta nueva = d.pregunta();
         if (m_bd.guardarPregunta(nueva)) {
+            m_idGuardada = nueva.id;
             bancoEditado(nueva.id);
-            return;
+            return d.despues();
         }
         QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo guardar la pregunta:\n%1").arg(m_bd.ultimoError()));
     }
+    return DialogoPregunta::Cerrar;
 }
 
 void VentanaPrincipal::nuevaPregunta()
@@ -1520,16 +1523,36 @@ void VentanaPrincipal::nuevaPregunta()
     for (const Tema &t : std::as_const(m_temas))
         if (t.numero == temaFiltro || (temaFiltro == 0 && p.temaId == 0))
             p.temaId = t.id, p.temaNumero = t.numero;
-    p.numero = siguienteNumero(m_preguntas, p.temaId);
-    editar(p);
+    // «Guardar y nueva» abre otra en el tema de la que se acaba de guardar.
+    for (;;) {
+        p.numero = siguienteNumero(m_preguntas, p.temaId);
+        if (editar(p, DialogoPregunta::Nueva, QStringLiteral("Guardar y nueva")) != DialogoPregunta::Nueva)
+            return;
+        for (const Pregunta &q : std::as_const(m_preguntas))
+            if (q.id == m_idGuardada)
+                p.temaId = q.temaId, p.temaNumero = q.temaNumero;
+    }
 }
 
 void VentanaPrincipal::editarPregunta()
 {
     bool ok;
-    const Pregunta p = preguntaSeleccionada(&ok);
-    if (ok)
-        editar(p);
+    Pregunta p = preguntaSeleccionada(&ok);
+    // «Guardar y siguiente» pasa a la siguiente de la tabla, con su filtro y su orden: la de detrás de la guardada o,
+    // si con el cambio ha dejado de cumplir el filtro, la que ha quedado en su sitio.
+    while (ok) {
+        const int antes = m_tabla->currentIndex().row();
+        if (editar(p, DialogoPregunta::Siguiente, QStringLiteral("Guardar y siguiente")) != DialogoPregunta::Siguiente)
+            return;
+        const QModelIndex guardada = m_tabla->currentIndex();
+        const int fila = guardada.isValid() ? guardada.row() + 1 : antes;
+        if (fila >= m_filtro->rowCount()) {
+            statusBar()->showMessage(QStringLiteral("Era la última pregunta de la lista."), 5000);
+            return;
+        }
+        m_tabla->setCurrentIndex(m_filtro->index(fila, 0));
+        p = preguntaSeleccionada(&ok);
+    }
 }
 
 void VentanaPrincipal::duplicarPregunta()

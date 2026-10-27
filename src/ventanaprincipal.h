@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basedatos.h"
+#include "dialogopregunta.h"
 #include "generador.h"
 #include "maquetador.h"
 
@@ -116,7 +117,10 @@ private:
     QVector<Ajuste> ajustes() const;
     bool hayExamen() const;
     Pregunta preguntaSeleccionada(bool *ok);
-    void editar(Pregunta p);
+    // Abre la pregunta en el editor y la guarda. Con 'boton', el editor tiene además ese botón («Guardar y
+    // siguiente»…). Devuelve lo que se ha pedido al guardar (Cerrar si no se ha guardado).
+    DialogoPregunta::Despues editar(Pregunta p, DialogoPregunta::Despues boton = DialogoPregunta::Cerrar,
+                                    const QString &texto = QString());
     // Muestra m_resultado (recién generado o cargado del historial); 'origen' va delante de la semilla.
     void presentarResultado(const QString &origen = QString());
     // Avisos, nivel de la maqueta y examen mostrado, según el resultado y la casilla «Letra grande».
@@ -155,6 +159,7 @@ private:
     BaseDatos m_bd;
     QVector<Tema> m_temas;
     QVector<Pregunta> m_preguntas;
+    int m_idGuardada = 0;                   // la última pregunta guardada en el editor
     ResultadoGeneracion m_resultado;
     QString m_origenResultado;              // «Registrada el …» si viene del historial
     bool m_semillaFija = false;             // m_resultado se generó con la semilla escrita en Opciones

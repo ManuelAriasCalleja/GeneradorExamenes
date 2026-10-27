@@ -18,7 +18,7 @@
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
-DialogoEstilo::DialogoEstilo(std::function<QVector<Pregunta>()> preguntas, std::function<void(int)> editar,
+DialogoEstilo::DialogoEstilo(std::function<QVector<Pregunta>()> preguntas, std::function<bool(int)> editar,
                              const QString &banco, QWidget *parent)
     : QDialog(parent), m_preguntas(std::move(preguntas)), m_editar(std::move(editar)), m_banco(banco)
 {
@@ -115,7 +115,23 @@ void DialogoEstilo::editarSeleccionada()
         return;
     if (item->parent())
         item = item->parent();
-    m_editar(item->data(0, Qt::UserRole).toInt());
+    int posicion = m_arbol->indexOfTopLevelItem(const_cast<QTreeWidgetItem *>(item));
+    int id = item->data(0, Qt::UserRole).toInt();
+    // Con «Guardar y siguiente con avisos», la siguiente de la lista: detrás de la guardada, si sigue con avisos, o
+    // en su sitio, si ya no los tiene y ha salido de la lista.
+    while (m_editar(id)) {
+        rellenar();
+        const QTreeWidgetItem *misma = m_arbol->topLevelItem(posicion);
+        if (misma && misma->data(0, Qt::UserRole).toInt() == id)
+            ++posicion;
+        QTreeWidgetItem *siguiente = m_arbol->topLevelItem(posicion);
+        if (!siguiente || siguiente->data(0, Qt::UserRole).toInt() == 0) {
+            QMessageBox::information(this, windowTitle(), QStringLiteral("No hay más preguntas con avisos en la lista."));
+            break;
+        }
+        m_arbol->setCurrentItem(siguiente);
+        id = siguiente->data(0, Qt::UserRole).toInt();
+    }
     rellenar();
 }
 

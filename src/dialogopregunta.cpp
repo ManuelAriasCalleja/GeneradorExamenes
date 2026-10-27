@@ -54,10 +54,13 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     divisor->setStretchFactor(1, 2);
 
     // Botones con texto propio: los estándar (Save, Cancel) vuelven al inglés si no están las traducciones de Qt.
-    auto *botones = new QDialogButtonBox;
+    auto *botones = m_botones = new QDialogButtonBox;
     botones->addButton(QStringLiteral("Guardar"), QDialogButtonBox::AcceptRole)->setDefault(true);
     botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
-    connect(botones, &QDialogButtonBox::accepted, this, &DialogoPregunta::accept);
+    connect(botones, &QDialogButtonBox::accepted, this, [this]() {
+        m_despues = Cerrar;
+        accept();
+    });
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoPregunta::reject);
     DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("editor"));
 
@@ -85,6 +88,14 @@ bool mismosDatos(const Pregunta &a, const Pregunta &b)
 }
 
 } // namespace
+
+void DialogoPregunta::anadirBoton(Despues despues, const QString &texto)
+{
+    connect(m_botones->addButton(texto, QDialogButtonBox::ActionRole), &QPushButton::clicked, this, [this, despues]() {
+        m_despues = despues;
+        accept();
+    });
+}
 
 void DialogoPregunta::reject()
 {

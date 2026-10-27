@@ -8,6 +8,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
 class QLineEdit;
@@ -27,6 +28,12 @@ public:
                     QWidget *parent = nullptr);
 
     Pregunta pregunta() const;
+
+    // Qué se ha pedido hacer después de guardar: cerrar (con «Guardar»), abrir la siguiente o una nueva.
+    enum Despues { Cerrar, Siguiente, Nueva };
+    // Añade un botón («Guardar y siguiente», «Guardar y nueva») que guarda y pide eso.
+    void anadirBoton(Despues despues, const QString &texto);
+    Despues despues() const { return m_despues; }
 
 public slots:
     void accept() override;
@@ -75,4 +82,6 @@ private:
     QLabel *m_avisosEstilo;
     QLabel *m_parecidas;
     QTimer *m_temporizadorParecidas;   // para no buscar en todo el banco con cada tecla
+    QDialogButtonBox *m_botones;
+    Despues m_despues = Cerrar;
 };

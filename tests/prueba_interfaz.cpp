@@ -4,6 +4,7 @@
 #include "datos_prueba.h"
 #include "dialogoanteriores.h"
 #include "dialogoayuda.h"
+#include "dialogoestilo.h"
 #include "dialogoparecidas.h"
 #include "dialogopractica.h"
 #include "dialogopregunta.h"
@@ -36,7 +37,9 @@
 #include <QTextBrowser>
 #include <QTimer>
 #include <QToolButton>
+#include <QTreeWidget>
 #include <QtTest>
+#include <functional>
 
 namespace {
 
@@ -198,6 +201,92 @@ private slots:
         d.reject();
         QVERIFY(!d.isVisible());
         QCOMPARE(d.result(), int(QDialog::Rejected));
+    }
+
+    void editorGuardaYPideLaSiguiente()
+    {
+        const QVector<Pregunta> banco = bancoInventado(2, 5);
+        for (auto despues : {DialogoPregunta::Siguiente, DialogoPregunta::Nueva}) {
+            DialogoPregunta d(temasInventados(2), banco, banco.first());
+            d.anadirBoton(despues, QStringLiteral("Guardar y otra cosa"));
+            d.show();
+            for (QPushButton *b : d.findChildren<QPushButton *>())
+                if (b->text() == QStringLiteral("Guardar y otra cosa"))
+                    b->click();
+            QCOMPARE(d.result(), int(QDialog::Accepted));
+            QCOMPARE(d.despues(), despues);
+        }
+        // Con «Guardar», cerrar.
+        DialogoPregunta d(temasInventados(2), banco, banco.first());
+        d.anadirBoton(DialogoPregunta::Siguiente, QStringLiteral("Guardar y siguiente"));
+        d.show();
+        for (QPushButton *b : d.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Guardar"))
+                b->click();
+        QCOMPARE(d.result(), int(QDialog::Accepted));
+        QCOMPARE(d.despues(), DialogoPregunta::Cerrar);
+    }
+
+    void bancoGuardaYPasaALaSiguiente()
+    {
+        QTemporaryDir dir;
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+            QVERIFY(llenarBaseDatos(bd, 2, bancoInventado(2, 5)));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        auto *tabla = v.findChild<QTableView *>();
+        tabla->setCurrentIndex(tabla->model()->index(0, 0));
+        // En el primer editor, «Guardar y siguiente»; en el segundo, «Cancelar».
+        QStringList titulos;
+        std::function<void()> responderEditor = [&] {
+            QWidget *w = QApplication::activeModalWidget();
+            if (!w)
+                return;
+            titulos << w->windowTitle();
+            const QString boton = titulos.size() == 1 ? QStringLiteral("Guardar y siguiente") : QStringLiteral("Cancelar");
+            if (titulos.size() == 1)
+                QTimer::singleShot(100, responderEditor);
+            for (QPushButton *b : w->findChildren<QPushButton *>())
+                if (b->text() == boton) {
+                    b->click();
+                    break;
+                }
+        };
+        QTimer::singleShot(100, responderEditor);
+        QMetaObject::invokeMethod(&v, "editarPregunta");
+        QCOMPARE(titulos, (QStringList{QStringLiteral("Editar pregunta T1-1"), QStringLiteral("Editar pregunta T1-2")}));
+        QSettings().clear();
+    }
+
+    void estiloGuardaYPasaALaSiguienteConAvisos()
+    {
+        // Preguntas sin los dos puntos del final. Al editar una se le ponen: sale de la lista, y la siguiente ocupa su
+        // sitio.
+        QVector<Pregunta> banco = bancoInventado(1, 4);
+        for (Pregunta &p : banco)
+            p.enunciado.chop(1);
+        QVector<int> editadas;
+        DialogoEstilo d([&banco]() { return banco; },
+                        [&](int id) {
+                            editadas << id;
+                            for (Pregunta &p : banco)
+                                if (p.id == id)
+                                    p.enunciado += QLatin1Char(':');
+                            return editadas.size() < 3;
+                        },
+                        QString());
+        d.show();
+        auto *arbol = d.findChild<QTreeWidget *>();
+        arbol->setCurrentItem(arbol->topLevelItem(0));
+        for (QPushButton *b : d.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Editar la pregunta…"))
+                b->click();
+        QCOMPARE(editadas, (QVector<int>{banco.at(0).id, banco.at(1).id, banco.at(2).id}));
+        QCOMPARE(arbol->topLevelItemCount(), banco.size() - 3);
     }
 
     void practicaCorrige()

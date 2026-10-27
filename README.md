@@ -143,7 +143,8 @@ que se ve o se hace en el programa, hay que actualizarlo.
 - Por defecto las preguntas se ordenan por tema y número, como en los exámenes oficiales.
 
 **Banco de preguntas**: buscar (sin distinguir tildes ni mayúsculas), filtrar, crear, editar, duplicar como variante
-y eliminar preguntas;
+y eliminar preguntas. El editor tiene «Guardar y siguiente» (la siguiente de la tabla, con su filtro y su orden) y, al
+crear, «Guardar y nueva» (otra en el mismo tema), para repasar o escribir varias seguidas;
 menú *Editar → Temas* para añadir o renombrar temas. En el enunciado se puede escribir código entre
 líneas ```` ``` ```` y filas de tabla como `| celda | celda |`; también se puede añadir una imagen.
 
@@ -154,7 +155,8 @@ correcta mucho más larga que las demás, comillas (tipográficas en el texto, r
 referencia al libro según el tema. Son avisos: al guardar se pide confirmación, pero se puede guardar igual. Al cancelar (o con Esc, o cerrando la
 ventana) con cambios sin guardar, se pregunta antes de descartarlos.
 *Editar → Revisar el estilo del banco…* revisa todas las preguntas del banco abierto: lista los avisos (todos o
-solo los del enunciado, las opciones o la referencia), abre cada pregunta para corregirla y guarda el informe
+solo los del enunciado, las opciones o la referencia), abre cada pregunta para corregirla (con «Guardar y siguiente
+con avisos», una tras otra) y guarda el informe
 en un fichero de texto, solo con los códigos de las preguntas y los avisos.
 
 *Archivo → Exportar a Moodle (XML)…* guarda las preguntas activas del banco como cuestionario en formato
