@@ -29,11 +29,12 @@ public:
 
 private:
     void rellenarIndice();
-    // Busca el texto del recuadro de búsqueda. Al escribir, desde donde empieza lo encontrado (para que se alargue);
-    // con 'siguiente', a continuación. Al llegar al final sigue por el principio.
+    // Busca el texto del recuadro de búsqueda, sin distinguir tildes ni mayúsculas. Al escribir, desde donde empieza
+    // lo encontrado (para que se alargue); con 'siguiente', a continuación. Al llegar al final sigue por el principio.
     void buscar(bool siguiente);
 
     QTextBrowser *m_texto;
     QTreeWidget *m_indice;
     QLineEdit *m_buscar;
+    QString m_manual;   // el texto del manual como lo da paraBuscar(), para buscar en él
 };

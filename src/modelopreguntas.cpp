@@ -1,4 +1,5 @@
 #include "modelopreguntas.h"
+#include "utilidades.h"
 
 #include <QBrush>
 #include <QColor>
@@ -8,6 +9,9 @@ void ModeloPreguntas::establecer(const QVector<Pregunta> &preguntas)
 {
     beginResetModel();
     m_preguntas = preguntas;
+    m_paraBuscar.clear();
+    for (const Pregunta &p : preguntas)
+        m_paraBuscar << paraBuscar(QStringList{p.enunciado, p.opciones.join(QLatin1Char('\n')), p.notas}.join(QLatin1Char('\n')));
     endResetModel();
 }
 
@@ -101,7 +105,7 @@ void FiltroPreguntas::setEstado(FiltroEstado estado)
 
 void FiltroPreguntas::setTexto(const QString &texto)
 {
-    m_texto = texto.trimmed();
+    m_texto = paraBuscar(texto.trimmed());
     invalidateFilter();
 }
 
@@ -123,12 +127,8 @@ bool FiltroPreguntas::filterAcceptsRow(int fila, const QModelIndex &) const
         return true;
     if (p.codigoCompleto().compare(m_texto, Qt::CaseInsensitive) == 0 || p.codigo() == m_texto)
         return true;
-    if (p.enunciado.contains(m_texto, Qt::CaseInsensitive) || p.notas.contains(m_texto, Qt::CaseInsensitive))
-        return true;
-    for (const QString &o : p.opciones)
-        if (o.contains(m_texto, Qt::CaseInsensitive))
-            return true;
-    return false;
+    // Sin distinguir tildes ni mayúsculas: «informatica» encuentra «Informática».
+    return m->textoParaBuscar(fila).contains(m_texto);
 }
 
 bool FiltroPreguntas::lessThan(const QModelIndex &a, const QModelIndex &b) const

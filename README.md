@@ -142,7 +142,8 @@ que se ve o se hace en el programa, hay que actualizarlo.
 - Las preguntas anuladas u obsoletas no salen nunca. Las marcadas para revisar se pueden excluir.
 - Por defecto las preguntas se ordenan por tema y número, como en los exámenes oficiales.
 
-**Banco de preguntas**: buscar, filtrar, crear, editar, duplicar como variante y eliminar preguntas;
+**Banco de preguntas**: buscar (sin distinguir tildes ni mayúsculas), filtrar, crear, editar, duplicar como variante
+y eliminar preguntas;
 menú *Editar → Temas* para añadir o renombrar temas. En el enunciado se puede escribir código entre
 líneas ```` ``` ```` y filas de tabla como `| celda | celda |`; también se puede añadir una imagen.
 

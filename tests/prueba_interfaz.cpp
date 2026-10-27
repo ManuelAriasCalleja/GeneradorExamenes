@@ -546,6 +546,33 @@ private slots:
         QCOMPARE(bd.usoReciente(1, 2026, QStringLiteral("Junio"), {}).size(), 5);
     }
 
+    void bancoBuscaSinTildes()
+    {
+        QTemporaryDir dir;
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+            QVERIFY(llenarBaseDatos(bd, 4, bancoVariado()));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        QLineEdit *buscar = nullptr;
+        for (QLineEdit *l : v.findChildren<QLineEdit *>())
+            if (l->placeholderText().startsWith(QStringLiteral("Buscar texto")))
+                buscar = l;
+        QVERIFY(buscar);
+        auto *tabla = v.findChild<QTableView *>();
+        // «direccion» y «DIRECCIÓN» encuentran «dirección» (en una sola pregunta del banco variado), y el código, la suya.
+        for (const QString &texto : {QStringLiteral("direccion"), QStringLiteral("DIRECCIÓN"), QStringLiteral("T1-2")}) {
+            buscar->setText(texto);
+            QCOMPARE(tabla->model()->rowCount(), 1);
+        }
+        buscar->setText(QStringLiteral("no aparece en ninguna"));
+        QCOMPARE(tabla->model()->rowCount(), 0);
+        QSettings().clear();
+    }
+
     void ventanaAvisaDeLaSemillaFija()
     {
         QTemporaryDir dir;
@@ -628,6 +655,10 @@ private slots:
         // Si no está, no se mueve.
         QTest::keyClicks(buscar, QStringLiteral("xyz"));
         QCOMPARE(texto->textCursor().position(), texto->textCursor().anchor());
+        // Sin distinguir tildes: «examenes» encuentra «exámenes».
+        buscar->clear();
+        QTest::keyClicks(buscar, QStringLiteral("examenes"));
+        QCOMPARE(texto->textCursor().selectedText().toLower(), QStringLiteral("exámenes"));
     }
 
     void ayudaPorLaVentanaDesdeLaQueSePide()

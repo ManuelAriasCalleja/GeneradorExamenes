@@ -17,6 +17,8 @@ public:
 
     void establecer(const QVector<Pregunta> &preguntas);
     const Pregunta &pregunta(int fila) const { return m_preguntas.at(fila); }
+    // Enunciado, opciones y notas de la pregunta, como los da paraBuscar(), para filtrar.
+    const QString &textoParaBuscar(int fila) const { return m_paraBuscar.at(fila); }
     int filaDeId(int id) const;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -26,6 +28,7 @@ public:
 
 private:
     QVector<Pregunta> m_preguntas;
+    QStringList m_paraBuscar;
 };
 
 class FiltroPreguntas : public QSortFilterProxyModel
@@ -47,5 +50,5 @@ protected:
 private:
     int m_tema = 0;
     FiltroEstado m_estado = Todas;
-    QString m_texto;
+    QString m_texto;   // como lo da paraBuscar()
 };

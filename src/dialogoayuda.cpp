@@ -1,4 +1,5 @@
 #include "dialogoayuda.h"
+#include "utilidades.h"
 
 #include <QDialogButtonBox>
 #include <QHBoxLayout>
@@ -6,7 +7,6 @@
 #include <QLineEdit>
 #include <QPointer>
 #include <QPushButton>
-#include <QScrollBar>
 #include <QShortcut>
 #include <QSplitter>
 #include <QTextBlock>
@@ -144,20 +144,31 @@ QStringList DialogoAyuda::secciones() const
 
 void DialogoAyuda::buscar(bool siguiente)
 {
-    const QString texto = m_buscar->text();
-    const int desplazamiento = m_texto->verticalScrollBar()->value();
-    QTextCursor cursor = m_texto->textCursor();
-    if (!siguiente)
-        cursor.setPosition(cursor.selectionStart());
-    m_texto->setTextCursor(cursor);
-    bool encontrado = texto.isEmpty() || m_texto->find(texto);
-    if (!encontrado) {
-        m_texto->moveCursor(QTextCursor::Start);
-        encontrado = m_texto->find(texto);
-        if (!encontrado) {   // el texto se queda donde estaba
-            m_texto->setTextCursor(cursor);
-            m_texto->verticalScrollBar()->setValue(desplazamiento);
+    // Sin distinguir tildes ni mayúsculas: se busca en el texto del manual tal como lo da paraBuscar(), que tiene las
+    // mismas posiciones que el documento.
+    const QString texto = paraBuscar(m_buscar->text());
+    const QTextCursor cursor = m_texto->textCursor();
+    qsizetype encontrado = 0;
+    QTextCursor sinMarca = cursor;
+    sinMarca.setPosition(cursor.selectionStart());
+    if (!texto.isEmpty()) {
+        if (m_manual.isEmpty())
+            m_manual = paraBuscar(m_texto->document()->toRawText());
+        const qsizetype desde = siguiente ? cursor.selectionEnd() : cursor.selectionStart();
+        encontrado = m_manual.indexOf(texto, desde);
+        if (encontrado < 0)   // desde el principio
+            encontrado = m_manual.indexOf(texto);
+        if (encontrado >= 0) {
+            QTextCursor marca(m_texto->document());
+            marca.setPosition(int(encontrado));
+            marca.setPosition(int(encontrado + texto.size()), QTextCursor::KeepAnchor);
+            m_texto->setTextCursor(marca);
+            m_texto->ensureCursorVisible();
+        } else if (!siguiente) {   // lo escrito no está: no queda marcado lo de antes
+            m_texto->setTextCursor(sinMarca);
         }
+    } else {
+        m_texto->setTextCursor(sinMarca);
     }
-    m_buscar->setStyleSheet(encontrado ? QString() : QStringLiteral("background: #f8d7da; color: #58151c"));
+    m_buscar->setStyleSheet(encontrado >= 0 ? QString() : QStringLiteral("background: #f8d7da; color: #58151c"));
 }

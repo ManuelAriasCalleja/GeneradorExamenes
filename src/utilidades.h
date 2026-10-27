@@ -31,6 +31,18 @@ inline QString limpiarNombreFichero(QString s)
     return s.isEmpty() ? QStringLiteral("examen") : s;
 }
 
+// El texto en minúsculas y sin tildes, para buscar sin distinguirlas: «Exámenes» → «examenes». Cada letra se cambia
+// por otra sola, así que lo encontrado está en las mismas posiciones que en el original.
+inline QString paraBuscar(QString texto)
+{
+    for (QChar &c : texto) {
+        if (c.decompositionTag() == QChar::Canonical)
+            c = c.decomposition().at(0);
+        c = c.toLower();
+    }
+    return texto;
+}
+
 // Pregunta Sí/No con los botones en castellano (aunque no estén instaladas las traducciones de Qt).
 inline bool confirmar(QWidget *padre, const QString &titulo, const QString &texto)
 {
