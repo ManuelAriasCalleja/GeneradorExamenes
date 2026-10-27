@@ -139,13 +139,6 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     lc->addWidget(crearGrupoTemas());
     lc->addWidget(crearGrupoPuntuacion());
     lc->addWidget(crearGrupoOpciones());
-    auto *bGenerar = new QPushButton(QStringLiteral("Generar exámenes"));
-    bGenerar->setMinimumHeight(36);
-    QFont f = bGenerar->font();
-    f.setBold(true);
-    bGenerar->setFont(f);
-    connect(bGenerar, &QPushButton::clicked, this, &VentanaPrincipal::generar);
-    lc->addWidget(bGenerar);
     lc->addStretch();
 
     auto *scroll = new QScrollArea;
@@ -153,8 +146,21 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     scroll->setWidgetResizable(true);
     scroll->setMinimumWidth(400);
 
+    // El botón, debajo y fuera de la zona con desplazamiento: siempre a la vista, aunque la pantalla sea baja.
+    auto *bGenerar = new QPushButton(QStringLiteral("Generar exámenes"));
+    bGenerar->setMinimumHeight(36);
+    QFont f = bGenerar->font();
+    f.setBold(true);
+    bGenerar->setFont(f);
+    connect(bGenerar, &QPushButton::clicked, this, &VentanaPrincipal::generar);
+    auto *izquierda = new QWidget;
+    auto *li = new QVBoxLayout(izquierda);
+    li->setContentsMargins(0, 0, 0, 0);
+    li->addWidget(scroll, 1);
+    li->addWidget(bGenerar);
+
     auto *divisor = new QSplitter;
-    divisor->addWidget(scroll);
+    divisor->addWidget(izquierda);
     divisor->addWidget(crearPanelResultados());
     divisor->setStretchFactor(1, 1);
     divisor->setSizes({430, 800});

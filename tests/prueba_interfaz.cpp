@@ -25,6 +25,7 @@
 #include <QPointer>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSettings>
 #include <QSpinBox>
 #include <QStandardPaths>
@@ -340,7 +341,15 @@ private slots:
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
-        QMetaObject::invokeMethod(&v, "generar");
+        // El botón de generar no está en la zona con desplazamiento: siempre se ve.
+        QPushButton *generar = nullptr;
+        for (QPushButton *b : v.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Generar exámenes"))
+                generar = b;
+        QVERIFY(generar);
+        for (QWidget *w = generar; w; w = w->parentWidget())
+            QVERIFY(!qobject_cast<QScrollArea *>(w));
+        generar->click();
 
         const QString carpeta = dir.filePath(QStringLiteral("exportados"));
         QDir().mkpath(carpeta);
