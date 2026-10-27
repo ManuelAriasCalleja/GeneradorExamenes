@@ -70,6 +70,34 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     mostrarImagen();
     actualizarVistaPrevia();
     actualizarParecidas();
+    m_inicial = this->pregunta();   // (el parámetro «pregunta» tapa la función)
+}
+
+namespace {
+
+// Si dos preguntas tienen los mismos datos (lo que se puede cambiar en el editor).
+bool mismosDatos(const Pregunta &a, const Pregunta &b)
+{
+    return a.temaId == b.temaId && a.numero == b.numero && a.variante == b.variante && a.estado == b.estado
+           && a.old == b.old && a.revisar == b.revisar && a.pseudoCon == b.pseudoCon && a.enunciado == b.enunciado
+           && a.opciones == b.opciones && a.correcta == b.correcta && a.referencia == b.referencia
+           && a.explicacion == b.explicacion && a.notas == b.notas && a.imagen == b.imagen;
+}
+
+} // namespace
+
+void DialogoPregunta::reject()
+{
+    if (!mismosDatos(pregunta(), m_inicial)) {
+        QMessageBox caja(QMessageBox::Question, windowTitle(), QStringLiteral("La pregunta tiene cambios sin guardar. ¿Descartarlos?"),
+                         QMessageBox::NoButton, this);
+        QPushButton *descartar = caja.addButton(QStringLiteral("Descartar los cambios"), QMessageBox::DestructiveRole);
+        caja.setDefaultButton(caja.addButton(QStringLiteral("Seguir editando"), QMessageBox::RejectRole));
+        caja.exec();
+        if (caja.clickedButton() != descartar)
+            return;
+    }
+    QDialog::reject();
 }
 
 QGroupBox *DialogoPregunta::crearIdentificacion(const Pregunta &pregunta)

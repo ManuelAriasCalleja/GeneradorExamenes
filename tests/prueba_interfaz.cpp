@@ -174,6 +174,31 @@ private slots:
         QVERIFY(d.result() != QDialog::Accepted);
     }
 
+    void editorPreguntaAntesDeDescartar()
+    {
+        const QVector<Pregunta> banco = bancoInventado(2, 5);
+        {
+            // Sin cambios, se cierra sin preguntar.
+            DialogoPregunta d(temasInventados(2), banco, banco.first());
+            d.show();
+            d.reject();
+            QCOMPARE(d.result(), int(QDialog::Rejected));
+            QVERIFY(!d.isVisible());
+        }
+        DialogoPregunta d(temasInventados(2), banco, banco.first());
+        d.show();
+        d.findChild<QPlainTextEdit *>()->setPlainText(QStringLiteral("Enunciado cambiado:"));
+        QString texto;
+        responder(QStringLiteral("Seguir editando"), &texto);
+        d.reject();
+        QVERIFY(d.isVisible());
+        QVERIFY(texto.contains(QStringLiteral("cambios sin guardar")));
+        responder(QStringLiteral("Descartar"));
+        d.reject();
+        QVERIFY(!d.isVisible());
+        QCOMPARE(d.result(), int(QDialog::Rejected));
+    }
+
     void practicaCorrige()
     {
         ConfigExamen c;

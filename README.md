@@ -147,7 +147,8 @@ Al editar una pregunta, bajo la vista previa se avisa de las pautas de redacció
 acabado en dos puntos (o en «?:» si es una pregunta) y de no más de unos 180 caracteres, negaciones en
 mayúsculas, opciones con mayúscula y punto final, opciones del tipo «Todas las anteriores», opciones repetidas,
 correcta mucho más larga que las demás, comillas (tipográficas en el texto, rectas en el código) y forma de la
-referencia al libro según el tema. Son avisos: al guardar se pide confirmación, pero se puede guardar igual.
+referencia al libro según el tema. Son avisos: al guardar se pide confirmación, pero se puede guardar igual. Al cancelar (o con Esc, o cerrando la
+ventana) con cambios sin guardar, se pregunta antes de descartarlos.
 *Editar → Revisar el estilo del banco…* revisa todas las preguntas del banco abierto: lista los avisos (todos o
 solo los del enunciado, las opciones o la referencia), abre cada pregunta para corregirla y guarda el informe
 en un fichero de texto, solo con los códigos de las preguntas y los avisos.

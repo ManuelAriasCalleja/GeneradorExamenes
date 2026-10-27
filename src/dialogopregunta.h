@@ -30,6 +30,7 @@ public:
 
 public slots:
     void accept() override;
+    void reject() override;   // con cambios sin guardar, pregunta antes de descartarlos (también con Esc o al cerrar)
 
 private slots:
     void actualizarVistaPrevia();
@@ -53,6 +54,7 @@ private:
     QVector<Pregunta> m_banco;
     Parecidas::Indice m_indice;
     Pregunta m_original;
+    Pregunta m_inicial;   // como estaba en el formulario al abrirlo, para saber si hay cambios
     QByteArray m_imagen;
 
     QComboBox *m_tema;
