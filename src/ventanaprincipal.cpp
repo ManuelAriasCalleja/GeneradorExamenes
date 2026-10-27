@@ -402,7 +402,7 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     connect(m_deshacerCambio, &QPushButton::clicked, this, &VentanaPrincipal::deshacerCambio);
     otras->addWidget(m_deshacerCambio);
     otras->addStretch();
-    boton(otras, QStringLiteral("Registrar convocatoria…"), &VentanaPrincipal::registrarConvocatoria);
+    m_botonRegistrar = boton(otras, QStringLiteral("Registrar convocatoria…"), &VentanaPrincipal::registrarConvocatoria);
     boton(otras, QStringLiteral("Practicar este examen…"), &VentanaPrincipal::practicar);
     lr->addLayout(exportar);
     lr->addLayout(otras);
@@ -544,6 +544,7 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
         b->setEnabled(false);
     m_preguntaACambiar->setEnabled(false);
     m_deshacerCambio->setEnabled(false);
+    actualizarRegistro();
     recargarDatos();
     QSettings().setValue(QStringLiteral("bd/ruta"), ruta);
     return true;
@@ -578,6 +579,8 @@ bool VentanaPrincipal::abrirBancoInicial(const QString &rutaIndicada)
 
 void VentanaPrincipal::abrirOtraBaseDatos()
 {
+    if (!puedenDescartarse())
+        return;
     const QString ruta = QFileDialog::getOpenFileName(this, QStringLiteral("Abrir banco de preguntas"),
                                                       QFileInfo(m_bd.ruta()).absolutePath(),
                                                       QStringLiteral("Bases de datos SQLite (*.db *.sqlite);;Todos (*)"));
@@ -587,6 +590,8 @@ void VentanaPrincipal::abrirOtraBaseDatos()
 
 void VentanaPrincipal::nuevaBaseDatos()
 {
+    if (!puedenDescartarse())
+        return;
     const QString ruta = QFileDialog::getSaveFileName(this, QStringLiteral("Nuevo banco de preguntas"),
                                                       QFileInfo(m_bd.ruta()).absolutePath() + QStringLiteral("/preguntas_nueva.db"),
                                                       QStringLiteral("Bases de datos SQLite (*.db)"));
@@ -937,6 +942,10 @@ QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
 
 void VentanaPrincipal::closeEvent(QCloseEvent *evento)
 {
+    if (!puedenDescartarse()) {
+        evento->ignore();
+        return;
+    }
     guardarConfiguracion();
     evento->accept();
 }
@@ -1049,6 +1058,8 @@ void VentanaPrincipal::generar()
         QMessageBox::information(this, windowTitle(), error);
         return;
     }
+    if (!puedenDescartarse())
+        return;
     config.usoReciente = usoReciente(config.nombresModelos);
     m_resultado = Generador::generar(m_preguntas, config);
     m_semillaFija = config.semilla != 0;
@@ -1087,6 +1098,8 @@ void VentanaPrincipal::presentarResultado(const QString &origen)
     m_quitadas.clear();
     m_deshacerCambio->setEnabled(false);
     ofrecerCarpeta(QString());
+    m_exportados = false;
+    m_registrados = !origen.isEmpty();   // cargados del historial
     actualizarMaqueta();
 }
 
@@ -1115,7 +1128,8 @@ void VentanaPrincipal::actualizarMaqueta()
     }
     m_avisos->setText(avisos.join(QLatin1Char('\n')));
     m_avisos->setVisible(!avisos.isEmpty());
-    m_infoGeneracion->setText(info);
+    m_infoBase = info;
+    actualizarRegistro();
     m_infoGeneracion->setToolTip(QStringLiteral("Escriba esta semilla en Opciones para volver a obtener los mismos exámenes.\n"
                                                 "Si se han cambiado preguntas a mano, ya no los reproduce: regístrelos para "
                                                 "conservarlos.\n"
@@ -1187,6 +1201,8 @@ void VentanaPrincipal::informarExportacion(const QStringList &escritos, const QS
         mensaje += QStringLiteral(" (%1)").arg(nota);
     statusBar()->showMessage(mensaje, 8000);
     ofrecerCarpeta(QFileInfo(escritos.first()).absolutePath());
+    m_exportados = true;
+    actualizarRegistro();
 }
 
 void VentanaPrincipal::ofrecerCarpeta(const QString &carpeta)
@@ -1209,7 +1225,41 @@ void VentanaPrincipal::vistaPreviaImpresion()
     const int nivel = nivelMaqueta();
     connect(&vista, &QPrintPreviewDialog::paintRequested, this,
             [this, d, nivel](QPrinter *p) { Maquetador::imprimirExamenes(p, m_resultado.modelos, d, false, nivel); });
-    vista.exec();
+    if (vista.exec() == QDialog::Accepted) {   // se ha impreso
+        m_exportados = true;
+        actualizarRegistro();
+    }
+}
+
+void VentanaPrincipal::actualizarRegistro()
+{
+    const bool pendiente = hayExamen() && m_exportados && !m_registrados;
+    m_infoGeneracion->setText(pendiente ? m_infoBase + QStringLiteral("  ·  Exportados y sin registrar") : m_infoBase);
+    m_botonRegistrar->setStyleSheet(pendiente ? QStringLiteral("background: #fff3cd; color: #664d03") : QString());
+    m_botonRegistrar->setToolTip(pendiente ? QStringLiteral("Los exámenes se han exportado pero no se han registrado: si son "
+                                                            "los definitivos, regístrelos para que sus preguntas se eviten "
+                                                            "en las convocatorias siguientes.")
+                                           : QString());
+}
+
+bool VentanaPrincipal::puedenDescartarse()
+{
+    if (!hayExamen() || !m_exportados || m_registrados)
+        return true;
+    QMessageBox caja(QMessageBox::Warning, windowTitle(),
+                     QStringLiteral("Los exámenes de %1 se han exportado, pero no se han registrado en el historial. Si sigue, "
+                                    "se perderán y sus preguntas no se evitarán en las convocatorias siguientes.\n\n"
+                                    "Si son los definitivos, regístrelos antes.").arg(datosConvocatoria().convocatoriaYAnio()),
+                     QMessageBox::NoButton, this);
+    QPushButton *registrar = caja.addButton(QStringLiteral("Registrarlos…"), QMessageBox::AcceptRole);
+    QPushButton *descartar = caja.addButton(QStringLiteral("No registrarlos"), QMessageBox::DestructiveRole);
+    caja.setDefaultButton(caja.addButton(QStringLiteral("Cancelar"), QMessageBox::RejectRole));
+    caja.exec();
+    if (caja.clickedButton() == registrar) {
+        registrarConvocatoria();
+        return m_registrados;
+    }
+    return caja.clickedButton() == descartar;
 }
 
 void VentanaPrincipal::exportar(const QString &titulo, const QString &nombreBase, const QString &extension,
@@ -1287,13 +1337,15 @@ void VentanaPrincipal::registrarConvocatoria()
         return;
     }
     statusBar()->showMessage(QStringLiteral("Registrados en el historial los exámenes de %1").arg(d.convocatoriaYAnio()), 8000);
+    m_registrados = true;
+    actualizarRegistro();
     seleccionCambiada();   // la ficha de la pregunta dice en qué exámenes ha salido
 }
 
 void VentanaPrincipal::historialConvocatorias()
 {
     DialogoHistorial dialogo(&m_bd, this);
-    if (dialogo.exec() == QDialog::Accepted)
+    if (dialogo.exec() == QDialog::Accepted && puedenDescartarse())
         cargarRegistrados(dialogo.examenesElegidos());
     seleccionCambiada();   // por si se ha eliminado algún examen
 }
@@ -1371,6 +1423,7 @@ void VentanaPrincipal::cambiar(int indice)
         return;
     }
     m_cambios << CambioPregunta{antes, modelo, indice};
+    m_registrados = false;   // ya no son como los registrados
     m_quitadas[modelo].insert(quitada.grupo());
     m_deshacerCambio->setEnabled(true);
     actualizarMaqueta();
@@ -1389,6 +1442,7 @@ void VentanaPrincipal::deshacerCambio()
         return;
     const CambioPregunta cambio = m_cambios.takeLast();
     m_resultado = cambio.antes;
+    m_registrados = false;
     m_deshacerCambio->setEnabled(!m_cambios.isEmpty());
     // Se vuelve al examen y la pregunta del cambio.
     m_selectorModelo->blockSignals(true);

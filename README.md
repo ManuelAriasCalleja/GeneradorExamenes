@@ -113,7 +113,9 @@ que se ve o se hace en el programa, hay que actualizarlo.
   «fija» y al generar se avisa; se borra con la cruz del campo. Para recuperar los de una convocatoria pasada, mejor el historial.
 - *Registrar convocatoria…* guarda en el historial (dentro de la base de datos) los exámenes generados, con una
   copia de sus preguntas tal como salieron y el orden de las opciones. Si ya había exámenes registrados con el
-  mismo nombre, convocatoria y año, se sustituyen. En *Archivo → Historial de convocatorias* se puede cargar una
+  mismo nombre, convocatoria y año, se sustituyen. Mientras los exámenes estén exportados (o impresos) y sin
+  registrar, el botón se ve en amarillo y, antes de perderlos (al generar otros, cargar del historial, abrir otro
+  banco o salir), se pregunta si registrarlos. En *Archivo → Historial de convocatorias* se puede cargar una
   convocatoria (o un solo examen) en la ventana para verla, exportarla, imprimirla o practicarla tal como salió,
   aunque después se hayan corregido sus preguntas, o eliminarla del historial. La ficha de cada pregunta, en el
   banco, dice en qué exámenes registrados ha salido.

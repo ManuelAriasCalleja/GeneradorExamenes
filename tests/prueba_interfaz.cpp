@@ -662,6 +662,62 @@ private slots:
         QSettings().clear();
     }
 
+    void ventanaNoPierdeLosExportadosSinRegistrar()
+    {
+        QTemporaryDir dir;
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+            QVERIFY(llenarBaseDatos(bd, 8, bancoInventado()));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        QMetaObject::invokeMethod(&v, "generar");
+        QTextBrowser *visor = nullptr;
+        for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
+            if (t->toPlainText().contains(QStringLiteral("Pregunta contestada correctamente")))
+                visor = t;
+        QVERIFY(visor);
+        QPushButton *registrar = nullptr;
+        for (QPushButton *b : v.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Registrar convocatoria…"))
+                registrar = b;
+        QVERIFY(registrar);
+        // Sin exportar, se generan otros sin preguntar.
+        QMetaObject::invokeMethod(&v, "generar");
+        QVERIFY(registrar->styleSheet().isEmpty());
+
+        // Exportados: el botón de registrar avisa y, al generar otros, se pregunta.
+        const QString carpeta = dir.filePath(QStringLiteral("exportados"));
+        QTimer::singleShot(100, [&carpeta] {
+            QWidget *d = QApplication::activeModalWidget();
+            if (!d)
+                return;
+            d->findChild<QLineEdit *>()->setText(carpeta);
+            for (QPushButton *b : d->findChildren<QPushButton *>())
+                if (b->text() == QStringLiteral("Exportar"))
+                    b->click();
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "exportarPdf"));
+        QVERIFY(!registrar->styleSheet().isEmpty());
+        const QString exportados = visor->toPlainText();
+        QString texto;
+        responder(QStringLiteral("Cancelar"), &texto);
+        QMetaObject::invokeMethod(&v, "generar");
+        QVERIFY2(texto.contains(QStringLiteral("no se han registrado")), qPrintable(texto));
+        QCOMPARE(visor->toPlainText(), exportados);
+
+        // Al salir, «Registrarlos…» los registra y el programa se cierra.
+        responder(QStringLiteral("Registrarlos"), nullptr, QStringLiteral("Sí"));
+        v.close();
+        QVERIFY(!v.isVisible());
+        BaseDatos bd;
+        QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+        QCOMPARE(bd.examenesRegistrados().size(), 2);
+        QSettings().clear();
+    }
+
     void ventanaAvisaDeLaSemillaFija()
     {
         QTemporaryDir dir;

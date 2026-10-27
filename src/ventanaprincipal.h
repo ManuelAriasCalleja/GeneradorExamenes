@@ -125,6 +125,12 @@ private:
     void presentarResultado(const QString &origen = QString());
     // Avisos, nivel de la maqueta y examen mostrado, según el resultado y la casilla «Letra grande».
     void actualizarMaqueta();
+    // Enseña (en la línea gris y en el botón de registrar) si los exámenes están exportados y sin registrar.
+    void actualizarRegistro();
+    // Antes de sustituir o descartar los exámenes de la ventana (generar otros, cargar del historial, abrir otro
+    // banco, salir): si se han exportado y no se han registrado, pregunta si registrarlos. Devuelve false si se
+    // prefiere no seguir.
+    bool puedenDescartarse();
     void cargarRegistrados(const QVector<int> &examenes);
     // Cambia la pregunta 'indice' del examen que se ve por otra (ver Generador::cambiarPregunta).
     void cambiar(int indice);
@@ -163,6 +169,11 @@ private:
     ResultadoGeneracion m_resultado;
     QString m_origenResultado;              // «Registrada el …» si viene del historial
     bool m_semillaFija = false;             // m_resultado se generó con la semilla escrita en Opciones
+    // Si m_resultado se ha exportado (o impreso) y si está registrado tal como está: si se ha exportado y no está
+    // registrado, se pregunta antes de descartarlo.
+    bool m_exportados = false;
+    bool m_registrados = false;
+    QString m_infoBase;                     // la línea gris, sin el aviso de que no está registrado
     // Para cambiar preguntas: la configuración con que se generó m_resultado (o, si viene del historial, la de la
     // ventana al cargarlo); los grupos quitados de cada examen, que no se vuelven a proponer mientras haya otros; y
     // los cambios hechos, para deshacerlos.
@@ -210,6 +221,7 @@ private:
     QLabel *m_infoGeneracion;
     QTextBrowser *m_visorExamen;
     QList<QPushButton *> m_botonesExamen;
+    QPushButton *m_botonRegistrar;
     QSpinBox *m_preguntaACambiar;
     QPushButton *m_deshacerCambio;
 
