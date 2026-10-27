@@ -1,4 +1,5 @@
 #include "dialogomoodle.h"
+#include "dialogoayuda.h"
 #include "utilidades.h"
 
 #include <QCheckBox>
@@ -61,6 +62,7 @@ DialogoMoodle::DialogoMoodle(const QVector<Pregunta> &preguntas, const QString &
     botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoMoodle::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoMoodle::reject);
+    DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("moodle"));
     l->addWidget(botones);
 }
 

@@ -10,5 +10,7 @@ Generador de exámenes de Fundamentos de Informática
 3. El programa pregunta por el banco de preguntas (un fichero .db) o si quiere crear uno nuevo. Las preguntas
    no vienen con el programa.
 
+4. Para ver cómo se usa, pulse F1 o abra Ayuda → Manual de uso.
+
 La ruta del último banco abierto y las opciones se guardan en %APPDATA%\UNED-FI\GeneradorExamenesFI.ini.
 Para pasar a una versión nueva, borre esta carpeta y descomprima la nueva: la configuración se conserva.

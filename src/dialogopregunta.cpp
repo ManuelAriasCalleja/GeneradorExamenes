@@ -1,4 +1,5 @@
 #include "dialogopregunta.h"
+#include "dialogoayuda.h"
 #include "dialogoparecidas.h"
 #include "estilo.h"
 #include "maquetador.h"
@@ -58,6 +59,7 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoPregunta::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoPregunta::reject);
+    DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("editor"));
 
     auto *l = new QVBoxLayout(this);
     l->addWidget(divisor, 1);

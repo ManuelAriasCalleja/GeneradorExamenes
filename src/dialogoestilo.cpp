@@ -1,4 +1,5 @@
 #include "dialogoestilo.h"
+#include "dialogoayuda.h"
 #include "estilo.h"
 
 #include <QCheckBox>
@@ -52,6 +53,7 @@ DialogoEstilo::DialogoEstilo(std::function<QVector<Pregunta>()> preguntas, std::
     auto *cerrar = new QDialogButtonBox;
     cerrar->addButton(QStringLiteral("Cerrar"), QDialogButtonBox::RejectRole);
     connect(cerrar, &QDialogButtonBox::rejected, this, &DialogoEstilo::reject);
+    DialogoAyuda::ponerAyuda(this, cerrar, QStringLiteral("estilo"));
     auto *botones = new QHBoxLayout;
     botones->addWidget(bEditar);
     botones->addWidget(bGuardar);

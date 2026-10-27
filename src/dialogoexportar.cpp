@@ -1,4 +1,5 @@
 #include "dialogoexportar.h"
+#include "dialogoayuda.h"
 #include "utilidades.h"
 
 #include <QDialogButtonBox>
@@ -73,6 +74,7 @@ DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombr
     botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoExportar::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoExportar::reject);
+    DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("exportar"));
     l->addWidget(botones);
 }
 

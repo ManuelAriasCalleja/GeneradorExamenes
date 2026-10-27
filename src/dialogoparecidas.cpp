@@ -1,4 +1,5 @@
 #include "dialogoparecidas.h"
+#include "dialogoayuda.h"
 #include "maquetador.h"
 #include "utilidades.h"
 
@@ -42,6 +43,7 @@ DialogoParecidas::DialogoParecidas(const Pregunta &nueva, const QVector<Parecida
     connect(m_pseudorrepetida, &QPushButton::clicked, this, [this]() { decidir(ComoPseudorrepetida); });
     connect(nuevaBoton, &QPushButton::clicked, this, [this]() { decidir(ComoNueva); });
     connect(seguir, &QPushButton::clicked, this, &DialogoParecidas::reject);
+    DialogoAyuda::ponerAyuda(this, nullptr, QStringLiteral("parecidas"));
     auto *botones = new QHBoxLayout;
     botones->addWidget(m_variante);
     botones->addWidget(m_pseudorrepetida);

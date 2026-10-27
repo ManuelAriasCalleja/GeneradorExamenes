@@ -1,5 +1,6 @@
 #include "dialogohistorial.h"
 #include "basedatos.h"
+#include "dialogoayuda.h"
 #include "utilidades.h"
 
 #include <QDialogButtonBox>
@@ -39,6 +40,7 @@ DialogoHistorial::DialogoHistorial(BaseDatos *bd, QWidget *parent)
     botones->addButton(QStringLiteral("Cerrar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoHistorial::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoHistorial::reject);
+    DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("historial"));
 
     auto *explicacion = new QLabel(QStringLiteral(
         "Exámenes guardados con «Registrar convocatoria…». Cargue una convocatoria o un examen para verlo, "

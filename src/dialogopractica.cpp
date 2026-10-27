@@ -1,4 +1,5 @@
 #include "dialogopractica.h"
+#include "dialogoayuda.h"
 
 #include <QAbstractButton>
 #include <QButtonGroup>
@@ -70,6 +71,7 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
     botones->addButton(QStringLiteral("Cerrar"), QDialogButtonBox::RejectRole);
     botones->addButton(m_corregir, QDialogButtonBox::ActionRole);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoPractica::reject);
+    DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("practicar"));
 
     auto *l = new QVBoxLayout(this);
     l->addLayout(cabecera);

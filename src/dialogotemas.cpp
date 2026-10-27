@@ -1,5 +1,6 @@
 #include "dialogotemas.h"
 #include "basedatos.h"
+#include "dialogoayuda.h"
 #include "utilidades.h"
 
 #include <QDialogButtonBox>
@@ -41,6 +42,7 @@ DialogoTemas::DialogoTemas(BaseDatos *bd, QWidget *parent)
     botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoTemas::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoTemas::reject);
+    DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("temas"));
 
     auto *fila = new QHBoxLayout;
     fila->addWidget(bAnadir);

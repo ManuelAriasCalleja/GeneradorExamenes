@@ -53,6 +53,7 @@ private slots:
     void cambiarJsonAutomatico(bool activar);
     void gestionarTemas();
     void revisarEstilo();
+    void mostrarAyuda();
     void acercaDe();
 
     // Generar examen

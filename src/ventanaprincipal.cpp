@@ -1,4 +1,5 @@
 #include "ventanaprincipal.h"
+#include "dialogoayuda.h"
 #include "dialogoestilo.h"
 #include "dialogoexportar.h"
 #include "dialogohistorial.h"
@@ -469,6 +470,8 @@ void VentanaPrincipal::crearMenus()
     editar->addAction(QStringLiteral("&Revisar el estilo del banco…"), this, &VentanaPrincipal::revisarEstilo);
 
     QMenu *ayuda = menuBar()->addMenu(QStringLiteral("A&yuda"));
+    ayuda->addAction(QStringLiteral("&Manual de uso"), QKeySequence::HelpContents, this, &VentanaPrincipal::mostrarAyuda);
+    ayuda->addSeparator();
     ayuda->addAction(QStringLiteral("&Acerca de…"), this, &VentanaPrincipal::acercaDe);
 }
 
@@ -702,6 +705,13 @@ void VentanaPrincipal::revisarEstilo()
                           },
                           m_bd.ruta(), this);
     dialogo.exec();
+}
+
+void VentanaPrincipal::mostrarAyuda()
+{
+    // Por el capítulo de la pestaña que se está viendo.
+    const auto *pestanas = qobject_cast<QTabWidget *>(centralWidget());
+    DialogoAyuda::mostrar(this, pestanas && pestanas->currentIndex() == 1 ? QStringLiteral("banco") : QStringLiteral("generar"));
 }
 
 void VentanaPrincipal::acercaDe()

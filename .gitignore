@@ -14,5 +14,6 @@ preguntas*.json
 # Exámenes exportados, por si se guardan dentro del proyecto
 *.pdf
 *.html
+!/recursos/ayuda.html
 *.tex
 *_imagenes/

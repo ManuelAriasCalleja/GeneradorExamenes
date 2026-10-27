@@ -1,7 +1,8 @@
-// Recorridos por la interfaz: el editor de preguntas, la práctica y la ventana principal (generar y exportar).
+// Recorridos por la interfaz: el editor de preguntas, la práctica, la ventana principal (generar y exportar) y la ayuda.
 
 #include "basedatos.h"
 #include "datos_prueba.h"
+#include "dialogoayuda.h"
 #include "dialogoparecidas.h"
 #include "dialogopractica.h"
 #include "dialogopregunta.h"
@@ -18,13 +19,17 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPointer>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
 #include <QStandardPaths>
+#include <QTabWidget>
 #include <QTableView>
 #include <QTemporaryDir>
+#include <QTextBlock>
+#include <QTextBrowser>
 #include <QTimer>
 #include <QToolButton>
 #include <QtTest>
@@ -346,6 +351,83 @@ private slots:
         const QString xml = QString::fromUtf8(f.readAll());
         QCOMPARE(xml.count(QStringLiteral("type=\"multichoice\"")), bancoInventado().size());
         QCOMPARE(xml.count(QStringLiteral("type=\"category\"")), 8);
+    }
+
+    void ayudaTieneLosApartados()
+    {
+        DialogoAyuda ayuda;
+        ayuda.show();
+        const QStringList secciones = ayuda.secciones();
+        QVERIFY(secciones.size() > 30);
+        QVERIFY2(!secciones.contains(QString()), "hay un título sin ancla: el índice no puede llevar a él");
+        // Los apartados a los que llevan F1 y el botón «Ayuda» de cada parte del programa.
+        for (const char *s : {"generar", "banco", "editor", "parecidas", "temas", "practicar", "estilo", "exportar",
+                              "historial", "moodle"})
+            QVERIFY2(secciones.contains(QLatin1String(s)), s);
+
+        // Los enlaces del manual llevan a anclas que existen.
+        auto *texto = ayuda.findChild<QTextBrowser *>();
+        QSet<QString> anclas;
+        QStringList enlaces;
+        for (QTextBlock b = texto->document()->begin(); b.isValid(); b = b.next()) {
+            for (auto it = b.begin(); !it.atEnd(); ++it) {
+                const QTextCharFormat f = it.fragment().charFormat();
+                for (const QString &a : f.anchorNames())
+                    anclas.insert(a);
+                if (f.anchorHref().startsWith(QLatin1Char('#')))
+                    enlaces << f.anchorHref().mid(1);
+            }
+        }
+        QVERIFY(enlaces.size() > 10);
+        for (const QString &e : std::as_const(enlaces))
+            QVERIFY2(anclas.contains(e), qPrintable(e));
+
+        // El buscador marca lo que se escribe e Intro pasa a la siguiente vez que aparece.
+        auto *buscar = ayuda.findChild<QLineEdit *>();
+        QTest::keyClicks(buscar, QStringLiteral("semilla"));
+        QCOMPARE(texto->textCursor().selectedText().toLower(), QStringLiteral("semilla"));
+        const int antes = texto->textCursor().position();
+        QTest::keyClick(buscar, Qt::Key_Return);
+        QCOMPARE(texto->textCursor().selectedText().toLower(), QStringLiteral("semilla"));
+        QVERIFY(texto->textCursor().position() > antes);
+        // Si no está, no se mueve.
+        QTest::keyClicks(buscar, QStringLiteral("xyz"));
+        QCOMPARE(texto->textCursor().position(), texto->textCursor().anchor());
+    }
+
+    void ayudaPorLaVentanaDesdeLaQueSePide()
+    {
+        // El botón «Ayuda» del editor la abre por su apartado, hija del editor: si no, el editor (modal) la bloquearía.
+        auto *editor = new DialogoPregunta(temasInventados(2), bancoInventado(2, 5), nuevaEn(1, 6));
+        editor->show();
+        QPushButton *boton = nullptr;
+        for (QPushButton *b : editor->findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Ayuda"))
+                boton = b;
+        QVERIFY(boton);
+        boton->click();
+        QPointer<DialogoAyuda> delEditor = editor->findChild<DialogoAyuda *>();
+        QVERIFY(delEditor);
+        QVERIFY(delEditor->isVisible());
+        QCOMPARE(delEditor->seccionActual(), QStringLiteral("editor"));
+
+        // Desde la ventana principal, en la pestaña del banco, por el capítulo del banco. Sigue habiendo una sola
+        // ventana de ayuda, ahora hija de la principal.
+        VentanaPrincipal v;
+        v.show();
+        v.findChild<QTabWidget *>()->setCurrentIndex(1);
+        QAction *manual = nullptr;
+        for (QAction *a : v.findChildren<QAction *>())
+            if (a->text() == QStringLiteral("&Manual de uso"))
+                manual = a;
+        QVERIFY(manual);
+        manual->trigger();
+        QVERIFY(!delEditor);
+        auto *ayuda = v.findChild<DialogoAyuda *>();
+        QVERIFY(ayuda);
+        QVERIFY(ayuda->isVisible());
+        QCOMPARE(ayuda->seccionActual(), QStringLiteral("banco"));
+        delete editor;
     }
 };
 

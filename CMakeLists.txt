@@ -36,9 +36,15 @@ qt_add_library(nucleo STATIC
     src/dialogohistorial.h src/dialogohistorial.cpp
     src/moodle.h src/moodle.cpp
     src/dialogomoodle.h src/dialogomoodle.cpp
+    src/dialogoayuda.h src/dialogoayuda.cpp
     src/ventanaprincipal.h src/ventanaprincipal.cpp
 )
 target_include_directories(nucleo PUBLIC src)
+# El manual de uso (Ayuda → Manual de uso, F1), en la biblioteca para que lo tengan también las pruebas.
+qt_add_resources(nucleo "ayuda"
+    PREFIX "/"
+    FILES recursos/ayuda.html
+)
 target_link_libraries(nucleo PUBLIC Qt6::Widgets Qt6::Sql Qt6::PrintSupport)
 # La versión del proyecto se usa en el diálogo «Acerca de», para no tenerla escrita a mano en dos sitios.
 target_compile_definitions(nucleo PRIVATE VERSION_APLICACION="${PROJECT_VERSION}")

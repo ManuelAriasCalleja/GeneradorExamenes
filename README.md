@@ -49,11 +49,16 @@ Están en `tests/`, con Qt Test (incluido en `qt6-base-dev`), y tardan unos segu
 (reparto por tema, variantes y pseudorrepetidas, reparto de la correcta, preguntas ya usadas), el comprobador de
 estilo, el formato de los enunciados, la base de datos (JSON, copia de seguridad, transacciones, historial, temas),
 la maqueta (que un examen de 10 preguntas quepa en un folio, y la versión con letra grande) y las exportaciones, las
-parecidas, el cuestionario de Moodle y los recorridos principales de la interfaz. Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
+parecidas, el cuestionario de Moodle, los recorridos principales de la interfaz y la ayuda (que tenga los apartados a
+los que lleva cada ventana y que sus enlaces lleven a algún sitio). Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
 trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`. Para no compilarlas:
 `cmake -S . -B build -DPRUEBAS=OFF`.
 
 ## Uso
+
+*Ayuda → Manual de uso* (o **F1**) abre el manual del programa por el apartado de la ventana en la que se está; los
+diálogos tienen además un botón «Ayuda». El manual es `recursos/ayuda.html` y va dentro del ejecutable: si cambia lo
+que se ve o se hace en el programa, hay que actualizarlo.
 
 **Generar examen**
 - Convocatoria (Febrero, Junio, Septiembre…) y año: van en la cabecera («Junio 2026»), en el pie de cada página
@@ -154,7 +159,7 @@ variantes nuevas toman la siguiente letra libre (si la pregunta existente no tie
 | `PENDIENTE.md` | Mejoras aceptadas que quedan por hacer. |
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |
-| `recursos/` | Foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `LEEME_windows.txt` va en el paquete de Windows. |
+| `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `LEEME_windows.txt` va en el paquete de Windows. |
 | `src/` | Código fuente del programa. |
 | `tests/` | Pruebas automáticas, con datos inventados. |
 

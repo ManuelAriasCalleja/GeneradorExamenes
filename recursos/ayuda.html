@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Manual de uso del generador de exámenes</title>
+<style>
+h1 { margin-bottom: 2px; }
+h2 { margin-top: 28px; }
+h3 { margin-top: 18px; }
+p, li { line-height: 125%; }
+td, th { vertical-align: top; border-width: 1px; border-style: solid; border-color: #b0b0b0; }
+pre { margin-left: 20px; }
+</style>
+</head>
+<body>
+
+<h1><a name="portada"></a>Generador de exámenes de Fundamentos de Informática</h1>
+<p><i>Manual de uso</i></p>
+
+<p>Este manual explica cómo se usa el programa. El índice de la izquierda lleva a cada apartado y el recuadro de
+arriba busca una palabra en todo el texto (<b>Intro</b> pasa a la siguiente vez que aparece).</p>
+
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+Pulse <b>F1</b> en cualquier ventana del programa y la ayuda se abrirá por el apartado que trata de esa ventana. Los
+diálogos tienen además un botón <b>Ayuda</b> que hace lo mismo.
+</td></tr></table>
+
+<!-- ======================================================================================================= -->
+<h2><a name="inicio"></a>Primeros pasos</h2>
+
+<p>El programa genera exámenes tipo test eligiendo al azar preguntas de un banco de preguntas, con el número de
+preguntas que se indique de cada tema. Al elegirlas sigue las reglas de los exámenes de la asignatura: nunca pone en
+un mismo examen dos versiones de una misma pregunta, puede repartir la respuesta correcta entre a), b), c) y d) y
+hace que cada examen quepa en una página por cada 10 preguntas.</p>
+
+<p>Sirve también para mantener el banco: buscar, corregir y añadir preguntas, revisar su redacción, guardar los
+exámenes de cada convocatoria y llevar las preguntas a Moodle para que los estudiantes practiquen.</p>
+
+<h3><a name="banco-fichero"></a>El fichero del banco</h3>
+
+<p>Las preguntas están en un fichero de base de datos (<tt>.db</tt>) que no viene con el programa: o se lo da el
+equipo docente o lo crea usted. La primera vez, el programa pregunta qué banco abrir o si quiere crear uno nuevo;
+después abre siempre el último que se abrió.</p>
+<ul>
+<li>Para cambiar de banco: <i>Archivo → Abrir banco de preguntas…</i></li>
+<li>Para empezar uno vacío: <i>Archivo → Nuevo banco de preguntas…</i> Al crearlo, el programa propone importar
+preguntas de un fichero JSON (ver <a href="#json">Importar y exportar el banco</a>).</li>
+</ul>
+<p>La barra de estado, abajo, dice qué banco está abierto, cuántos temas y preguntas tiene y cuántas de ellas están
+activas.</p>
+
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+Todo el banco está en ese único fichero, también el historial de convocatorias. Para hacer una copia de seguridad o
+llevarlo a otro ordenador, basta con copiar el fichero (con el programa cerrado).
+</td></tr></table>
+
+<h3><a name="ventana"></a>La ventana principal</h3>
+
+<p>La ventana tiene dos pestañas:</p>
+<ul>
+<li><b>Generar examen</b>: a la izquierda, los datos de la convocatoria, el número de preguntas de cada tema y las
+opciones; a la derecha, los exámenes generados y los botones para imprimirlos, exportarlos, registrarlos en el
+historial o hacerlos en pantalla.</li>
+<li><b>Banco de preguntas</b>: la lista de preguntas, con sus filtros, y la ficha de la pregunta elegida.</li>
+</ul>
+<p>Los menús reúnen lo demás: <i>Archivo</i> (abrir y crear bancos, importar y exportar, historial de
+convocatorias), <i>Editar</i> (temas, nueva pregunta, revisión del estilo) y <i>Ayuda</i>.</p>
+<p>Al cerrar el programa se guardan la convocatoria, la lista de exámenes, el reparto de preguntas, las opciones y el
+tamaño de la ventana, y la próxima vez aparecen como se dejaron.</p>
+
+<h3><a name="pasos"></a>Un examen paso a paso</h3>
+<ol>
+<li>En la pestaña <b>Generar examen</b>, elija la convocatoria (Febrero, Junio, Septiembre…) y el año.</li>
+<li>Marque en la lista los exámenes que quiere, por ejemplo «Nacional Original» y «Nacional Reserva».</li>
+<li>Indique cuántas preguntas quiere de cada tema, o pulse <b>T1–T4</b>, <b>T5–T8</b> o <b>T1–T8</b> para poner el
+reparto habitual.</li>
+<li>Pulse <b>Generar exámenes</b>. Revise cada examen en la parte derecha (se cambia de uno a otro en
+<b>Examen</b>) y lea los avisos del recuadro amarillo, si los hay.</li>
+<li>Si algo no le convence, vuelva a pulsar <b>Generar exámenes</b>: cada vez salen otros.</li>
+<li>Pulse <b>Exportar PDF…</b> para guardar los exámenes y <b>Soluciones PDF…</b> para guardar las soluciones.</li>
+<li>Cuando sean los definitivos, pulse <b>Registrar convocatoria…</b>: quedan guardados en el historial y sus
+preguntas se evitarán en las convocatorias siguientes.</li>
+</ol>
+
+<!-- ======================================================================================================= -->
+<h2><a name="generar"></a>Generar exámenes</h2>
+
+<p>Todo se hace en la pestaña <b>Generar examen</b>. Se rellena el panel de la izquierda, de arriba abajo, y se pulsa
+<b>Generar exámenes</b>. Se generan a la vez todos los exámenes de la convocatoria (uno por cada nombre marcado en la
+lista) y aparecen a la derecha. Si se vuelve a generar, se sustituyen por otros.</p>
+
+<h3><a name="convocatoria"></a>Convocatoria</h3>
+<ul>
+<li><b>Asignatura</b>: el nombre que va en la cabecera del examen.</li>
+<li><b>Convocatoria</b>: elija Febrero, Junio o Septiembre, o escriba otro nombre. Con el año forma «Junio 2026», que
+va en la cabecera, en el pie de cada página y en el nombre de los ficheros que se exportan.</li>
+<li><b>Año</b>.</li>
+<li><b>Instrucciones</b>: el texto del recuadro de instrucciones que hay bajo la cabecera. Debajo de él se añade la
+puntuación. Si un examen no cabe en su página, acortar las instrucciones ayuda.</li>
+</ul>
+
+<h3><a name="lista-examenes"></a>Lista de exámenes</h3>
+<p>Se genera un examen por cada nombre marcado, en el orden de la lista. El pie de cada página lleva el nombre del
+examen, la convocatoria y el año: «Nacional Original · Junio 2026: 1 / 2».</p>
+<ul>
+<li><b>Añadir</b>: añade un nombre nuevo, que se escribe en ese momento.</li>
+<li><b>Quitar</b>: quita de la lista el nombre elegido (pide confirmación).</li>
+<li><b>Todos</b> y <b>Ninguno</b>: marcan o desmarcan todos los nombres.</li>
+<li>Con un doble clic se cambia un nombre; arrastrándolo, se cambia su posición.</li>
+</ul>
+<p>La lista se conserva de un año a otro. No puede haber dos exámenes marcados con el mismo nombre ni uno sin
+nombre.</p>
+
+<h3><a name="reparto"></a>Preguntas por tema</h3>
+<p>Hay una casilla por tema con el número de preguntas que se quieren de él. Al lado, en gris, «de N» dice cuántas
+preguntas distintas hay: las variantes a, b, c… de una pregunta cuentan como una sola, porque en un examen solo
+puede salir una de ellas (ver <a href="#codigos">Códigos, variantes y pseudorrepetidas</a>). Las anuladas y las
+obsoletas no cuentan, y las marcadas para revisar tampoco si no está marcada la opción «Incluir preguntas marcadas
+para revisar».</p>
+<p>Los botones ponen el reparto habitual de los exámenes de la asignatura:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Botón</th><th align="left">Reparto</th></tr>
+<tr><td><b>T1–T4</b></td><td>Primera parte: 3, 2, 3 y 2 preguntas de los temas 1 a 4 (10 en total).</td></tr>
+<tr><td><b>T5–T8</b></td><td>Segunda parte: 2, 3, 2 y 3 preguntas de los temas 5 a 8 (10 en total).</td></tr>
+<tr><td><b>T1–T8</b></td><td>Las dos partes juntas: 20 preguntas.</td></tr>
+<tr><td><b>Ninguna</b></td><td>Pone todos los temas a 0.</td></tr>
+</table>
+<p>Debajo se ve el total. El programa recuerda el último reparto usado; la primera vez propone T1–T4.</p>
+
+<h3><a name="puntuacion"></a>Puntuación</h3>
+<p>Con <b>Automática</b> marcada, el examen vale 10 puntos y cada fallo resta el 30 % de lo que vale un acierto: con
+10 preguntas, +1 por acierto y −0,30 por fallo; con 20, +0,50 y −0,15. Las preguntas en blanco no suman ni restan.
+Para poner otros valores, desmarque <b>Automática</b> y escríbalos en <b>Acierto</b> y <b>Fallo</b>.</p>
+<p>La puntuación se imprime bajo las instrucciones del examen y se usa para calificar al
+<a href="#practicar">practicar un examen</a>.</p>
+
+<h3><a name="opciones"></a>Opciones</h3>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Opción</th><th align="left">Qué hace</th></tr>
+<tr><td><b>No repetir preguntas entre exámenes</b></td>
+<td>Ninguna pregunta (ni una variante suya) sale en dos exámenes de la misma convocatoria. Si no hay bastantes, se
+avisa y, a partir de algún examen, se repiten algunas.</td></tr>
+<tr><td><b>Evitar las preguntas de las últimas N convocatorias</b></td>
+<td>Deja para el final las preguntas que salieron en las últimas N convocatorias registradas en el
+<a href="#historial">historial</a>, con sus variantes y pseudorrepetidas. Los exámenes que se están generando no
+cuentan como ya salidos, aunque se hubieran registrado antes: al registrarlos de nuevo, se sustituyen.</td></tr>
+<tr><td><b>Evitar también las marcadas «old»</b></td>
+<td>Deja para el final las preguntas que ya salieron en exámenes anteriores al historial (las marcadas «old» en el
+banco), aunque antes que las de las convocatorias registradas.</td></tr>
+<tr><td><b>Incluir preguntas marcadas para revisar</b></td>
+<td>Si se desmarca, las preguntas marcadas para revisar no salen.</td></tr>
+<tr><td><b>Orden aleatorio</b></td>
+<td>Mezcla las preguntas del examen. Si no se marca, van por tema y número, como en los exámenes oficiales.</td></tr>
+<tr><td><b>Barajar las opciones</b></td>
+<td>Cambia el orden de las opciones para repartir la respuesta correcta entre a), b), c) y d) (ver
+<a href="#correctas">Reparto de la respuesta correcta</a>).</td></tr>
+<tr><td><b>Semilla</b></td>
+<td>Vacía, cada vez salen exámenes distintos. Con un número, se repiten los mismos (ver
+<a href="#semilla">La semilla</a>).</td></tr>
+</table>
+
+<h3><a name="reglas"></a>Cómo se eligen las preguntas</h3>
+<ul>
+<li>Las preguntas anuladas u obsoletas no salen nunca.</li>
+<li>En un examen nunca salen juntas dos variantes de una misma pregunta (por ejemplo, T2-4a y T2-4b) ni dos
+pseudorrepetidas, que son preguntas equivalentes de temas distintos enlazadas en el
+<a href="#editor">editor de preguntas</a>.</li>
+<li>De cada tema se eligen primero las preguntas que no han salido nunca; después, si se marcó «Evitar también las
+marcadas old», las marcadas «old»; y por último las de las convocatorias registradas, de la más antigua a la más
+reciente. Así, si hay que repetir alguna, se repite la que salió hace más tiempo. Cuando hay que recurrir a ellas,
+se avisa.</li>
+<li>Las convocatorias se ordenan por año y, dentro del año, por mes, si se llaman como un mes (Febrero, Junio,
+Septiembre…).</li>
+<li>Entre las preguntas que quedan igual de bien situadas, se elige al azar.</li>
+</ul>
+
+<h3><a name="correctas"></a>Reparto de la respuesta correcta</h3>
+<p>Con <b>Barajar las opciones</b> marcada, en cada examen la correcta sale en a), b), c) y d) el mismo número de
+veces (como mucho, con una de diferencia) y, si se puede, nunca tres veces seguidas en la misma letra. Las preguntas
+con opciones que remiten a las demás («Todas las anteriores», «a y b»…) no se barajan, porque cambiarían de
+sentido.</p>
+<p>Sin barajar, la correcta queda en la letra que tiene en el banco. Si en algún examen una letra sale bastante más
+de lo que le toca (5 de 10, por ejemplo), se avisa.</p>
+<p>Junto a <b>Letra grande</b> se ve cuántas veces es correcta cada letra en el examen que se está viendo
+(«Correctas: A 3 · B 3 · C 2 · D 2»). La hoja de soluciones lo dice también.</p>
+
+<h3><a name="vista"></a>La vista del examen</h3>
+<p>La parte derecha de la pestaña muestra los exámenes generados tal como se imprimirán.</p>
+<ul>
+<li><b>Examen</b>: cuál de los exámenes de la convocatoria se ve.</li>
+<li><b>Mostrar soluciones</b>: marca en verde la respuesta correcta y el código de cada pregunta. Vale para la vista
+y para exportar a HTML y LaTeX.</li>
+<li><b>Letra grande</b>: la versión adaptada (ver <a href="#letra-grande">Letra grande</a>).</li>
+<li>La línea gris de debajo dice la semilla, el nivel de la maqueta compacta, si se ha usado, y la fecha de registro,
+si los exámenes se han cargado del historial. Su texto se puede seleccionar y copiar.</li>
+<li>El recuadro amarillo reúne los avisos: temas sin bastantes preguntas, preguntas repetidas, una letra correcta
+demasiadas veces, un examen que no cabe en su página… Conviene leerlos antes de exportar.</li>
+</ul>
+
+<h3><a name="maqueta"></a>Una página por cada 10 preguntas</h3>
+<p>Cada examen debe caber en una página por cada 10 preguntas: un examen de 10 preguntas, en un folio. Si con la
+maqueta normal no cabe, el programa la compacta por niveles: pone las opciones en dos columnas (a c / b d) cuando así
+ocupan menos líneas, reduce la separación entre preguntas y, por último, la letra (hasta 9 puntos). El nivel usado
+aparece en la línea gris («Maqueta compacta (nivel 2 de 4)») y es el mismo para todos los exámenes de la
+convocatoria, en la vista, al imprimir y en las tres exportaciones.</p>
+<p>Si ni así cabe, se avisa: acorte las instrucciones o quite alguna pregunta (las que llevan imagen o un enunciado
+largo son las que más ocupan).</p>
+
+<h3><a name="letra-grande"></a>Letra grande</h3>
+<p>La casilla <b>Letra grande</b> hace la versión adaptada para estudiantes con discapacidad visual, lo contrario de
+la maqueta compacta: letra de 16 puntos (también en la cabecera y las instrucciones), los enunciados en negrita sin
+cursiva, una opción por línea, más separación entre preguntas e imágenes más grandes, sin límite de páginas.</p>
+<p>Vale para la vista, la impresión y todas las exportaciones. Los ficheros llevan «_letra_grande» en el nombre
+(<tt>2026_Junio_letra_grande_Nacional_Original.pdf</tt>), para no pisar los normales. Son los mismos exámenes, con
+las mismas preguntas en el mismo orden: basta con exportar los normales, marcar la casilla y exportar otra vez.</p>
+
+<h3><a name="semilla"></a>La semilla</h3>
+<p>Cada vez que se generan exámenes se usa un número, la semilla, que aparece en la línea gris. Si se escribe ese
+número en <b>Semilla</b> y se vuelve a generar con la misma configuración, salen exactamente los mismos exámenes,
+siempre que no hayan cambiado ni el banco ni el historial.</p>
+<p>Para recuperar los exámenes de una convocatoria pasada es mejor el <a href="#historial">historial</a>, que los
+guarda tal como salieron aunque después se corrijan sus preguntas.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="exportar"></a>Imprimir y exportar</h2>
+
+<p>Una vez generados los exámenes, los botones de debajo de la vista los imprimen o los guardan en ficheros:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Botón</th><th align="left">Qué hace</th><th align="left">Nombre propuesto</th></tr>
+<tr><td><b>Imprimir…</b></td>
+<td>Abre la vista previa de impresión de todos los exámenes, desde la que se imprimen. Se imprimen sin
+soluciones.</td><td></td></tr>
+<tr><td><b>Exportar PDF…</b></td><td>Guarda los exámenes en PDF.</td>
+<td><tt>2026_Junio_Nacional_Original.pdf</tt></td></tr>
+<tr><td><b>Soluciones PDF…</b></td>
+<td>Guarda la hoja de soluciones (la estructura por temas, como la de las instrucciones, y la plantilla de
+respuestas) seguida de los exámenes con la respuesta correcta marcada.</td>
+<td><tt>2026_Junio_soluciones_Nacional_Original.pdf</tt></td></tr>
+<tr><td><b>Exportar HTML…</b></td>
+<td>Guarda los exámenes en HTML, que se puede abrir y modificar con Word o LibreOffice. Si está marcado
+«Mostrar soluciones», con la correcta marcada.</td>
+<td><tt>2026_Junio_Nacional_Original.html</tt></td></tr>
+<tr><td><b>Exportar LaTeX…</b></td>
+<td>Guarda los exámenes en LaTeX (ver <a href="#latex">LaTeX</a>).</td>
+<td><tt>2026_Junio_Nacional_Original.tex</tt></td></tr>
+</table>
+<p>Para imprimir las soluciones, expórtelas con <b>Soluciones PDF…</b> e imprima el PDF.</p>
+
+<h3><a name="exportar-ficheros"></a>Carpeta y nombre de los ficheros</h3>
+<p>Al exportar se abre un diálogo:</p>
+<ul>
+<li><b>Carpeta</b>: dónde se guardan los ficheros. Se recuerda de una vez a otra; con <b>Elegir…</b> se busca otra.
+Si no existe, se crea.</li>
+<li>La tabla tiene una fila por examen: se exportan los marcados, cada uno en su fichero. Pulsando sobre el nombre
+del fichero se puede cambiar.</li>
+<li>Si hay más de un examen, la última fila, «Todos los exámenes en un fichero», guarda además todos juntos en un
+solo fichero, cada uno empezando en página nueva.</li>
+</ul>
+<p>Si algún fichero ya existe, se pide permiso para sobrescribirlo. Al terminar, la barra de estado dice dónde se han
+guardado.</p>
+<p>Las exportaciones a HTML y LaTeX guardan las imágenes de las preguntas en una carpeta junto al fichero,
+<tt>&lt;nombre&gt;_imagenes</tt>. Si se mueve el fichero, hay que llevar esa carpeta con él.</p>
+
+<h3><a name="latex"></a>LaTeX</h3>
+<p><b>Exportar LaTeX…</b> guarda ficheros <tt>.tex</tt> para compilarlos con <tt>pdflatex</tt>. Si está marcado
+«Mostrar soluciones», incluyen también la estructura, la plantilla de respuestas y los exámenes con la solución
+marcada. Hay que compilarlos dos veces para que salga bien el «página / total» del pie:</p>
+<pre>pdflatex examen.tex
+pdflatex examen.tex</pre>
+
+<!-- ======================================================================================================= -->
+<h2><a name="practicar"></a>Practicar un examen</h2>
+
+<p><b>Practicar este examen…</b> abre el examen que se está viendo para hacerlo en pantalla, como lo haría un
+estudiante, y corregirlo. Sirve, por ejemplo, para comprobar un examen antes de darlo por bueno.</p>
+<ol>
+<li>Elija la duración (de 5 a 300 minutos; se recuerda de una vez a otra) y pulse <b>Empezar</b>. Hasta entonces no
+se puede contestar.</li>
+<li>Para contestar, pulse en la letra o en el texto de una opción. <b>Dejar en blanco</b> borra la respuesta de esa
+pregunta.</li>
+<li>El reloj cuenta hacia atrás y se pone en rojo en los últimos 5 minutos. Si se acaba el tiempo, el examen se
+corrige solo.</li>
+<li>Pulse <b>Terminar y corregir</b> cuando acabe.</li>
+</ol>
+<p>Al corregir, cada pregunta dice si está bien, mal (y cuál era la correcta) o en blanco, con su código, la
+referencia al libro y la explicación, si la tiene. La correcta se ve en verde y la respuesta equivocada, tachada en
+rojo. La nota se calcula con la <a href="#puntuacion">puntuación</a> de la ventana principal.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="historial"></a>El historial de convocatorias</h2>
+
+<p>El historial guarda, dentro del banco, los exámenes que se pusieron en cada convocatoria. Sirve para dos cosas:
+evitar que las preguntas de las últimas convocatorias se repitan en las siguientes y poder recuperar un examen tal
+como salió.</p>
+
+<h3><a name="registrar"></a>Registrar una convocatoria</h3>
+<p><b>Registrar convocatoria…</b>, bajo la vista del examen, guarda en el historial los exámenes generados: una copia
+de sus preguntas tal como salieron, el orden de las opciones y los datos de la convocatoria (asignatura,
+instrucciones y puntuación). Hace falta haber escrito el nombre de la convocatoria.</p>
+<p>Si ya había exámenes registrados con el mismo nombre, convocatoria y año, se sustituyen (antes se pide
+confirmación). Por eso, si después de registrar una convocatoria se generan otra vez sus exámenes, basta con
+registrarla de nuevo.</p>
+<p>Desde entonces, la opción «Evitar las preguntas de las últimas N convocatorias» tiene en cuenta esos exámenes, y
+la ficha de cada pregunta, en la pestaña <b>Banco de preguntas</b>, dice en qué exámenes ha salido.</p>
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+Registre solo los exámenes definitivos: los que se registran cuentan como ya salidos al generar los de las
+convocatorias siguientes.
+</td></tr></table>
+
+<h3><a name="consultar-historial"></a>Cargar o eliminar convocatorias</h3>
+<p><i>Archivo → Historial de convocatorias…</i> muestra las convocatorias registradas (por ejemplo, «Junio 2026») con
+sus exámenes, el número de preguntas de cada uno y cuándo se registró.</p>
+<ul>
+<li><b>Cargar</b> (o doble clic en un examen): lleva la convocatoria elegida, o un solo examen, a la pestaña
+<b>Generar examen</b>, para verla, exportarla, imprimirla o practicarla tal como salió, aunque después se hayan
+corregido sus preguntas. Los datos de la convocatoria pasan a la ventana (asignatura, convocatoria, año,
+instrucciones y puntuación; si la puntuación no coincide con la automática, se desmarca <b>Automática</b>). La línea
+gris dice «Registrada el …».</li>
+<li><b>Eliminar del historial…</b>: borra la convocatoria o el examen elegido, después de pedir confirmación. Sus
+preguntas dejan de contar como ya salidas y no se podrá volver a cargarlo.</li>
+</ul>
+<p>Después de cargar una convocatoria pasada, revise la convocatoria y el año antes de generar exámenes nuevos.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="banco"></a>El banco de preguntas</h2>
+
+<p>La pestaña <b>Banco de preguntas</b> muestra todas las preguntas del banco en una tabla. Al elegir una, a la
+derecha se ve su ficha: el enunciado, las opciones, la respuesta correcta con la referencia al libro, la
+explicación, la pregunta con la que está enlazada, las notas y en qué exámenes registrados ha salido.</p>
+
+<h3><a name="buscar"></a>Buscar y filtrar</h3>
+<ul>
+<li><b>Tema</b>: solo las preguntas de un tema.</li>
+<li><b>Estado</b>: todas, las activas, las anuladas, las obsoletas, las marcadas para revisar o las que tienen
+imagen.</li>
+<li>El recuadro de búsqueda encuentra las preguntas que contienen un texto en el enunciado, en las opciones o en las
+notas, sin distinguir mayúsculas y minúsculas. Si se escribe un código (<tt>T1-22b</tt>), encuentra esa
+pregunta.</li>
+</ul>
+<p>A la derecha de los filtros se ve cuántas preguntas cumplen las condiciones. Pulsando en el título de una columna
+se ordena por ella. Al dejar el ratón sobre un enunciado se ven también sus opciones. Las preguntas anuladas y
+obsoletas aparecen tachadas y en gris.</p>
+<p>Columnas de la tabla: <b>Tema</b>; <b>Código</b> (número y variante, con «(old)» si ya salió en exámenes
+anteriores al historial); <b>Estado</b> (activa, anulada u obsoleta, con «revisar» e «imagen» si es el caso);
+<b>Enunciado</b>; y <b>Resp.</b>, la letra de la respuesta correcta.</p>
+
+<h3><a name="codigos"></a>Códigos, variantes y pseudorrepetidas</h3>
+<p>Cada pregunta tiene un código con su tema, su número y, si la tiene, la letra de la variante: <tt>T1-22b</tt> es
+la variante b de la pregunta 22 del tema 1.</p>
+<ul>
+<li><b>Variantes</b>: las preguntas del mismo tema con el mismo número (<tt>T2-4a</tt>, <tt>T2-4b</tt>…) son
+versiones de la misma pregunta: otro dato, la pregunta al revés u otro aspecto del mismo concepto. Nunca salen dos
+de ellas en el mismo examen, y al contar las preguntas disponibles de un tema cuentan como una.</li>
+<li><b>Pseudorrepetidas</b>: dos preguntas de temas distintos que preguntan lo mismo se enlazan con el campo
+«Pseudorrepetida con» del editor (por ejemplo, <tt>T3-5</tt> con <tt>T1-7</tt>). Tampoco salen juntas.</li>
+</ul>
+
+<h3><a name="estados"></a>Estado y marcas de una pregunta</h3>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Estado o marca</th><th align="left">Significado</th></tr>
+<tr><td><b>Activa</b></td><td>Puede salir en los exámenes.</td></tr>
+<tr><td><b>Anulada</b></td><td>No sale nunca, pero se conserva en el banco.</td></tr>
+<tr><td><b>Obsoleta</b></td><td>No sale nunca: ya no corresponde al temario.</td></tr>
+<tr><td><b>old</b></td><td>Ya salió en exámenes anteriores a los registrados en el historial. Se puede dejar para el
+final con la opción «Evitar también las marcadas old».</td></tr>
+<tr><td><b>Para revisar</b></td><td>Hay que mejorarla. Sale en los exámenes salvo que se desmarque «Incluir preguntas
+marcadas para revisar».</td></tr>
+</table>
+
+<h3><a name="acciones"></a>Crear, modificar y eliminar preguntas</h3>
+<ul>
+<li><b>Nueva…</b> (o <i>Editar → Nueva pregunta…</i>, <b>Ctrl+N</b>): abre el <a href="#editor">editor</a> con una
+pregunta vacía, en el tema elegido en el filtro (o en el primero) y con el primer número libre.</li>
+<li><b>Editar…</b> (o doble clic en la pregunta): abre la pregunta elegida en el editor.</li>
+<li><b>Duplicar como variante…</b>: copia la pregunta elegida como su siguiente variante, con la primera letra libre
+(si la pregunta no tiene letra, cuenta como la «a»), para escribir otra versión de ella. La copia no lleva la marca
+«old».</li>
+<li><b>Eliminar</b>: borra la pregunta del banco para siempre, después de pedir confirmación.</li>
+</ul>
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+Si solo quiere que una pregunta deje de salir en los exámenes, no la elimine: edítela y póngala como anulada. Así se
+conserva, con su historia, y se puede recuperar.
+</td></tr></table>
+
+<!-- ======================================================================================================= -->
+<h2><a name="editor"></a>El editor de preguntas</h2>
+
+<p>El editor se abre al crear, modificar o duplicar una pregunta. A la izquierda están los datos; a la derecha, una
+vista previa de la pregunta, que se actualiza mientras se escribe, con los avisos de estilo y las preguntas
+parecidas debajo.</p>
+<ul>
+<li><b>Identificación</b>: el tema, el número y la variante (una letra, o nada si no tiene variantes); el estado
+(activa, anulada u obsoleta); las marcas «Ya ha salido en exámenes (old)» y «Marcar para revisar»; y
+«Pseudorrepetida con», el código de la pregunta equivalente de otro tema (por ejemplo, <tt>T1-7</tt>). Ver
+<a href="#codigos">Códigos, variantes y pseudorrepetidas</a>.</li>
+<li><b>Enunciado y respuestas</b>: el enunciado (ver <a href="#formato">Formato del enunciado</a>) y las cuatro
+opciones. El botón redondo marcado indica cuál es la correcta. Las cuatro opciones son obligatorias.</li>
+<li><b>Imagen</b>: opcional; se muestra bajo el enunciado. <b>Cargar…</b> admite PNG, JPG, BMP y GIF, y la guarda
+en el banco; <b>Quitar</b> la elimina.</li>
+<li><b>Referencia y notas</b>: la <b>referencia</b> al libro de teoría, que va en las soluciones; la
+<b>explicación</b> de la respuesta, que se ve al corregir un examen de práctica y en Moodle; y las <b>notas
+internas</b>, que solo se ven en el banco.</li>
+</ul>
+<p>Al pulsar <b>Guardar</b>, el programa comprueba que haya tema, enunciado y las cuatro opciones. Si la pregunta no
+sigue alguna de las <a href="#pautas">pautas de estilo</a>, las enumera y pregunta si se guarda así o se sigue
+editando. Si es una pregunta nueva, con un número que no existe, y se parece mucho a otras del banco, las enseña
+antes de guardarla (ver <a href="#parecidas">Preguntas parecidas</a>).</p>
+<p>Al crear una pregunta nueva y cambiarle el tema, el número propuesto pasa a ser el primero libre del tema nuevo.</p>
+
+<h3><a name="formato"></a>Formato del enunciado</h3>
+<p>El enunciado es texto normal, en uno o varios párrafos. Admite además código y tablas:</p>
+<ul>
+<li><b>Código</b>: entre dos líneas que solo tengan tres comillas invertidas (<tt>```</tt>). Se imprime en letra de
+ancho fijo, respetando los espacios.</li>
+<li><b>Tablas</b>: cada fila en una línea, con las celdas separadas por barras: <tt>| celda | celda |</tt>.</li>
+</ul>
+<p>Por ejemplo:</p>
+<pre>Texto del enunciado, en uno o varios párrafos:
+```
+línea de código 1
+    línea de código 2
+```
+| Columna 1 | Columna 2 |
+| dato      | dato      |</pre>
+<p>La vista previa enseña cómo quedará.</p>
+
+<h3><a name="pautas"></a>Pautas de estilo</h3>
+<p>Mientras se escribe, bajo la vista previa aparecen en amarillo las pautas de redacción del banco que la pregunta
+no cumple. Son avisos, no errores: puede haber excepciones justificadas, y la pregunta se puede guardar igual.</p>
+<ul>
+<li><b>Enunciado</b>: debe empezar por mayúscula y acabar en dos puntos, o en «?:» si es una pregunta, con sus
+signos de apertura y cierre; conviene que no pase de unos 180 caracteres; las negaciones van en mayúsculas («NO»,
+«FALSO»); los literales van entre comillas tipográficas (“…”) en el texto y entre comillas rectas (") dentro del
+código.</li>
+<li><b>Opciones</b>: empiezan por mayúscula y terminan en punto; no deben repetirse; conviene evitar las que remiten
+a las demás («Todas las anteriores», «a y b»…), porque impiden barajar; y la correcta no debe ser mucho más larga
+que las demás, porque la delataría.</li>
+<li><b>Referencia</b>: debe estar, terminar en punto y llevar el número de página, con la forma que corresponde al
+tema: «Véase la página N (sección X.Y) del libro de teoría.» en los temas 1, 3, 6 y 8, y «Pág. N libro (subsección
+X.Y.Z).» en los temas 2, 4, 5 y 7.</li>
+</ul>
+<p>Para revisar todo el banco de una vez, ver <a href="#estilo">Revisar el estilo del banco</a>.</p>
+
+<h3><a name="parecidas"></a>Preguntas parecidas</h3>
+<p>Bajo la vista previa, en azul, el editor muestra las preguntas del banco más parecidas a la que se escribe, con su
+porcentaje de parecido. Solo cuentan las de otros números: las variantes de la misma pregunta no. El parecido compara
+trozos de palabras del enunciado y de las opciones.</p>
+<p>Al guardar una pregunta nueva con un número que no existe, si se parece mucho a otras, se abre un diálogo con
+ellas: a la izquierda la lista, con el porcentaje de parecido; a la derecha, la ficha de la elegida. Si es la misma
+idea, conviene que nunca salgan juntas en un examen:</p>
+<ul>
+<li><b>Guardar como variante de…</b> (si la elegida es del mismo tema): la pregunta toma el número de la elegida y su
+siguiente letra libre.</li>
+<li><b>Enlazar con… (pseudorrepetida)</b> (si es de otro tema): se escribe su código en «Pseudorrepetida con».</li>
+<li><b>Guardar como pregunta nueva</b>: se guarda tal cual.</li>
+<li><b>Seguir editando</b>: vuelve al editor sin guardar.</li>
+</ul>
+
+<!-- ======================================================================================================= -->
+<h2><a name="temas"></a>Temas</h2>
+
+<p><i>Editar → Temas…</i> muestra los temas del banco: su número, su título, su autor y cuántas preguntas tiene.</p>
+<ul>
+<li>Con un doble clic en una celda se cambia el número, el título o el autor.</li>
+<li><b>Añadir tema</b> crea uno con el número siguiente al último.</li>
+<li><b>Eliminar tema</b> lo quita. Si tiene preguntas, avisa: se borrarían con él.</li>
+</ul>
+<p>Los cambios no se aplican hasta pulsar <b>Guardar</b>, y entonces se aplican todos a la vez. Los números de tema
+deben ser positivos y distintos.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="estilo"></a>Revisar el estilo del banco</h2>
+
+<p><i>Editar → Revisar el estilo del banco…</i> comprueba las <a href="#pautas">pautas de estilo</a> en todas las
+preguntas del banco y lista las que no las cumplen, con sus avisos.</p>
+<ul>
+<li><b>Mostrar</b>: todos los avisos o solo los del enunciado, los de las opciones o los de la referencia.</li>
+<li><b>Incluir las anuladas y obsoletas</b>: por defecto solo se revisan las activas.</li>
+<li><b>Editar la pregunta…</b> (o doble clic): abre la pregunta en el editor para corregirla. Al volver, la lista se
+actualiza.</li>
+<li><b>Guardar el informe…</b>: guarda la lista en un fichero de texto (por defecto, junto al banco). Lleva solo los códigos de las
+preguntas y los avisos, no su texto.</li>
+</ul>
+
+<!-- ======================================================================================================= -->
+<h2><a name="json"></a>Importar y exportar el banco</h2>
+
+<p>Además de la base de datos, el banco se puede guardar en un fichero JSON, que es texto: sirve para pasar las
+preguntas de un banco a otro y para crear el banco a partir del documento de preguntas del equipo docente.</p>
+
+<h3><a name="importar"></a>Importar y exportar</h3>
+<ul>
+<li><i>Archivo → Importar preguntas (JSON)…</i> pregunta cómo importar:
+  <ul>
+  <li><b>Añadir/actualizar</b>: las preguntas del JSON con el mismo tema, número y variante que una del banco la
+  sustituyen; las demás preguntas del banco se conservan.</li>
+  <li><b>Reemplazar todo</b>: borra antes todos los temas y preguntas del banco. Antes de borrarlos guarda una
+  <a href="#copias">copia de seguridad</a>.</li>
+  </ul>
+</li>
+<li><i>Archivo → Exportar preguntas (JSON)…</i> guarda todo el banco en un JSON.</li>
+</ul>
+
+<h3><a name="json-enlazado"></a>El JSON enlazado al banco</h3>
+<p>El JSON del que se importa todo el banco queda <b>enlazado</b> con él como su copia en texto. Cuando la base de
+datos y ese JSON dejan de coincidir (por ejemplo, tras corregir una pregunta en el programa), la barra de estado lo
+avisa. Dejando el ratón sobre el aviso se ve en qué se diferencian; pulsándolo, o con <i>Archivo → Actualizar el JSON
+del banco…</i>, el JSON se sobrescribe con el contenido de la base de datos. La primera vez, si no hay ninguno
+enlazado, se pide cuál es.</p>
+<p>Con <i>Archivo → Mantener el JSON del banco al día</i> marcado, el programa reescribe el JSON él solo tras cada
+cambio del banco. Nunca toca un JSON que ya no coincida con la base de datos (por ejemplo, uno recién generado desde
+el documento de preguntas y aún sin importar): en ese caso solo avisa.</p>
+
+<h3><a name="copias"></a>Copias de seguridad</h3>
+<p>Antes de «Reemplazar todo», el programa guarda una copia de la base de datos en la carpeta <tt>copias</tt>, junto
+a ella, con la fecha y la hora en el nombre (<tt>copias/preguntas_2026-10-22_153045.db</tt>), y al terminar dice
+dónde la ha dejado. Si la importación falla, la base de datos no cambia y la copia se borra.</p>
+<p>Para volver atrás, abra la copia con <i>Archivo → Abrir banco de preguntas…</i> o, con el programa cerrado,
+cópiela sobre el banco.</p>
+
+<h3><a name="docx"></a>Desde el documento de preguntas</h3>
+<p>Cuando el equipo docente publica una versión nueva del documento Word de preguntas, quien mantiene el banco la
+convierte en JSON con la herramienta <tt>herramientas/importar_docx.py</tt>, que acompaña al código del programa, y
+la importa con
+<i>Archivo → Importar preguntas (JSON)…</i>. Las etiquetas del documento se interpretan así:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Etiqueta</th><th align="left">En el banco</th></tr>
+<tr><td><tt>old</tt></td><td>Ya salió en exámenes (marca «old»).</td></tr>
+<tr><td><tt>ANULADA</tt>, <tt>OBSOLETA</tt></td><td>Anulada u obsoleta: no sale.</td></tr>
+<tr><td><tt>MEJORAR</tt>, <tt>REFINAR</tt>, <tt>DEFINIR …</tt></td><td>Marcada para revisar.</td></tr>
+<tr><td><tt>PSEUDORREPETIDA … TEMA1 preg 7</tt></td><td>Enlazada como pseudorrepetida con <tt>T1-7</tt>.</td></tr>
+</table>
+
+<!-- ======================================================================================================= -->
+<h2><a name="moodle"></a>Exportar a Moodle</h2>
+
+<p><i>Archivo → Exportar a Moodle (XML)…</i> guarda las preguntas del banco como cuestionario en formato «Moodle
+XML», para que los estudiantes practiquen en el curso virtual.</p>
+<ul>
+<li>Van las preguntas activas; las anuladas y obsoletas no. Las marcadas para revisar se pueden excluir.</li>
+<li>Una categoría por tema, dentro de una con el nombre de la asignatura («Fundamentos de Informática/Tema 1: …»).</li>
+<li>Cada pregunta es de opción múltiple con una sola respuesta correcta. La referencia al libro y la explicación van
+como realimentación, y las imágenes, dentro del propio fichero.</li>
+<li>Si se marca, las respuestas erróneas restan el 30 % de la pregunta, como en el examen.</li>
+<li>Moodle baraja las opciones, salvo en las preguntas con opciones del tipo «Todas las anteriores».</li>
+</ul>
+<p>El diálogo propone el fichero (<tt>Fundamentos_de_Informatica_moodle.xml</tt>, en la carpeta de las exportaciones)
+y dice cuántas preguntas de cuántos temas se van a exportar.</p>
+<p>En Moodle, el fichero se importa desde <i>Banco de preguntas → Importar</i>, eligiendo el formato «Moodle XML».</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="configuracion"></a>Configuración</h2>
+
+<p>El programa guarda en un fichero de configuración la ruta del último banco abierto y lo que se deja en la ventana:
+los datos de la convocatoria, la lista de exámenes, el reparto de preguntas, las opciones, la puntuación, la carpeta
+de las exportaciones, la duración de los exámenes de práctica y el tamaño de la ventana. Está en:</p>
+<ul>
+<li>Linux: <tt>~/.config/UNED-FI/GeneradorExamenesFI.conf</tt></li>
+<li>Windows: <tt>%APPDATA%\UNED-FI\GeneradorExamenesFI.ini</tt></li>
+</ul>
+<p><i>Ayuda → Acerca de…</i> dice cuál es, junto con el banco abierto y la versión del programa. Para volver a la
+configuración inicial, cierre el programa y borre ese fichero; los bancos no se tocan.</p>
+<p>En Windows, para pasar a una versión nueva del programa, borre su carpeta y descomprima la nueva: la configuración
+se conserva.</p>
+<p>Desde la línea de órdenes se puede indicar el banco que se abre: <tt>GeneradorExamenesFI ruta/del/banco.db</tt>.
+Si no existe, se crea.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="atajos"></a>Teclado y ratón</h2>
+
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Tecla o gesto</th><th align="left">Qué hace</th></tr>
+<tr><td><b>F1</b></td><td>Abre esta ayuda por el apartado de la ventana en la que se está.</td></tr>
+<tr><td><b>Ctrl+N</b></td><td>Nueva pregunta.</td></tr>
+<tr><td><b>Ctrl+Q</b></td><td>Salir del programa (en Linux).</td></tr>
+<tr><td><b>Ctrl+F</b>, <b>Intro</b></td><td>En la ayuda: ir al recuadro de búsqueda y pasar a la siguiente vez que
+aparece lo buscado.</td></tr>
+<tr><td>Doble clic en un examen de la lista</td><td>Cambiar su nombre.</td></tr>
+<tr><td>Arrastrar un examen de la lista</td><td>Cambiar el orden de los exámenes.</td></tr>
+<tr><td>Doble clic en una pregunta del banco</td><td>Abrirla en el editor.</td></tr>
+<tr><td>Clic en el título de una columna</td><td>Ordenar la tabla del banco por esa columna.</td></tr>
+<tr><td>Doble clic en un examen del historial</td><td>Cargarlo.</td></tr>
+<tr><td>Doble clic en la revisión de estilo</td><td>Abrir esa pregunta en el editor.</td></tr>
+</table>
+
+<!-- ======================================================================================================= -->
+<h2><a name="problemas"></a>Problemas frecuentes</h2>
+
+<h3><a name="problema-banco"></a>Al abrir, dice que no encuentra el banco de preguntas</h3>
+<p>El fichero del último banco se ha movido, se ha cambiado de nombre o está en un disco que no está conectado. Pulse
+<b>Abrir banco…</b> y búsquelo; desde entonces el programa lo abrirá desde su nuevo sitio.</p>
+
+<h3><a name="problema-faltan"></a>«Se pidieron N preguntas pero solo hay M distintas disponibles»</h3>
+<p>El tema no tiene bastantes preguntas activas distintas (las variantes cuentan como una). Pida menos preguntas de
+ese tema o, si las hay, marque «Incluir preguntas marcadas para revisar».</p>
+
+<h3><a name="problema-repetir"></a>«No hay preguntas suficientes para no repetir entre exámenes»</h3>
+<p>Entre todos los exámenes marcados se piden más preguntas de un tema de las que hay. Genere menos exámenes o
+desmarque «No repetir preguntas entre exámenes».</p>
+
+<h3><a name="problema-usadas"></a>«No quedan bastantes preguntas sin usar en las últimas convocatorias»</h3>
+<p>Se han tenido que usar preguntas que salieron en las últimas convocatorias registradas, o marcadas «old». Es solo
+un aviso: se eligen las que salieron hace más tiempo. Si prefiere evitarlas, reduzca el número de convocatorias que
+se evitan o pida menos preguntas de ese tema.</p>
+
+<h3><a name="problema-letra"></a>«La respuesta correcta es la b) en 5 de 10 preguntas»</h3>
+<p>Sin barajar las opciones, la correcta queda donde está en el banco y puede salir muchas veces en la misma letra.
+Marque «Barajar las opciones» y vuelva a generar.</p>
+
+<h3><a name="problema-cabe"></a>«Algún examen no cabe en una página ni con la maqueta más compacta»</h3>
+<p>Acorte las instrucciones o cambie alguna pregunta larga o con imagen (volviendo a generar o con otro reparto).
+Ver <a href="#maqueta">Una página por cada 10 preguntas</a>.</p>
+
+<h3><a name="problema-recuperar"></a>Quiero volver a tener los exámenes de otro día</h3>
+<p>Si se registraron, cárguelos desde el <a href="#consultar-historial">historial</a>. Si no, y apuntó la semilla,
+escríbala en <b>Semilla</b> y genere con la misma configuración (ver <a href="#semilla">La semilla</a>).</p>
+
+<h3><a name="problema-anular"></a>Una pregunta tiene un error y no debe salir más</h3>
+<p>Corríjala en el editor o, si no tiene arreglo, póngala como anulada. Los exámenes ya registrados en el historial
+no cambian: guardan la pregunta tal como salió.</p>
+
+<h3><a name="problema-reemplazar"></a>He reemplazado el banco por error</h3>
+<p>Abra la copia de seguridad que se guardó en la carpeta <tt>copias</tt> (ver <a href="#copias">Copias de
+seguridad</a>).</p>
+
+<h3><a name="problema-ingles"></a>Algunos botones de los diálogos salen en inglés</h3>
+<p>Faltan las traducciones al castellano de Qt, la biblioteca con la que está hecho el programa. No afecta a su
+funcionamiento.</p>
+
+</body>
+</html>

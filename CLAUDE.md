@@ -19,6 +19,11 @@ desde aquí. Si falta: `ln -s "<directorio de la asignatura>" asignatura`. El pr
 una cuando se arregle un fallo o se programe algo nuevo. Los datos de prueba son inventados (`tests/datos_prueba.h`):
 nunca se copian preguntas, opciones ni frases de los bancos, tampoco para reproducir un caso real.
 
+## Manual de uso
+`recursos/ayuda.html` es la ayuda del programa (*Ayuda → Manual de uso*, F1, y el botón «Ayuda» de los diálogos, que
+abren cada uno por el ancla de su apartado). Si cambia lo que el usuario ve o hace, hay que actualizarla. Como el
+README, no puede citar preguntas de los bancos.
+
 ## GitHub
 El repositorio está en GitHub con **GitHub Actions desactivado**: no se compila ni se comprueba nada allí (no
 hay minutos). No añadir flujos de trabajo (`.github/workflows`) ni otras comprobaciones automáticas.
