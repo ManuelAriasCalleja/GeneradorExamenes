@@ -1,5 +1,5 @@
 // Reglas del generador de exámenes: reparto por tema, variantes y pseudorrepetidas, repetición entre exámenes,
-// orden, reparto de la respuesta correcta y preferencia por las preguntas no usadas antes.
+// orden, reparto de la respuesta correcta, preferencia por las preguntas no usadas antes y cambio de una pregunta.
 
 #include "datos_prueba.h"
 #include "estilo.h"
@@ -223,6 +223,102 @@ private slots:
         for (const PreguntaExamen &pe : r.modelos.first().preguntas)
             QVERIFY2(pe.pregunta.numero > 10, qPrintable(pe.pregunta.codigoCompleto()));
         QVERIFY(avisoQueContiene(r, QStringLiteral("convocatorias registradas")));
+    }
+
+    void cambiarUnaPregunta()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        for (quint32 semilla = 1; semilla <= 50; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            c.barajarOpciones = true;
+            c.evitarOld = true;
+            const ResultadoGeneracion antes = Generador::generar(banco, c);
+            ResultadoGeneracion r = antes;
+            const int modelo = semilla % 3, indice = semilla % 20;
+            const PreguntaExamen quitada = antes.modelos.at(modelo).preguntas.at(indice);
+            QVERIFY(Generador::cambiarPregunta(banco, c, r, modelo, indice, {}));
+            const PreguntaExamen nueva = r.modelos.at(modelo).preguntas.at(indice);
+            // Otra pregunta del mismo tema, en el mismo sitio y con la correcta en la misma letra; lo demás, igual.
+            QVERIFY(nueva.pregunta.grupo() != quitada.pregunta.grupo());
+            QCOMPARE(nueva.pregunta.temaNumero, quitada.pregunta.temaNumero);
+            QCOMPARE(nueva.correcta(), quitada.correcta());
+            ResultadoGeneracion deshecho = r;
+            deshecho.modelos[modelo].preguntas[indice] = quitada;
+            QCOMPARE(firma(deshecho), firma(antes));
+            // Ni variantes ni pseudorrepetidas en el examen, ni preguntas de los otros exámenes, ni marcadas «old»
+            // (hay bastantes de las otras).
+            QSet<QString> grupos;
+            int total = 0;
+            for (const Modelo &m : r.modelos)
+                for (const PreguntaExamen &pe : m.preguntas) {
+                    grupos.insert(pe.pregunta.grupo());
+                    ++total;
+                }
+            QCOMPARE(grupos.size(), total);
+            QSet<QString> delExamen;
+            for (const PreguntaExamen &pe : r.modelos.at(modelo).preguntas)
+                delExamen.insert(pe.pregunta.grupo());
+            QVERIFY(!(delExamen.contains(QStringLiteral("T3-5")) && delExamen.contains(QStringLiteral("T1-7"))));
+            QVERIFY2(!nueva.pregunta.old, qPrintable(nueva.pregunta.codigoCompleto()));
+            QVERIFY(!avisoQueContiene(r, QStringLiteral(", pregunta ")));
+        }
+    }
+
+    void cambiarNoVuelveALasQuitadas()
+    {
+        // Un examen con 3 de los 6 números del tema 1: para cada sitio quedan otros 3.
+        const QVector<Pregunta> banco = bancoInventado(1, 6);
+        ConfigExamen c = configuracion(3);
+        c.preguntasPorTema = {{1, 3}};
+        c.nombresModelos = {QStringLiteral("Uno")};
+        ResultadoGeneracion r = Generador::generar(banco, c);
+        const QSet<QString> otras{r.modelos[0].preguntas[1].pregunta.grupo(), r.modelos[0].preguntas[2].pregunta.grupo()};
+        QSet<QString> quitadas;
+        for (int vez = 0; vez < 3; ++vez) {
+            quitadas.insert(r.modelos[0].preguntas[0].pregunta.grupo());
+            QVERIFY(Generador::cambiarPregunta(banco, c, r, 0, 0, quitadas));
+            const QString nueva = r.modelos[0].preguntas[0].pregunta.grupo();
+            QVERIFY2(!quitadas.contains(nueva) && !otras.contains(nueva), qPrintable(nueva));
+        }
+        // Probadas todas, vuelve una de las quitadas, con un aviso (uno solo, aunque se cambie otra vez).
+        quitadas.insert(r.modelos[0].preguntas[0].pregunta.grupo());
+        for (int vez = 0; vez < 2; ++vez) {
+            QVERIFY(Generador::cambiarPregunta(banco, c, r, 0, 0, quitadas));
+            QVERIFY(quitadas.contains(r.modelos[0].preguntas[0].pregunta.grupo()));
+            QCOMPARE(r.avisos.filter(QStringLiteral("«Uno», pregunta 1: ")).size(), 1);
+            QVERIFY(avisoQueContiene(r, QStringLiteral("ya quitadas")));
+        }
+    }
+
+    void cambiarAvisaSiRepiteDeOtroExamen()
+    {
+        // Dos exámenes con los 6 números del tema 1: la nueva tiene que ser de los del otro examen.
+        const QVector<Pregunta> banco = bancoInventado(1, 6);
+        ConfigExamen c = configuracion(5);
+        c.preguntasPorTema = {{1, 3}};
+        c.nombresModelos = {QStringLiteral("Uno"), QStringLiteral("Dos")};
+        ResultadoGeneracion r = Generador::generar(banco, c);
+        QSet<QString> delOtro;
+        for (const PreguntaExamen &pe : r.modelos[1].preguntas)
+            delOtro.insert(pe.pregunta.grupo());
+        QVERIFY(Generador::cambiarPregunta(banco, c, r, 0, 2, {}));
+        QVERIFY(delOtro.contains(r.modelos[0].preguntas[2].pregunta.grupo()));
+        QVERIFY(avisoQueContiene(r, QStringLiteral("«Uno», pregunta 3: ")));
+        QVERIFY(avisoQueContiene(r, QStringLiteral("está también en otro examen")));
+    }
+
+    void cambiarSinOtraNoCambiaNada()
+    {
+        // El tema 1 tiene 3 números y el examen los usa todos.
+        const QVector<Pregunta> banco = bancoInventado(1, 3);
+        ConfigExamen c = configuracion(8);
+        c.preguntasPorTema = {{1, 3}};
+        c.nombresModelos = {QStringLiteral("Uno")};
+        ResultadoGeneracion r = Generador::generar(banco, c);
+        const QString antes = firma(r);
+        QVERIFY(!Generador::cambiarPregunta(banco, c, r, 0, 1, {}));
+        QCOMPARE(firma(r), antes);
+        QVERIFY(!Generador::cambiarPregunta(banco, c, r, 0, 3, {}));   // no hay pregunta 4
     }
 
     void gruposDisponibles()

@@ -46,7 +46,7 @@ ctest --test-dir build --output-on-failure
 ```
 
 Están en `tests/`, con Qt Test (incluido en `qt6-base-dev`), y tardan unos segundos. Comprueban el generador
-(reparto por tema, variantes y pseudorrepetidas, reparto de la correcta, preguntas ya usadas), el comprobador de
+(reparto por tema, variantes y pseudorrepetidas, reparto de la correcta, preguntas ya usadas, cambio de una pregunta), el comprobador de
 estilo, el formato de los enunciados, la base de datos (JSON, copia de seguridad, transacciones, historial, temas),
 la maqueta (que un examen de 10 preguntas quepa en un folio, y la versión con letra grande) y las exportaciones, las
 parecidas, el cuestionario de Moodle, los recorridos principales de la interfaz y la ayuda (que tenga los apartados a
@@ -82,6 +82,11 @@ que se ve o se hace en el programa, hay que actualizarlo.
   juntas.
   También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar este examen…»): se elige la
   duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar «Empezar».
+- Una pregunta que no convenza se cambia por otra sin volver a generar: botón derecho sobre ella en la vista («Cambiar
+  la pregunta N por otra del tema T») o su número en «Pregunta» y «Cambiar por otra». La nueva es del mismo tema, va
+  en el mismo sitio y, si se barajan las opciones, con la correcta en la misma letra, así que el resto de los exámenes
+  no cambia; se elige con las reglas de la generación, y las ya quitadas de ese examen no vuelven mientras queden
+  otras. «Deshacer el cambio» los deshace del último al primero. Después, la semilla ya no reproduce los exámenes.
 - Cada examen cabe en una página por cada 10 preguntas (un examen de 10 preguntas, en un folio). Si con la
   maqueta normal no cabe, el programa la compacta por niveles: opciones en dos columnas (a c / b d) cuando
   así ocupan menos líneas, menos separación entre preguntas y letra algo menor (hasta 9 pt). El nivel usado

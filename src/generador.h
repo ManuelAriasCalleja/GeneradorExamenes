@@ -4,6 +4,7 @@
 
 #include <QHash>
 #include <QMap>
+#include <QSet>
 #include <QStringList>
 #include <QVector>
 #include <array>
@@ -69,6 +70,15 @@ class Generador
 {
 public:
     static ResultadoGeneracion generar(const QVector<Pregunta> &banco, const ConfigExamen &config);
+
+    // Cambia la pregunta 'indice' del examen 'modelo' por otra del mismo tema, elegida con las reglas de 'config'
+    // como al generar: nunca una variante o pseudorrepetida de las demás del examen; si no se quieren repetir,
+    // mejor una que no esté en los otros exámenes; y mejor las que no han salido antes o hace más tiempo. Las de
+    // los grupos 'descartados' («T2-5», ya quitados de ese examen) solo vuelven si no queda otra. La nueva va en el
+    // mismo sitio y, si se barajan las opciones, con la correcta en la misma letra, así que el resto no cambia.
+    // Pone al día los avisos de ese examen. Devuelve false, sin cambiar nada, si no hay ninguna que pueda ir.
+    static bool cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExamen &config, ResultadoGeneracion &resultado,
+                                int modelo, int indice, const QSet<QString> &descartados);
 
     // Número de preguntas distintas (sin contar variantes) disponibles por tema.
     static QMap<int, int> gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar);

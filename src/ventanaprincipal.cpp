@@ -32,6 +32,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QLocale>
+#include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPixmap>
@@ -48,9 +49,11 @@
 #include <QStatusBar>
 #include <QTabWidget>
 #include <QTableView>
+#include <QTextBlock>
 #include <QTextBrowser>
 #include <QTextDocument>
 #include <QVBoxLayout>
+#include <memory>
 
 namespace {
 
@@ -340,8 +343,11 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     m_visorExamen = new QTextBrowser;
     m_visorExamen->setHtml(QStringLiteral("<p style=\"color:gray\">Elija cuántas preguntas quiere de cada tema y pulse "
                                           "<b>Generar exámenes</b>.</p>"));
+    m_visorExamen->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_visorExamen, &QWidget::customContextMenuRequested, this, &VentanaPrincipal::menuVista);
     lr->addWidget(m_visorExamen, 1);
-    // Dos filas de botones (exportar; registrar y practicar) para que la ventana quepa en pantallas pequeñas.
+    // Dos filas de botones (exportar; cambiar preguntas, registrar y practicar) para que la ventana quepa en
+    // pantallas pequeñas.
     auto *exportar = new QHBoxLayout;
     auto *otras = new QHBoxLayout;
     auto boton = [&](QHBoxLayout *fila, const QString &texto, void (VentanaPrincipal::*slot)()) {
@@ -350,6 +356,7 @@ QWidget *VentanaPrincipal::crearPanelResultados()
         connect(b, &QPushButton::clicked, this, slot);
         fila->addWidget(b);
         m_botonesExamen << b;
+        return b;
     };
     boton(exportar, QStringLiteral("Imprimir…"), &VentanaPrincipal::vistaPreviaImpresion);
     boton(exportar, QStringLiteral("Exportar PDF…"), &VentanaPrincipal::exportarPdf);
@@ -357,6 +364,19 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     boton(exportar, QStringLiteral("Exportar HTML…"), &VentanaPrincipal::exportarHtml);
     boton(exportar, QStringLiteral("Exportar LaTeX…"), &VentanaPrincipal::exportarLatex);
     exportar->addStretch();
+    m_preguntaACambiar = new QSpinBox;
+    m_preguntaACambiar->setEnabled(false);
+    m_preguntaACambiar->setToolTip(QStringLiteral("Número de la pregunta que se quiere cambiar, en el examen que se ve.\n"
+                                                  "También se puede pulsar con el botón derecho sobre la pregunta."));
+    otras->addWidget(new QLabel(QStringLiteral("Pregunta:")));
+    otras->addWidget(m_preguntaACambiar);
+    boton(otras, QStringLiteral("Cambiar por otra"), &VentanaPrincipal::cambiarPregunta)
+        ->setToolTip(QStringLiteral("Sustituye la pregunta por otra del mismo tema, en el mismo sitio y con la correcta en la "
+                                    "misma letra, con las mismas reglas que al generar. El resto de los exámenes no cambia."));
+    m_deshacerCambio = new QPushButton(QStringLiteral("Deshacer el cambio"));
+    m_deshacerCambio->setEnabled(false);
+    connect(m_deshacerCambio, &QPushButton::clicked, this, &VentanaPrincipal::deshacerCambio);
+    otras->addWidget(m_deshacerCambio);
     otras->addStretch();
     boton(otras, QStringLiteral("Registrar convocatoria…"), &VentanaPrincipal::registrarConvocatoria);
     boton(otras, QStringLiteral("Practicar este examen…"), &VentanaPrincipal::practicar);
@@ -489,10 +509,14 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
         return false;
     }
     m_resultado = ResultadoGeneracion();
+    m_cambios.clear();
+    m_quitadas.clear();
     m_selectorModelo->clear();
     m_correctasPorLetra->clear();
     for (QPushButton *b : m_botonesExamen)
         b->setEnabled(false);
+    m_preguntaACambiar->setEnabled(false);
+    m_deshacerCambio->setEnabled(false);
     recargarDatos();
     QSettings().setValue(QStringLiteral("bd/ruta"), ruta);
     return true;
@@ -998,13 +1022,18 @@ void VentanaPrincipal::generar()
         QMessageBox::information(this, windowTitle(), error);
         return;
     }
-    // Los exámenes que se generan de nuevo no cuentan como usados: sustituirán a los registrados con su nombre.
-    if (m_evitarRecientes->isChecked())
-        config.usoReciente = m_bd.usoReciente(m_numRecientes->value(), m_anio->value(),
-                                              m_convocatoria->currentText().trimmed(), config.nombresModelos);
+    config.usoReciente = usoReciente(config.nombresModelos);
     m_resultado = Generador::generar(m_preguntas, config);
+    m_configResultado = config;
     guardarConfiguracion();
     presentarResultado();
+}
+
+QHash<QString, int> VentanaPrincipal::usoReciente(const QStringList &examenes)
+{
+    if (!m_evitarRecientes->isChecked())
+        return {};
+    return m_bd.usoReciente(m_numRecientes->value(), m_anio->value(), m_convocatoria->currentText().trimmed(), examenes);
 }
 
 void VentanaPrincipal::presentarResultado(const QString &origen)
@@ -1017,6 +1046,10 @@ void VentanaPrincipal::presentarResultado(const QString &origen)
     m_selectorModelo->blockSignals(false);
     for (QPushButton *b : std::as_const(m_botonesExamen))
         b->setEnabled(hayExamen());
+    m_preguntaACambiar->setEnabled(hayExamen());
+    m_cambios.clear();
+    m_quitadas.clear();
+    m_deshacerCambio->setEnabled(false);
     actualizarMaqueta();
 }
 
@@ -1025,6 +1058,9 @@ void VentanaPrincipal::actualizarMaqueta()
     QStringList avisos = m_resultado.avisos;
     QString info = m_origenResultado.isEmpty() ? QString() : m_origenResultado + QStringLiteral("  ·  ");
     info += QStringLiteral("Semilla: %1").arg(m_resultado.semilla);
+    if (!m_cambios.isEmpty())
+        info += m_cambios.size() == 1 ? QStringLiteral(" (con una pregunta cambiada a mano)")
+                                      : QStringLiteral(" (con %1 preguntas cambiadas a mano)").arg(m_cambios.size());
     if (m_letraGrande->isChecked()) {
         info += QStringLiteral("  ·  Letra grande (versión adaptada, sin límite de páginas)");
     } else {
@@ -1042,6 +1078,8 @@ void VentanaPrincipal::actualizarMaqueta()
     m_avisos->setVisible(!avisos.isEmpty());
     m_infoGeneracion->setText(info);
     m_infoGeneracion->setToolTip(QStringLiteral("Escriba esta semilla en Opciones para volver a obtener los mismos exámenes.\n"
+                                                "Si se han cambiado preguntas a mano, ya no los reproduce: regístrelos para "
+                                                "conservarlos.\n"
                                                 "La maqueta se compacta (opciones en dos columnas, menos separación, letra menor) "
                                                 "hasta que cada examen cabe en una página por cada 10 preguntas; con «Letra grande» "
                                                 "no se compacta."));
@@ -1059,6 +1097,7 @@ void VentanaPrincipal::mostrarModelo()
     if (i < 0 || i >= m_resultado.modelos.size())
         return;
     m_correctasPorLetra->setText(QStringLiteral("Correctas: ") + Maquetador::textoCorrectasPorLetra(m_resultado.modelos.at(i)));
+    m_preguntaACambiar->setRange(1, qMax(1, int(m_resultado.modelos.at(i).preguntas.size())));
     const QString html = Maquetador::examenHtml(m_resultado.modelos.at(i), datosConvocatoria(), m_verSoluciones->isChecked(),
                                                 nivelMaqueta());
     ponerDocumento(m_visorExamen, Maquetador::crearDocumento(html, Maquetador::preguntasDe(m_resultado.modelos), m_visorExamen));
@@ -1236,9 +1275,108 @@ void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)
         m_acierto->setValue(d.puntosAcierto);
         m_fallo->setValue(d.puntosFallo);
     }
+    // Para cambiar preguntas de los exámenes cargados: las opciones de la ventana.
+    m_configResultado = configuracionExamen();
+    m_configResultado.nombresModelos = nombresModelos();
+    m_configResultado.usoReciente = usoReciente(m_configResultado.nombresModelos);
     if (auto *pestanas = qobject_cast<QTabWidget *>(centralWidget()))
         pestanas->setCurrentIndex(0);
     presentarResultado(QStringLiteral("Registrada el %1").arg(QLocale().toString(primero->registrado.date(), QLocale::ShortFormat)));
+}
+
+void VentanaPrincipal::cambiarPregunta()
+{
+    cambiar(m_preguntaACambiar->value() - 1);
+}
+
+void VentanaPrincipal::cambiar(int indice)
+{
+    const int modelo = m_selectorModelo->currentIndex();
+    if (modelo < 0 || modelo >= m_resultado.modelos.size() || indice < 0 || indice >= m_resultado.modelos.at(modelo).preguntas.size())
+        return;
+    const QString nombre = m_resultado.modelos.at(modelo).nombre;
+    const Pregunta quitada = m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta;
+    const ResultadoGeneracion antes = m_resultado;
+    if (!Generador::cambiarPregunta(m_preguntas, m_configResultado, m_resultado, modelo, indice, m_quitadas.value(modelo))) {
+        QMessageBox::information(this, windowTitle(),
+                                 QStringLiteral("No hay ninguna otra pregunta del tema %1 que pueda ir en lugar de la %2 (%3): "
+                                                "las demás son variantes o pseudorrepetidas de otras del examen.")
+                                     .arg(quitada.temaNumero).arg(indice + 1).arg(quitada.codigoCompleto()));
+        return;
+    }
+    m_cambios << CambioPregunta{antes, modelo, indice};
+    m_quitadas[modelo].insert(quitada.grupo());
+    m_deshacerCambio->setEnabled(true);
+    actualizarMaqueta();
+    m_preguntaACambiar->setValue(indice + 1);
+    m_visorExamen->scrollToAnchor(QStringLiteral("q%1").arg(indice + 1));
+    statusBar()->showMessage(QStringLiteral("«%1», pregunta %2: %3 en lugar de %4")
+                                 .arg(nombre).arg(indice + 1)
+                                 .arg(m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta.codigoCompleto(),
+                                      quitada.codigoCompleto()),
+                             10000);
+}
+
+void VentanaPrincipal::deshacerCambio()
+{
+    if (m_cambios.isEmpty())
+        return;
+    const CambioPregunta cambio = m_cambios.takeLast();
+    m_resultado = cambio.antes;
+    m_deshacerCambio->setEnabled(!m_cambios.isEmpty());
+    // Se vuelve al examen y la pregunta del cambio.
+    m_selectorModelo->blockSignals(true);
+    m_selectorModelo->setCurrentIndex(cambio.modelo);
+    m_selectorModelo->blockSignals(false);
+    actualizarMaqueta();
+    m_preguntaACambiar->setValue(cambio.indice + 1);
+    m_visorExamen->scrollToAnchor(QStringLiteral("q%1").arg(cambio.indice + 1));
+    statusBar()->showMessage(QStringLiteral("Deshecho el cambio de la pregunta %1 de «%2»")
+                                 .arg(cambio.indice + 1).arg(m_resultado.modelos.at(cambio.modelo).nombre),
+                             8000);
+}
+
+int VentanaPrincipal::preguntaEn(const QPoint &enVista) const
+{
+    // Cada pregunta empieza con un ancla «qN» (ver Maquetador): la primera que haya hacia atrás.
+    for (QTextBlock b = m_visorExamen->cursorForPosition(enVista).block(); b.isValid(); b = b.previous()) {
+        for (auto it = b.begin(); !it.atEnd(); ++it) {
+            for (const QString &ancla : it.fragment().charFormat().anchorNames()) {
+                bool ok = false;
+                const int n = ancla.startsWith(QLatin1Char('q')) ? ancla.mid(1).toInt(&ok) : 0;
+                if (ok)
+                    return n - 1;
+            }
+        }
+    }
+    return -1;
+}
+
+void VentanaPrincipal::menuVista(const QPoint &enVista)
+{
+    std::unique_ptr<QMenu> menu(m_visorExamen->createStandardContextMenu());
+    QAction *primera = menu->actions().value(0);
+    QAction *cambiar = nullptr;
+    QAction *deshacer = nullptr;
+    const int modelo = m_selectorModelo->currentIndex();
+    const int indice = hayExamen() && modelo >= 0 && modelo < m_resultado.modelos.size() ? preguntaEn(enVista) : -1;
+    if (indice >= 0 && indice < m_resultado.modelos.at(modelo).preguntas.size()) {
+        cambiar = new QAction(QStringLiteral("Cambiar la pregunta %1 por otra del tema %2")
+                                  .arg(indice + 1).arg(m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta.temaNumero),
+                              menu.get());
+        menu->insertAction(primera, cambiar);
+    }
+    if (!m_cambios.isEmpty()) {
+        deshacer = new QAction(QStringLiteral("Deshacer el último cambio de pregunta"), menu.get());
+        menu->insertAction(primera, deshacer);
+    }
+    if (cambiar || deshacer)
+        menu->insertSeparator(primera);
+    QAction *elegida = menu->exec(m_visorExamen->viewport()->mapToGlobal(enVista));
+    if (elegida && elegida == cambiar)
+        this->cambiar(indice);
+    else if (elegida && elegida == deshacer)
+        deshacerCambio();
 }
 
 void VentanaPrincipal::practicar()

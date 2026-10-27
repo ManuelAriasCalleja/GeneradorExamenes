@@ -4,8 +4,10 @@
 #include "generador.h"
 #include "maquetador.h"
 
+#include <QHash>
 #include <QMainWindow>
 #include <QMap>
+#include <QSet>
 #include <QVector>
 
 class FiltroPreguntas;
@@ -20,6 +22,7 @@ class QLineEdit;
 class QListWidget;
 class QListWidgetItem;
 class QPlainTextEdit;
+class QPoint;
 class QPrinter;
 class QPushButton;
 class QSpinBox;
@@ -72,6 +75,8 @@ private slots:
     void registrarConvocatoria();
     void historialConvocatorias();
     void practicar();
+    void cambiarPregunta();   // la del número elegido bajo la vista
+    void deshacerCambio();
 
     // Banco de preguntas
     void filtrar();
@@ -116,6 +121,16 @@ private:
     // Avisos, nivel de la maqueta y examen mostrado, según el resultado y la casilla «Letra grande».
     void actualizarMaqueta();
     void cargarRegistrados(const QVector<int> &examenes);
+    // Cambia la pregunta 'indice' del examen que se ve por otra (ver Generador::cambiarPregunta).
+    void cambiar(int indice);
+    // Menú del botón derecho en la vista del examen: el normal, con «Cambiar la pregunta N por otra» si se pulsa
+    // sobre una pregunta y «Deshacer» si hay algún cambio.
+    void menuVista(const QPoint &enVista);
+    // Pregunta (desde 0) del examen que está en el punto 'enVista' de la vista, o -1 (cabecera, instrucciones).
+    int preguntaEn(const QPoint &enVista) const;
+    // Si se evitan, las preguntas de las últimas convocatorias registradas. Los exámenes 'examenes' de la convocatoria
+    // de la ventana no cuentan: son los que se generan, que sustituirán a los registrados con su nombre.
+    QHash<QString, int> usoReciente(const QStringList &examenes);
     DatosConvocatoria datosConvocatoria() const;
     ConfigExamen configuracionExamen() const;
     QString nombreBaseFichero() const;
@@ -138,6 +153,18 @@ private:
     QVector<Pregunta> m_preguntas;
     ResultadoGeneracion m_resultado;
     QString m_origenResultado;              // «Registrada el …» si viene del historial
+    // Para cambiar preguntas: la configuración con que se generó m_resultado (o, si viene del historial, la de la
+    // ventana al cargarlo); los grupos quitados de cada examen, que no se vuelven a proponer mientras haya otros; y
+    // los cambios hechos, para deshacerlos.
+    ConfigExamen m_configResultado;
+    QHash<int, QSet<QString>> m_quitadas;
+    struct CambioPregunta
+    {
+        ResultadoGeneracion antes;
+        int modelo;
+        int indice;
+    };
+    QVector<CambioPregunta> m_cambios;
     QPushButton *m_avisoJson;               // en la barra de estado: el JSON enlazado no coincide con el banco
     QAction *m_accionJsonAuto;
     bool m_jsonCoincide = false;            // el JSON enlazado existe y coincide con el banco
@@ -172,6 +199,8 @@ private:
     QLabel *m_infoGeneracion;
     QTextBrowser *m_visorExamen;
     QList<QPushButton *> m_botonesExamen;
+    QSpinBox *m_preguntaACambiar;
+    QPushButton *m_deshacerCambio;
 
     // Pestaña del banco
     QComboBox *m_filtroTema;

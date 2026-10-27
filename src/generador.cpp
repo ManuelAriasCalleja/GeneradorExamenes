@@ -35,6 +35,18 @@ bool usable(const Pregunta &p, bool incluirParaRevisar)
     return p.activa() && (incluirParaRevisar || !p.revisar);
 }
 
+// Pone la correcta de la pregunta en la letra 'letra' y las otras tres opciones al azar en las demás.
+void ponerCorrectaEn(PreguntaExamen &pe, int letra, QRandomGenerator &rng)
+{
+    std::array<int, 3> otras{};
+    for (int o = 0, k = 0; o < 4; ++o)
+        if (o != pe.pregunta.correcta)
+            otras[k++] = o;
+    std::shuffle(otras.begin(), otras.end(), rng);
+    for (int pos = 0, k = 0; pos < 4; ++pos)
+        pe.orden[pos] = pos == letra ? pe.pregunta.correcta : otras[k++];
+}
+
 // Baraja las opciones de las preguntas de un examen de modo que la correcta quede repartida por igual entre a),
 // b), c) y d) y, si se puede, sin caer tres veces seguidas en la misma letra. Las preguntas con opciones que se
 // refieren a otras («Todas las anteriores»...) se quedan como están.
@@ -81,17 +93,8 @@ void repartirCorrectas(QVector<PreguntaExamen> &preguntas, QRandomGenerator &rng
             letras = otras;
     }
 
-    // En cada pregunta, la correcta en su letra y las otras tres opciones al azar en las demás.
-    for (int j = 0; j < barajables.size(); ++j) {
-        PreguntaExamen &pe = preguntas[barajables.at(j)];
-        std::array<int, 3> otras{};
-        for (int o = 0, k = 0; o < 4; ++o)
-            if (o != pe.pregunta.correcta)
-                otras[k++] = o;
-        std::shuffle(otras.begin(), otras.end(), rng);
-        for (int pos = 0, k = 0; pos < 4; ++pos)
-            pe.orden[pos] = pos == letras.at(j) ? pe.pregunta.correcta : otras[k++];
-    }
+    for (int j = 0; j < barajables.size(); ++j)
+        ponerCorrectaEn(preguntas[barajables.at(j)], letras.at(j), rng);
 }
 
 // Estado de la elección de las preguntas de una convocatoria: las preguntas que se pueden usar, por tema y número;
@@ -106,6 +109,10 @@ public:
     QVector<PreguntaExamen> elegirDelTema(int tema, int pedidas, QSet<QString> &usadosModelo, bool &repetida);
     // Avisos de los temas en que no han quedado bastantes preguntas sin usar antes.
     QStringList avisosUsoAnterior() const;
+    // La pregunta que va en lugar de la 'indice' del examen 'modelo' (ver Generador::cambiarPregunta), o una con id 0
+    // si no hay ninguna. En 'aviso', por qué no es de las deseables, si es el caso.
+    Pregunta sustituta(const QVector<Modelo> &modelos, int modelo, int indice, const QSet<QString> &descartados,
+                       QString &aviso);
 
 private:
     // Uso anterior de una pregunta: 0 = nunca; 1 = marcada «old» (si se evitan); 2 o más = salió en una
@@ -204,6 +211,92 @@ Pregunta Seleccion::elegirVariante(const QVector<Pregunta> &variantes)
     return elegida;
 }
 
+Pregunta Seleccion::sustituta(const QVector<Modelo> &modelos, int modelo, int indice, const QSet<QString> &descartados,
+                              QString &aviso)
+{
+    const PreguntaExamen &quitada = modelos.at(modelo).preguntas.at(indice);
+    const int tema = quitada.pregunta.temaNumero;
+    // Grupos de las demás preguntas del examen (no pueden volver a salir en él), veces que está cada grupo en los
+    // otros exámenes y grupos ya quitados de este examen, la quitada incluida.
+    QSet<QString> enElExamen, quitados;
+    QHash<QString, int> enOtros;
+    for (int m = 0; m < modelos.size(); ++m) {
+        for (int i = 0; i < modelos.at(m).preguntas.size(); ++i) {
+            const Pregunta &p = modelos.at(m).preguntas.at(i).pregunta;
+            const QString r = raiz(p.temaNumero, p.numero);
+            if (m != modelo) {
+                enOtros[r] += 1;
+                m_idsUsados.insert(p.id);
+            } else if (i != indice) {
+                enElExamen.insert(r);
+            }
+        }
+    }
+    quitados.insert(raiz(tema, quitada.pregunta.numero));
+    for (const QString &g : descartados)
+        quitados.insert(m_pseudo.raiz(g));
+
+    // Coste de cada candidata, de lo que más pesa a lo que menos: ya quitada de este examen; repetida en otro
+    // examen (si no se quieren repetir); uso anterior de su grupo; variante ya usada en otro examen; uso anterior
+    // de la variante; y, si se barajan las opciones, correcta fija en otra letra que la de la quitada.
+    const int letra = quitada.correcta();
+    using Coste = std::array<int, 6>;
+    auto coste = [&](const Pregunta &v) {
+        const QString r = raiz(tema, v.numero);
+        return Coste{quitados.contains(r) ? 1 : 0, m_config.noRepetirEntreModelos ? enOtros.value(r) : 0,
+                     m_usoAnteriorGrupo.value(r), m_idsUsados.contains(v.id) ? 1 : 0, usoAnterior(v),
+                     m_config.barajarOpciones && Estilo::tieneOpcionesDependientes(v) && v.correcta != letra ? 1 : 0};
+    };
+    // Las mejores variantes de cada grupo y, de los grupos, los de menor coste: se elige un grupo al azar (todos con
+    // la misma probabilidad, tengan las variantes que tengan) y una de sus mejores variantes.
+    QVector<QVector<Pregunta>> mejores;
+    Coste minimo{};
+    const QMap<int, QVector<Pregunta>> grupos = m_porTema.value(tema);
+    for (auto it = grupos.cbegin(); it != grupos.cend(); ++it) {
+        if (enElExamen.contains(raiz(tema, it.key())))
+            continue;
+        QVector<Pregunta> variantes;
+        Coste mejorDelGrupo{};
+        for (const Pregunta &v : it.value()) {
+            if (v.id == quitada.pregunta.id)
+                continue;
+            const Coste c = coste(v);
+            if (variantes.isEmpty() || c < mejorDelGrupo) {
+                mejorDelGrupo = c;
+                variantes.clear();
+            }
+            if (c == mejorDelGrupo)
+                variantes << v;
+        }
+        if (variantes.isEmpty())
+            continue;
+        if (mejores.isEmpty() || mejorDelGrupo < minimo) {
+            minimo = mejorDelGrupo;
+            mejores.clear();
+        }
+        if (mejorDelGrupo == minimo)
+            mejores << variantes;
+    }
+    if (mejores.isEmpty())
+        return Pregunta();
+    const QVector<Pregunta> &grupo = mejores.at(m_rng.bounded(qsizetype(mejores.size())));
+    const Pregunta elegida = grupo.at(m_rng.bounded(qsizetype(grupo.size())));
+
+    if (minimo[0])
+        aviso = QStringLiteral("no queda ninguna otra pregunta del tema %1; %2 es (o es variante de) una de las ya quitadas.")
+                    .arg(tema).arg(elegida.codigoCompleto());
+    else if (minimo[1])
+        aviso = QStringLiteral("%1 está también en otro examen de la convocatoria: no queda ninguna otra del tema %2.")
+                    .arg(elegida.codigoCompleto()).arg(tema);
+    else if (minimo[2] >= 2)
+        aviso = QStringLiteral("%1 salió en una de las últimas convocatorias registradas: no queda ninguna otra del "
+                               "tema %2 sin usar.").arg(elegida.codigoCompleto()).arg(tema);
+    else if (minimo[2] == 1)
+        aviso = QStringLiteral("%1 está marcada «old»: no queda ninguna otra del tema %2 sin usar.")
+                    .arg(elegida.codigoCompleto()).arg(tema);
+    return elegida;
+}
+
 QStringList Seleccion::avisosUsoAnterior() const
 {
     QStringList avisos;
@@ -242,6 +335,39 @@ QString avisoReparto(const Modelo &modelo, bool barajadas)
 }
 
 } // namespace
+
+bool Generador::cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExamen &config, ResultadoGeneracion &resultado,
+                                int modelo, int indice, const QSet<QString> &descartados)
+{
+    if (modelo < 0 || modelo >= resultado.modelos.size() || indice < 0 || indice >= resultado.modelos.at(modelo).preguntas.size())
+        return false;
+    QRandomGenerator rng(QRandomGenerator::global()->generate());
+    Seleccion seleccion(banco, config, rng);
+    QString aviso;
+    const Pregunta nueva = seleccion.sustituta(resultado.modelos, modelo, indice, descartados, aviso);
+    if (nueva.id == 0)
+        return false;
+
+    Modelo &m = resultado.modelos[modelo];
+    PreguntaExamen &pe = m.preguntas[indice];
+    const int letra = pe.correcta();
+    pe = PreguntaExamen();
+    pe.pregunta = nueva;
+    if (config.barajarOpciones && !Estilo::tieneOpcionesDependientes(nueva))
+        ponerCorrectaEn(pe, letra, rng);
+
+    // Los avisos de este examen que pueden haber cambiado: el del reparto de la correcta («Nacional Original»: …)
+    // y el de la pregunta de este sitio («Nacional Original», pregunta 7: …).
+    const QString delReparto = QStringLiteral("«%1»:").arg(m.nombre);
+    const QString delSitio = QStringLiteral("«%1», pregunta %2: ").arg(m.nombre).arg(indice + 1);
+    resultado.avisos.removeIf([&](const QString &a) { return a.startsWith(delReparto) || a.startsWith(delSitio); });
+    if (!aviso.isEmpty())
+        resultado.avisos << delSitio + aviso;
+    const QString reparto = avisoReparto(m, config.barajarOpciones);
+    if (!reparto.isEmpty())
+        resultado.avisos << reparto;
+    return true;
+}
 
 QMap<int, int> Generador::gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar)
 {

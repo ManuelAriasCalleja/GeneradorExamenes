@@ -78,7 +78,9 @@ convocatoria.</li>
 reparto habitual.</li>
 <li>Pulse <b>Generar exámenes</b>. Revise cada examen en la parte derecha (se cambia de uno a otro en
 <b>Examen</b>) y lea los avisos del recuadro amarillo, si los hay.</li>
-<li>Si algo no le convence, vuelva a pulsar <b>Generar exámenes</b>: cada vez salen otros.</li>
+<li>Si una pregunta no le convence, cámbiela por otra con el botón derecho (ver
+<a href="#cambiar-pregunta">Cambiar una pregunta</a>). Si no le convence el conjunto, vuelva a pulsar
+<b>Generar exámenes</b>: cada vez salen otros.</li>
 <li>Pulse <b>Exportar PDF…</b> para guardar los exámenes y <b>Soluciones PDF…</b> para guardar las soluciones.</li>
 <li>Cuando sean los definitivos, pulse <b>Registrar convocatoria…</b>: quedan guardados en el historial y sus
 preguntas se evitarán en las convocatorias siguientes.</li>
@@ -200,7 +202,35 @@ y para exportar a HTML y LaTeX.</li>
 si los exámenes se han cargado del historial. Su texto se puede seleccionar y copiar.</li>
 <li>El recuadro amarillo reúne los avisos: temas sin bastantes preguntas, preguntas repetidas, una letra correcta
 demasiadas veces, un examen que no cabe en su página… Conviene leerlos antes de exportar.</li>
+<li><b>Pregunta</b> y <b>Cambiar por otra</b>, bajo la vista: cambian una pregunta del examen que se ve (ver
+<a href="#cambiar-pregunta">Cambiar una pregunta</a>).</li>
 </ul>
+
+<h3><a name="cambiar-pregunta"></a>Cambiar una pregunta</h3>
+<p>Si una pregunta de un examen no le convence, no hace falta volver a generarlos todos: pulse sobre ella con el botón
+derecho y elija «Cambiar la pregunta N por otra del tema T». También se puede escribir su número en <b>Pregunta</b>,
+bajo la vista, y pulsar <b>Cambiar por otra</b>. La vista se queda en la pregunta nueva y la barra de estado dice cuál
+ha entrado y cuál ha salido.</p>
+<ul>
+<li>La nueva es del mismo tema y va en el mismo sitio. Si se barajan las opciones, su respuesta correcta queda en la
+misma letra que la de la quitada, así que no cambian ni el resto del examen, ni los demás exámenes, ni el reparto de
+la correcta.</li>
+<li>Se elige con las mismas reglas que al generar: nunca una variante o una pseudorrepetida de otra pregunta del
+examen; si no se repiten preguntas entre exámenes, ninguna de los otros exámenes; y primero las que no han salido
+nunca, luego las «old» y por último las de las convocatorias registradas, de la más antigua a la más reciente.</li>
+<li>Si se cambia otra vez, no vuelven a salir las preguntas ya quitadas de ese examen mientras queden otras.</li>
+<li>Si la nueva no es de las deseables (por ejemplo, porque ya está en otro examen o salió en una convocatoria
+reciente y no quedaba otra), el recuadro amarillo lo avisa. Si no hay ninguna que pueda ir en su lugar, no se cambia
+nada y se avisa.</li>
+<li><b>Deshacer el cambio</b> (o «Deshacer el último cambio de pregunta», con el botón derecho) deshace los cambios,
+del último al primero.</li>
+</ul>
+<p>Se pueden cambiar preguntas también en los exámenes cargados del <a href="#historial">historial</a>; entonces se
+eligen con las opciones que haya en la ventana. Si después se registran otra vez, sustituyen a los que había.</p>
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+Después de cambiar preguntas a mano, la semilla ya no reproduce los exámenes (la línea gris lo indica). Para
+conservarlos, regístrelos.
+</td></tr></table>
 
 <h3><a name="maqueta"></a>Una página por cada 10 preguntas</h3>
 <p>Cada examen debe caber en una página por cada 10 preguntas: un examen de 10 preguntas, en un folio. Si con la
@@ -223,8 +253,9 @@ las mismas preguntas en el mismo orden: basta con exportar los normales, marcar 
 <p>Cada vez que se generan exámenes se usa un número, la semilla, que aparece en la línea gris. Si se escribe ese
 número en <b>Semilla</b> y se vuelve a generar con la misma configuración, salen exactamente los mismos exámenes,
 siempre que no hayan cambiado ni el banco ni el historial.</p>
-<p>Para recuperar los exámenes de una convocatoria pasada es mejor el <a href="#historial">historial</a>, que los
-guarda tal como salieron aunque después se corrijan sus preguntas.</p>
+<p>Si se han cambiado preguntas a mano, la semilla ya no reproduce los exámenes. Para recuperar los exámenes de una
+convocatoria pasada es mejor el <a href="#historial">historial</a>, que los guarda tal como salieron aunque después se
+corrijan sus preguntas.</p>
 
 <!-- ======================================================================================================= -->
 <h2><a name="exportar"></a>Imprimir y exportar</h2>
@@ -582,6 +613,7 @@ Si no existe, se crea.</p>
 aparece lo buscado.</td></tr>
 <tr><td>Doble clic en un examen de la lista</td><td>Cambiar su nombre.</td></tr>
 <tr><td>Arrastrar un examen de la lista</td><td>Cambiar el orden de los exámenes.</td></tr>
+<tr><td>Clic derecho en una pregunta del examen</td><td>Cambiarla por otra del mismo tema.</td></tr>
 <tr><td>Doble clic en una pregunta del banco</td><td>Abrirla en el editor.</td></tr>
 <tr><td>Clic en el título de una columna</td><td>Ordenar la tabla del banco por esa columna.</td></tr>
 <tr><td>Doble clic en un examen del historial</td><td>Cargarlo.</td></tr>

@@ -19,6 +19,7 @@
 #include <QDir>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
 #include <QMessageBox>
 #include <QPointer>
 #include <QPlainTextEdit>
@@ -374,6 +375,84 @@ private slots:
         const QString xml = QString::fromUtf8(f.readAll());
         QCOMPARE(xml.count(QStringLiteral("type=\"multichoice\"")), bancoInventado().size());
         QCOMPARE(xml.count(QStringLiteral("type=\"category\"")), 8);
+    }
+
+    void ventanaCambiaUnaPregunta()
+    {
+        QTemporaryDir dir;
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+            QVERIFY(llenarBaseDatos(bd, 8, bancoInventado()));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        QMetaObject::invokeMethod(&v, "generar");
+        QTextBrowser *visor = nullptr;
+        for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
+            if (t->toPlainText().contains(QStringLiteral("Pregunta contestada correctamente")))
+                visor = t;
+        QVERIFY(visor);
+        const QString antes = visor->toPlainText();
+        QSpinBox *numero = nullptr;
+        for (QSpinBox *s : v.findChildren<QSpinBox *>())
+            if (s->toolTip().startsWith(QStringLiteral("Número de la pregunta que se quiere cambiar")))
+                numero = s;
+        QPushButton *cambiar = nullptr, *deshacer = nullptr;
+        for (QPushButton *b : v.findChildren<QPushButton *>()) {
+            if (b->text() == QStringLiteral("Cambiar por otra"))
+                cambiar = b;
+            else if (b->text() == QStringLiteral("Deshacer el cambio"))
+                deshacer = b;
+        }
+        QVERIFY(numero && cambiar && deshacer);
+        QVERIFY(cambiar->isEnabled());
+        QVERIFY(!deshacer->isEnabled());
+
+        // Con el número y el botón; se deshace con «Deshacer el cambio».
+        numero->setValue(3);
+        cambiar->click();
+        QVERIFY(visor->toPlainText() != antes);
+        QVERIFY(deshacer->isEnabled());
+        bool avisa = false;
+        for (QLabel *l : v.findChildren<QLabel *>())
+            avisa = avisa || l->text().contains(QStringLiteral("con una pregunta cambiada a mano"));
+        QVERIFY(avisa);
+        deshacer->click();
+        QCOMPARE(visor->toPlainText(), antes);
+        QVERIFY(!deshacer->isEnabled());
+
+        // Con el botón derecho sobre la pregunta 5.
+        QTextBlock bloque;
+        for (QTextBlock b = visor->document()->begin(); b.isValid() && !bloque.isValid(); b = b.next())
+            for (auto it = b.begin(); !it.atEnd(); ++it)
+                if (it.fragment().charFormat().anchorNames().contains(QStringLiteral("q5")))
+                    bloque = b;
+        QVERIFY(bloque.isValid());
+        QTextCursor cursor(bloque);
+        visor->setTextCursor(cursor);
+        visor->ensureCursorVisible();
+        const QPoint punto = visor->cursorRect(cursor).center() + QPoint(4, 0);
+        QString opcion;
+        QTimer::singleShot(100, [&opcion] {
+            for (QWidget *w : QApplication::topLevelWidgets()) {
+                auto *menu = qobject_cast<QMenu *>(w);
+                if (!menu || !menu->isVisible())
+                    continue;
+                for (QAction *a : menu->actions())
+                    if (a->text().startsWith(QStringLiteral("Cambiar la pregunta"))) {
+                        opcion = a->text();
+                        menu->setActiveAction(a);
+                    }
+                QTest::keyClick(menu, opcion.isEmpty() ? Qt::Key_Escape : Qt::Key_Return);
+            }
+        });
+        QContextMenuEvent evento(QContextMenuEvent::Mouse, punto, visor->viewport()->mapToGlobal(punto));
+        QApplication::sendEvent(visor->viewport(), &evento);
+        QVERIFY2(opcion.startsWith(QStringLiteral("Cambiar la pregunta 5 por otra del tema")), qPrintable(opcion));
+        QVERIFY(visor->toPlainText() != antes);
+        QCOMPARE(numero->value(), 5);
     }
 
     void ayudaTieneLosApartados()
