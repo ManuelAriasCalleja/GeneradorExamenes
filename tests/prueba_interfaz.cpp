@@ -377,6 +377,14 @@ private slots:
                     b->click();
         });
         QVERIFY(QMetaObject::invokeMethod(&v, "exportarHtml"));
+        // Tras exportar, la barra de estado ofrece abrir la carpeta.
+        QPushButton *abrir = nullptr;
+        for (QPushButton *b : v.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Abrir la carpeta"))
+                abrir = b;
+        QVERIFY(abrir);
+        QVERIFY(abrir->isVisible());
+        QCOMPARE(abrir->toolTip(), QDir::toNativeSeparators(carpeta));
         QFile conSoluciones(carpeta + QStringLiteral("/") + QDir(carpeta).entryList({QStringLiteral("*_soluciones_*.html")}).value(0));
         QVERIFY(conSoluciones.open(QIODevice::ReadOnly));
         QVERIFY(QString::fromUtf8(conSoluciones.readAll()).contains(QStringLiteral("CON SOLUCIONES")));

@@ -18,6 +18,7 @@
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDate>
+#include <QDesktopServices>
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QFile>
@@ -53,6 +54,7 @@
 #include <QTextBlock>
 #include <QTextBrowser>
 #include <QTextDocument>
+#include <QUrl>
 #include <QVBoxLayout>
 #include <memory>
 
@@ -120,6 +122,15 @@ VentanaPrincipal::VentanaPrincipal(QWidget *parent)
     m_avisoJson->hide();
     connect(m_avisoJson, &QPushButton::clicked, this, &VentanaPrincipal::actualizarJsonBanco);
     statusBar()->addPermanentWidget(m_avisoJson);
+    m_abrirCarpeta = new QPushButton(QStringLiteral("Abrir la carpeta"));
+    m_abrirCarpeta->setFlat(true);
+    m_abrirCarpeta->setCursor(Qt::PointingHandCursor);
+    m_abrirCarpeta->setStyleSheet(QString::fromLatin1(kEstiloInformacion) + QStringLiteral("; padding: 1px 6px"));
+    m_abrirCarpeta->hide();
+    connect(m_abrirCarpeta, &QPushButton::clicked, this, [this]() {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(m_abrirCarpeta->property("carpeta").toString()));
+    });
+    statusBar()->addPermanentWidget(m_abrirCarpeta);
     leerConfiguracion();
 }
 
@@ -657,6 +668,7 @@ void VentanaPrincipal::exportarMoodle()
                                  .arg(Moodle::seleccion(m_preguntas, opciones).size())
                                  .arg(QDir::toNativeSeparators(dialogo.ruta())),
                              10000);
+    ofrecerCarpeta(QFileInfo(dialogo.ruta()).absolutePath());
 }
 
 void VentanaPrincipal::actualizarJsonBanco()
@@ -1075,6 +1087,7 @@ void VentanaPrincipal::presentarResultado(const QString &origen)
     m_cambios.clear();
     m_quitadas.clear();
     m_deshacerCambio->setEnabled(false);
+    ofrecerCarpeta(QString());
     actualizarMaqueta();
 }
 
@@ -1174,6 +1187,14 @@ void VentanaPrincipal::informarExportacion(const QStringList &escritos, const QS
     if (!nota.isEmpty())
         mensaje += QStringLiteral(" (%1)").arg(nota);
     statusBar()->showMessage(mensaje, 8000);
+    ofrecerCarpeta(QFileInfo(escritos.first()).absolutePath());
+}
+
+void VentanaPrincipal::ofrecerCarpeta(const QString &carpeta)
+{
+    m_abrirCarpeta->setProperty("carpeta", carpeta);
+    m_abrirCarpeta->setToolTip(QDir::toNativeSeparators(carpeta));
+    m_abrirCarpeta->setVisible(!carpeta.isEmpty());
 }
 
 void VentanaPrincipal::vistaPreviaImpresion()

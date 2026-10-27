@@ -83,7 +83,8 @@ que se ve o se hace en el programa, hay que actualizarlo.
   exportan todos de una vez; también se puede marcar «Todos los exámenes en un fichero». Las soluciones en PDF
   (tabla de estructura por temas como la de las instrucciones, plantilla de respuestas y exámenes con la
   solución marcada) se exportan igual, por examen (`2026_Junio_soluciones_Nacional_Original.pdf`…) o todas
-  juntas. En HTML y LaTeX, la casilla «Con soluciones» del diálogo (propuesta como esté «Mostrar soluciones») decide
+  juntas. Al terminar, el botón «Abrir la carpeta» de la barra de estado abre la carpeta de los ficheros. En HTML y
+  LaTeX, la casilla «Con soluciones» del diálogo (propuesta como esté «Mostrar soluciones») decide
   si van con ellas, y entonces los nombres llevan también «_soluciones».
   También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar este examen…»): se elige la
   duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar «Empezar».

@@ -149,6 +149,8 @@ private:
     void exportar(const QString &titulo, const QString &nombreBase, const QString &extension, Escritor escribir,
                   bool soluciones, const QString &nota = QString(), const QString &casillaSoluciones = QString());
     void informarExportacion(const QStringList &escritos, const QStringList &fallidos, const QString &nota = QString());
+    // Enseña en la barra de estado el botón que abre la carpeta donde se acaba de exportar (vacía: lo quita).
+    void ofrecerCarpeta(const QString &carpeta);
 
     BaseDatos m_bd;
     QVector<Tema> m_temas;
@@ -169,6 +171,7 @@ private:
     };
     QVector<CambioPregunta> m_cambios;
     QPushButton *m_avisoJson;               // en la barra de estado: el JSON enlazado no coincide con el banco
+    QPushButton *m_abrirCarpeta;            // en la barra de estado, tras exportar: abre la carpeta de los ficheros
     QAction *m_accionJsonAuto;
     bool m_jsonCoincide = false;            // el JSON enlazado existe y coincide con el banco
 
