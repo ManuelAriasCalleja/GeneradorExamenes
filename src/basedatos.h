@@ -5,6 +5,7 @@
 
 #include <QDateTime>
 #include <QHash>
+#include <QMap>
 #include <QSqlDatabase>
 #include <QString>
 #include <QVariant>
@@ -23,6 +24,13 @@ struct ExamenRegistrado
     int numPreguntas = 0;
 };
 
+// Reparto de preguntas por tema guardado en el banco, con un nombre: es uno de los botones («T1–T4») que lo ponen.
+struct Reparto
+{
+    QString nombre;
+    QMap<int, int> preguntas;        // número de tema -> preguntas
+};
+
 // Acceso a la base de datos SQLite de temas y preguntas.
 class BaseDatos
 {
@@ -30,7 +38,8 @@ public:
     BaseDatos();
     ~BaseDatos();
 
-    // Abre la base de datos (si no existe, la crea vacía).
+    // Abre la base de datos (si no existe, la crea vacía). Los bancos de antes de que el banco llevase el nombre de
+    // la asignatura (todos, de Fundamentos de la informática) se ponen al día: ver actualizarEsquema().
     bool abrir(const QString &ruta);
     void cerrar();
     bool abierta() const;
@@ -54,7 +63,9 @@ public:
     // Si 'reemplazar' es true borra antes todas las preguntas y temas, tras guardar una copia de seguridad de la
     // base de datos (ver copiaSeguridad()); en 'copia', si se da, deja la ruta de esa copia, o vacía si no se ha
     // hecho (banco sin temas, o añadir/actualizar). Si la importación falla, la base de datos no cambia y la copia
-    // se borra. Las preguntas con el mismo tema, número y variante se actualizan.
+    // se borra. Las preguntas con el mismo tema, número y variante se actualizan. El nombre de la asignatura del
+    // JSON solo se toma si el banco aún no tiene; la forma de la referencia de un tema, si el JSON no la dice (los
+    // de importar_docx.py no la dicen), es la que ya tenía el tema con ese número.
     int importarJson(const QString &ruta, bool reemplazar, QString *copia = nullptr);
     bool exportarJson(const QString &ruta);
 
@@ -66,6 +77,16 @@ public:
     QString ajuste(const QString &clave, const QString &porDefecto = QString());
     bool guardarAjuste(const QString &clave, const QString &valor);
 
+    // Nombre de la asignatura del banco: va en la cabecera de los exámenes. Vacío si aún no se ha puesto.
+    QString asignatura();
+    bool guardarAsignatura(const QString &nombre);
+    // Repartos de preguntas por tema guardados en el banco, en el orden de sus botones.
+    QVector<Reparto> repartos();
+    bool guardarRepartos(const QVector<Reparto> &repartos);
+    // El último reparto usado (número de tema -> preguntas); vacío si no se ha guardado ninguno.
+    QMap<int, int> ultimoReparto();
+    bool guardarUltimoReparto(const QMap<int, int> &reparto);
+
     // JSON enlazado con el banco: su copia en texto (preguntas_fi.json), que es el último JSON del que se importó
     // todo o el elegido en «Actualizar el JSON del banco». El programa avisa cuando no coinciden y, si se pide,
     // lo reescribe tras cada cambio. La ruta se guarda relativa a la carpeta de la base de datos, para que siga
@@ -75,8 +96,10 @@ public:
     bool jsonAutomatico();
     bool fijarJsonAutomatico(bool automatico);
     // En qué se diferencia el banco de un JSON, sin contar los id: «3 preguntas distintas: T1-7, T2-3a, T4-1»,
-    // «1 pregunta solo en la base de datos: T5-2», «2 preguntas solo en el JSON: …», «Temas con otro título o
-    // autor: T3». Vacío si coinciden; si el fichero no se puede leer, una sola línea que lo dice.
+    // «1 pregunta solo en la base de datos: T5-2», «2 preguntas solo en el JSON: …», «1 tema con otro título, autor
+    // o forma de la referencia: T3», «La asignatura tiene otro nombre en el JSON: «…»». Lo que el JSON no dice (la
+    // asignatura o la forma de la referencia de un tema) no cuenta. Vacío si coinciden; si el fichero no se puede
+    // leer, una sola línea que lo dice.
     QStringList diferenciasConJson(const QString &ruta);
 
     // Historial de convocatorias. Cada examen registrado guarda una copia de sus preguntas tal como salieron (con
@@ -97,13 +120,19 @@ public:
 
 private:
     bool crearEsquema();
+    // Pone al día un banco de una versión anterior del programa (PRAGMA user_version). En la 1, el banco lleva el
+    // nombre de la asignatura, sus repartos y la forma de la referencia de cada tema; a los bancos de antes, que
+    // eran todos de Fundamentos de la informática (los que tienen temas), se les ponen los de esa asignatura.
+    bool actualizarEsquema();
     // Sentencia con sus valores (los «?», en orden); si falla, deja el error en m_error. En 'id' deja el de la fila
     // insertada.
     bool ejecutar(const QString &sql, const QVariantList &valores = {}, int *id = nullptr);
     // Consulta con sus valores, para recorrerla con next(); si falla, no da filas y deja el error en m_error.
     QSqlQuery consultar(const QString &sql, const QVariantList &valores = {});
     bool ejecutarEn(QSqlQuery &q, const QString &sql, const QVariantList &valores);
-    int idTema(int numero, const QString &titulo, const QString &autor, bool actualizar);
+    // Id del tema con el número de 't' (si no hay, lo crea); con 'actualizar', le pone el título, el autor y la forma
+    // de la referencia de 't'.
+    int idTema(const Tema &t, bool actualizar);
 
     QSqlDatabase m_db;
     QString m_ruta;

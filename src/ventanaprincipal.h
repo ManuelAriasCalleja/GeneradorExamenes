@@ -61,7 +61,8 @@ private slots:
     void acercaDe();
 
     // Generar examen
-    void aplicarReparto(int primerTema, int ultimoTema);
+    void guardarAsignatura();   // si se ha cambiado en la ventana, en el banco
+    void guardarReparto();      // el de la ventana, como un reparto del banco con nombre (un botón más)
     void actualizarTotal();
     void actualizarPuntuacion();
     void nuevoExamen();
@@ -105,8 +106,21 @@ private:
     // Compara el banco con su JSON enlazado y enseña (u oculta) el aviso de la barra de estado.
     void comprobarJson();
     void reconstruirTemas();
+    // Botones de los repartos guardados en el banco.
+    void reconstruirRepartos();
+    // Menú del botón derecho de un reparto del banco (en 'donde', en coordenadas de la pantalla): sustituirlo por el de
+    // la ventana o quitarlo.
+    void menuReparto(const QString &nombre, const QPoint &donde);
+    // Las preguntas de cada tema en la ventana (solo los temas con alguna).
+    QMap<int, int> repartoActual() const;
+    void aplicarReparto(const QMap<int, int> &reparto);
+    // «Generador de exámenes - <asignatura del banco>».
+    void actualizarTitulo();
     void leerConfiguracion();
     void guardarConfiguracion();
+    // Lo que va con el banco abierto y no se guarda al momento: el nombre de la asignatura, si se está cambiando, y el
+    // reparto de la ventana (el último usado). Antes de cerrarlo (al salir o abrir otro).
+    void guardarEstadoBanco();
     // Ajustes que se guardan tal cual en la configuración: su clave y el control que los muestra. El valor por
     // defecto es el que tiene el control al crearlo.
     struct Ajuste
@@ -201,6 +215,7 @@ private:
     QWidget *m_contenedorTemas;
     QMap<int, QSpinBox *> m_cantidades;     // número de tema -> preguntas
     QMap<int, int> m_cantidadesGuardadas;
+    QGridLayout *m_rejillaRepartos;         // botones de los repartos del banco y «Ninguna»
     QLabel *m_total;
     QCheckBox *m_puntuacionAuto;
     QDoubleSpinBox *m_acierto;

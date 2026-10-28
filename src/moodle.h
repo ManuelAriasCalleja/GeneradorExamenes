@@ -7,14 +7,14 @@
 
 // Exportación del banco a un cuestionario de Moodle (formato «Moodle XML», el que importa Banco de preguntas →
 // Importar), para que los estudiantes practiquen en el curso virtual: preguntas de opción múltiple con una sola
-// respuesta, en una categoría por tema («$course$/top/Fundamentos de Informática/Tema 1: …»), con la referencia al
-// libro y la explicación como realimentación general y las imágenes incrustadas. Las opciones se barajan en Moodle
-// salvo en las preguntas con opciones del tipo «Todas las anteriores». Las anuladas y obsoletas no se exportan.
+// respuesta, en una categoría por tema dentro de la de la asignatura («$course$/top/<asignatura>/Tema 1: …»), con la
+// referencia al libro y la explicación como realimentación general y las imágenes incrustadas. Las opciones se barajan
+// en Moodle salvo en las preguntas con opciones del tipo «Todas las anteriores». Las anuladas y obsoletas no se exportan.
 namespace Moodle {
 
 struct Opciones
 {
-    QString asignatura = QStringLiteral("Fundamentos de Informática");   // categoría raíz, bajo $course$/top
+    QString asignatura;                 // categoría raíz, bajo $course$/top; sin ella, los temas van directamente allí
     bool incluirParaRevisar = true;     // también las marcadas para revisar
     bool penalizarFallos = true;        // las respuestas erróneas restan el 30 % de la pregunta, como en el examen
 };

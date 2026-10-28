@@ -3,6 +3,11 @@
 Programa en C++/Qt 6 que genera exámenes tipo test eligiendo al azar preguntas de una base de datos SQLite,
 con el número de preguntas que se indique de cada tema.
 
+Se hizo para Fundamentos de la informática, pero vale para cualquier asignatura: cada banco (base de datos) lleva el
+nombre de su asignatura, sus temas, tantos como tenga, y sus repartos de preguntas por tema. Los bancos de versiones
+anteriores, que eran todos de Fundamentos de la informática, se ponen al día al abrirlos: se les pone ese nombre, sus
+repartos (T1–T4, T5–T8 y T1–T8) y la forma de la referencia al libro de cada tema (`PRAGMA user_version` 1).
+
 ## Compilar y ejecutar
 
 Requisitos: Qt 6 (módulos Widgets, Sql con el driver SQLite y PrintSupport), CMake ≥ 3.19 y un compilador C++17.
@@ -65,6 +70,8 @@ diálogos tienen además un botón «Ayuda». El manual es `recursos/ayuda.html`
 que se ve o se hace en el programa, hay que actualizarlo.
 
 **Generar examen**
+- Asignatura: va en la cabecera y en el título de la ventana. Es la del banco abierto; si se cambia en la ventana, se
+  guarda en el banco. Al crear un banco nuevo se pide.
 - Convocatoria (Febrero, Junio, Septiembre…) y año: van en la cabecera («Junio 2026»), en el pie de cada página
   y en el nombre de los ficheros. Al abrir el programa se propone la próxima convocatoria según la fecha: la primera
   de febrero, junio y septiembre cuyo mes aún no ha llegado (el 27 de octubre de 2026, Febrero 2027).
@@ -72,10 +79,12 @@ que se ve o se hace en el programa, hay que actualizarlo.
   por cada nombre marcado, en el orden de la lista. La lista se mantiene de un año a otro; los nombres se
   añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando). El pie de cada página lleva el nombre
   del examen, la convocatoria y el año: «Nacional Original · Junio 2026: 1 / 2».
-- Número de preguntas de cada tema (los botones T1–T4, T5–T8 y T1–T8 ponen el reparto habitual
-  3-2-3-2 / 2-3-2-3). Junto a cada tema se ve cuántas preguntas distintas hay. Al abrir el programa por
-  primera vez se propone T1–T4 (3-2-3-2, 10 preguntas), como en los exámenes de febrero de 2026; después
-  se recuerda el último reparto usado.
+- Número de preguntas de cada tema. Junto a cada tema se ve cuántas preguntas distintas hay. Los botones de reparto
+  son los del banco (en el de Fundamentos de la informática, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3) más «Ninguna»;
+  «Guardar reparto…» guarda los números de ese momento como un reparto nuevo, con nombre, y con el botón derecho
+  sobre uno se sustituye o se quita. Cada banco recuerda su último reparto usado; la primera vez se propone el primero
+  de sus repartos. (Las versiones anteriores guardaban el último reparto en la configuración: pasa al primer banco
+  que se abre.)
 - Puntuación automática (10 puntos en total y cada fallo resta el 30 %: +1/−0,30 con 10 preguntas,
   +0,50/−0,15 con 20) o manual.
 - Exportar a PDF, a HTML editable en Word/LibreOffice o a LaTeX: se abre un diálogo donde se elige la
@@ -147,14 +156,15 @@ que se ve o se hace en el programa, hay que actualizarlo.
 **Banco de preguntas**: buscar (sin distinguir tildes ni mayúsculas), filtrar, crear, editar, duplicar como variante
 y eliminar preguntas. El editor tiene «Guardar y siguiente» (la siguiente de la tabla, con su filtro y su orden) y, al
 crear, «Guardar y nueva» (otra en el mismo tema), para repasar o escribir varias seguidas;
-menú *Editar → Temas* para añadir o renombrar temas. En el enunciado se puede escribir código entre
+menú *Editar → Temas* para añadir o renombrar temas y elegir la forma de la referencia al libro de cada uno (depende
+de su autor). En el enunciado se puede escribir código entre
 líneas ```` ``` ```` y filas de tabla como `| celda | celda |`; también se puede añadir una imagen.
 
 Al editar una pregunta, bajo la vista previa se avisa de las pautas de redacción que no cumple: enunciado
 acabado en dos puntos (o en «?:» si es una pregunta) y de no más de unos 180 caracteres, negaciones en
 mayúsculas, opciones con mayúscula y punto final, opciones del tipo «Todas las anteriores», opciones repetidas,
 correcta mucho más larga que las demás, comillas (tipográficas en el texto, rectas en el código) y forma de la
-referencia al libro según el tema. Son avisos: al guardar se pide confirmación, pero se puede guardar igual. Al cancelar (o con Esc, o cerrando la
+referencia al libro que pide el tema («Véase la página N…» o «Pág. N libro…», o cualquiera). Son avisos: al guardar se pide confirmación, pero se puede guardar igual. Al cancelar (o con Esc, o cerrando la
 ventana) con cambios sin guardar, se pregunta antes de descartarlos.
 *Editar → Revisar el estilo del banco…* revisa todas las preguntas del banco abierto: lista los avisos (todos o
 solo los del enunciado, las opciones o la referencia), abre cada pregunta para corregirla (con «Guardar y siguiente
@@ -162,8 +172,8 @@ con avisos», una tras otra) y guarda el informe
 en un fichero de texto, solo con los códigos de las preguntas y los avisos.
 
 *Archivo → Exportar a Moodle (XML)…* guarda las preguntas activas del banco como cuestionario en formato
-«Moodle XML», para que los estudiantes practiquen en el curso virtual: una categoría por tema (`Fundamentos de
-Informática/Tema 1: …`), cada pregunta de opción múltiple con una sola respuesta, la referencia al libro y la
+«Moodle XML», para que los estudiantes practiquen en el curso virtual: una categoría por tema dentro de la de la
+asignatura (`Fundamentos de la informática/Tema 1: …`), cada pregunta de opción múltiple con una sola respuesta, la referencia al libro y la
 explicación como realimentación general, las imágenes incrustadas y, si se marca, las respuestas erróneas
 restando el 30 % de la pregunta, como en el examen. Las opciones se barajan en Moodle salvo en las preguntas con
 opciones del tipo «Todas las anteriores»; las anuladas y obsoletas no se exportan, y las marcadas para revisar
@@ -214,7 +224,8 @@ python3 herramientas/importar_docx.py asignatura/FI_preguntas_..._ver12.docx asi
 y en el programa *Archivo → Importar preguntas (JSON)…* (añadir/actualizar o reemplazar todo). El JSON del que
 se importa todo el banco queda **enlazado** con él como su copia en texto: cuando la base de datos y ese JSON
 dejan de coincidir (por ejemplo, tras corregir una pregunta en el programa), la barra de estado lo avisa y dice
-en qué se diferencian (preguntas distintas, solo en uno de los dos, temas renombrados); pulsando el aviso, o con
+en qué se diferencian (preguntas distintas, solo en uno de los dos, temas renombrados o con otra forma de la
+referencia, otro nombre de la asignatura); pulsando el aviso, o con
 *Archivo → Actualizar el JSON del banco…*, se sobrescribe el JSON con el contenido de la base de datos (la
 primera vez, si no hay ninguno enlazado, pide cuál). Con *Archivo → Mantener el JSON del banco al día* marcado,
 el programa lo reescribe él solo tras cada cambio del banco; nunca toca un JSON que ya no coincida con la base
@@ -224,7 +235,9 @@ reemplazar todo, el programa guarda una copia de seguridad de la base de datos e
 ella, con la fecha y la hora en el nombre (`copias/preguntas_2026-10-22_153045.db`), y al terminar dice dónde la
 ha dejado; si la importación falla, la base de datos no cambia y la copia se quita. Para volver atrás, basta con
 abrir esa copia (*Archivo → Abrir banco de preguntas…*) o copiarla sobre `preguntas.db`.
-El script avisa de preguntas sin cuatro opciones o sin respuesta y de dibujos sin imagen.
+El script avisa de preguntas sin cuatro opciones o sin respuesta y de dibujos sin imagen. El JSON lleva el nombre de
+la asignatura (`--asignatura`, por defecto «Fundamentos de la informática»), que el programa solo toma si el banco aún
+no tiene; no dice la forma de la referencia de cada tema, así que al importarlo cada tema conserva la que tenía.
 Las etiquetas del documento se interpretan así: `old` → ya salió en exámenes; `ANULADA`/`OBSOLETA` → no
 sale; `MEJORAR`, `REFINAR`, `DEFINIR …` → marcada para revisar; `PSEUDORREPETIDA … TEMA1 preg 7` → enlace
 con T1-7.

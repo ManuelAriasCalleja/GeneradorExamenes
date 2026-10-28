@@ -181,7 +181,10 @@ QString xml(const QVector<Tema> &temas, const QVector<Pregunta> &preguntas, cons
             QString tema = nombreTema(temas, p.temaId);
             if (tema.isEmpty())
                 tema = QStringLiteral("Tema %1").arg(p.temaNumero);
-            escribirCategoria(x, QStringLiteral("$course$/top/%1/%2").arg(nombreCategoria(opciones.asignatura), nombreCategoria(tema)));
+            const QString raiz = opciones.asignatura.trimmed().isEmpty()
+                                     ? QStringLiteral("$course$/top")
+                                     : QStringLiteral("$course$/top/") + nombreCategoria(opciones.asignatura);
+            escribirCategoria(x, raiz + QLatin1Char('/') + nombreCategoria(tema));
         }
         escribirPregunta(x, p, opciones);
     }

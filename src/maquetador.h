@@ -13,7 +13,7 @@ class QObject;
 
 struct DatosConvocatoria
 {
-    QString asignatura = QStringLiteral("Fundamentos de Informática");
+    QString asignatura;              // la del banco (BaseDatos::asignatura())
     QString convocatoria;            // Febrero, Junio, Septiembre...
     int anio = 0;
     QString instrucciones = QStringLiteral("Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.\n"

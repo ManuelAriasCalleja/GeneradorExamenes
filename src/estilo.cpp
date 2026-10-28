@@ -2,7 +2,6 @@
 #include "enunciado.h"
 
 #include <QRegularExpression>
-#include <QSet>
 
 namespace Estilo {
 
@@ -10,9 +9,11 @@ namespace {
 
 const QRegularExpression::PatternOptions kUnicode = QRegularExpression::UseUnicodePropertiesOption;
 
-// Formato de la referencia al libro según el autor del tema.
-const QSet<int> kTemasVease{1, 3, 6, 8};   // «Véase la página N (sección X.Y) del libro de teoría.»
-const QSet<int> kTemasPag{2, 4, 5, 7};     // «Pág. N libro (subsección X.Y.Z).»
+// Formas de la referencia al libro que puede pedir un tema (Tema::formatoReferencia), y cómo se escriben.
+const QString kVease = QStringLiteral("vease");
+const QString kPag = QStringLiteral("pag");
+const QString kFormatoVease = QStringLiteral("«Véase la página N (sección X.Y) del libro de teoría.»");
+const QString kFormatoPag = QStringLiteral("«Pág. N libro (subsección X.Y.Z).»");
 
 // Erratas que ya se corrigieron en el banco y no hay que reintroducir.
 const QList<QPair<QString, QString>> kErratas{{QStringLiteral("weareable"), QStringLiteral("wearable")}};
@@ -146,7 +147,7 @@ void revisarOpciones(const Pregunta &p, QVector<Aviso> &avisos)
                               "puede delatarla.").arg(larga).arg(otras));
 }
 
-void revisarReferencia(const Pregunta &p, QVector<Aviso> &avisos)
+void revisarReferencia(const Pregunta &p, const QString &formato, QVector<Aviso> &avisos)
 {
     auto avisar = [&](const QString &texto) { avisos.append({Aviso::Referencia, texto}); };
     const QString r = p.referencia.trimmed();
@@ -170,12 +171,10 @@ void revisarReferencia(const Pregunta &p, QVector<Aviso> &avisos)
 
     const bool vease = r.startsWith(QStringLiteral("Véase")) || r.startsWith(QStringLiteral("Véanse"));
     const bool pag = r.startsWith(QStringLiteral("Pág"));
-    const QString formatoVease = QStringLiteral("«Véase la página N (sección X.Y) del libro de teoría.»");
-    const QString formatoPag = QStringLiteral("«Pág. N libro (subsección X.Y.Z).»");
-    if (kTemasVease.contains(p.temaNumero) && !vease)
-        avisar(QStringLiteral("En el tema %1 la referencia tiene la forma %2").arg(p.temaNumero).arg(formatoVease));
-    else if (kTemasPag.contains(p.temaNumero) && !pag)
-        avisar(QStringLiteral("En el tema %1 la referencia tiene la forma %2").arg(p.temaNumero).arg(formatoPag));
+    if (formato == kVease && !vease)
+        avisar(QStringLiteral("En el tema %1 la referencia tiene la forma %2").arg(p.temaNumero).arg(kFormatoVease));
+    else if (formato == kPag && !pag)
+        avisar(QStringLiteral("En el tema %1 la referencia tiene la forma %2").arg(p.temaNumero).arg(kFormatoPag));
 
     // Si no se ha visto nada concreto, el formato completo: «sección» o «subsección», y una página («y
     // siguientes») o varias («N-M», «N y M», «N, M y K»).
@@ -189,9 +188,9 @@ void revisarReferencia(const Pregunta &p, QVector<Aviso> &avisos)
                            "|^Págs\\. \\d+(-\\d+|(, \\d+)* y \\d+) libro \\((sub)?secci[oó]n(es)? [^)]+\\)\\.$"),
             kUnicode);
         if (vease && !completoVease.match(r).hasMatch())
-            avisar(QStringLiteral("La referencia no sigue la forma habitual: %1").arg(formatoVease));
+            avisar(QStringLiteral("La referencia no sigue la forma habitual: %1").arg(kFormatoVease));
         else if (pag && !completoPag.match(r).hasMatch())
-            avisar(QStringLiteral("La referencia no sigue la forma habitual: %1").arg(formatoPag));
+            avisar(QStringLiteral("La referencia no sigue la forma habitual: %1").arg(kFormatoPag));
     }
 }
 
@@ -207,12 +206,23 @@ QString nombreParte(Aviso::Parte parte)
     return QString();
 }
 
-QVector<Aviso> revisar(const Pregunta &p)
+QVector<QPair<QString, QString>> formatosReferencia()
 {
+    return {{QString(), QStringLiteral("Cualquiera")},
+            {kVease, QStringLiteral("Véase la página N (sección X.Y) del libro de teoría.")},
+            {kPag, QStringLiteral("Pág. N libro (subsección X.Y.Z).")}};
+}
+
+QVector<Aviso> revisar(const Pregunta &p, const QVector<Tema> &temas)
+{
+    QString formato;
+    for (const Tema &t : temas)
+        if (t.numero == p.temaNumero)
+            formato = t.formatoReferencia;
     QVector<Aviso> avisos;
     revisarEnunciado(p, avisos);
     revisarOpciones(p, avisos);
-    revisarReferencia(p, avisos);
+    revisarReferencia(p, formato, avisos);
     for (const auto &errata : kErratas) {
         if (p.enunciado.contains(errata.first, Qt::CaseInsensitive))
             avisos.append({Aviso::Enunciado, QStringLiteral("«%1» está mal escrito: es «%2».").arg(errata.first, errata.second)});

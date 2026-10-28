@@ -47,6 +47,7 @@ private slots:
     void xmlBienFormadoYCompleto()
     {
         Moodle::Opciones o;
+        o.asignatura = QStringLiteral("Asignatura inventada");
         const QString xml = Moodle::xml(temasInventados(3), banco(), o);
         QVERIFY(xml.startsWith(QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")));
 
@@ -84,7 +85,7 @@ private slots:
         QCOMPARE(barajan, 33);   // la T2-6 («Todas las anteriores.») no se baraja
         QCOMPARE(nombres.size(), 34);
         QVERIFY2(nombres.first().startsWith(QStringLiteral("T1-3: Enunciado inventado de la pregunta T1-3")), qPrintable(nombres.first()));
-        QVERIFY(xml.contains(QStringLiteral("<text>$course$/top/Fundamentos de Informática/Tema 2: Tema inventado 2</text>")));
+        QVERIFY(xml.contains(QStringLiteral("<text>$course$/top/Asignatura inventada/Tema 2: Tema inventado 2</text>")));
 
         // Imagen incrustada; código y tabla en HTML; la referencia y la explicación (escapada) como realimentación.
         QVERIFY(xml.contains(QStringLiteral("<img src=\"@@PLUGINFILE@@/T2-1.png\"")));
@@ -100,6 +101,10 @@ private slots:
         const QString sinPenalizar = Moodle::xml(temasInventados(3), banco(), o);
         QCOMPARE(sinPenalizar.count(QStringLiteral("fraction=\"0\"")), 34 * 3);
         QVERIFY(sinPenalizar.contains(QStringLiteral("$course$/top/FI // Acceso/Tema 1:")));
+
+        // Sin nombre de la asignatura, los temas van directamente en la categoría del curso.
+        o.asignatura.clear();
+        QVERIFY(Moodle::xml(temasInventados(3), banco(), o).contains(QStringLiteral("<text>$course$/top/Tema 1: Tema inventado 1</text>")));
     }
 
     void escribeFichero()
@@ -107,12 +112,14 @@ private slots:
         QTemporaryDir dir;
         QString error;
         const QString ruta = dir.filePath(QStringLiteral("banco_moodle.xml"));
-        QVERIFY2(Moodle::exportar(ruta, temasInventados(3), banco(), Moodle::Opciones(), &error), qPrintable(error));
+        Moodle::Opciones o;
+        o.asignatura = QStringLiteral("Asignatura inventada de Informática");
+        QVERIFY2(Moodle::exportar(ruta, temasInventados(3), banco(), o, &error), qPrintable(error));
         QFile f(ruta);
         QVERIFY(f.open(QIODevice::ReadOnly));
         const QByteArray contenido = f.readAll();
         QVERIFY(contenido.startsWith("<?xml"));
-        QVERIFY(contenido.contains("Fundamentos de Inform\xc3\xa1tica"));   // UTF-8
+        QVERIFY(contenido.contains("Asignatura inventada de Inform\xc3\xa1tica"));   // UTF-8
         QVERIFY(!Moodle::exportar(dir.filePath(QStringLiteral("no_existe/x.xml")), temasInventados(3), banco(), Moodle::Opciones(), &error));
         QVERIFY(!error.isEmpty());
     }

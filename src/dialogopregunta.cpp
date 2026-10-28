@@ -304,7 +304,7 @@ void DialogoPregunta::accept()
     }
     if (!decidirSiEsVariante())
         return;
-    const QVector<Estilo::Aviso> avisos = Estilo::revisar(pregunta());
+    const QVector<Estilo::Aviso> avisos = Estilo::revisar(pregunta(), m_temas);
     if (!avisos.isEmpty()) {
         QStringList lineas;
         for (const Estilo::Aviso &a : avisos)
@@ -330,7 +330,7 @@ void DialogoPregunta::actualizarVistaPrevia()
 
     // Pautas de estilo que no se cumplen (mientras se escribe; al guardar se vuelven a mostrar).
     QStringList avisos;
-    for (const Estilo::Aviso &a : Estilo::revisar(p))
+    for (const Estilo::Aviso &a : Estilo::revisar(p, m_temas))
         avisos << QStringLiteral("• ") + a.texto.toHtmlEscaped();
     m_avisosEstilo->setText(QStringLiteral("<b>Pautas de estilo</b><br>") + avisos.join(QStringLiteral("<br>")));
     m_avisosEstilo->setVisible(!avisos.isEmpty());

@@ -28,16 +28,18 @@ DialogoMoodle::DialogoMoodle(const QVector<Pregunta> &preguntas, const QString &
 
     auto *explicacion = new QLabel(QStringLiteral(
         "Se guarda un cuestionario en formato «Moodle XML» con las preguntas activas del banco (las anuladas y obsoletas no van): "
-        "una categoría por tema bajo «%1», cada pregunta de opción múltiple con una sola respuesta, la referencia al libro y la "
+        "una categoría por tema%1, cada pregunta de opción múltiple con una sola respuesta, la referencia al libro y la "
         "explicación como realimentación, y las imágenes incrustadas. En Moodle se importa desde "
-        "<i>Banco de preguntas → Importar</i>.").arg(asignatura.toHtmlEscaped()));
+        "<i>Banco de preguntas → Importar</i>.")
+                                       .arg(asignatura.isEmpty() ? QString() : QStringLiteral(" bajo «%1»").arg(asignatura.toHtmlEscaped())));
     explicacion->setWordWrap(true);
     l->addWidget(explicacion);
 
     auto *fila = new QHBoxLayout;
     const QString carpeta = QSettings().value(QLatin1String(kClaveCarpeta),
                                               QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
-    m_ruta = new QLineEdit(carpeta + QLatin1Char('/') + limpiarNombreFichero(asignatura) + QStringLiteral("_moodle.xml"));
+    m_ruta = new QLineEdit(carpeta + QLatin1Char('/') + (asignatura.isEmpty() ? QStringLiteral("banco") : limpiarNombreFichero(asignatura))
+                           + QStringLiteral("_moodle.xml"));
     auto *elegir = new QPushButton(QStringLiteral("Elegir…"));
     connect(elegir, &QPushButton::clicked, this, &DialogoMoodle::elegirFichero);
     fila->addWidget(new QLabel(QStringLiteral("Fichero:")));

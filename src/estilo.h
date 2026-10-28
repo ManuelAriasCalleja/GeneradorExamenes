@@ -18,7 +18,12 @@ struct Aviso
 
 QString nombreParte(Aviso::Parte parte);
 
-QVector<Aviso> revisar(const Pregunta &p);
+// Formas de la referencia al libro que se pueden pedir a las preguntas de un tema (Tema::formatoReferencia), con lo
+// que se ve al elegirlas: la primera, vacía, es «cualquiera».
+QVector<QPair<QString, QString>> formatosReferencia();
+
+// 'temas', los del banco: dicen qué forma lleva la referencia de cada uno (si no está el de la pregunta, cualquiera).
+QVector<Aviso> revisar(const Pregunta &p, const QVector<Tema> &temas = {});
 
 // Opción que remite a las demás («Todas las anteriores», «a y b»...): con ella no se pueden barajar las opciones.
 bool opcionDependiente(const QString &opcion);

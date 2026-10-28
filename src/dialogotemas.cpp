@@ -1,8 +1,10 @@
 #include "dialogotemas.h"
 #include "basedatos.h"
 #include "dialogoayuda.h"
+#include "estilo.h"
 #include "utilidades.h"
 
+#include <QComboBox>
 #include <QDialogButtonBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -14,18 +16,22 @@
 #include <QVBoxLayout>
 
 namespace {
-enum { ColNumero, ColTitulo, ColAutor, ColPreguntas };
+enum { ColNumero, ColTitulo, ColAutor, ColReferencia, ColPreguntas };
 }
 
 DialogoTemas::DialogoTemas(BaseDatos *bd, QWidget *parent)
     : QDialog(parent), m_bd(bd)
 {
     setWindowTitle(QStringLiteral("Temas"));
-    resize(640, 420);
+    resize(860, 420);
 
-    m_tabla = new QTableWidget(0, 4);
-    m_tabla->setHorizontalHeaderLabels({QStringLiteral("Nº"), QStringLiteral("Título"), QStringLiteral("Autor"), QStringLiteral("Preguntas")});
+    m_tabla = new QTableWidget(0, 5);
+    m_tabla->setHorizontalHeaderLabels({QStringLiteral("Nº"), QStringLiteral("Título"), QStringLiteral("Autor"),
+                                        QStringLiteral("Referencia al libro"), QStringLiteral("Preguntas")});
     m_tabla->horizontalHeader()->setSectionResizeMode(ColTitulo, QHeaderView::Stretch);
+    m_tabla->horizontalHeader()->setSectionResizeMode(ColReferencia, QHeaderView::ResizeToContents);
+    m_tabla->horizontalHeaderItem(ColReferencia)->setToolTip(QStringLiteral("Forma que debe tener la referencia al libro en las "
+                                                                            "preguntas del tema (la comprueba la revisión de estilo)"));
     m_tabla->verticalHeader()->hide();
     m_tabla->setSelectionBehavior(QAbstractItemView::SelectRows);
     for (const Tema &t : bd->temas())
@@ -65,6 +71,11 @@ void DialogoTemas::anadirFila(const Tema &t, int numPreguntas)
     m_tabla->setItem(f, ColNumero, num);
     m_tabla->setItem(f, ColTitulo, new QTableWidgetItem(t.titulo));
     m_tabla->setItem(f, ColAutor, new QTableWidgetItem(t.autor));
+    auto *formato = new QComboBox;
+    for (const auto &forma : Estilo::formatosReferencia())
+        formato->addItem(forma.second, forma.first);
+    formato->setCurrentIndex(qMax(0, formato->findData(t.formatoReferencia)));
+    m_tabla->setCellWidget(f, ColReferencia, formato);
     auto *np = new QTableWidgetItem(QString::number(numPreguntas));
     np->setFlags(np->flags() & ~Qt::ItemIsEditable);
     m_tabla->setItem(f, ColPreguntas, np);
@@ -115,6 +126,7 @@ void DialogoTemas::accept()
         t.numero = m_tabla->item(f, ColNumero)->data(Qt::EditRole).toInt();
         t.titulo = m_tabla->item(f, ColTitulo)->text().trimmed();
         t.autor = m_tabla->item(f, ColAutor) ? m_tabla->item(f, ColAutor)->text().trimmed() : QString();
+        t.formatoReferencia = qobject_cast<QComboBox *>(m_tabla->cellWidget(f, ColReferencia))->currentData().toString();
         temas << t;
     }
     if (!m_bd->guardarTemas(temas, m_borrados)) {

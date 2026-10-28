@@ -371,7 +371,8 @@ def main():
     ap.add_argument('docx')
     ap.add_argument('json')
     ap.add_argument('--imagenes', help='directorio con los diagramas T<tema>_<codigo>.png')
-    ap.add_argument('--asignatura', default='Fundamentos de Informática')
+    ap.add_argument('--asignatura', default='Fundamentos de la informática',
+                    help='nombre de la asignatura; el programa lo toma si el banco aún no tiene')
     a = ap.parse_args()
     temas, avisos = importar(a.docx, a.imagenes)
     salida = {

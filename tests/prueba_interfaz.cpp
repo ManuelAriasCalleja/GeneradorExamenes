@@ -8,6 +8,7 @@
 #include "dialogoparecidas.h"
 #include "dialogopractica.h"
 #include "dialogopregunta.h"
+#include "dialogotemas.h"
 #include "generador.h"
 #include "ventanaprincipal.h"
 
@@ -19,6 +20,7 @@
 #include <QComboBox>
 #include <QDate>
 #include <QDir>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -61,6 +63,13 @@ void responder(const QString &boton, QString *texto = nullptr, const QString &de
         if (!despues.isEmpty())
             responder(despues, texto);
     });
+}
+
+// Banco inventado de ocho temas en 'ruta', que la ventana abre con diez preguntas de los temas 1 a 4 (3, 2, 3 y 2).
+bool crearBancoInventado(const QString &ruta)
+{
+    BaseDatos bd;
+    return bd.abrir(ruta) && llenarBaseDatos(bd, 8, bancoInventado()) && bd.guardarUltimoReparto({{1, 3}, {2, 2}, {3, 3}, {4, 2}});
 }
 
 Pregunta nuevaEn(int tema, int numero)
@@ -397,6 +406,124 @@ private slots:
         }
     }
 
+    void ventanaLlevaLaAsignaturaYLosRepartosDelBanco()
+    {
+        QTemporaryDir dir;
+        const QString primero = dir.filePath(QStringLiteral("primero.db"));
+        const QString segundo = dir.filePath(QStringLiteral("segundo.db"));
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(primero));
+            QVERIFY(llenarBaseDatos(bd, 4, bancoInventado(4, 6)));
+            QVERIFY(bd.guardarAsignatura(QStringLiteral("Asignatura inventada")));
+            QVERIFY(bd.guardarRepartos({{QStringLiteral("Primeros"), {{1, 2}, {2, 1}}}}));
+            QVERIFY(bd.abrir(segundo));
+            QVERIFY(llenarBaseDatos(bd, 3, bancoInventado(3, 6)));
+        }
+        // Las versiones anteriores guardaban el último reparto en la configuración: pasa al primer banco que se abre.
+        QSettings().setValue(QStringLiteral("examen/temas"),
+                             QVariantMap{{QStringLiteral("1"), 1}, {QStringLiteral("2"), 2}, {QStringLiteral("3"), 3}, {QStringLiteral("4"), 4}});
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(primero));
+        QCOMPARE(v.windowTitle(), QStringLiteral("Generador de exámenes - Asignatura inventada"));
+        QLineEdit *asignatura = nullptr;
+        for (QLineEdit *l : v.findChildren<QLineEdit *>())
+            if (l->placeholderText() == QStringLiteral("Nombre de la asignatura"))
+                asignatura = l;
+        QVERIFY(asignatura);
+        QCOMPARE(asignatura->text(), QStringLiteral("Asignatura inventada"));
+        auto casillas = [&v]() {
+            QList<QSpinBox *> res;
+            for (QGroupBox *g : v.findChildren<QGroupBox *>())
+                if (g->title() == QStringLiteral("Preguntas por tema"))
+                    res = g->findChildren<QSpinBox *>();
+            return res;
+        };
+        auto valores = [&casillas]() {
+            QList<int> res;
+            for (QSpinBox *s : casillas())
+                res << s->value();
+            return res;
+        };
+        auto boton = [&v](const QString &texto) -> QPushButton * {
+            for (QPushButton *b : v.findChildren<QPushButton *>())
+                if (b->text() == texto)
+                    return b;
+            return nullptr;
+        };
+        QCOMPARE(valores(), (QList<int>{1, 2, 3, 4}));
+        QVERIFY(!QSettings().contains(QStringLiteral("examen/temas")));
+
+        // Los botones de reparto son los del banco, más «Ninguna».
+        QVERIFY(boton(QStringLiteral("Primeros")));
+        boton(QStringLiteral("Primeros"))->click();
+        QCOMPARE(valores(), (QList<int>{2, 1, 0, 0}));
+        boton(QStringLiteral("Ninguna"))->click();
+        QCOMPARE(valores(), (QList<int>{0, 0, 0, 0}));
+        QString aviso;
+        responder(QStringLiteral("OK"), &aviso);
+        boton(QStringLiteral("Guardar reparto…"))->click();   // sin preguntas, no hay nada que guardar
+        QVERIFY2(aviso.contains(QStringLiteral("cuántas preguntas")), qPrintable(aviso));
+        // Se guarda uno nuevo, con el nombre que se propone.
+        boton(QStringLiteral("Primeros"))->click();
+        casillas().at(2)->setValue(3);
+        responder(QStringLiteral("Aceptar"));
+        boton(QStringLiteral("Guardar reparto…"))->click();
+        QVERIFY(boton(QStringLiteral("T1–T3")));
+        QVERIFY(boton(QStringLiteral("Primeros")));
+        boton(QStringLiteral("Ninguna"))->click();
+        boton(QStringLiteral("T1–T3"))->click();
+        QCOMPARE(valores(), (QList<int>{2, 1, 3, 0}));
+
+        // El nombre de la asignatura, cambiado en la ventana, se guarda en el banco.
+        asignatura->selectAll();
+        QTest::keyClicks(asignatura, QStringLiteral("Otra asignatura inventada"));
+        QTest::keyClick(asignatura, Qt::Key_Return);
+        QCOMPARE(v.windowTitle(), QStringLiteral("Generador de exámenes - Otra asignatura inventada"));
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(primero));
+            QCOMPARE(bd.asignatura(), QStringLiteral("Otra asignatura inventada"));
+            QCOMPARE(bd.repartos().size(), 2);
+            QCOMPARE(bd.repartos().at(1).preguntas, (QMap<int, int>{{1, 2}, {2, 1}, {3, 3}}));
+        }
+
+        // Cada banco, con su nombre y su último reparto: el otro no tiene ni nombre ni repartos.
+        QVERIFY(v.abrirBaseDatos(segundo));
+        QCOMPARE(v.windowTitle(), QStringLiteral("Generador de exámenes"));
+        QVERIFY(asignatura->text().isEmpty());
+        QCOMPARE(valores(), (QList<int>{0, 0, 0}));
+        QVERIFY(!boton(QStringLiteral("Primeros")));
+        QVERIFY(boton(QStringLiteral("Ninguna")));
+        casillas().at(0)->setValue(5);
+        QVERIFY(v.abrirBaseDatos(primero));
+        QCOMPARE(valores(), (QList<int>{2, 1, 3, 0}));
+        QVERIFY(v.abrirBaseDatos(segundo));
+        QCOMPARE(valores(), (QList<int>{5, 0, 0}));
+        QSettings().clear();
+    }
+
+    void temasGuardanLaFormaDeLaReferencia()
+    {
+        QTemporaryDir dir;
+        BaseDatos bd;
+        QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+        QVERIFY(llenarBaseDatos(bd, 3, bancoInventado(3, 2)));
+        DialogoTemas d(&bd);
+        const QList<QComboBox *> formas = d.findChildren<QComboBox *>();
+        QCOMPARE(formas.size(), 3);
+        QCOMPARE(formas.at(0)->currentData().toString(), QStringLiteral("vease"));
+        QCOMPARE(formas.at(1)->currentData().toString(), QStringLiteral("pag"));
+        formas.at(1)->setCurrentIndex(formas.at(1)->findData(QString()));   // cualquiera
+        formas.at(2)->setCurrentIndex(formas.at(2)->findData(QStringLiteral("pag")));
+        d.accept();
+        QStringList guardadas;
+        for (const Tema &t : bd.temas())
+            guardadas << t.formatoReferencia;
+        QCOMPARE(guardadas, (QStringList{QStringLiteral("vease"), QString(), QStringLiteral("pag")}));
+    }
+
     void ventanaProponeLaProximaConvocatoria()
     {
         // Aunque la configuración tenga otra (la de una versión anterior, o una cargada del historial).
@@ -422,11 +549,7 @@ private slots:
     void ventanaGeneraYExporta()
     {
         QTemporaryDir dir;
-        {
-            BaseDatos bd;
-            QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
-            QVERIFY(llenarBaseDatos(bd, 8, bancoInventado()));
-        }
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
@@ -527,11 +650,7 @@ private slots:
     void ventanaCambiaUnaPregunta()
     {
         QTemporaryDir dir;
-        {
-            BaseDatos bd;
-            QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
-            QVERIFY(llenarBaseDatos(bd, 8, bancoInventado()));
-        }
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
@@ -665,11 +784,7 @@ private slots:
     void ventanaNoPierdeLosExportadosSinRegistrar()
     {
         QTemporaryDir dir;
-        {
-            BaseDatos bd;
-            QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
-            QVERIFY(llenarBaseDatos(bd, 8, bancoInventado()));
-        }
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
@@ -721,11 +836,7 @@ private slots:
     void ventanaAvisaDeLaSemillaFija()
     {
         QTemporaryDir dir;
-        {
-            BaseDatos bd;
-            QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
-            QVERIFY(llenarBaseDatos(bd, 8, bancoInventado()));
-        }
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));

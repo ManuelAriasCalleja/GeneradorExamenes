@@ -10,6 +10,7 @@
 #include <QSet>
 #include <QTemporaryDir>
 #include <QtTest>
+#include <algorithm>
 
 namespace {
 
@@ -19,6 +20,8 @@ struct Banco
 {
     QVector<Pregunta> preguntas;
     QVector<Tema> temas;
+    QString asignatura;
+    QVector<Reparto> repartos;
 };
 
 Banco cargar(const QString &relativa)
@@ -32,6 +35,8 @@ Banco cargar(const QString &relativa)
     if (bd.abrir(copia)) {
         b.preguntas = bd.preguntas();
         b.temas = bd.temas();
+        b.asignatura = bd.asignatura();
+        b.repartos = bd.repartos();
     }
     return b;
 }
@@ -74,6 +79,11 @@ private slots:
             QSKIP("No está el banco de preguntas (enlace «asignatura»).");
         const Banco b = cargar(ruta);
         QVERIFY(!b.preguntas.isEmpty());
+        // Con el nombre de la asignatura, sus repartos y la forma de la referencia de los temas (los bancos de antes
+        // de que los llevasen se ponen al día al abrirlos).
+        QVERIFY(!b.asignatura.isEmpty());
+        QVERIFY(!b.repartos.isEmpty());
+        QVERIFY(std::any_of(b.temas.cbegin(), b.temas.cend(), [](const Tema &t) { return !t.formatoReferencia.isEmpty(); }));
 
         // Las reglas del generador, con cien semillas y un reparto de diez preguntas como el de los exámenes.
         const QMap<int, int> disponibles = Generador::gruposDisponibles(b.preguntas, true);
@@ -131,8 +141,9 @@ private slots:
             QSKIP("No está el banco de preguntas (enlace «asignatura»).");
         const QStringList erratas{QStringLiteral("wearable"), QStringLiteral("rectas"), QStringLiteral("«¿»"),
                                   QStringLiteral("«?» de cierre"), QStringLiteral("concordancia")};
-        for (const Pregunta &p : cargar(ruta).preguntas)
-            for (const Estilo::Aviso &a : Estilo::revisar(p))
+        const Banco b = cargar(ruta);
+        for (const Pregunta &p : b.preguntas)
+            for (const Estilo::Aviso &a : Estilo::revisar(p, b.temas))
                 for (const QString &e : erratas)
                     QVERIFY2(!a.texto.contains(e), qPrintable(p.codigoCompleto() + QStringLiteral(": ") + a.texto));
     }

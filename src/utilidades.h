@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -51,4 +52,19 @@ inline bool confirmar(QWidget *padre, const QString &titulo, const QString &text
     caja.addButton(QStringLiteral("No"), QMessageBox::NoRole);
     caja.exec();
     return caja.clickedButton() == si;
+}
+
+// Pide una línea de texto (en 'texto', el que se propone), con los botones en castellano. Devuelve false si se cancela.
+inline bool pedirTexto(QWidget *padre, const QString &titulo, const QString &etiqueta, QString *texto)
+{
+    QInputDialog dialogo(padre);
+    dialogo.setWindowTitle(titulo);
+    dialogo.setLabelText(etiqueta);
+    dialogo.setTextValue(*texto);
+    dialogo.setOkButtonText(QStringLiteral("Aceptar"));
+    dialogo.setCancelButtonText(QStringLiteral("Cancelar"));
+    if (dialogo.exec() != QDialog::Accepted)
+        return false;
+    *texto = dialogo.textValue().trimmed();
+    return true;
 }

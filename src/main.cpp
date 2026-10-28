@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     }
 
     QCommandLineParser opciones;
-    opciones.setApplicationDescription(QStringLiteral("Generador de exámenes tipo test de Fundamentos de Informática"));
+    opciones.setApplicationDescription(QStringLiteral("Generador de exámenes tipo test"));
     opciones.addHelpOption();
     opciones.addPositionalArgument(QStringLiteral("basedatos"), QStringLiteral("Fichero SQLite de preguntas (se crea si no existe)"));
     opciones.process(app);

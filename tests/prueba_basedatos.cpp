@@ -1,4 +1,5 @@
-// Base de datos: preguntas, JSON, transacciones, historial de convocatorias y temas.
+// Base de datos: preguntas, JSON, transacciones, historial de convocatorias, temas, asignatura y repartos, y bancos de
+// versiones anteriores.
 
 #include "basedatos.h"
 #include "datos_prueba.h"
@@ -10,8 +11,11 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QTemporaryDir>
 #include <QtTest>
+#include <functional>
 
 namespace {
 
@@ -30,6 +34,34 @@ QStringList describir(const QVector<Pregunta> &preguntas)
     for (const Pregunta &p : preguntas)
         res << describir(p);
     return res;
+}
+
+QStringList describir(const QVector<Tema> &temas)
+{
+    QStringList res;
+    for (const Tema &t : temas)
+        res << QStringList{QString::number(t.numero), t.titulo, t.autor, t.formatoReferencia}.join(QLatin1Char('#'));
+    return res;
+}
+
+QStringList formatos(const QVector<Tema> &temas)
+{
+    QStringList res;
+    for (const Tema &t : temas)
+        res << t.formatoReferencia;
+    return res;
+}
+
+// Cambia un JSON de banco con 'cambiar'.
+bool cambiarJson(const QString &ruta, const std::function<void(QJsonObject &)> &cambiar)
+{
+    QFile f(ruta);
+    if (!f.open(QIODevice::ReadOnly))
+        return false;
+    QJsonObject raiz = QJsonDocument::fromJson(f.readAll()).object();
+    f.close();
+    cambiar(raiz);
+    return f.open(QIODevice::WriteOnly | QIODevice::Truncate) && f.write(QJsonDocument(raiz).toJson()) > 0;
 }
 
 } // namespace
@@ -89,15 +121,139 @@ private slots:
     {
         BaseDatos origen;
         QVERIFY2(abrirConBanco(origen), qPrintable(origen.ultimoError()));
+        QVERIFY(origen.guardarAsignatura(QStringLiteral("Asignatura inventada")));
         const QString json = m_dir.filePath(QStringLiteral("banco.json"));
         QVERIFY(origen.exportarJson(json));
         BaseDatos destino;
         QVERIFY(destino.abrir(m_dir.filePath(QStringLiteral("importado.db"))));
         QCOMPARE(destino.importarJson(json, false), int(origen.preguntas().size()));
         QCOMPARE(describir(destino.preguntas()), describir(origen.preguntas()));
+        QCOMPARE(describir(destino.temas()), describir(origen.temas()));   // con la forma de la referencia
+        QCOMPARE(destino.asignatura(), QStringLiteral("Asignatura inventada"));   // el banco nuevo no tenía
         // Importar otra vez actualiza en lugar de duplicar.
         QCOMPARE(destino.importarJson(json, false), int(origen.preguntas().size()));
         QCOMPARE(destino.preguntas().size(), origen.preguntas().size());
+    }
+
+    void asignaturaYRepartos()
+    {
+        // Un banco nuevo aún no es de ninguna asignatura ni tiene repartos.
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd, 4, 5), qPrintable(bd.ultimoError()));
+        QVERIFY(bd.asignatura().isEmpty());
+        QVERIFY(bd.repartos().isEmpty());
+        QVERIFY(bd.ultimoReparto().isEmpty());
+        QVERIFY(bd.guardarAsignatura(QStringLiteral("  Asignatura inventada ")));
+        QVERIFY(bd.guardarRepartos({{QStringLiteral("T1–T2"), {{1, 3}, {2, 2}}}, {QStringLiteral("Todo"), {{1, 1}, {2, 1}, {3, 1}, {4, 1}}}}));
+        QVERIFY(bd.guardarUltimoReparto({{1, 2}, {2, 0}, {3, 4}, {4, 0}}));
+        const QString ruta = bd.ruta();
+        bd.cerrar();
+        QVERIFY(bd.abrir(ruta));
+        QCOMPARE(bd.asignatura(), QStringLiteral("Asignatura inventada"));
+        const QVector<Reparto> repartos = bd.repartos();
+        QCOMPARE(repartos.size(), 2);
+        QCOMPARE(repartos.at(0).nombre, QStringLiteral("T1–T2"));
+        QCOMPARE(repartos.at(0).preguntas, (QMap<int, int>{{1, 3}, {2, 2}}));
+        QCOMPARE(repartos.at(1).nombre, QStringLiteral("Todo"));
+        QCOMPARE(bd.ultimoReparto(), (QMap<int, int>{{1, 2}, {2, 0}, {3, 4}, {4, 0}}));
+    }
+
+    void bancoAntiguoSePoneAlDia()
+    {
+        // Bancos de una versión anterior (sin PRAGMA user_version): sin la forma de la referencia de los temas, ni
+        // asignatura, ni repartos. Uno con nueve temas y otro sin ninguno.
+        auto crear = [](const QString &ruta, int temas) {
+            {
+                QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("antiguo"));
+                db.setDatabaseName(ruta);
+                if (!db.open())
+                    return false;
+                QSqlQuery q(db);
+                if (!q.exec(QStringLiteral("CREATE TABLE temas (id INTEGER PRIMARY KEY AUTOINCREMENT, numero INTEGER NOT NULL UNIQUE,"
+                                           " titulo TEXT NOT NULL, autor TEXT NOT NULL DEFAULT '')")))
+                    return false;
+                for (int t = 1; t <= temas; ++t)
+                    if (!q.exec(QStringLiteral("INSERT INTO temas (numero, titulo) VALUES (%1, 'Tema inventado %1')").arg(t)))
+                        return false;
+            }
+            QSqlDatabase::removeDatabase(QStringLiteral("antiguo"));
+            return true;
+        };
+        const QString ruta = m_dir.filePath(QStringLiteral("antiguo.db"));
+        const QString vacio = m_dir.filePath(QStringLiteral("antiguo_vacio.db"));
+        QVERIFY(crear(ruta, 9));
+        QVERIFY(crear(vacio, 0));
+
+        // El que tiene temas era de Fundamentos de la informática: su nombre, sus repartos y la forma de la referencia
+        // de sus ocho temas.
+        BaseDatos bd;
+        QVERIFY2(bd.abrir(ruta), qPrintable(bd.ultimoError()));
+        QCOMPARE(bd.asignatura(), QStringLiteral("Fundamentos de la informática"));
+        QStringList nombres;
+        for (const Reparto &r : bd.repartos())
+            nombres << r.nombre;
+        QCOMPARE(nombres, (QStringList{QStringLiteral("T1–T4"), QStringLiteral("T5–T8"), QStringLiteral("T1–T8")}));
+        QCOMPARE(bd.repartos().at(0).preguntas, (QMap<int, int>{{1, 3}, {2, 2}, {3, 3}, {4, 2}}));
+        QCOMPARE(bd.repartos().at(1).preguntas, (QMap<int, int>{{5, 2}, {6, 3}, {7, 2}, {8, 3}}));
+        QCOMPARE(bd.repartos().at(2).preguntas.size(), 8);
+        QCOMPARE(formatos(bd.temas()), (QStringList{QStringLiteral("vease"), QStringLiteral("pag"), QStringLiteral("vease"),
+                                                    QStringLiteral("pag"), QStringLiteral("pag"), QStringLiteral("vease"),
+                                                    QStringLiteral("pag"), QStringLiteral("vease"), QString()}));
+        Pregunta p = bancoInventado(1, 1).first();
+        p.id = 0;
+        QVERIFY2(bd.guardarPregunta(p), qPrintable(bd.ultimoError()));
+
+        // Ya está al día: lo que se cambie después no se vuelve a poner.
+        QVERIFY(bd.guardarAsignatura(QStringLiteral("Otra asignatura inventada")));
+        QVERIFY(bd.guardarRepartos({}));
+        bd.cerrar();
+        QVERIFY(bd.abrir(ruta));
+        QCOMPARE(bd.asignatura(), QStringLiteral("Otra asignatura inventada"));
+        QVERIFY(bd.repartos().isEmpty());
+
+        // El que no tiene temas aún no es de ninguna asignatura.
+        QVERIFY2(bd.abrir(vacio), qPrintable(bd.ultimoError()));
+        QVERIFY(bd.asignatura().isEmpty());
+        QVERIFY(bd.repartos().isEmpty());
+    }
+
+    void importarConservaLoQueElJsonNoDice()
+    {
+        // Un JSON como los de importar_docx.py: sin la forma de la referencia de los temas, y con otro nombre.
+        BaseDatos origen;
+        QVERIFY2(abrirConBanco(origen, 3, 4), qPrintable(origen.ultimoError()));
+        const QString json = m_dir.filePath(QStringLiteral("sin_formato.json"));
+        QVERIFY(origen.exportarJson(json));
+        QVERIFY(cambiarJson(json, [](QJsonObject &raiz) {
+            raiz[QStringLiteral("asignatura")] = QStringLiteral("Otra asignatura inventada");
+            QJsonArray temas = raiz.value(QStringLiteral("temas")).toArray();
+            for (QJsonValueRef t : temas) {
+                QJsonObject tema = t.toObject();
+                tema.remove(QStringLiteral("formato_referencia"));
+                t = tema;
+            }
+            raiz[QStringLiteral("temas")] = temas;
+        }));
+
+        // Al reemplazar todo, cada tema se queda con la forma que tenía, y el banco con su nombre.
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd, 3, 4), qPrintable(bd.ultimoError()));
+        QVector<Tema> temas = bd.temas();
+        temas[0].formatoReferencia = QStringLiteral("pag");
+        QVERIFY(bd.guardarTemas(temas, {}));
+        QVERIFY(bd.guardarAsignatura(QStringLiteral("Asignatura inventada")));
+        QVERIFY(bd.importarJson(json, true) > 0);
+        QCOMPARE(formatos(bd.temas()), (QStringList{QStringLiteral("pag"), QStringLiteral("pag"), QStringLiteral("vease")}));
+        QCOMPARE(bd.asignatura(), QStringLiteral("Asignatura inventada"));
+        // Lo que el JSON no dice no es una diferencia; el nombre, sí.
+        QCOMPARE(bd.diferenciasConJson(json), QStringList{QStringLiteral("La asignatura tiene otro nombre en el JSON: «Otra asignatura inventada»")});
+
+        // Un banco sin nombre toma el del JSON; sus temas nuevos, sin forma de la referencia.
+        BaseDatos nuevo;
+        QVERIFY(nuevo.abrir(m_dir.filePath(QStringLiteral("sin_nombre.db"))));
+        QVERIFY(nuevo.importarJson(json, false) > 0);
+        QCOMPARE(nuevo.asignatura(), QStringLiteral("Otra asignatura inventada"));
+        QCOMPARE(formatos(nuevo.temas()), (QStringList{QString(), QString(), QString()}));
     }
 
     void importacionFallidaNoCambiaNada()
@@ -221,8 +377,17 @@ private slots:
         QCOMPARE(diferencias.at(0), QStringLiteral("1 pregunta distinta: %1").arg(cambiada.codigoCompleto()));
         QCOMPARE(diferencias.at(1), QStringLiteral("1 pregunta solo en la base de datos: %1").arg(nueva.codigoCompleto()));
         QCOMPARE(diferencias.at(2), QStringLiteral("1 pregunta solo en el JSON: %1").arg(preguntas.at(5).codigoCompleto()));
-        QCOMPARE(diferencias.at(3), QStringLiteral("1 tema con otro título o autor: T2"));
+        QCOMPARE(diferencias.at(3), QStringLiteral("1 tema con otro título, autor o forma de la referencia: T2"));
         // Al reescribir el JSON vuelven a coincidir.
+        QVERIFY(bd.exportarJson(json));
+        QVERIFY(bd.diferenciasConJson(json).isEmpty());
+        // También cuentan la forma de la referencia de un tema y el nombre de la asignatura.
+        temas = bd.temas();
+        temas[2].formatoReferencia.clear();
+        QVERIFY(bd.guardarTemas(temas, {}));
+        QVERIFY(bd.guardarAsignatura(QStringLiteral("Asignatura inventada")));
+        QCOMPARE(bd.diferenciasConJson(json), (QStringList{QStringLiteral("1 tema con otro título, autor o forma de la referencia: T3"),
+                                                           QStringLiteral("En el JSON la asignatura no tiene nombre")}));
         QVERIFY(bd.exportarJson(json));
         QVERIFY(bd.diferenciasConJson(json).isEmpty());
 
@@ -336,6 +501,9 @@ private slots:
         QVERIFY(bd.registrarExamenes({m}, d, 8));
         const Pregunta registrada = m.preguntas.first().pregunta;   // del tema 3
 
+        QVERIFY(bd.guardarRepartos({{QStringLiteral("Tercero y cuarto"), {{3, 1}, {4, 2}}}}));
+        QVERIFY(bd.guardarUltimoReparto({{1, 1}, {3, 3}, {4, 4}}));
+
         // Se intercambian los temas 3 y 4.
         QVector<Tema> temas = bd.temas();
         for (Tema &t : temas)
@@ -350,12 +518,17 @@ private slots:
         const QString codigoNuevo = QStringLiteral("T4-") + registrada.codigo();
         QCOMPARE(bd.usosDe(codigoNuevo), QStringList{QStringLiteral("Junio 2026 · Uno")});
         QVERIFY(bd.usosDe(registrada.codigoCompleto()).isEmpty());
+        // Los repartos siguen pidiendo las preguntas a los mismos temas.
+        QCOMPARE(bd.repartos().first().preguntas, (QMap<int, int>{{4, 1}, {3, 2}}));
+        QCOMPARE(bd.ultimoReparto(), (QMap<int, int>{{1, 1}, {4, 3}, {3, 4}}));
     }
 
     void borrarTemaBorraSusPreguntas()
     {
         BaseDatos bd;
         QVERIFY2(abrirConBanco(bd, 3, 10), qPrintable(bd.ultimoError()));
+        QVERIFY(bd.guardarRepartos({{QStringLiteral("Segundo"), {{2, 3}}}, {QStringLiteral("Todos"), {{1, 1}, {2, 2}, {3, 3}}}}));
+        QVERIFY(bd.guardarUltimoReparto({{1, 1}, {2, 2}, {3, 3}}));
         QVector<Tema> temas = bd.temas();
         const int borrado = temas.takeAt(1).id;
         QVERIFY(bd.guardarTemas(temas, {borrado}));
@@ -363,6 +536,10 @@ private slots:
         QCOMPARE(bd.contarPreguntas(borrado), 0);
         for (const Pregunta &p : bd.preguntas())
             QVERIFY(p.temaNumero != 2);
+        // Los repartos pierden el tema, y el que solo tenía ese, desaparece.
+        QCOMPARE(bd.repartos().size(), 1);
+        QCOMPARE(bd.repartos().first().preguntas, (QMap<int, int>{{1, 1}, {3, 3}}));
+        QCOMPARE(bd.ultimoReparto(), (QMap<int, int>{{1, 1}, {3, 3}}));
     }
 };
 

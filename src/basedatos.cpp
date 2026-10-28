@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
+#include <QSet>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QVariant>
@@ -15,6 +16,9 @@
 #include <algorithm>
 
 namespace {
+// Versión del esquema de la base de datos (PRAGMA user_version): ver BaseDatos::actualizarEsquema().
+constexpr int kVersionEsquema = 1;
+
 QString nombreConexion(const BaseDatos *bd)
 {
     return QStringLiteral("preguntas_%1").arg(quintptr(bd), 0, 16);
@@ -59,12 +63,21 @@ QString huella(const Pregunta &p)
 
 QString huella(const Tema &t)
 {
-    return t.titulo + QLatin1Char('#') + t.autor;
+    return QStringList{t.titulo, t.autor, t.formatoReferencia}.join(QLatin1Char('#'));
 }
 
-// Lee un JSON con el formato de herramientas/importar_docx.py: los temas y, en 'preguntas', las preguntas con el
-// número de su tema (sin id). Si falla, deja el motivo en 'error'.
-bool leerJson(const QString &ruta, QVector<Tema> *temas, QVector<Pregunta> *preguntas, QString *error);
+// Lo que hay en un JSON con el formato de herramientas/importar_docx.py.
+struct ContenidoJson
+{
+    bool diceAsignatura = false;      // si el JSON lleva el nombre de la asignatura (aunque sea vacío)
+    QString asignatura;
+    QVector<Tema> temas;              // sin id
+    QSet<int> temasSinFormato;        // números de los temas que no dicen la forma de su referencia
+    QVector<Pregunta> preguntas;      // con el número de su tema, sin id
+};
+
+// Si falla, deja el motivo en 'error'.
+bool leerJson(const QString &ruta, ContenidoJson *contenido, QString *error);
 
 Pregunta preguntaDeJson(const QJsonObject &jp)
 {
@@ -88,7 +101,7 @@ Pregunta preguntaDeJson(const QJsonObject &jp)
     return p;
 }
 
-bool leerJson(const QString &ruta, QVector<Tema> *temas, QVector<Pregunta> *preguntas, QString *error)
+bool leerJson(const QString &ruta, ContenidoJson *contenido, QString *error)
 {
     QFile f(ruta);
     if (!f.open(QIODevice::ReadOnly)) {
@@ -101,6 +114,8 @@ bool leerJson(const QString &ruta, QVector<Tema> *temas, QVector<Pregunta> *preg
         *error = QStringLiteral("JSON no válido: %1").arg(err.errorString());
         return false;
     }
+    contenido->diceAsignatura = doc.object().contains(QStringLiteral("asignatura"));
+    contenido->asignatura = doc.object().value(QStringLiteral("asignatura")).toString().trimmed();
     const QJsonArray jtemas = doc.object().value(QStringLiteral("temas")).toArray();
     for (const QJsonValue &vt : jtemas) {
         const QJsonObject jt = vt.toObject();
@@ -108,11 +123,15 @@ bool leerJson(const QString &ruta, QVector<Tema> *temas, QVector<Pregunta> *preg
         t.numero = jt.value(QStringLiteral("numero")).toInt();
         t.titulo = jt.value(QStringLiteral("titulo")).toString();
         t.autor = jt.value(QStringLiteral("autor")).toString();
-        temas->append(t);
+        if (jt.contains(QStringLiteral("formato_referencia")))
+            t.formatoReferencia = jt.value(QStringLiteral("formato_referencia")).toString();
+        else
+            contenido->temasSinFormato.insert(t.numero);
+        contenido->temas.append(t);
         for (const QJsonValue &vp : jt.value(QStringLiteral("preguntas")).toArray()) {
             Pregunta p = preguntaDeJson(vp.toObject());
             p.temaNumero = t.numero;
-            preguntas->append(p);
+            contenido->preguntas.append(p);
         }
     }
     return true;
@@ -142,6 +161,23 @@ private:
     QSqlDatabase &m_db;
     bool m_confirmada = false;
 };
+
+// Reparto (número de tema -> preguntas) <-> JSON, como se guarda en los ajustes del banco: {"1": 3, "2": 2}.
+QJsonObject repartoAJson(const QMap<int, int> &reparto)
+{
+    QJsonObject o;
+    for (auto it = reparto.cbegin(); it != reparto.cend(); ++it)
+        o[QString::number(it.key())] = it.value();
+    return o;
+}
+
+QMap<int, int> repartoDeJson(const QJsonObject &o)
+{
+    QMap<int, int> reparto;
+    for (auto it = o.constBegin(); it != o.constEnd(); ++it)
+        reparto.insert(it.key().toInt(), it.value().toInt());
+    return reparto;
+}
 
 using ClaveConvocatoria = QPair<int, QString>;   // año y convocatoria
 
@@ -195,7 +231,7 @@ bool BaseDatos::abrir(const QString &ruta)
     }
     m_ruta = ruta;
     ejecutar(QStringLiteral("PRAGMA foreign_keys = ON"));
-    return crearEsquema();
+    return crearEsquema() && actualizarEsquema();
 }
 
 bool BaseDatos::ejecutar(const QString &sql, const QVariantList &valores, int *id)
@@ -238,7 +274,8 @@ bool BaseDatos::crearEsquema()
                " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                " numero INTEGER NOT NULL UNIQUE,"
                " titulo TEXT NOT NULL,"
-               " autor TEXT NOT NULL DEFAULT '')"))
+               " autor TEXT NOT NULL DEFAULT '',"
+               " formato_referencia TEXT NOT NULL DEFAULT '')"))
         && ejecutar(QStringLiteral(
                "CREATE TABLE IF NOT EXISTS preguntas ("
                " id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -259,7 +296,7 @@ bool BaseDatos::crearEsquema()
                " imagen BLOB,"
                " UNIQUE (tema_id, numero, variante))"))
         && ejecutar(QStringLiteral("CREATE INDEX IF NOT EXISTS idx_preguntas_tema ON preguntas(tema_id, numero)"))
-        // Ajustes que van con el banco (json_enlazado, json_automatico...).
+        // Ajustes que van con el banco (asignatura, repartos, json_enlazado...).
         && ejecutar(QStringLiteral("CREATE TABLE IF NOT EXISTS ajustes (clave TEXT PRIMARY KEY, valor TEXT NOT NULL)"))
         // Historial de convocatorias ('registrado' es la fecha y hora en ISO 8601; 'orden', el de las opciones
         // mostradas, p. ej. "2031"; 'pregunta', la copia en JSON de la pregunta tal como salió).
@@ -288,16 +325,63 @@ bool BaseDatos::crearEsquema()
         && ejecutar(QStringLiteral("CREATE INDEX IF NOT EXISTS idx_registradas_codigo ON preguntas_registradas(codigo)"));
 }
 
+bool BaseDatos::actualizarEsquema()
+{
+    int version = 0;
+    bool tieneFormato = false;
+    {   // Las consultas se cierran antes de la transacción.
+        QSqlQuery q = consultar(QStringLiteral("PRAGMA user_version"));
+        if (q.next())
+            version = q.value(0).toInt();
+        q = consultar(QStringLiteral("PRAGMA table_info(temas)"));
+        while (q.next())
+            tieneFormato = tieneFormato || q.value(1).toString() == QLatin1String("formato_referencia");
+    }
+    if (version >= kVersionEsquema)
+        return true;
+    Transaccion transaccion(m_db);
+    if (!tieneFormato && !ejecutar(QStringLiteral("ALTER TABLE temas ADD COLUMN formato_referencia TEXT NOT NULL DEFAULT ''")))
+        return false;
+    // Lo que el programa daba por hecho cuando solo era para Fundamentos de la informática: el nombre, los repartos
+    // de sus exámenes (la primera parte, la segunda y las dos juntas) y la forma de la referencia según el autor de
+    // cada tema (ver Estilo::formatosReferencia()). Un banco sin temas aún no es de ninguna asignatura.
+    const QVector<Tema> temasAntes = temas();
+    if (version < 1 && !temasAntes.isEmpty()) {
+        const QMap<int, int> primera{{1, 3}, {2, 2}, {3, 3}, {4, 2}}, segunda{{5, 2}, {6, 3}, {7, 2}, {8, 3}};
+        QMap<int, int> todo = primera;
+        todo.insert(segunda);
+        if (!guardarAsignatura(QStringLiteral("Fundamentos de la informática"))
+            || !guardarRepartos({{QStringLiteral("T1–T4"), primera}, {QStringLiteral("T5–T8"), segunda}, {QStringLiteral("T1–T8"), todo}}))
+            return false;
+        const QSet<int> vease{1, 3, 6, 8}, pag{2, 4, 5, 7};
+        for (const Tema &t : temasAntes) {
+            const QString formato = vease.contains(t.numero) ? QStringLiteral("vease")
+                                    : pag.contains(t.numero) ? QStringLiteral("pag")
+                                                             : QString();
+            if (!formato.isEmpty() && !ejecutar(QStringLiteral("UPDATE temas SET formato_referencia = ? WHERE id = ?"), {formato, t.id}))
+                return false;
+        }
+    }
+    if (!ejecutar(QStringLiteral("PRAGMA user_version = %1").arg(kVersionEsquema)))
+        return false;
+    if (!transaccion.confirmar()) {
+        m_error = m_db.lastError().text();
+        return false;
+    }
+    return true;
+}
+
 QVector<Tema> BaseDatos::temas()
 {
     QVector<Tema> res;
-    QSqlQuery q = consultar(QStringLiteral("SELECT id, numero, titulo, autor FROM temas ORDER BY numero"));
+    QSqlQuery q = consultar(QStringLiteral("SELECT id, numero, titulo, autor, formato_referencia FROM temas ORDER BY numero"));
     while (q.next()) {
         Tema t;
         t.id = q.value(0).toInt();
         t.numero = q.value(1).toInt();
         t.titulo = q.value(2).toString();
         t.autor = q.value(3).toString();
+        t.formatoReferencia = q.value(4).toString();
         res.append(t);
     }
     return res;
@@ -305,10 +389,11 @@ QVector<Tema> BaseDatos::temas()
 
 bool BaseDatos::guardarTema(Tema &tema)
 {
-    const QVariantList valores{tema.numero, texto(tema.titulo), texto(tema.autor)};
+    const QVariantList valores{tema.numero, texto(tema.titulo), texto(tema.autor), texto(tema.formatoReferencia)};
     if (tema.id != 0)
-        return ejecutar(QStringLiteral("UPDATE temas SET numero = ?, titulo = ?, autor = ? WHERE id = ?"), valores + QVariantList{tema.id});
-    return ejecutar(QStringLiteral("INSERT INTO temas (numero, titulo, autor) VALUES (?, ?, ?)"), valores, &tema.id);
+        return ejecutar(QStringLiteral("UPDATE temas SET numero = ?, titulo = ?, autor = ?, formato_referencia = ? WHERE id = ?"),
+                        valores + QVariantList{tema.id});
+    return ejecutar(QStringLiteral("INSERT INTO temas (numero, titulo, autor, formato_referencia) VALUES (?, ?, ?, ?)"), valores, &tema.id);
 }
 
 bool BaseDatos::guardarTemas(QVector<Tema> &nuevos, const QVector<int> &borrados)
@@ -368,6 +453,28 @@ bool BaseDatos::guardarTemas(QVector<Tema> &nuevos, const QVector<int> &borrados
             if (!ejecutar(QStringLiteral("UPDATE preguntas_registradas SET codigo = ? WHERE examen_id = ? AND posicion = ?"),
                           {r.codigo, r.examen, r.posicion}))
                 return false;
+    }
+    // Los repartos van por número de tema: se renumeran igual, sin los temas borrados (y sin los que se queden vacíos).
+    if (!cambio.isEmpty() || !borrados.isEmpty()) {
+        QHash<int, int> numeroNuevo;   // número antes -> número después, de los temas que siguen
+        for (const Tema &t : std::as_const(guardados))
+            if (numeroAntes.contains(t.id))
+                numeroNuevo.insert(numeroAntes.value(t.id), t.numero);
+        auto renumerar = [&numeroNuevo](const QMap<int, int> &reparto) {
+            QMap<int, int> res;
+            for (auto it = reparto.cbegin(); it != reparto.cend(); ++it)
+                if (numeroNuevo.contains(it.key()))
+                    res.insert(numeroNuevo.value(it.key()), it.value());
+            return res;
+        };
+        QVector<Reparto> renumerados;
+        for (Reparto r : repartos()) {
+            r.preguntas = renumerar(r.preguntas);
+            if (!r.preguntas.isEmpty())
+                renumerados << r;
+        }
+        if (!guardarRepartos(renumerados) || !guardarUltimoReparto(renumerar(ultimoReparto())))
+            return false;
     }
     if (!transaccion.confirmar()) {
         m_error = m_db.lastError().text();
@@ -447,20 +554,20 @@ bool BaseDatos::borrarPregunta(int id)
     return ejecutar(QStringLiteral("DELETE FROM preguntas WHERE id = ?"), {id});
 }
 
-int BaseDatos::idTema(int numero, const QString &titulo, const QString &autor, bool actualizar)
+int BaseDatos::idTema(const Tema &t, bool actualizar)
 {
-    QSqlQuery q = consultar(QStringLiteral("SELECT id FROM temas WHERE numero = ?"), {numero});
+    QSqlQuery q = consultar(QStringLiteral("SELECT id FROM temas WHERE numero = ?"), {t.numero});
     if (q.next()) {
         const int id = q.value(0).toInt();
-        if (actualizar && !ejecutar(QStringLiteral("UPDATE temas SET titulo = ?, autor = ? WHERE id = ?"), {texto(titulo), texto(autor), id}))
+        if (actualizar
+            && !ejecutar(QStringLiteral("UPDATE temas SET titulo = ?, autor = ?, formato_referencia = ? WHERE id = ?"),
+                         {texto(t.titulo), texto(t.autor), texto(t.formatoReferencia), id}))
             return 0;
         return id;
     }
-    Tema t;
-    t.numero = numero;
-    t.titulo = titulo;
-    t.autor = autor;
-    return guardarTema(t) ? t.id : 0;
+    Tema nuevo = t;
+    nuevo.id = 0;
+    return guardarTema(nuevo) ? nuevo.id : 0;
 }
 
 QString BaseDatos::copiaSeguridad()
@@ -488,10 +595,16 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
 {
     if (copia)
         copia->clear();
-    QVector<Tema> temas;
-    QVector<Pregunta> preguntas;
-    if (!leerJson(ruta, &temas, &preguntas, &m_error))
+    ContenidoJson contenido;
+    if (!leerJson(ruta, &contenido, &m_error))
         return -1;
+    // Los temas del JSON que no dicen la forma de su referencia se quedan con la que tenía el tema con su número.
+    QHash<int, QString> formatoAntes;
+    for (const Tema &t : temas())
+        formatoAntes.insert(t.numero, t.formatoReferencia);
+    for (Tema &t : contenido.temas)
+        if (contenido.temasSinFormato.contains(t.numero))
+            t.formatoReferencia = formatoAntes.value(t.numero);
 
     // Antes de borrar el banco, copia de seguridad (si hay algo que borrar: las preguntas van con sus temas). Si
     // la copia falla, no se toca nada.
@@ -521,15 +634,17 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
     if (reemplazar && !(ejecutar(QStringLiteral("DELETE FROM preguntas")) && ejecutar(QStringLiteral("DELETE FROM temas"))))
         return fallo();
 
+    if (asignatura().isEmpty() && !contenido.asignatura.isEmpty() && !guardarAsignatura(contenido.asignatura))
+        return fallo();
     QHash<int, int> idDelTema;   // número de tema -> id
-    for (const Tema &t : temas) {
-        const int temaId = idTema(t.numero, t.titulo, t.autor, true);
+    for (const Tema &t : std::as_const(contenido.temas)) {
+        const int temaId = idTema(t, true);
         if (temaId == 0)
             return fallo();
         idDelTema.insert(t.numero, temaId);
     }
     int n = 0;
-    for (Pregunta p : preguntas) {
+    for (Pregunta p : std::as_const(contenido.preguntas)) {
         p.temaId = idDelTema.value(p.temaNumero);
         // Si ya existe (mismo tema, número y variante) se actualiza.
         QSqlQuery q = consultar(QStringLiteral("SELECT id FROM preguntas WHERE tema_id = ? AND numero = ? AND variante = ?"),
@@ -562,6 +677,45 @@ bool BaseDatos::guardarAjuste(const QString &clave, const QString &valor)
     return ejecutar(QStringLiteral("INSERT OR REPLACE INTO ajustes (clave, valor) VALUES (?, ?)"), {clave, valor});
 }
 
+QString BaseDatos::asignatura()
+{
+    return ajuste(QStringLiteral("asignatura"));
+}
+
+bool BaseDatos::guardarAsignatura(const QString &nombre)
+{
+    return guardarAjuste(QStringLiteral("asignatura"), nombre.trimmed());
+}
+
+QVector<Reparto> BaseDatos::repartos()
+{
+    // [{"nombre": "T1–T4", "preguntas": {"1": 3, "2": 2, "3": 3, "4": 2}}, …]
+    QVector<Reparto> res;
+    for (const QJsonValue &v : QJsonDocument::fromJson(ajuste(QStringLiteral("repartos")).toUtf8()).array()) {
+        const QJsonObject o = v.toObject();
+        res.append({o.value(QStringLiteral("nombre")).toString(), repartoDeJson(o.value(QStringLiteral("preguntas")).toObject())});
+    }
+    return res;
+}
+
+bool BaseDatos::guardarRepartos(const QVector<Reparto> &repartos)
+{
+    QJsonArray a;
+    for (const Reparto &r : repartos)
+        a.append(QJsonObject{{QStringLiteral("nombre"), r.nombre}, {QStringLiteral("preguntas"), repartoAJson(r.preguntas)}});
+    return guardarAjuste(QStringLiteral("repartos"), QString::fromUtf8(QJsonDocument(a).toJson(QJsonDocument::Compact)));
+}
+
+QMap<int, int> BaseDatos::ultimoReparto()
+{
+    return repartoDeJson(QJsonDocument::fromJson(ajuste(QStringLiteral("reparto")).toUtf8()).object());
+}
+
+bool BaseDatos::guardarUltimoReparto(const QMap<int, int> &reparto)
+{
+    return guardarAjuste(QStringLiteral("reparto"), QString::fromUtf8(QJsonDocument(repartoAJson(reparto)).toJson(QJsonDocument::Compact)));
+}
+
 QString BaseDatos::jsonEnlazado()
 {
     const QString relativa = ajuste(QStringLiteral("json_enlazado"));
@@ -588,10 +742,9 @@ bool BaseDatos::fijarJsonAutomatico(bool automatico)
 
 QStringList BaseDatos::diferenciasConJson(const QString &ruta)
 {
-    QVector<Tema> temasJson;
-    QVector<Pregunta> preguntasJson;
+    ContenidoJson json;
     QString error;
-    if (!leerJson(ruta, &temasJson, &preguntasJson, &error))
+    if (!leerJson(ruta, &json, &error))
         return {error};
 
     // «3 preguntas distintas: T1-7, T2-3a, T4-1» (como mucho ocho códigos; luego, puntos suspensivos).
@@ -606,7 +759,7 @@ QStringList BaseDatos::diferenciasConJson(const QString &ruta)
     QStringList diferencias;
 
     QHash<QString, QString> huellasJson;   // código completo -> huella
-    for (const Pregunta &p : preguntasJson)
+    for (const Pregunta &p : std::as_const(json.preguntas))
         huellasJson.insert(p.codigoCompleto(), huella(p));
     QStringList distintas, soloBd, soloJson;
     for (const Pregunta &p : preguntas()) {
@@ -622,24 +775,33 @@ QStringList BaseDatos::diferenciasConJson(const QString &ruta)
                 << linea(soloBd, QStringLiteral("pregunta solo en la base de datos"), QStringLiteral("preguntas solo en la base de datos"))
                 << linea(soloJson, QStringLiteral("pregunta solo en el JSON"), QStringLiteral("preguntas solo en el JSON"));
 
-    QHash<int, QString> temasDelJson;   // número -> huella
-    for (const Tema &t : temasJson)
-        temasDelJson.insert(t.numero, huella(t));
+    QHash<int, Tema> temasDelJson;   // número -> tema
+    for (const Tema &t : std::as_const(json.temas))
+        temasDelJson.insert(t.numero, t);
     QStringList temasDistintos, temasSoloBd, temasSoloJson;
     for (const Tema &t : temas()) {
         const QString codigo = QStringLiteral("T%1").arg(t.numero);
-        if (!temasDelJson.contains(t.numero))
+        if (!temasDelJson.contains(t.numero)) {
             temasSoloBd << codigo;
-        else if (temasDelJson.take(t.numero) != huella(t))
+            continue;
+        }
+        Tema delJson = temasDelJson.take(t.numero);
+        if (json.temasSinFormato.contains(t.numero))
+            delJson.formatoReferencia = t.formatoReferencia;
+        if (huella(delJson) != huella(t))
             temasDistintos << codigo;
     }
     QList<int> numerosSoloJson = temasDelJson.keys();
     std::sort(numerosSoloJson.begin(), numerosSoloJson.end());
     for (int numero : numerosSoloJson)
         temasSoloJson << QStringLiteral("T%1").arg(numero);
-    diferencias << linea(temasDistintos, QStringLiteral("tema con otro título o autor"), QStringLiteral("temas con otro título o autor"))
+    diferencias << linea(temasDistintos, QStringLiteral("tema con otro título, autor o forma de la referencia"),
+                         QStringLiteral("temas con otro título, autor o forma de la referencia"))
                 << linea(temasSoloBd, QStringLiteral("tema solo en la base de datos"), QStringLiteral("temas solo en la base de datos"))
                 << linea(temasSoloJson, QStringLiteral("tema solo en el JSON"), QStringLiteral("temas solo en el JSON"));
+    if (json.diceAsignatura && json.asignatura != asignatura())
+        diferencias << (json.asignatura.isEmpty() ? QStringLiteral("En el JSON la asignatura no tiene nombre")
+                                                  : QStringLiteral("La asignatura tiene otro nombre en el JSON: «%1»").arg(json.asignatura));
     diferencias.removeAll(QString());
     return diferencias;
 }
@@ -657,11 +819,12 @@ bool BaseDatos::exportarJson(const QString &ruta)
         jt[QStringLiteral("numero")] = t.numero;
         jt[QStringLiteral("titulo")] = t.titulo;
         jt[QStringLiteral("autor")] = t.autor;
+        jt[QStringLiteral("formato_referencia")] = t.formatoReferencia;
         jt[QStringLiteral("preguntas")] = jpreguntas;
         jtemas.append(jt);
     }
     QJsonObject raiz;
-    raiz[QStringLiteral("asignatura")] = QStringLiteral("Fundamentos de Informática");
+    raiz[QStringLiteral("asignatura")] = asignatura();
     raiz[QStringLiteral("temas")] = jtemas;
 
     QFile f(ruta);

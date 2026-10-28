@@ -12,6 +12,9 @@ struct Tema
     int numero = 0;
     QString titulo;
     QString autor;
+    // Forma de la referencia al libro en las preguntas del tema, que depende de su autor (la comprueba Estilo):
+    // "vease", "pag" o vacía (cualquiera). Ver Estilo::formatosReferencia().
+    QString formatoReferencia;
 
     QString nombre() const { return QStringLiteral("Tema %1: %2").arg(numero).arg(titulo); }
 };

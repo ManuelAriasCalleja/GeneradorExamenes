@@ -56,14 +56,37 @@
 #include <QTextDocument>
 #include <QUrl>
 #include <QVBoxLayout>
+#include <algorithm>
 #include <memory>
 
 namespace {
 
-// Reparto habitual de preguntas por tema (exámenes de 10 preguntas por parte y 20 en total).
-const QMap<int, int> kRepartoHabitual{{1, 3}, {2, 2}, {3, 3}, {4, 2}, {5, 2}, {6, 3}, {7, 2}, {8, 3}};
-// Reparto inicial (sin configuración guardada): como en los exámenes de ejemplo, 10 preguntas de T1–T4.
-const QMap<int, int> kRepartoPorDefecto{{1, 3}, {2, 2}, {3, 3}, {4, 2}};
+// Botones de reparto por fila.
+constexpr int kRepartosPorFila = 4;
+
+// Lo que pone un reparto, para su botón: «T1: 3, T2: 2, T3: 3, T4: 2 (10 preguntas)».
+QString describirReparto(const QMap<int, int> &reparto)
+{
+    QStringList temas;
+    int total = 0;
+    for (auto it = reparto.cbegin(); it != reparto.cend(); ++it) {
+        temas << QStringLiteral("T%1: %2").arg(it.key()).arg(it.value());
+        total += it.value();
+    }
+    return QStringLiteral("%1 (%2 preguntas)").arg(temas.join(QStringLiteral(", "))).arg(total);
+}
+
+// Nombre que se propone para guardar un reparto: «T1–T4» si son temas seguidos; si no, «T1, T3, T5».
+QString nombreDeReparto(const QMap<int, int> &reparto)
+{
+    const QList<int> temas = reparto.keys();
+    if (temas.size() > 1 && temas.last() - temas.first() == temas.size() - 1)
+        return QStringLiteral("T%1–T%2").arg(temas.first()).arg(temas.last());
+    QStringList nombres;
+    for (int t : temas)
+        nombres << QStringLiteral("T%1").arg(t);
+    return nombres.join(QStringLiteral(", "));
+}
 
 // Lista de exámenes la primera vez que se abre el programa; luego se recuerda la que se haya hecho.
 const QStringList kExamenesPorDefecto{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")};
@@ -108,7 +131,7 @@ QVariant valorAjuste(const QWidget *control)
 VentanaPrincipal::VentanaPrincipal(QWidget *parent)
     : QMainWindow(parent)
 {
-    setWindowTitle(QStringLiteral("Generador de exámenes - Fundamentos de Informática"));
+    actualizarTitulo();
     auto *pestanas = new QTabWidget;
     pestanas->addTab(crearPestanaExamen(), QStringLiteral("Generar examen"));
     pestanas->addTab(crearPestanaBanco(), QStringLiteral("Banco de preguntas"));
@@ -182,7 +205,11 @@ QWidget *VentanaPrincipal::crearGrupoConvocatoria()
 {
     auto *gConv = new QGroupBox(QStringLiteral("Convocatoria"));
     auto *fConv = new QFormLayout(gConv);
-    m_asignatura = new QLineEdit(QStringLiteral("Fundamentos de Informática"));
+    m_asignatura = new QLineEdit;
+    m_asignatura->setPlaceholderText(QStringLiteral("Nombre de la asignatura"));
+    m_asignatura->setToolTip(QStringLiteral("Va en la cabecera de los exámenes. Se guarda en el banco de preguntas: "
+                                            "cada banco tiene el de su asignatura."));
+    connect(m_asignatura, &QLineEdit::editingFinished, this, &VentanaPrincipal::guardarAsignatura);
     // La convocatoria y el año no se guardan en la configuración: al abrir se propone la próxima.
     const DatosConvocatoria proxima = DatosConvocatoria::proxima(QDate::currentDate());
     m_convocatoria = new QComboBox;
@@ -238,20 +265,17 @@ QWidget *VentanaPrincipal::crearGrupoTemas()
     m_rejillaTemas = new QGridLayout(m_contenedorTemas);
     m_rejillaTemas->setContentsMargins(0, 0, 0, 0);
     lt->addWidget(m_contenedorTemas);
-    auto *repartos = new QHBoxLayout;
-    auto botonReparto = [&](const QString &texto, const QString &ayuda, int desde, int hasta) {
-        auto *b = new QPushButton(texto);
-        b->setToolTip(ayuda);
-        connect(b, &QPushButton::clicked, this, [this, desde, hasta]() { aplicarReparto(desde, hasta); });
-        repartos->addWidget(b);
-    };
-    botonReparto(QStringLiteral("T1–T4"), QStringLiteral("Primera parte: 3, 2, 3, 2 preguntas"), 1, 4);
-    botonReparto(QStringLiteral("T5–T8"), QStringLiteral("Segunda parte: 2, 3, 2, 3 preguntas"), 5, 8);
-    botonReparto(QStringLiteral("T1–T8"), QStringLiteral("Examen total de 20 preguntas"), 1, 8);
-    botonReparto(QStringLiteral("Ninguna"), QStringLiteral("Poner todos los temas a 0"), 0, -1);
-    lt->addLayout(repartos);
+    m_rejillaRepartos = new QGridLayout;
+    lt->addLayout(m_rejillaRepartos);
+    auto *pie = new QHBoxLayout;
     m_total = new QLabel;
-    lt->addWidget(m_total);
+    pie->addWidget(m_total, 1);
+    auto *guardar = new QPushButton(QStringLiteral("Guardar reparto…"));
+    guardar->setToolTip(QStringLiteral("Guarda en el banco el número de preguntas de cada tema que hay ahora, con un nombre: "
+                                       "sale un botón que lo pone"));
+    connect(guardar, &QPushButton::clicked, this, &VentanaPrincipal::guardarReparto);
+    pie->addWidget(guardar);
+    lt->addLayout(pie);
     return gTemas;
 }
 
@@ -530,6 +554,8 @@ void VentanaPrincipal::crearMenus()
 
 bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
 {
+    if (m_bd.abierta())
+        guardarEstadoBanco();
     if (!m_bd.abrir(ruta)) {
         QMessageBox::critical(this, windowTitle(),
                               QStringLiteral("No se pudo abrir la base de datos\n%1\n\n%2").arg(ruta, m_bd.ultimoError()));
@@ -545,6 +571,22 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
     m_preguntaACambiar->setEnabled(false);
     m_deshacerCambio->setEnabled(false);
     actualizarRegistro();
+    m_asignatura->setText(m_bd.asignatura());
+    actualizarTitulo();
+    // El último reparto usado con el banco. Si no hay ninguno, el que guardaban en la configuración las versiones
+    // anteriores (uno para todos los bancos: se pasa al primero que se abre) o, si no, el primero de los del banco.
+    m_cantidadesGuardadas = m_bd.ultimoReparto();
+    if (m_cantidadesGuardadas.isEmpty()) {
+        QSettings s;
+        const QVariantMap antiguo = s.value(QStringLiteral("examen/temas")).toMap();
+        s.remove(QStringLiteral("examen/temas"));
+        for (auto it = antiguo.cbegin(); it != antiguo.cend(); ++it)
+            m_cantidadesGuardadas.insert(it.key().toInt(), it.value().toInt());
+        const QVector<Reparto> repartos = m_bd.repartos();
+        if (m_cantidadesGuardadas.isEmpty() && !repartos.isEmpty())
+            m_cantidadesGuardadas = repartos.first().preguntas;
+    }
+    m_cantidades.clear();   // las casillas del banco anterior, que no deben pasar sus números a este
     recargarDatos();
     QSettings().setValue(QStringLiteral("bd/ruta"), ruta);
     return true;
@@ -604,8 +646,17 @@ void VentanaPrincipal::nuevaBaseDatos()
         }
         QFile::remove(ruta);
     }
-    if (abrirBaseDatos(ruta)
-        && confirmar(this, windowTitle(), QStringLiteral("El banco nuevo está vacío. ¿Quiere importar ahora preguntas de un JSON?")))
+    if (!abrirBaseDatos(ruta))
+        return;
+    QString asignatura;
+    if (pedirTexto(this, QStringLiteral("Nuevo banco de preguntas"),
+                   QStringLiteral("Nombre de la asignatura del banco (va en la cabecera de los exámenes):"), &asignatura)
+        && !asignatura.isEmpty()) {
+        m_bd.guardarAsignatura(asignatura);
+        m_asignatura->setText(m_bd.asignatura());
+        actualizarTitulo();
+    }
+    if (confirmar(this, windowTitle(), QStringLiteral("El banco nuevo está vacío. ¿Quiere importar ahora preguntas de un JSON?")))
         importarJson();
 }
 
@@ -628,6 +679,7 @@ void VentanaPrincipal::importarJson()
     if (caja.clickedButton() != anadir && caja.clickedButton() != reemplazar)
         return;
     QString copia;
+    const QString asignaturaAntes = m_bd.asignatura();
     const int n = m_bd.importarJson(ruta, caja.clickedButton() == reemplazar, &copia);
     if (n < 0) {
         QMessageBox::warning(this, windowTitle(), QStringLiteral("Error al importar:\n%1").arg(m_bd.ultimoError()));
@@ -637,6 +689,10 @@ void VentanaPrincipal::importarJson()
     // hubiera enlazado sigue siéndolo.
     if (caja.clickedButton() == reemplazar || m_bd.jsonEnlazado().isEmpty())
         m_bd.enlazarJson(ruta);
+    if (m_bd.asignatura() != asignaturaAntes) {   // el banco no tenía nombre y lo trae el JSON
+        m_asignatura->setText(m_bd.asignatura());
+        actualizarTitulo();
+    }
     recargarDatos();
     QString mensaje = QStringLiteral("Se han importado %1 preguntas.").arg(n);
     if (!copia.isEmpty())
@@ -762,7 +818,7 @@ void VentanaPrincipal::revisarEstilo()
                                              == DialogoPregunta::Siguiente;
                               return false;
                           },
-                          m_bd.ruta(), this);
+                          m_bd.ruta(), m_temas, this);
     dialogo.exec();
 }
 
@@ -781,15 +837,17 @@ void VentanaPrincipal::acercaDe()
                              .scaledToWidth(160, Qt::SmoothTransformation);
     caja.setIconPixmap(foto);
     caja.setTextFormat(Qt::RichText);
-    caja.setText(QStringLiteral("<h3>Generador de exámenes de Fundamentos de Informática</h3>"
+    caja.setText(QStringLiteral("<h3>Generador de exámenes</h3>"
                                 "<p>Versión %1</p>"
                                 "<p>Desarrollado por Manuel Arias Calleja</p>"
                                 "<p>Genera exámenes tipo test eligiendo al azar preguntas de la base de datos, "
                                 "con el número de preguntas que se indique de cada tema.</p>"
                                 "<p>Nunca pone en un mismo examen dos variantes de una pregunta (3a/3b) ni "
                                 "pseudorrepetidas, y puede evitar que se repitan preguntas entre exámenes.</p>"
-                                "<p>Base de datos: <tt>%2</tt></p><p>Configuración: <tt>%3</tt></p><p>Qt %4</p>")
-                     .arg(QStringLiteral(VERSION_APLICACION), QDir::toNativeSeparators(m_bd.ruta()).toHtmlEscaped(),
+                                "<p>Asignatura: %2</p>"
+                                "<p>Base de datos: <tt>%3</tt></p><p>Configuración: <tt>%4</tt></p><p>Qt %5</p>")
+                     .arg(QStringLiteral(VERSION_APLICACION), m_bd.asignatura().isEmpty() ? QStringLiteral("—") : m_bd.asignatura().toHtmlEscaped(),
+                          QDir::toNativeSeparators(m_bd.ruta()).toHtmlEscaped(),
                           QDir::toNativeSeparators(QSettings().fileName()).toHtmlEscaped(), QString::fromLatin1(qVersion())));
     caja.setStandardButtons(QMessageBox::Ok);
     // QMessageBox elige el ancho del texto y lo deja muy estrecho (hasta el nombre se partía en dos líneas).
@@ -821,6 +879,7 @@ void VentanaPrincipal::recargarDatos(int seleccionarId)
     m_modelo->establecer(m_preguntas);
     filtrar();
     reconstruirTemas();
+    reconstruirRepartos();
 
     if (seleccionarId) {
         const int fila = m_modelo->filaDeId(seleccionarId);
@@ -886,13 +945,6 @@ void VentanaPrincipal::leerConfiguracion()
     const QStringList marcados = s.value(QStringLiteral("examenes/marcados"), examenes).toStringList();
     for (const QString &nombre : examenes)
         anadirExamen(nombre, marcados.contains(nombre));
-    const QVariantMap cantidades = s.value(QStringLiteral("examen/temas")).toMap();
-    if (cantidades.isEmpty()) {
-        m_cantidadesGuardadas = kRepartoPorDefecto;
-    } else {
-        for (auto it = cantidades.cbegin(); it != cantidades.cend(); ++it)
-            m_cantidadesGuardadas.insert(it.key().toInt(), it.value().toInt());
-    }
     connect(m_incluirRevisar, &QCheckBox::toggled, this, &VentanaPrincipal::reconstruirTemas);
     actualizarPuntuacion();
 }
@@ -915,17 +967,23 @@ void VentanaPrincipal::guardarConfiguracion()
     }
     s.setValue(QStringLiteral("examenes/nombres"), examenes);
     s.setValue(QStringLiteral("examenes/marcados"), marcados);
-    QVariantMap cantidades;
+    s.remove(QStringLiteral("examen/asignatura"));   // de las versiones anteriores: ahora va en el banco
+}
+
+void VentanaPrincipal::guardarEstadoBanco()
+{
+    guardarAsignatura();
+    QMap<int, int> reparto;
     for (auto it = m_cantidades.cbegin(); it != m_cantidades.cend(); ++it)
-        cantidades.insert(QString::number(it.key()), it.value()->value());
-    s.setValue(QStringLiteral("examen/temas"), cantidades);
+        reparto.insert(it.key(), it.value()->value());
+    if (!m_cantidades.isEmpty())
+        m_bd.guardarUltimoReparto(reparto);
 }
 
 QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
 {
     // En este orden se leen: «Automática» antes que los puntos, para que se queden los guardados.
     return {
-        {QStringLiteral("examen/asignatura"), m_asignatura},
         {QStringLiteral("examen/instrucciones"), m_instrucciones},
         {QStringLiteral("examen/noRepetir"), m_noRepetir},
         {QStringLiteral("examen/evitarRecientes"), m_evitarRecientes},
@@ -947,18 +1005,131 @@ void VentanaPrincipal::closeEvent(QCloseEvent *evento)
         return;
     }
     guardarConfiguracion();
+    guardarEstadoBanco();
     evento->accept();
 }
 
 // ---------------------------------------------------------------------------------------------
 // Generación de exámenes
 
-void VentanaPrincipal::aplicarReparto(int primerTema, int ultimoTema)
+void VentanaPrincipal::actualizarTitulo()
 {
-    for (auto it = m_cantidades.begin(); it != m_cantidades.end(); ++it) {
-        const int t = it.key();
-        it.value()->setValue(t >= primerTema && t <= ultimoTema ? kRepartoHabitual.value(t, 2) : 0);
+    const QString asignatura = m_bd.abierta() ? m_bd.asignatura() : QString();
+    setWindowTitle(asignatura.isEmpty() ? QStringLiteral("Generador de exámenes")
+                                        : QStringLiteral("Generador de exámenes - %1").arg(asignatura));
+}
+
+void VentanaPrincipal::guardarAsignatura()
+{
+    if (!m_asignatura->isModified() || !m_bd.abierta())
+        return;
+    m_asignatura->setModified(false);
+    if (m_asignatura->text().trimmed() == m_bd.asignatura())
+        return;
+    if (!m_bd.guardarAsignatura(m_asignatura->text())) {
+        QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo guardar el nombre de la asignatura en el banco:\n%1")
+                                                      .arg(m_bd.ultimoError()));
+        return;
     }
+    actualizarTitulo();
+    bancoEditado();   // el JSON del banco lleva el nombre
+}
+
+void VentanaPrincipal::reconstruirRepartos()
+{
+    QLayoutItem *item;
+    while ((item = m_rejillaRepartos->takeAt(0)) != nullptr) {
+        // Más tarde: puede ser el botón cuyo menú ha pedido el cambio.
+        if (QWidget *w = item->widget()) {
+            w->setParent(nullptr);
+            w->deleteLater();
+        }
+        delete item;
+    }
+    int n = 0;
+    auto anadir = [this, &n](QPushButton *b) {
+        m_rejillaRepartos->addWidget(b, n / kRepartosPorFila, n % kRepartosPorFila);
+        ++n;
+    };
+    for (const Reparto &r : m_bd.repartos()) {
+        auto *b = new QPushButton(r.nombre);
+        b->setToolTip(describirReparto(r.preguntas) + QStringLiteral("\nBotón derecho: sustituirlo o quitarlo"));
+        connect(b, &QPushButton::clicked, this, [this, preguntas = r.preguntas]() { aplicarReparto(preguntas); });
+        b->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(b, &QPushButton::customContextMenuRequested, this,
+                [this, b, nombre = r.nombre](const QPoint &donde) { menuReparto(nombre, b->mapToGlobal(donde)); });
+        anadir(b);
+    }
+    auto *ninguna = new QPushButton(QStringLiteral("Ninguna"));
+    ninguna->setToolTip(QStringLiteral("Poner todos los temas a 0"));
+    connect(ninguna, &QPushButton::clicked, this, [this]() { aplicarReparto({}); });
+    anadir(ninguna);
+}
+
+void VentanaPrincipal::menuReparto(const QString &nombre, const QPoint &donde)
+{
+    QMenu menu;
+    QAction *sustituir = menu.addAction(QStringLiteral("Sustituir «%1» por el reparto de ahora").arg(nombre));
+    sustituir->setEnabled(!repartoActual().isEmpty());
+    QAction *quitar = menu.addAction(QStringLiteral("Quitar «%1»").arg(nombre));
+    QAction *elegida = menu.exec(donde);
+    if (!elegida || (elegida == quitar && !confirmar(this, windowTitle(), QStringLiteral("¿Quitar el reparto «%1»?").arg(nombre))))
+        return;
+    QVector<Reparto> repartos = m_bd.repartos();
+    for (int i = 0; i < repartos.size(); ++i) {
+        if (repartos.at(i).nombre != nombre)
+            continue;
+        if (elegida == quitar)
+            repartos.removeAt(i);
+        else
+            repartos[i].preguntas = repartoActual();
+        break;
+    }
+    if (!m_bd.guardarRepartos(repartos))
+        QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo guardar el cambio:\n%1").arg(m_bd.ultimoError()));
+    reconstruirRepartos();
+}
+
+QMap<int, int> VentanaPrincipal::repartoActual() const
+{
+    QMap<int, int> reparto;
+    for (auto it = m_cantidades.cbegin(); it != m_cantidades.cend(); ++it)
+        if (it.value()->value() > 0)
+            reparto.insert(it.key(), it.value()->value());
+    return reparto;
+}
+
+void VentanaPrincipal::aplicarReparto(const QMap<int, int> &reparto)
+{
+    for (auto it = m_cantidades.begin(); it != m_cantidades.end(); ++it)
+        it.value()->setValue(reparto.value(it.key(), 0));
+}
+
+void VentanaPrincipal::guardarReparto()
+{
+    const QMap<int, int> reparto = repartoActual();
+    if (reparto.isEmpty()) {
+        QMessageBox::information(this, windowTitle(), QStringLiteral("Indique antes cuántas preguntas quiere de cada tema."));
+        return;
+    }
+    QString nombre = nombreDeReparto(reparto);
+    if (!pedirTexto(this, QStringLiteral("Guardar reparto"),
+                    QStringLiteral("%1\n\nNombre del reparto (el texto de su botón):").arg(describirReparto(reparto)), &nombre)
+        || nombre.isEmpty())
+        return;
+    QVector<Reparto> repartos = m_bd.repartos();
+    auto mismo = std::find_if(repartos.begin(), repartos.end(), [&nombre](const Reparto &r) { return r.nombre == nombre; });
+    if (mismo == repartos.end()) {
+        repartos.append({nombre, reparto});
+    } else {
+        if (!confirmar(this, windowTitle(), QStringLiteral("Ya hay un reparto «%1»: %2.\n\n¿Sustituirlo por este?")
+                                                .arg(nombre, describirReparto(mismo->preguntas))))
+            return;
+        mismo->preguntas = reparto;
+    }
+    if (!m_bd.guardarRepartos(repartos))
+        QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo guardar el reparto:\n%1").arg(m_bd.ultimoError()));
+    reconstruirRepartos();
 }
 
 void VentanaPrincipal::actualizarTotal()
@@ -1025,9 +1196,7 @@ DatosConvocatoria VentanaPrincipal::datosConvocatoria() const
 ConfigExamen VentanaPrincipal::configuracionExamen() const
 {
     ConfigExamen c;
-    for (auto it = m_cantidades.cbegin(); it != m_cantidades.cend(); ++it)
-        if (it.value()->value() > 0)
-            c.preguntasPorTema.insert(it.key(), it.value()->value());
+    c.preguntasPorTema = repartoActual();
     for (int i = 0; i < m_listaExamenes->count(); ++i)
         if (m_listaExamenes->item(i)->checkState() == Qt::Checked)
             c.nombresModelos << m_listaExamenes->item(i)->text().trimmed();

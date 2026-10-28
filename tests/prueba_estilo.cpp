@@ -111,7 +111,7 @@ private slots:
         QFETCH(Pregunta, pregunta);
         QFETCH(QString, aviso);
         QStringList avisos;
-        for (const Estilo::Aviso &a : Estilo::revisar(pregunta))
+        for (const Estilo::Aviso &a : Estilo::revisar(pregunta, temasInventados()))
             avisos << a.texto;
         if (aviso.isEmpty())
             QVERIFY2(avisos.isEmpty(), qPrintable(avisos.join(QStringLiteral(" | "))));
@@ -146,11 +146,37 @@ private slots:
         QCOMPARE(Estilo::opcionDependiente(opcion), dependiente);
     }
 
+    void formaDeLaReferenciaSegunElTema()
+    {
+        // La pide el tema de la pregunta; si no pide ninguna, o no está entre los temas, vale cualquiera de las dos.
+        auto avisos = [](const Pregunta &p, const QVector<Tema> &temas) {
+            QStringList res;
+            for (const Estilo::Aviso &a : Estilo::revisar(p, temas))
+                res << a.texto;
+            return res.join(QStringLiteral(" | "));
+        };
+        const Pregunta vease = conReferencia(4, "Véase la página 10 (sección 4.2) del libro de teoría.");
+        const Pregunta pag = conReferencia(4, "Pág. 10 libro (subsección 4.2.1).");
+        QVector<Tema> temas = temasInventados();
+        QVERIFY(avisos(vease, temas).contains(QStringLiteral("En el tema 4")));
+        QVERIFY(avisos(pag, temas).isEmpty());
+        temas[3].formatoReferencia = QStringLiteral("vease");
+        QVERIFY(avisos(vease, temas).isEmpty());
+        QVERIFY(avisos(pag, temas).contains(QStringLiteral("En el tema 4")));
+        temas[3].formatoReferencia.clear();
+        QVERIFY(avisos(vease, temas).isEmpty());
+        QVERIFY(avisos(pag, temas).isEmpty());
+        QVERIFY(avisos(vease, {}).isEmpty());
+        QVERIFY(avisos(vease, temasInventados(3)).isEmpty());
+        // Las demás pautas de la referencia no dependen del tema.
+        QVERIFY(avisos(conReferencia(4, "Véase la página 10."), {}).contains(QStringLiteral("forma habitual")));
+    }
+
     void bancoInventadoSinAvisos()
     {
         // El banco de las demás pruebas cumple las pautas, salvo la opción «Todas las anteriores» de la T2-6.
         for (const Pregunta &p : bancoInventado()) {
-            const QVector<Estilo::Aviso> avisos = Estilo::revisar(p);
+            const QVector<Estilo::Aviso> avisos = Estilo::revisar(p, temasInventados());
             if (p.grupo() == QLatin1String("T2-6"))
                 QCOMPARE(avisos.size(), 1);
             else

@@ -14,7 +14,7 @@ pre { margin-left: 20px; }
 </head>
 <body>
 
-<h1><a name="portada"></a>Generador de exámenes de Fundamentos de Informática</h1>
+<h1><a name="portada"></a>Generador de exámenes</h1>
 <p><i>Manual de uso</i></p>
 
 <p>Este manual explica cómo se usa el programa. El índice de la izquierda lleva a cada apartado y el recuadro de
@@ -34,6 +34,9 @@ preguntas que se indique de cada tema. Al elegirlas sigue las reglas de los exá
 un mismo examen dos versiones de una misma pregunta, puede repartir la respuesta correcta entre a), b), c) y d) y
 hace que cada examen quepa en una página por cada 10 preguntas.</p>
 
+<p>Se hizo para Fundamentos de la informática, pero sirve para cualquier asignatura: cada banco de preguntas lleva
+el nombre de la suya, sus temas (tantos como tenga) y sus repartos de preguntas por tema.</p>
+
 <p>Sirve también para mantener el banco: buscar, corregir y añadir preguntas, revisar su redacción, guardar los
 exámenes de cada convocatoria y llevar las preguntas a Moodle para que los estudiantes practiquen.</p>
 
@@ -44,14 +47,16 @@ equipo docente o lo crea usted. La primera vez, el programa pregunta qué banco 
 después abre siempre el último que se abrió.</p>
 <ul>
 <li>Para cambiar de banco: <i>Archivo → Abrir banco de preguntas…</i></li>
-<li>Para empezar uno vacío: <i>Archivo → Nuevo banco de preguntas…</i> Al crearlo, el programa propone importar
-preguntas de un fichero JSON (ver <a href="#json">Importar y exportar el banco</a>).</li>
+<li>Para empezar uno vacío: <i>Archivo → Nuevo banco de preguntas…</i> Al crearlo, el programa pide el nombre de
+la asignatura y propone importar preguntas de un fichero JSON (ver <a href="#json">Importar y exportar el banco</a>).
+Después, los temas se crean en <i>Editar → Temas…</i> (ver <a href="#temas">Temas</a>).</li>
 </ul>
 <p>La barra de estado, abajo, dice qué banco está abierto, cuántos temas y preguntas tiene y cuántas de ellas están
-activas.</p>
+activas. El título de la ventana lleva el nombre de su asignatura.</p>
 
 <table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
-Todo el banco está en ese único fichero, también el historial de convocatorias. Para hacer una copia de seguridad o
+Todo el banco está en ese único fichero: también el nombre de la asignatura, los repartos de preguntas por tema y el
+historial de convocatorias. Para hacer una copia de seguridad o
 llevarlo a otro ordenador, basta con copiar el fichero (con el programa cerrado).
 </td></tr></table>
 
@@ -66,9 +71,10 @@ historial o hacerlos en pantalla.</li>
 </ul>
 <p>Los menús reúnen lo demás: <i>Archivo</i> (abrir y crear bancos, importar y exportar, historial de
 convocatorias), <i>Editar</i> (temas, nueva pregunta, revisión del estilo) y <i>Ayuda</i>.</p>
-<p>Al cerrar el programa se guardan la asignatura, las instrucciones, la lista de exámenes, el reparto de preguntas,
-las opciones y el tamaño de la ventana, y la próxima vez aparecen como se dejaron. La convocatoria y el año, en cambio,
-son al abrir los de la próxima convocatoria (ver <a href="#convocatoria">Convocatoria</a>).</p>
+<p>Al cerrar el programa se guardan las instrucciones, la lista de exámenes, las opciones y el tamaño de la ventana,
+y la próxima vez aparecen como se dejaron. El nombre de la asignatura y el último reparto de preguntas se guardan en
+el banco, así que cada banco tiene los suyos. La convocatoria y el año, en cambio, son al abrir los de la próxima
+convocatoria (ver <a href="#convocatoria">Convocatoria</a>).</p>
 
 <h3><a name="primera-vez"></a>La primera vez</h3>
 <p>Para no repetir preguntas de las últimas convocatorias, el programa las busca en su
@@ -82,8 +88,8 @@ exámenes, registre las anteriores con <i>Archivo → Registrar exámenes anteri
 <li>En la pestaña <b>Generar examen</b>, compruebe la convocatoria y el año: el programa propone la próxima
 convocatoria.</li>
 <li>Marque en la lista los exámenes que quiere, por ejemplo «Nacional Original» y «Nacional Reserva».</li>
-<li>Indique cuántas preguntas quiere de cada tema, o pulse <b>T1–T4</b>, <b>T5–T8</b> o <b>T1–T8</b> para poner el
-reparto habitual.</li>
+<li>Indique cuántas preguntas quiere de cada tema, o pulse uno de los botones de reparto (en Fundamentos de la
+informática, <b>T1–T4</b>, <b>T5–T8</b> o <b>T1–T8</b>) para poner el reparto habitual.</li>
 <li>Pulse <b>Generar exámenes</b>. Revise cada examen en la parte derecha (se cambia de uno a otro en
 <b>Examen</b>) y lea los avisos del recuadro amarillo, si los hay.</li>
 <li>Si una pregunta no le convence, cámbiela por otra con el botón derecho (ver
@@ -103,7 +109,8 @@ lista) y aparecen a la derecha. Si se vuelve a generar, se sustituyen por otros.
 
 <h3><a name="convocatoria"></a>Convocatoria</h3>
 <ul>
-<li><b>Asignatura</b>: el nombre que va en la cabecera del examen.</li>
+<li><b>Asignatura</b>: el nombre que va en la cabecera del examen. Es el del banco abierto: si se cambia aquí, se
+guarda en el banco (y sale en el título de la ventana).</li>
 <li><b>Convocatoria</b>: elija Febrero, Junio o Septiembre, o escriba otro nombre. Con el año forma «Junio 2026», que
 va en la cabecera, en el pie de cada página y en el nombre de los ficheros que se exportan.</li>
 <li><b>Año</b>.</li>
@@ -132,15 +139,23 @@ preguntas distintas hay: las variantes a, b, c… de una pregunta cuentan como u
 puede salir una de ellas (ver <a href="#codigos">Códigos, variantes y pseudorrepetidas</a>). Las anuladas y las
 obsoletas no cuentan, y las marcadas para revisar tampoco si no está marcada la opción «Incluir preguntas marcadas
 para revisar».</p>
-<p>Los botones ponen el reparto habitual de los exámenes de la asignatura:</p>
+<p>Debajo están los botones de los repartos habituales de la asignatura, que se guardan en el banco: cada uno pone
+el número de preguntas de cada tema (dejando el ratón sobre él se ve cuántas). <b>Ninguna</b> pone todos los temas a 0.
+En el banco de Fundamentos de la informática son estos:</p>
 <table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
 <tr><th align="left">Botón</th><th align="left">Reparto</th></tr>
 <tr><td><b>T1–T4</b></td><td>Primera parte: 3, 2, 3 y 2 preguntas de los temas 1 a 4 (10 en total).</td></tr>
 <tr><td><b>T5–T8</b></td><td>Segunda parte: 2, 3, 2 y 3 preguntas de los temas 5 a 8 (10 en total).</td></tr>
 <tr><td><b>T1–T8</b></td><td>Las dos partes juntas: 20 preguntas.</td></tr>
-<tr><td><b>Ninguna</b></td><td>Pone todos los temas a 0.</td></tr>
 </table>
-<p>Debajo se ve el total. El programa recuerda el último reparto usado; la primera vez propone T1–T4.</p>
+<ul>
+<li><b>Guardar reparto…</b> guarda el número de preguntas de cada tema que hay en ese momento como un reparto nuevo,
+con el nombre que se le dé (se propone uno como «T1–T4»): aparece su botón. Si ya hay uno con ese nombre, pregunta si
+sustituirlo.</li>
+<li>Con el botón derecho sobre un reparto, se sustituye por el número de preguntas de ese momento o se quita.</li>
+</ul>
+<p>Debajo se ve el total. El programa recuerda en cada banco el último reparto usado; la primera vez propone el
+primero de sus repartos. Un banco nuevo no tiene ninguno.</p>
 
 <h3><a name="puntuacion"></a>Puntuación</h3>
 <p>Con <b>Automática</b> marcada, el examen vale 10 puntos y cada fallo resta el 30 % de lo que vale un acierto: con
@@ -518,9 +533,9 @@ código.</li>
 <li><b>Opciones</b>: empiezan por mayúscula y terminan en punto; no deben repetirse; conviene evitar las que remiten
 a las demás («Todas las anteriores», «a y b»…), porque impiden barajar; y la correcta no debe ser mucho más larga
 que las demás, porque la delataría.</li>
-<li><b>Referencia</b>: debe estar, terminar en punto y llevar el número de página, con la forma que corresponde al
-tema: «Véase la página N (sección X.Y) del libro de teoría.» en los temas 1, 3, 6 y 8, y «Pág. N libro (subsección
-X.Y.Z).» en los temas 2, 4, 5 y 7.</li>
+<li><b>Referencia</b>: debe estar, terminar en punto y llevar el número de página, con la forma que pide su tema
+(ver <a href="#temas">Temas</a>): «Véase la página N (sección X.Y) del libro de teoría.» o «Pág. N libro (subsección
+X.Y.Z).». En Fundamentos de la informática, la primera en los temas 1, 3, 6 y 8 y la segunda en los 2, 4, 5 y 7.</li>
 </ul>
 <p>Para revisar todo el banco de una vez, ver <a href="#estilo">Revisar el estilo del banco</a>.</p>
 
@@ -542,14 +557,19 @@ siguiente letra libre.</li>
 <!-- ======================================================================================================= -->
 <h2><a name="temas"></a>Temas</h2>
 
-<p><i>Editar → Temas…</i> muestra los temas del banco: su número, su título, su autor y cuántas preguntas tiene.</p>
+<p><i>Editar → Temas…</i> muestra los temas del banco: su número, su título, su autor, la forma de la referencia al
+libro de sus preguntas y cuántas preguntas tiene. Cada asignatura tiene los temas que necesite.</p>
 <ul>
 <li>Con un doble clic en una celda se cambia el número, el título o el autor.</li>
+<li><b>Referencia al libro</b>: la forma que la <a href="#pautas">revisión de estilo</a> pide a la referencia de las
+preguntas del tema, que depende de su autor: «Véase la página N (sección X.Y) del libro de teoría.», «Pág. N libro
+(subsección X.Y.Z).» o cualquiera (no se comprueba).</li>
 <li><b>Añadir tema</b> crea uno con el número siguiente al último.</li>
 <li><b>Eliminar tema</b> lo quita. Si tiene preguntas, avisa: se borrarían con él.</li>
 </ul>
 <p>Los cambios no se aplican hasta pulsar <b>Guardar</b>, y entonces se aplican todos a la vez. Los números de tema
-deben ser positivos y distintos.</p>
+deben ser positivos y distintos. Si se cambia el número de un tema, los <a href="#reparto">repartos</a> del banco lo
+siguen; si se elimina, lo pierden.</p>
 
 <!-- ======================================================================================================= -->
 <h2><a name="estilo"></a>Revisar el estilo del banco</h2>
@@ -581,6 +601,9 @@ preguntas de un banco a otro y para crear el banco a partir del documento de pre
   <li><b>Reemplazar todo</b>: borra antes todos los temas y preguntas del banco. Antes de borrarlos guarda una
   <a href="#copias">copia de seguridad</a>.</li>
   </ul>
+  Si el banco aún no tiene nombre de asignatura, toma el del JSON; si lo tiene, lo conserva. Los temas del JSON que no
+  dicen qué forma lleva su referencia (los del documento de preguntas no lo dicen) se quedan con la que tenía el tema
+  con su número.
 </li>
 <li><i>Archivo → Exportar preguntas (JSON)…</i> guarda todo el banco en un JSON.</li>
 </ul>
@@ -622,13 +645,13 @@ la importa con
 XML», para que los estudiantes practiquen en el curso virtual.</p>
 <ul>
 <li>Van las preguntas activas; las anuladas y obsoletas no. Las marcadas para revisar se pueden excluir.</li>
-<li>Una categoría por tema, dentro de una con el nombre de la asignatura («Fundamentos de Informática/Tema 1: …»).</li>
+<li>Una categoría por tema, dentro de una con el nombre de la asignatura («Fundamentos de la informática/Tema 1: …»).</li>
 <li>Cada pregunta es de opción múltiple con una sola respuesta correcta. La referencia al libro y la explicación van
 como realimentación, y las imágenes, dentro del propio fichero.</li>
 <li>Si se marca, las respuestas erróneas restan el 30 % de la pregunta, como en el examen.</li>
 <li>Moodle baraja las opciones, salvo en las preguntas con opciones del tipo «Todas las anteriores».</li>
 </ul>
-<p>El diálogo propone el fichero (<tt>Fundamentos_de_Informatica_moodle.xml</tt>, en la carpeta de las exportaciones)
+<p>El diálogo propone el fichero (<tt>Fundamentos_de_la_informatica_moodle.xml</tt>, en la carpeta de las exportaciones)
 y dice cuántas preguntas de cuántos temas se van a exportar.</p>
 <p>En Moodle, el fichero se importa desde <i>Banco de preguntas → Importar</i>, eligiendo el formato «Moodle XML».</p>
 
@@ -636,8 +659,9 @@ y dice cuántas preguntas de cuántos temas se van a exportar.</p>
 <h2><a name="configuracion"></a>Configuración</h2>
 
 <p>El programa guarda en un fichero de configuración la ruta del último banco abierto y lo que se deja en la ventana:
-la asignatura y las instrucciones, la lista de exámenes, el reparto de preguntas, las opciones, la puntuación, la carpeta
-de las exportaciones, la duración de los exámenes de práctica y el tamaño de la ventana. Está en:</p>
+las instrucciones, la lista de exámenes, las opciones, la puntuación, la carpeta de las exportaciones, la duración de
+los exámenes de práctica y el tamaño de la ventana. El nombre de la asignatura y los repartos de preguntas por tema no:
+van con cada banco. Está en:</p>
 <ul>
 <li>Linux: <tt>~/.config/UNED-FI/GeneradorExamenesFI.conf</tt></li>
 <li>Windows: <tt>%APPDATA%\UNED-FI\GeneradorExamenesFI.ini</tt></li>

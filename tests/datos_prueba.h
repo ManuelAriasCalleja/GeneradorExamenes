@@ -94,6 +94,8 @@ inline QVector<Pregunta> bancoVariado()
     return banco;
 }
 
+// Temas del banco inventado. La forma de la referencia de cada uno es la de sus preguntas: «Véase la página…» en los
+// temas 1, 3, 6 y 8 y «Pág. N libro…» en los demás.
 inline QVector<Tema> temasInventados(int temas = 8)
 {
     QVector<Tema> res;
@@ -102,6 +104,7 @@ inline QVector<Tema> temasInventados(int temas = 8)
         tema.id = t;
         tema.numero = t;
         tema.titulo = QStringLiteral("Tema inventado %1").arg(t);
+        tema.formatoReferencia = t == 1 || t == 3 || t == 6 || t == 8 ? QStringLiteral("vease") : QStringLiteral("pag");
         res << tema;
     }
     return res;

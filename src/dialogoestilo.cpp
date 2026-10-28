@@ -19,8 +19,8 @@
 #include <QVBoxLayout>
 
 DialogoEstilo::DialogoEstilo(std::function<QVector<Pregunta>()> preguntas, std::function<bool(int)> editar,
-                             const QString &banco, QWidget *parent)
-    : QDialog(parent), m_preguntas(std::move(preguntas)), m_editar(std::move(editar)), m_banco(banco)
+                             const QString &banco, const QVector<Tema> &temas, QWidget *parent)
+    : QDialog(parent), m_preguntas(std::move(preguntas)), m_editar(std::move(editar)), m_banco(banco), m_temas(temas)
 {
     setWindowTitle(QStringLiteral("Revisión de estilo del banco"));
     resize(760, 560);
@@ -82,7 +82,7 @@ void DialogoEstilo::rellenar()
             continue;
         ++revisadas;
         QStringList avisos;
-        for (const Estilo::Aviso &a : Estilo::revisar(p))
+        for (const Estilo::Aviso &a : Estilo::revisar(p, m_temas))
             if (parte < 0 || int(a.parte) == parte)
                 avisos << a.texto;
         if (avisos.isEmpty())
