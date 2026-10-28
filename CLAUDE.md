@@ -22,7 +22,14 @@ nunca se copian preguntas, opciones ni frases de los bancos, tampoco para reprod
 ## Manual de uso
 `recursos/ayuda.html` es la ayuda del programa (*Ayuda → Manual de uso*, F1, y el botón «Ayuda» de los diálogos, que
 abren cada uno por el ancla de su apartado). Si cambia lo que el usuario ve o hace, hay que actualizarla. Como el
-README, no puede citar preguntas de los bancos.
+README, no puede citar preguntas de los bancos. Lo mismo la presentación (`presentacion/`): sus capturas se rehacen
+con `cmake --build build --target capturas` y salen del banco inventado de `presentacion/banco_ejemplo.h`, en el que
+tampoco puede haber preguntas, opciones ni frases de los bancos.
+
+## La presentación no va en git
+`presentacion/` (la presentación del programa para el equipo docente, en Typst) está en `.gitignore` y se queda
+fuera del repositorio: no se añade a git ni se menciona en el README. El objetivo `capturas` de CMake solo existe si
+está la carpeta.
 
 ## GitHub
 El repositorio está en GitHub con **GitHub Actions desactivado**: no se compila ni se comprueba nada allí (no

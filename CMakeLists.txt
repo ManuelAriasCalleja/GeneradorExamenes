@@ -126,6 +126,23 @@ if(WIN32)
     )
 endif()
 
+# Capturas de pantalla de la presentación (presentacion/), hechas con un banco inventado: «cmake --build build --target
+# capturas» las rehace en presentacion/capturas/. No se compila con el resto; necesita Qt PDF (para las páginas de los PDF).
+# La presentación no está en git (.gitignore): sin ella, no hay objetivo.
+if(TARGET Qt6::Pdf AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/presentacion/capturas.cpp)
+    qt_add_executable(hacer_capturas presentacion/capturas.cpp presentacion/banco_ejemplo.h)
+    set_target_properties(hacer_capturas PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    target_include_directories(hacer_capturas PRIVATE presentacion)
+    target_link_libraries(hacer_capturas PRIVATE nucleo Qt6::Pdf)
+    add_custom_target(capturas
+        COMMAND ${CMAKE_COMMAND} -E env QT_QPA_PLATFORM=offscreen $<TARGET_FILE:hacer_capturas>
+                ${CMAKE_CURRENT_SOURCE_DIR}/presentacion/capturas
+        DEPENDS hacer_capturas
+        COMMENT "Capturas de la presentación"
+        VERBATIM
+    )
+endif()
+
 # Pruebas automáticas (ctest --test-dir build --output-on-failure). Usan un banco inventado; la de los bancos
 # reales se salta si no está el enlace «asignatura» al directorio de la asignatura.
 option(PRUEBAS "Compilar las pruebas automáticas" ON)

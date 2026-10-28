@@ -17,3 +17,6 @@ preguntas*.json
 !/recursos/ayuda.html
 *.tex
 *_imagenes/
+
+# Presentación del programa para el equipo docente: se queda fuera de git
+/presentacion/
