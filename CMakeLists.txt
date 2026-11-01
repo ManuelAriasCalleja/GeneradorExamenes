@@ -15,6 +15,7 @@ find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Sql PrintSupport)
 find_package(Qt6 6.2 COMPONENTS Test)   # solo para las pruebas automáticas
 find_package(Qt6 6.2 COMPONENTS Pdf)    # opcional: leer los PDF de los exámenes anteriores
 qt_standard_project_setup()
+include(GNUInstallDirs)
 
 # Todo el programa salvo main.cpp, en una biblioteca que comparten el ejecutable y las pruebas.
 qt_add_library(nucleo STATIC
@@ -107,6 +108,24 @@ if(WIN32)
     else()
         message(WARNING "No se encuentran las bibliotecas del compilador: el paquete de Windows no funcionaría en otro ordenador.")
     endif()
+    # Instalación (la de compilar.ps1): el programa, en la carpeta de destino sin subcarpetas, con las bibliotecas
+    # de Qt que copia windeployqt y las del compilador, como en el paquete.
+    install(TARGETS GeneradorExamenesFI RUNTIME DESTINATION .)
+    if(bibliotecas_compilador)
+        install(FILES ${bibliotecas_compilador} DESTINATION .)
+    endif()
+    if(WINDEPLOYQT)
+        install(CODE "
+            execute_process(COMMAND \"${WINDEPLOYQT}\" $<IF:$<CONFIG:Debug>,--debug,--release> --no-compiler-runtime
+                    --no-opengl-sw --no-system-d3d-compiler --translations es
+                    \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/$<TARGET_FILE_NAME:GeneradorExamenesFI>\"
+                RESULT_VARIABLE resultado)
+            if(NOT resultado EQUAL 0)
+                message(FATAL_ERROR \"windeployqt no ha podido copiar las bibliotecas de Qt\")
+            endif()
+        ")
+    endif()
+
     set(zip GeneradorExamenesFI-${PROJECT_VERSION}-windows.zip)
     add_custom_target(paquete
         COMMAND ${CMAKE_COMMAND} -E rm -rf paquete ${zip}
@@ -124,6 +143,33 @@ if(WIN32)
         COMMENT "Preparando ${zip}"
         VERBATIM
     )
+endif()
+
+# Instalación en Linux (la de compilar.sh, que instala en ~/.local): el ejecutable en bin/, el lanzador del menú del
+# escritorio en share/applications y el icono en el tema hicolor. El lanzador (recursos/GeneradorExamenesFI.desktop.in,
+# que usa también herramientas/instalar_lanzador.sh) se escribe al instalar, para que apunte al ejecutable del prefijo
+# de verdad (el de «cmake --install --prefix», si se indica). Su StartupWMClass es la clase de las ventanas del programa
+# (su nombre de aplicación en Qt): así el panel agrupa la ventana con el lanzador.
+if(UNIX AND NOT APPLE)
+    install(TARGETS GeneradorExamenesFI RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    foreach(n 16 24 32 48 64 128 256)
+        install(FILES recursos/icono/icono_${n}.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/${n}x${n}/apps
+                RENAME generador-examenes-fi.png)
+    endforeach()
+    install(FILES recursos/icono.svg DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
+            RENAME generador-examenes-fi.svg)
+    install(CODE "
+        set(plantilla_lanzador \"${CMAKE_CURRENT_SOURCE_DIR}/recursos/GeneradorExamenesFI.desktop.in\")
+        set(dir_bin \"${CMAKE_INSTALL_BINDIR}\")
+        set(dir_datos \"${CMAKE_INSTALL_DATADIR}\")
+    ")
+    install(CODE [[
+        set(RUTA_EJECUTABLE "${CMAKE_INSTALL_PREFIX}/${dir_bin}/GeneradorExamenesFI")
+        set(lanzador "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${dir_datos}/applications/GeneradorExamenesFI.desktop")
+        message(STATUS "Installing: ${lanzador}")
+        configure_file("${plantilla_lanzador}" "${lanzador}" @ONLY)
+        list(APPEND CMAKE_INSTALL_MANIFEST_FILES "${lanzador}")
+    ]])
 endif()
 
 # Capturas de pantalla de la presentación (presentacion/), hechas con un banco inventado: «cmake --build build --target

@@ -27,7 +27,7 @@ del último banco y las opciones se guardan en un fichero de configuración:
 (el diálogo *Ayuda → Acerca de* dice cuál es).
 
 Para tenerlo en el menú del escritorio (Cinnamon, GNOME, KDE…) con su icono: `herramientas/instalar_lanzador.sh`
-(con `--quitar`, se desinstala). El lanzador apunta a `build/GeneradorExamenesFI`; si hay una copia en el
+(con `--quitar`, se desinstala), sin instalar el programa: el lanzador apunta a `build/GeneradorExamenesFI`; si hay una copia en el
 escritorio, también la actualiza. Si se mueve el proyecto, hay que volver a ejecutarlo.
 
 En Windows se compila igual con CMake (o desde Qt Creator), con Qt 6 para MinGW o MSVC. Sale como aplicación
@@ -46,6 +46,25 @@ que necesita (las copia `windeployqt`, con las traducciones al castellano de los
 (MinGW o Visual Studio) y un `LEEME.txt` para quien lo reciba (`recursos/LEEME_windows.txt`). Se descomprime y
 funciona sin instalar nada; no lleva preguntas. Desde Qt Creator: *Proyectos → Compilar → Pasos de compilación*,
 marcar el objetivo `paquete`. Para comprobar que no falta nada, conviene probarlo en un ordenador sin Qt.
+
+### Compilar e instalar con un script
+
+`compilar.sh` (Linux) y `compilar.bat` (Windows, o `compilar.ps1` desde PowerShell) hacen todo de una vez: compilan en
+Release en `build/`, pasan las pruebas automáticas y, si pasan, instalan el programa para el usuario actual, sin
+permisos de administrador. Si había una versión instalada, la sustituyen.
+
+- Linux: `./compilar.sh`. Instala el ejecutable en `~/.local/bin`, su icono y el lanzador en el menú del escritorio
+  (en Cinnamon, en *Educación*) y en el escritorio, marcado como de confianza. Opciones: `--prefijo DIR` (otro sitio,
+  con `sudo` si hace falta), `--sin-escritorio`, `--sin-pruebas`, `--sin-instalar` y `--desinstalar`.
+- Windows: doble clic en `compilar.bat`. Busca Qt 6 en `C:\Qt` (el más reciente, preferiblemente el de MinGW, con el
+  compilador, CMake y Ninja que trae el instalador de Qt en `C:\Qt\Tools`; con el de Visual Studio, usa el Visual Studio
+  instalado) e instala el programa con sus bibliotecas (las copia `windeployqt`) en
+  `%LOCALAPPDATA%\Programs\GeneradorExamenesFI`, con accesos directos en el menú Inicio y en el escritorio. Parámetros: `-Qt C:\Qt\6.8.3\mingw_64`
+  (otro Qt), `-Destino`, `-SinEscritorio`, `-SinPruebas`, `-SinInstalar` y
+  `-Desinstalar`.
+
+Desinstalar no toca la configuración ni los bancos. Los dos scripts usan las reglas de instalación de CMake, así que
+también vale `cmake --install build --prefix <carpeta>`.
 
 ### Pruebas automáticas
 
@@ -193,9 +212,10 @@ variantes nuevas toman la siguiente letra libre (si la pregunta existente no tie
 | Ruta | Contenido |
 |---|---|
 | `PENDIENTE.md` | Mejoras aceptadas que quedan por hacer. |
+| `compilar.sh`, `compilar.bat`, `compilar.ps1` | Compilan, pasan las pruebas e instalan el programa (Linux y Windows). |
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |
-| `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `LEEME_windows.txt` va en el paquete de Windows. |
+| `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `GeneradorExamenesFI.desktop.in` es el lanzador del menú del escritorio de Linux. `LEEME_windows.txt` va en el paquete de Windows. |
 | `src/` | Código fuente del programa. |
 | `tests/` | Pruebas automáticas, con datos inventados. |
 

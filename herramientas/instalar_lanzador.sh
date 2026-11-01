@@ -3,7 +3,7 @@
 # KDE...): el .desktop en ~/.local/share/applications y el icono en el tema hicolor de ~/.local/share/icons.
 # Si hay una copia del lanzador en el escritorio, también la actualiza. El lanzador apunta al ejecutable de
 # build/, así que hay que compilar antes (y volver a ejecutar esto si se mueve el proyecto). Con --quitar, lo
-# desinstala (también del escritorio).
+# desinstala (también del escritorio). Para instalar el programa compilado fuera del proyecto, compilar.sh.
 set -e
 cd "$(dirname "$0")/.."
 PROYECTO=$(pwd)
@@ -29,20 +29,7 @@ else
         cp "recursos/icono/icono_$n.png" "$ICONOS/${n}x$n/apps/$NOMBRE_ICONO.png"
     done
     mkdir -p "$DATOS/applications"
-    # StartupWMClass es la clase de las ventanas del programa (su nombre de aplicación en Qt): así el panel
-    # agrupa la ventana con el lanzador.
-    cat > "$LANZADOR" <<FIN
-[Desktop Entry]
-Type=Application
-Name=Generador de exámenes FI
-GenericName=Generador de exámenes tipo test
-Comment=Exámenes tipo test de Fundamentos de Informática (Curso de Acceso, UNED)
-Exec="$PROYECTO/build/GeneradorExamenesFI"
-Icon=$NOMBRE_ICONO
-Terminal=false
-Categories=Education;
-StartupWMClass=GeneradorExamenesFI
-FIN
+    sed "s|@RUTA_EJECUTABLE@|$PROYECTO/build/GeneradorExamenesFI|" recursos/GeneradorExamenesFI.desktop.in > "$LANZADOR"
     # La copia del escritorio se sobrescribe sin sustituir el fichero, para que conserve el permiso de ejecución
     # y la marca de «de confianza» que le pone el gestor de archivos.
     if [ -f "$ESCRITORIO" ]; then
