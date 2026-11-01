@@ -22,7 +22,7 @@ cmake --build build
 
 Las preguntas no están en el repositorio (ver «Bancos de preguntas»). El programa abre el último banco de
 preguntas que se abrió; la primera vez, o si se ha movido, pregunta cuál abrir o si crear uno nuevo. La ruta
-del último banco y las opciones se guardan en un fichero de configuración:
+del último banco y las opciones se guardan (los diálogos para abrir o crear un banco empiezan en la carpeta del último que se abrió) en un fichero de configuración:
 `~/.config/UNED-FI/GeneradorExamenesFI.conf` en Linux y `%APPDATA%\UNED-FI\GeneradorExamenesFI.ini` en Windows
 (el diálogo *Ayuda → Acerca de* dice cuál es).
 

@@ -1,9 +1,11 @@
 #pragma once
 
+#include <QFileInfo>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QRegularExpression>
+#include <QStandardPaths>
 #include <QTextBrowser>
 #include <QTextDocument>
 
@@ -20,6 +22,23 @@ inline void ponerDocumento(QTextBrowser *visor, QTextDocument *doc)
     visor->setDocument(doc);
     if (propio)
         anterior->deleteLater();
+}
+
+// Carpeta en la que se abren los diálogos para elegir un banco de preguntas: la del banco abierto o, si no hay ninguno
+// (al empezar, o si el último se ha movido), la del último banco que se abrió, o la más cercana a ella que siga
+// existiendo; si no se ha abierto ninguno nunca, la de los documentos.
+inline QString carpetaBancos(const QString &rutaAbierta, const QString &rutaUltimo)
+{
+    if (!rutaAbierta.isEmpty())
+        return QFileInfo(rutaAbierta).absolutePath();
+    if (!rutaUltimo.isEmpty()) {
+        QString ruta = QFileInfo(rutaUltimo).absolutePath();
+        while (!QFileInfo(ruta).isDir() && ruta != QFileInfo(ruta).absolutePath())
+            ruta = QFileInfo(ruta).absolutePath();
+        if (QFileInfo(ruta).isDir())
+            return ruta;
+    }
+    return QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 }
 
 // Nombre de fichero sin tildes, espacios ni símbolos: «2026 Junio», «Unión Europea» → «2026_Junio», «Union_Europea».

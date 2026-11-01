@@ -10,6 +10,7 @@
 #include "dialogopregunta.h"
 #include "dialogotemas.h"
 #include "generador.h"
+#include "utilidades.h"
 #include "ventanaprincipal.h"
 
 #include <QAbstractButton>
@@ -950,6 +951,26 @@ private slots:
         QVERIFY(ayuda->isVisible());
         QCOMPARE(ayuda->seccionActual(), QStringLiteral("banco"));
         delete editor;
+    }
+
+    // Los diálogos para elegir un banco se abren en la carpeta del banco abierto o, si no hay ninguno, en la del último
+    // que se abrió (o la más cercana que siga existiendo, si se ha borrado).
+    void carpetaDeLosBancos()
+    {
+        QTemporaryDir tmp;
+        QVERIFY(tmp.isValid());
+        const QString raiz = QFileInfo(tmp.path()).absoluteFilePath();
+        QVERIFY(QDir(raiz).mkpath(QStringLiteral("abierto")));
+        QVERIFY(QDir(raiz).mkpath(QStringLiteral("ultimo")));
+        const QString abierto = raiz + QStringLiteral("/abierto/banco.db");
+        const QString ultimo = raiz + QStringLiteral("/ultimo/banco.db");
+        QCOMPARE(carpetaBancos(abierto, ultimo), raiz + QStringLiteral("/abierto"));
+        // El último banco ya no está, pero sí su carpeta.
+        QCOMPARE(carpetaBancos(QString(), ultimo), raiz + QStringLiteral("/ultimo"));
+        // Ni su carpeta: la más cercana que exista.
+        QCOMPARE(carpetaBancos(QString(), raiz + QStringLiteral("/borrada/dentro/banco.db")), raiz);
+        QCOMPARE(carpetaBancos(QString(), QString()),
+                 QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
     }
 };
 

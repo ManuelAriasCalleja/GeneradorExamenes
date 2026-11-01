@@ -624,7 +624,7 @@ void VentanaPrincipal::abrirOtraBaseDatos()
     if (!puedenDescartarse())
         return;
     const QString ruta = QFileDialog::getOpenFileName(this, QStringLiteral("Abrir banco de preguntas"),
-                                                      QFileInfo(m_bd.ruta()).absolutePath(),
+                                                      carpetaBancos(m_bd.ruta(), QSettings().value(QStringLiteral("bd/ruta")).toString()),
                                                       QStringLiteral("Bases de datos SQLite (*.db *.sqlite);;Todos (*)"));
     if (!ruta.isEmpty())
         abrirBaseDatos(ruta);
@@ -635,7 +635,8 @@ void VentanaPrincipal::nuevaBaseDatos()
     if (!puedenDescartarse())
         return;
     const QString ruta = QFileDialog::getSaveFileName(this, QStringLiteral("Nuevo banco de preguntas"),
-                                                      QFileInfo(m_bd.ruta()).absolutePath() + QStringLiteral("/preguntas_nueva.db"),
+                                                      carpetaBancos(m_bd.ruta(), QSettings().value(QStringLiteral("bd/ruta")).toString())
+                                                          + QStringLiteral("/preguntas_nueva.db"),
                                                       QStringLiteral("Bases de datos SQLite (*.db)"));
     if (ruta.isEmpty())
         return;
