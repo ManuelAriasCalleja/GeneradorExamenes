@@ -70,6 +70,7 @@ jobs:
         shell: pwsh
         env:
           QT_QPA_PLATFORM: offscreen
+          QT_QPA_FONTDIR: C:\Windows\Fonts   # como en CMakeLists.txt
         run: |
           foreach ($linea in Get-Content build\Testing\Temporary\LastTestsFailed.log) {
             $nombre = $linea.Split(':')[1]
