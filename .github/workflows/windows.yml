@@ -63,8 +63,8 @@ jobs:
         id: pruebas
         run: ctest --test-dir build --output-on-failure
 
-      # Una prueba que falla sin escribir nada no ha llegado a arrancar (le falta una DLL, por ejemplo): se vuelve a
-      # ejecutar sola para ver lo que escriba y su código de salida (0xC0000135: falta una DLL).
+      # En Windows, ctest no enseña lo que escriben las pruebas que fallan: se vuelven a ejecutar con la salida a un
+      # fichero, que se muestra, y su código de salida (el número de comprobaciones fallidas; 0xC0000135: falta una DLL).
       - name: Detalle de las pruebas que fallan
         if: failure() && steps.pruebas.outcome == 'failure'
         shell: pwsh
@@ -74,8 +74,10 @@ jobs:
           foreach ($linea in Get-Content build\Testing\Temporary\LastTestsFailed.log) {
             $nombre = $linea.Split(':')[1]
             Write-Host "=== prueba_$nombre"
-            & "build\prueba_$nombre.exe" 2>&1 | Out-Host
+            $salida = Join-Path $env:RUNNER_TEMP "prueba_$nombre.txt"
+            & "build\prueba_$nombre.exe" -o "$salida,txt" 2>&1 | Out-Host
             Write-Host ("Código de salida: 0x{0:X8}" -f $LASTEXITCODE)
+            if (Test-Path $salida) { Get-Content $salida -Encoding utf8 | Out-Host }
           }
 
       - name: Publicar la versión
