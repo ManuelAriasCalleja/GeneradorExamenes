@@ -32,8 +32,10 @@ fuera del repositorio: no se añade a git ni se menciona en el README. El objeti
 está la carpeta.
 
 ## GitHub
-El repositorio está en GitHub con **GitHub Actions desactivado**: no se compila ni se comprueba nada allí (no
-hay minutos). No añadir flujos de trabajo (`.github/workflows`) ni otras comprobaciones automáticas.
+El repositorio está en GitHub (privado). Solo tiene un flujo de trabajo, `.github/workflows/windows.yml`, que
+prepara el paquete de Windows y pasa allí las pruebas; se lanza a mano o al subir una etiqueta `v*`, nunca con cada
+`push`, porque los minutos son pocos y los de Windows cuentan doble. No añadir más flujos de trabajo ni otras
+comprobaciones automáticas, ni hacer que este se lance solo.
 
 Hay dos bancos de preguntas que **no deben mezclarse**:
 - el actual (ver11), hecho por el equipo docente: `asignatura/BancoPreguntas/preguntas.db` y

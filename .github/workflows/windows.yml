@@ -1,0 +1,69 @@
+# Paquete para Windows (ver README, «Compilar en GitHub»). Solo se lanza a mano (Actions → Paquete para Windows →
+# Run workflow) o al subir una etiqueta de versión (v1.1…), para no gastar minutos: el repositorio es privado y los
+# minutos de Windows cuentan doble. Compila con el Qt y el MinGW del instalador oficial de Qt, prepara el paquete
+# (objetivo «paquete» de CMake), lo deja para descargar y pasa las pruebas. Con una etiqueta, además, publica una
+# versión (release) con el zip.
+name: Paquete para Windows
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write   # solo para publicar la versión al subir una etiqueta
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      # Qt 6.8 (LTS) para MinGW, con Qt PDF, y el MinGW y el Ninja con los que se distribuye. En caché: solo la
+      # primera ejecución los descarga.
+      - name: Instalar Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: windows
+          target: desktop
+          arch: win64_mingw
+          modules: qtpdf
+          tools: 'tools_mingw1310 tools_ninja'
+          cache: true
+
+      # Que se usen el MinGW y el Ninja de Qt, y no otros que tenga el equipo de GitHub.
+      - name: Compilador en el PATH
+        shell: pwsh
+        run: |
+          "$env:IQTA_TOOLS\mingw1310_64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "$env:IQTA_TOOLS\Ninja" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Configurar
+        shell: pwsh
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
+
+      - name: Compilar
+        run: cmake --build build --parallel
+
+      - name: Preparar el paquete
+        run: cmake --build build --target paquete
+
+      - name: Guardar el paquete
+        uses: actions/upload-artifact@v4
+        with:
+          name: GeneradorExamenesFI-windows
+          path: build/GeneradorExamenesFI-*-windows.zip
+          retention-days: 30
+          if-no-files-found: error
+
+      # Después del paquete, para que se pueda descargar aunque falle alguna prueba (la ejecución sale en rojo).
+      - name: Pruebas
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Publicar la versión
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/GeneradorExamenesFI-*-windows.zip

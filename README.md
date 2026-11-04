@@ -47,6 +47,12 @@ que necesita (las copia `windeployqt`, con las traducciones al castellano de los
 funciona sin instalar nada; no lleva preguntas. Desde Qt Creator: *Proyectos → Compilar → Pasos de compilación*,
 marcar el objetivo `paquete`. Para comprobar que no falta nada, conviene probarlo en un ordenador sin Qt.
 
+El paquete también se prepara en GitHub, sin un Windows a mano (`.github/workflows/windows.yml`): *Actions → Paquete
+para Windows → Run workflow*. Compila con Qt 6.8 y el MinGW del instalador de Qt (con Qt PDF), pasa las pruebas y deja
+el zip para descargar en la página de la ejecución, durante 30 días. Al subir una etiqueta de versión
+(`git tag v1.1 && git push origin v1.1`) se lanza solo y publica además una *release* con el zip. No se lanza con
+cada `push`, para no gastar minutos.
+
 ### Compilar e instalar con un script
 
 `compilar.sh` (Linux) y `compilar.bat` (Windows, o `compilar.ps1` desde PowerShell) hacen todo de una vez: compilan en
@@ -213,6 +219,7 @@ variantes nuevas toman la siguiente letra libre (si la pregunta existente no tie
 |---|---|
 | `PENDIENTE.md` | Mejoras aceptadas que quedan por hacer. |
 | `compilar.sh`, `compilar.bat`, `compilar.ps1` | Compilan, pasan las pruebas e instalan el programa (Linux y Windows). |
+| `.github/workflows/windows.yml` | Prepara en GitHub el paquete de Windows (se lanza a mano o con una etiqueta `v*`). |
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |
 | `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `GeneradorExamenesFI.desktop.in` es el lanzador del menú del escritorio de Linux. `LEEME_windows.txt` va en el paquete de Windows. |
