@@ -60,7 +60,23 @@ jobs:
 
       # Después del paquete, para que se pueda descargar aunque falle alguna prueba (la ejecución sale en rojo).
       - name: Pruebas
+        id: pruebas
         run: ctest --test-dir build --output-on-failure
+
+      # Una prueba que falla sin escribir nada no ha llegado a arrancar (le falta una DLL, por ejemplo): se vuelve a
+      # ejecutar sola para ver lo que escriba y su código de salida (0xC0000135: falta una DLL).
+      - name: Detalle de las pruebas que fallan
+        if: failure() && steps.pruebas.outcome == 'failure'
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          foreach ($linea in Get-Content build\Testing\Temporary\LastTestsFailed.log) {
+            $nombre = $linea.Split(':')[1]
+            Write-Host "=== prueba_$nombre"
+            & "build\prueba_$nombre.exe" 2>&1 | Out-Host
+            Write-Host ("Código de salida: 0x{0:X8}" -f $LASTEXITCODE)
+          }
 
       - name: Publicar la versión
         if: startsWith(github.ref, 'refs/tags/v')
