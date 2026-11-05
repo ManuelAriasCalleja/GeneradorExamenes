@@ -15,6 +15,7 @@ preguntas*.json
 *.pdf
 *.html
 !/recursos/ayuda.html
+!/recursos/ayuda_en.html
 *.tex
 *_imagenes/
 

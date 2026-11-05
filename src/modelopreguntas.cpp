@@ -43,13 +43,22 @@ QVariant ModeloPreguntas::data(const QModelIndex &index, int role) const
         case ColTema:
             return QStringLiteral("T%1").arg(p.temaNumero);
         case ColCodigo:
-            return p.old ? p.codigo() + QStringLiteral(" (old)") : p.codigo();
+            //: Tras el código de las preguntas que ya han salido en exámenes
+            return p.old ? p.codigo() + tr(" (old)") : p.codigo();
         case ColEstado: {
-            QString e = p.estado;
+            //: Estado de una pregunta: se puede usar en los exámenes
+            QString e = p.estado == QLatin1String("activa")    ? tr("activa")
+                        //: Estado de una pregunta: retirada porque tenía un error
+                        : p.estado == QLatin1String("anulada") ? tr("anulada")
+                        //: Estado de una pregunta: retirada porque ya no corresponde al temario
+                        : p.estado == QLatin1String("obsoleta") ? tr("obsoleta")
+                                                                : p.estado;
+            //: Tras el estado (activa, anulada, obsoleta) de una pregunta marcada para revisar
             if (p.revisar)
-                e += QStringLiteral(" · revisar");
+                e += tr(" · revisar");
+            //: Tras el estado (activa, anulada, obsoleta) de una pregunta con imagen
             if (!p.imagen.isEmpty())
-                e += QStringLiteral(" · imagen");
+                e += tr(" · imagen");
             return e;
         }
         case ColEnunciado: {
@@ -82,11 +91,12 @@ QVariant ModeloPreguntas::headerData(int section, Qt::Orientation orientation, i
     if (orientation != Qt::Horizontal || role != Qt::DisplayRole)
         return {};
     switch (section) {
-    case ColTema: return QStringLiteral("Tema");
-    case ColCodigo: return QStringLiteral("Código");
-    case ColEstado: return QStringLiteral("Estado");
-    case ColEnunciado: return QStringLiteral("Enunciado");
-    case ColCorrecta: return QStringLiteral("Resp.");
+    case ColTema: return tr("Tema");
+    case ColCodigo: return tr("Código");
+    case ColEstado: return tr("Estado");
+    case ColEnunciado: return tr("Enunciado");
+    //: Abreviatura de «Respuesta correcta» (cabecera de una columna estrecha)
+    case ColCorrecta: return tr("Resp.");
     }
     return {};
 }

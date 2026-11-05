@@ -2,6 +2,7 @@
 // «asignatura» al directorio de la asignatura (ver README.md). Se trabaja con una copia de cada base de datos.
 
 #include "basedatos.h"
+#include "comprobadorjson.h"
 #include "estilo.h"
 #include "generador.h"
 #include "maquetador.h"
@@ -146,6 +147,27 @@ private slots:
             for (const Estilo::Aviso &a : Estilo::revisar(p, b.temas))
                 for (const QString &e : erratas)
                     QVERIFY2(!a.texto.contains(e), qPrintable(p.codigoCompleto() + QStringLiteral(": ") + a.texto));
+    }
+
+    // Los JSON de los dos bancos pasan el comprobador sin errores ni avisos (no los hay de verdad: si sale alguno, es
+    // del comprobador, o del JSON). Solo se enseñan la línea y la pregunta, no su texto.
+    void jsonComprobados_data()
+    {
+        QTest::addColumn<QString>("ruta");
+        QTest::newRow("ver11") << QStringLiteral("BancoPreguntas/preguntas_fi.json");
+        QTest::newRow("banco 2") << QStringLiteral("BancoPreguntas2/preguntas_banco2.json");
+    }
+    void jsonComprobados()
+    {
+        QFETCH(QString, ruta);
+        if (!QFile::exists(kBancos + ruta))
+            QSKIP("No está el banco de preguntas (enlace «asignatura»).");
+        const ComprobadorJson::Resultado r = ComprobadorJson::comprobarFichero(kBancos + ruta);
+        QStringList problemas;
+        for (const ComprobadorJson::Problema &p : r.problemas)
+            problemas << QStringLiteral("línea %1, %2").arg(p.linea).arg(p.donde);
+        QVERIFY2(r.problemas.isEmpty(), qPrintable(problemas.join(QStringLiteral("; "))));
+        QVERIFY(r.preguntas > 300);
     }
 };
 

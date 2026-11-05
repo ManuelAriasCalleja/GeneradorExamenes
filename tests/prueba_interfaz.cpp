@@ -4,12 +4,14 @@
 #include "datos_prueba.h"
 #include "dialogoanteriores.h"
 #include "dialogoayuda.h"
+#include "dialogocomprobacion.h"
 #include "dialogoestilo.h"
 #include "dialogoparecidas.h"
 #include "dialogopractica.h"
 #include "dialogopregunta.h"
 #include "dialogotemas.h"
 #include "generador.h"
+#include "idioma.h"
 #include "utilidades.h"
 #include "ventanaprincipal.h"
 
@@ -881,7 +883,7 @@ private slots:
         QVERIFY2(!secciones.contains(QString()), "hay un título sin ancla: el índice no puede llevar a él");
         // Los apartados a los que llevan F1 y el botón «Ayuda» de cada parte del programa.
         for (const char *s : {"generar", "banco", "editor", "parecidas", "temas", "practicar", "estilo", "exportar",
-                              "historial", "anteriores", "moodle"})
+                              "historial", "anteriores", "moodle", "comprobarjson", "formatojson", "idioma"})
             QVERIFY2(secciones.contains(QLatin1String(s)), s);
 
         // Los enlaces del manual llevan a anclas que existen.
@@ -951,6 +953,129 @@ private slots:
         QVERIFY(ayuda->isVisible());
         QCOMPARE(ayuda->seccionActual(), QStringLiteral("banco"));
         delete editor;
+    }
+
+    // El idioma de los exámenes se elige en la ventana y se guarda en el banco; al cambiarlo, la ventana propone las
+    // convocatorias y las instrucciones en él (si no se han cambiado las instrucciones).
+    void idiomaDeLosExamenes()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QComboBox *idioma = nullptr;
+        QComboBox *convocatoria = nullptr;
+        for (QComboBox *c : v.findChildren<QComboBox *>()) {
+            if (c->findData(QStringLiteral("en")) >= 0)
+                idioma = c;
+            if (c->findText(QStringLiteral("Junio")) >= 0)
+                convocatoria = c;
+        }
+        QVERIFY(idioma && convocatoria);
+        QPlainTextEdit *instrucciones = nullptr;
+        for (QPlainTextEdit *e : v.findChildren<QPlainTextEdit *>())
+            if (e->toPlainText() == DatosConvocatoria::instruccionesPorDefecto(QStringLiteral("es")))
+                instrucciones = e;
+        QVERIFY(instrucciones);
+        QCOMPARE(idioma->currentData().toString(), QStringLiteral("es"));
+        convocatoria->setCurrentText(QStringLiteral("Junio"));
+
+        idioma->setCurrentIndex(idioma->findData(QStringLiteral("en")));
+        QCOMPARE(convocatoria->currentText(), QStringLiteral("June"));
+        QVERIFY(convocatoria->findText(QStringLiteral("February")) >= 0);
+        QCOMPARE(instrucciones->toPlainText(), DatosConvocatoria::instruccionesPorDefecto(QStringLiteral("en")));
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(ruta));
+            QCOMPARE(bd.idioma(), QStringLiteral("en"));
+        }
+        // Unas instrucciones cambiadas a mano y una convocatoria que no es un mes se quedan como están.
+        instrucciones->setPlainText(QStringLiteral("Instrucciones inventadas."));
+        convocatoria->setCurrentText(QStringLiteral("Extraordinaria"));
+        idioma->setCurrentIndex(idioma->findData(QStringLiteral("es")));
+        QCOMPARE(instrucciones->toPlainText(), QStringLiteral("Instrucciones inventadas."));
+        QCOMPARE(convocatoria->currentText(), QStringLiteral("Extraordinaria"));
+        QVERIFY(convocatoria->findText(QStringLiteral("Febrero")) >= 0);
+
+        // Al volver a abrir el banco, su idioma.
+        idioma->setCurrentIndex(idioma->findData(QStringLiteral("en")));
+        VentanaPrincipal otra;
+        otra.show();
+        QVERIFY(otra.abrirBancoInicial(ruta));
+        for (QComboBox *c : otra.findChildren<QComboBox *>())
+            if (c->findData(QStringLiteral("en")) >= 0)
+                QCOMPARE(c->currentData().toString(), QStringLiteral("en"));
+    }
+
+    // Editar → Idioma: el del sistema o uno de los del programa; se guarda y se aplica al volver a abrirlo.
+    void menuDeIdioma()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QMap<QString, QAction *> acciones;
+        for (QAction *a : v.findChildren<QAction *>())
+            if (a->isCheckable() && a->actionGroup() && a->data().typeId() == QMetaType::QString)
+                acciones.insert(a->data().toString(), a);
+        QCOMPARE(acciones.keys(), (QStringList{QString(), QStringLiteral("en"), QStringLiteral("es")}));
+        QVERIFY(acciones.value(QString())->isChecked());   // nada elegido: el del sistema
+        QVERIFY(acciones.value(QString())->text().startsWith(QStringLiteral("El del sistema")));
+        QCOMPARE(acciones.value(QStringLiteral("en"))->text(), QStringLiteral("English"));
+
+        // Si cambia el idioma, avisa de que se aplica al volver a abrir el programa («Más tarde»: no lo reinicia).
+        const QString otro = Idioma::interfaz() == QLatin1String("en") ? QStringLiteral("es") : QStringLiteral("en");
+        QString aviso;
+        responder(QStringLiteral("Más tarde"), &aviso);
+        acciones.value(otro)->trigger();
+        QCOMPARE(Idioma::elegido(), otro);
+        QVERIFY2(aviso.contains(QStringLiteral("la próxima vez que se abra")), qPrintable(aviso));
+        QVERIFY(v.isVisible());
+        Idioma::elegir(QString());
+    }
+
+    // Antes de importar, un JSON con errores no se puede importar; corregido el fichero, «Volver a comprobar» lo deja.
+    void comprobacionAntesDeImportar()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("nuevas.json"));
+        auto escribir = [&ruta](const QByteArray &correcta) {
+            QFile f(ruta);
+            if (!f.open(QIODevice::WriteOnly))
+                return false;
+            f.write("{\"temas\": [{\"numero\": 1, \"titulo\": \"Inventado\", \"preguntas\": [\n"
+                    "{\"numero\": 1, \"enunciado\": \"Inventado:\", \"opciones\": [\"Uno.\", \"Dos.\", \"Tres.\", \"Cuatro.\"], "
+                    "\"correcta\": \"" + correcta + "\"}]}]}");
+            return true;
+        };
+        QVERIFY(escribir("E"));
+        DialogoComprobacion d(ruta, {}, DialogoComprobacion::AntesDeImportar);
+        QPushButton *importar = nullptr;
+        QPushButton *volver = nullptr;
+        for (QPushButton *b : d.findChildren<QPushButton *>()) {
+            if (b->text().startsWith(QStringLiteral("Importar")))
+                importar = b;
+            if (b->text() == QStringLiteral("Volver a comprobar"))
+                volver = b;
+        }
+        QVERIFY(importar && volver);
+        QVERIFY(!importar->isEnabled());
+        auto *lista = d.findChild<QTreeWidget *>();
+        QCOMPARE(lista->topLevelItemCount(), 1);
+        QCOMPARE(lista->topLevelItem(0)->text(1), QStringLiteral("2"));
+        QCOMPARE(lista->topLevelItem(0)->text(2), QStringLiteral("tema 1, pregunta 1"));
+
+        QVERIFY(escribir("c"));
+        volver->click();
+        QVERIFY(importar->isEnabled());
+        QCOMPARE(importar->text(), QStringLiteral("Importar"));
+        QCOMPARE(lista->topLevelItemCount(), 0);
     }
 
     // «Acerca de» habla del programa, que vale para cualquier asignatura: dice la versión, el banco abierto y la

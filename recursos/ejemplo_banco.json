@@ -1,0 +1,137 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ManuelAriasCalleja/GeneradorExamenes/main/recursos/banco.schema.json",
+  "asignatura": "Ciencias de la Tierra (ejemplo)",
+  "idioma": "es",
+  "temas": [
+    {
+      "numero": 1,
+      "titulo": "La Tierra en el sistema solar",
+      "autor": "",
+      "formato_referencia": "vease",
+      "preguntas": [
+        {
+          "numero": 1,
+          "variante": "",
+          "enunciado": "¿Cuál es el planeta más cercano al Sol?:",
+          "opciones": [
+            "Mercurio.",
+            "Venus.",
+            "La Tierra.",
+            "Marte."
+          ],
+          "correcta": "A",
+          "referencia": "Véase la página 12 del libro de teoría.",
+          "old": true,
+          "explicacion": "Mercurio es el primero de los ocho planetas contando desde el Sol."
+        },
+        {
+          "numero": 2,
+          "variante": "a",
+          "enunciado": "La Luna tarda en dar una vuelta completa alrededor de la Tierra aproximadamente:",
+          "opciones": [
+            "Un día.",
+            "Una semana.",
+            "Un mes.",
+            "Un año."
+          ],
+          "correcta": "C",
+          "referencia": "Véase la página 15 del libro de teoría."
+        },
+        {
+          "numero": 2,
+          "variante": "b",
+          "enunciado": "La Tierra tarda en dar una vuelta completa alrededor del Sol aproximadamente:",
+          "opciones": [
+            "Un día.",
+            "Un mes.",
+            "Un año.",
+            "Diez años."
+          ],
+          "correcta": "C",
+          "referencia": "Véase la página 15 del libro de teoría.",
+          "notas": "Variante de la 2a: nunca salen las dos en el mismo examen."
+        },
+        {
+          "numero": 3,
+          "variante": "",
+          "enunciado": "Según la tabla, ¿qué planeta tiene más lunas?:\n| Planeta | Lunas |\n| Venus | 0 |\n| La Tierra | 1 |\n| Marte | 2 |",
+          "opciones": [
+            "Venus.",
+            "La Tierra.",
+            "Marte.",
+            "Tienen las mismas."
+          ],
+          "correcta": "C",
+          "referencia": "Véanse las páginas 18 y 19 del libro de teoría.",
+          "revisar": true,
+          "notas": "Ejemplo de pregunta con una tabla en el enunciado."
+        },
+        {
+          "numero": 4,
+          "variante": "",
+          "enunciado": "El gas más abundante en el aire que respiramos es el:",
+          "opciones": [
+            "Oxígeno.",
+            "Nitrógeno.",
+            "Dióxido de carbono.",
+            "Argón."
+          ],
+          "correcta": "B",
+          "referencia": "Véase la página 22 del libro de teoría.",
+          "pseudo_con": "T2-2",
+          "notas": "Es equivalente a la T2-2: no saldrán juntas."
+        }
+      ]
+    },
+    {
+      "numero": 2,
+      "titulo": "La atmósfera",
+      "autor": "",
+      "formato_referencia": "pag",
+      "preguntas": [
+        {
+          "numero": 1,
+          "variante": "",
+          "enunciado": "La capa de la atmósfera más cercana a la superficie terrestre es la:",
+          "opciones": [
+            "Troposfera.",
+            "Estratosfera.",
+            "Mesosfera.",
+            "Termosfera."
+          ],
+          "correcta": "A",
+          "referencia": "Pág. 30 libro (sección 2.1)."
+        },
+        {
+          "numero": 2,
+          "variante": "",
+          "enunciado": "¿Qué gas es el más abundante en la atmósfera terrestre?:",
+          "opciones": [
+            "El oxígeno.",
+            "El nitrógeno.",
+            "El vapor de agua.",
+            "El helio."
+          ],
+          "correcta": "B",
+          "referencia": "Pág. 32 libro (sección 2.2).",
+          "pseudo_con": "T1-4"
+        },
+        {
+          "numero": 3,
+          "variante": "",
+          "enunciado": "La capa de ozono se encuentra sobre todo en la:",
+          "opciones": [
+            "Troposfera.",
+            "Estratosfera.",
+            "Exosfera.",
+            "Ionosfera."
+          ],
+          "correcta": "B",
+          "referencia": "Pág. 35 libro (sección 2.3).",
+          "estado": "anulada",
+          "notas": "Anulada en una revisión del banco (ejemplo de estado)."
+        }
+      ]
+    }
+  ]
+}

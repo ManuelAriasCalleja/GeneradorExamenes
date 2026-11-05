@@ -1,6 +1,18 @@
 #include "pregunta.h"
+#include "idioma.h"
 
+#include <QCoreApplication>
 #include <QSet>
+
+QString Tema::nombre() const
+{
+    return QCoreApplication::translate("Tema", "Tema %1: %2").arg(numero).arg(titulo);
+}
+
+QString Tema::nombreEn(const QString &idiomaExamen) const
+{
+    return Idioma::examen(idiomaExamen, QT_TRANSLATE_NOOP("Examen", "Tema %1: %2")).arg(numero).arg(titulo);
+}
 
 QString nombreTema(const QVector<Tema> &temas, int temaId)
 {

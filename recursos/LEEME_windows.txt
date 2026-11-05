@@ -10,7 +10,15 @@ Generador de exámenes tipo test
 3. El programa pregunta por el banco de preguntas (un fichero .db) o si quiere crear uno nuevo. Las preguntas
    no vienen con el programa.
 
-4. Para ver cómo se usa, pulse F1 o abra Ayuda → Manual de uso.
+4. Para ver cómo se usa, pulse F1 o abra Ayuda → Manual de uso. El idioma del programa (castellano o inglés) se
+   cambia en Editar → Idioma.
 
 La ruta del último banco abierto y las opciones se guardan en %APPDATA%\UNED\GeneradorExamenes.ini.
 Para pasar a una versión nueva, borre esta carpeta y descomprima la nueva: la configuración se conserva.
+
+English
+-------
+Unzip the whole GeneradorExamenes folder and open GeneradorExamenes.exe (if Windows warns about an unknown
+publisher, click "More info" and then "Run anyway"). The program asks for a question bank (a .db file) or
+creates a new one; no questions come with it. It starts in the language of the system if it is English or
+Spanish; to change it, use Editar → Idioma (Edit → Language). The user manual is under F1.

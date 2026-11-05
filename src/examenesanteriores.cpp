@@ -2,6 +2,7 @@
 #include "maquetador.h"
 #include "parecidas.h"
 
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QHash>
 #include <QRegularExpression>
@@ -268,7 +269,7 @@ QString textoDePdf(const QString &ruta, QString *error)
     QPdfDocument pdf(nullptr);
     if (pdf.load(ruta) != QPdfDocument::Error::None) {
         if (error)
-            *error = QStringLiteral("No se pudo leer el PDF.");
+            *error = QCoreApplication::translate("ExamenesAnteriores", "No se pudo leer el PDF.");
         return QString();
     }
     QStringList paginas;
@@ -278,7 +279,7 @@ QString textoDePdf(const QString &ruta, QString *error)
 #else
     Q_UNUSED(ruta)
     if (error)
-        *error = QStringLiteral("Esta versión del programa no lee PDF: abra el examen, copie su texto y péguelo.");
+        *error = QCoreApplication::translate("ExamenesAnteriores", "Esta versión del programa no lee PDF: abra el examen, copie su texto y péguelo.");
     return QString();
 #endif
 }

@@ -15,6 +15,7 @@ namespace Moodle {
 struct Opciones
 {
     QString asignatura;                 // categoría raíz, bajo $course$/top; sin ella, los temas van directamente allí
+    QString idioma = QStringLiteral("es");   // de los textos (categorías de los temas, realimentación): el del banco
     bool incluirParaRevisar = true;     // también las marcadas para revisar
     bool penalizarFallos = true;        // las respuestas erróneas restan el 30 % de la pregunta, como en el examen
 };

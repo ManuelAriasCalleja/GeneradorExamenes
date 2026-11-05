@@ -1,7 +1,9 @@
 #include "maquetador.h"
 #include "enunciado.h"
+#include "idioma.h"
 
 #include <QAbstractTextDocumentLayout>
+#include <QCoreApplication>
 #include <QFontMetricsF>
 #include <QGuiApplication>
 #include <QHash>
@@ -22,6 +24,18 @@
 #include <memory>
 
 namespace {
+
+// Texto del examen en su idioma (el del banco): ver Idioma::examen(). Se escribe tx(d, QT_TRANSLATE_NOOP("Examen", "…")).
+QString tx(const DatosConvocatoria &d, const char *texto)
+{
+    return Idioma::examen(d.idioma, texto);
+}
+
+QLocale localeExamen(const QString &idioma)
+{
+    return idioma.isEmpty() || idioma == QLatin1String(Idioma::kOrigen) ? QLocale(QLocale::Spanish, QLocale::Spain)
+                                                                         : QLocale(idioma);
+}
 
 const QStringList kMeses{QStringLiteral("Enero"), QStringLiteral("Febrero"), QStringLiteral("Marzo"), QStringLiteral("Abril"),
                          QStringLiteral("Mayo"), QStringLiteral("Junio"), QStringLiteral("Julio"), QStringLiteral("Agosto"),
@@ -233,11 +247,17 @@ QStringList codigosDelTema(const Modelo &m, int tema)
 
 } // namespace
 
-QStringList DatosConvocatoria::ordinarias()
+QString DatosConvocatoria::instruccionesPorDefecto(const QString &idioma)
+{
+    return Idioma::examen(idioma, QT_TRANSLATE_NOOP("Examen", "Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.\n"
+                                                            "No entregue el enunciado."));
+}
+
+QStringList DatosConvocatoria::ordinarias(const QString &idioma)
 {
     QStringList nombres;
     for (const auto &c : kConvocatoriasOrdinarias)
-        nombres << c.second;
+        nombres << nombreDeMes(c.first, idioma);
     return nombres;
 }
 
@@ -247,40 +267,59 @@ int DatosConvocatoria::mesDe(const QString &convocatoria)
     for (int i = 0; i < kMeses.size(); ++i)
         if (c.startsWith(kMeses.at(i), Qt::CaseInsensitive))
             return i + 1;
+    // En otro idioma: los nombres de los meses en los idiomas del programa.
+    for (const Idioma::Disponible &idioma : Idioma::disponibles()) {
+        const QLocale l = localeExamen(idioma.codigo);
+        for (int mes = 1; mes <= 12; ++mes)
+            for (const QString &nombre : {l.standaloneMonthName(mes), l.monthName(mes)})
+                if (!nombre.isEmpty() && c.startsWith(nombre, Qt::CaseInsensitive))
+                    return mes;
+    }
     return 0;
 }
 
-QString DatosConvocatoria::nombreDeMes(int mes)
+QString DatosConvocatoria::nombreDeMes(int mes, const QString &idioma)
 {
-    return kMeses.value(mes - 1);
+    if (mes < 1 || mes > 12)
+        return QString();
+    if (idioma.isEmpty() || idioma == QLatin1String(Idioma::kOrigen))
+        return kMeses.value(mes - 1);
+    QString nombre = localeExamen(idioma).standaloneMonthName(mes);
+    if (!nombre.isEmpty())
+        nombre[0] = nombre[0].toUpper();
+    return nombre;
 }
 
-DatosConvocatoria DatosConvocatoria::proxima(const QDate &hoy)
+DatosConvocatoria DatosConvocatoria::proxima(const QDate &hoy, const QString &idioma)
 {
     DatosConvocatoria d;
+    d.idioma = idioma;
+    d.instrucciones = instruccionesPorDefecto(idioma);
     for (const auto &c : kConvocatoriasOrdinarias) {
         if (c.first > hoy.month()) {
-            d.convocatoria = c.second;
+            d.convocatoria = nombreDeMes(c.first, idioma);
             d.anio = hoy.year();
             return d;
         }
     }
-    d.convocatoria = kConvocatoriasOrdinarias.first().second;
+    d.convocatoria = nombreDeMes(kConvocatoriasOrdinarias.first().first, idioma);
     d.anio = hoy.year() + 1;
     return d;
 }
 
-DatosConvocatoria DatosConvocatoria::anterior(const QDate &hoy)
+DatosConvocatoria DatosConvocatoria::anterior(const QDate &hoy, const QString &idioma)
 {
     DatosConvocatoria d;
+    d.idioma = idioma;
+    d.instrucciones = instruccionesPorDefecto(idioma);
     for (auto it = kConvocatoriasOrdinarias.crbegin(); it != kConvocatoriasOrdinarias.crend(); ++it) {
         if (it->first <= hoy.month()) {
-            d.convocatoria = it->second;
+            d.convocatoria = nombreDeMes(it->first, idioma);
             d.anio = hoy.year();
             return d;
         }
     }
-    d.convocatoria = kConvocatoriasOrdinarias.last().second;
+    d.convocatoria = nombreDeMes(kConvocatoriasOrdinarias.last().first, idioma);
     d.anio = hoy.year() - 1;
     return d;
 }
@@ -299,9 +338,9 @@ QString Maquetador::textoCorrectasPorLetra(const Modelo &modelo)
     return partes.join(QStringLiteral(" · "));
 }
 
-QString Maquetador::formatoPuntos(double v)
+QString Maquetador::formatoPuntos(double v, const QString &idioma)
 {
-    return QLocale(QLocale::Spanish, QLocale::Spain).toString(v, 'f', 2);
+    return localeExamen(idioma).toString(v, 'f', 2);
 }
 
 QString Maquetador::enunciadoHtml(const QString &texto, const QString &prefijo)
@@ -354,13 +393,22 @@ QString Maquetador::enunciadoHtml(const QString &texto, const QString &prefijo)
 
 QString Maquetador::fichaPreguntaHtml(const Pregunta &p, const QString &nombreTema)
 {
+    // La ficha se ve en el programa: va en el idioma de la interfaz.
+    const auto tr = [](const char *texto) { return QCoreApplication::translate("Maquetador", texto); };
     QString estado = p.estado;
-    estado[0] = estado[0].toUpper();
+    if (p.estado == QLatin1String("activa"))
+        estado = tr("Activa");
+    else if (p.estado == QLatin1String("anulada"))
+        estado = tr("Anulada");
+    else if (p.estado == QLatin1String("obsoleta"))
+        estado = tr("Obsoleta");
+    else if (!estado.isEmpty())
+        estado[0] = estado[0].toUpper();
     QStringList etiquetas{estado};
     if (p.old)
-        etiquetas << QStringLiteral("ya salió en exámenes (old)");
+        etiquetas << tr("ya salió en exámenes (old)");
     if (p.revisar)
-        etiquetas << QStringLiteral("para revisar");
+        etiquetas << tr("para revisar");
 
     QString html = QStringLiteral("<html><body style=\"font-family:%1\">").arg(QLatin1String(kFuente));
     html += QStringLiteral("<p style=\"color:#555\">%1<br><b>%2</b> &middot; %3</p>")
@@ -370,13 +418,13 @@ QString Maquetador::fichaPreguntaHtml(const Pregunta &p, const QString &nombreTe
     PreguntaExamen pe;
     pe.pregunta = p;
     html += opcionesHtml(pe, true, 0);
-    html += QStringLiteral("<p><b>Respuesta correcta:</b> %1. %2</p>").arg(Pregunta::letraMayuscula(p.correcta)).arg(escapar(p.referencia));
+    html += tr("<p><b>Respuesta correcta:</b> %1. %2</p>").arg(Pregunta::letraMayuscula(p.correcta)).arg(escapar(p.referencia));
     if (!p.explicacion.isEmpty())
-        html += QStringLiteral("<p><b>Explicación:</b> %1</p>").arg(escapar(p.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
+        html += tr("<p><b>Explicación:</b> %1</p>").arg(escapar(p.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
     if (!p.pseudoCon.isEmpty())
-        html += QStringLiteral("<p><b>Pseudorrepetida con:</b> %1 (no saldrán juntas en un examen)</p>").arg(escapar(p.pseudoCon));
+        html += tr("<p><b>Pseudorrepetida con:</b> %1 (no saldrán juntas en un examen)</p>").arg(escapar(p.pseudoCon));
     if (!p.notas.isEmpty())
-        html += QStringLiteral("<p><b>Notas:</b> %1</p>").arg(escapar(p.notas));
+        html += tr("<p><b>Notas:</b> %1</p>").arg(escapar(p.notas));
     return html + QStringLiteral("</body></html>");
 }
 
@@ -408,7 +456,8 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
     QString html;
     QString derecha;
     if (soluciones)
-        derecha = QStringLiteral("<span style=\"color:%1; font-weight:bold\">CON SOLUCIONES</span>").arg(QLatin1String(Maquetador::kColorCorrecta));
+        derecha = QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2</span>")
+                      .arg(QLatin1String(Maquetador::kColorCorrecta), escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "CON SOLUCIONES"))));
     html += cabeceraHtml(d, derecha, n);
 
     // Recuadro de instrucciones: el texto y, justo debajo, la puntuación (sin líneas en blanco, para que sea bajo).
@@ -417,11 +466,16 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
                 "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"4\" style=\"margin-top:6px; border-collapse:collapse; border:1px solid #000\"><tr><td style=\"border:1px solid #000\">"
                 "%1"
                 "<table cellspacing=\"0\" cellpadding=\"0\" style=\"margin-top:2px\">"
-                "<tr><td>Pregunta contestada correctamente:&nbsp;&nbsp;</td><td align=\"right\">+ %2 puntos</td></tr>"
-                "<tr><td>Pregunta contestada incorrectamente:&nbsp;&nbsp;</td><td align=\"right\">- %3 puntos</td></tr>"
-                "<tr><td>Pregunta no contestada:</td><td align=\"right\">0 puntos</td></tr>"
+                "<tr><td>%2&nbsp;&nbsp;</td><td align=\"right\">%3</td></tr>"
+                "<tr><td>%4&nbsp;&nbsp;</td><td align=\"right\">%5</td></tr>"
+                "<tr><td>%6</td><td align=\"right\">%7</td></tr>"
                 "</table></td></tr></table>")
-                .arg(instrucciones, formatoPuntos(d.puntosAcierto), formatoPuntos(d.puntosFallo));
+                .arg(instrucciones, escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Pregunta contestada correctamente:"))),
+                     escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "+ %1 puntos")).arg(formatoPuntos(d.puntosAcierto, d.idioma))),
+                     escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Pregunta contestada incorrectamente:"))),
+                     escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "- %1 puntos")).arg(formatoPuntos(d.puntosFallo, d.idioma))),
+                     escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Pregunta no contestada:"))),
+                     escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "0 puntos"))));
 
     const int separacion = nivel(n).separacionPx;
     for (int i = 0; i < modelo.preguntas.size(); ++i) {
@@ -445,12 +499,15 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
 QString Maquetador::solucionesHtml(const QVector<Modelo> &modelos, const DatosConvocatoria &d)
 {
     QString html = QStringLiteral("<html><body style=\"font-family:%1; font-size:10pt\">").arg(QLatin1String(kFuente));
-    html += cabeceraHtml(d, QStringLiteral("<span style=\"font-size:16pt; font-weight:bold\">Soluciones</span>"));
+    html += cabeceraHtml(d, QStringLiteral("<span style=\"font-size:16pt; font-weight:bold\">%1</span>")
+                                .arg(escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones")))));
 
     // Estructura: qué preguntas de cada tema entran en cada modelo (como la tabla que se prepara a mano).
     const QList<int> temas = temasDe(modelos);
-    html += QStringLiteral("<h3>Estructura de la convocatoria</h3>"
-                           "<table cellspacing=\"0\" cellpadding=\"3\" style=\"border-collapse:collapse; border:1px solid #000\"><tr><th style=\"border:1px solid #000\">Examen</th>");
+    html += QStringLiteral("<h3>%1</h3>"
+                           "<table cellspacing=\"0\" cellpadding=\"3\" style=\"border-collapse:collapse; border:1px solid #000\"><tr><th style=\"border:1px solid #000\">%2</th>")
+                .arg(escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Estructura de la convocatoria"))),
+                     escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Examen"))));
     for (int t : temas)
         html += QStringLiteral("<th style=\"border:1px solid #000\">T%1</th>").arg(t);
     html += QStringLiteral("</tr>");
@@ -474,8 +531,8 @@ QString Maquetador::solucionesHtml(const QVector<Modelo> &modelos, const DatosCo
             }
             html += filaNum + QStringLiteral("</tr>") + filaResp + QStringLiteral("</tr>");
         }
-        html += QStringLiteral("</table><p style=\"margin-top:2px; margin-bottom:0\">Respuestas correctas: %1</p>")
-                    .arg(textoCorrectasPorLetra(m));
+        html += QStringLiteral("</table><p style=\"margin-top:2px; margin-bottom:0\">%1</p>")
+                    .arg(escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Respuestas correctas: %1")).arg(textoCorrectasPorLetra(m))));
         html += QStringLiteral("<table cellspacing=\"0\" cellpadding=\"2\" width=\"100%\" style=\"font-size:9pt\">");
         for (int i = 0; i < m.preguntas.size(); ++i) {
             const PreguntaExamen &pe = m.preguntas.at(i);
@@ -633,7 +690,7 @@ bool Maquetador::imprimirExamenes(QPagedPaintDevice *dispositivo, const QVector<
     QStringList pies;
     if (soluciones) {
         docs << crearDocumento(solucionesHtml(modelos, d), conImagen, nullptr);
-        pies << textoPie(QStringLiteral("Soluciones"), d);
+        pies << textoPie(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones")), d);
     }
     for (const Modelo &m : modelos) {
         docs << crearDocumento(examenHtml(m, d, soluciones, nivel), conImagen, nullptr);
@@ -892,6 +949,9 @@ QString Maquetador::examenesLatex(const QVector<Modelo> &modelos, const DatosCon
                                   const QString &carpetaImagenes, int n)
 {
     QString tex = QString::fromUtf8(kPreambuloLatex);
+    // babel, en el idioma del examen.
+    if (d.idioma == QLatin1String("en"))
+        tex.replace(QStringLiteral("\\usepackage[spanish,es-noshorthands]{babel}"), QStringLiteral("\\usepackage[english]{babel}"));
     tex += QStringLiteral("\\begin{document}\n");
     // Nivel de compactación: separación entre preguntas y letra. Con letra grande, enunciados sin cursiva.
     tex += QStringLiteral("\\setlength{\\seppregunta}{%1pt}\\renewcommand{\\letraexamen}{%2}\n")
@@ -899,7 +959,7 @@ QString Maquetador::examenesLatex(const QVector<Modelo> &modelos, const DatosCon
     if (n == kLetraGrande)
         tex += QStringLiteral("\\renewcommand{\\enunciado}[1]{{\\raggedright\\bfseries #1\\par}}\n");
     if (soluciones) {
-        tex += QStringLiteral("\n\\empezarmodelo{") + escaparLatex(textoPie(QStringLiteral("Soluciones"), d))
+        tex += QStringLiteral("\n\\empezarmodelo{") + escaparLatex(textoPie(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones")), d))
                + QStringLiteral("}{fin:soluciones}\n");
         tex += solucionesLatex(modelos, d);
         tex += QStringLiteral("\\label{fin:soluciones}\n");
@@ -919,7 +979,7 @@ QString Maquetador::cuerpoExamenLatex(const Modelo &modelo, const DatosConvocato
 {
     QString derecha;
     if (soluciones)
-        derecha = QStringLiteral("\\textcolor{verde}{\\bfseries CON SOLUCIONES}");
+        derecha = QStringLiteral("\\textcolor{verde}{\\bfseries %1}").arg(escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "CON SOLUCIONES"))));
     // Con letra grande, todo el modelo (cabecera e instrucciones incluidas) va en \letraexamen.
     QString tex = n == Maquetador::kLetraGrande ? QStringLiteral("{\\letraexamen\n") : QString();
     tex += cabeceraLatex(d, derecha, n);
@@ -933,11 +993,17 @@ QString Maquetador::cuerpoExamenLatex(const Modelo &modelo, const DatosConvocato
                "\\par\\smallskip\n{\\setlength{\\fboxsep}{4pt}\\noindent\\fbox{\\begin{minipage}{\\dimexpr\\linewidth-2\\fboxsep-2\\fboxrule\\relax}\n"
                "%1\\par\\vspace{2pt}\n"
                "\\begin{tabular}{@{}l@{\\hspace{1em}}r@{}}\n"
-               "Pregunta contestada correctamente: & + %2 puntos \\\\\n"
-               "Pregunta contestada incorrectamente: & - %3 puntos \\\\\n"
-               "Pregunta no contestada: & 0 puntos\n"
+               "%2 & %3 \\\\\n"
+               "%4 & %5 \\\\\n"
+               "%6 & %7\n"
                "\\end{tabular}\n\\end{minipage}}}\\par\\smallskip\n")
-               .arg(instrucciones.join(QStringLiteral("\\par\n")), formatoPuntos(d.puntosAcierto), formatoPuntos(d.puntosFallo));
+               .arg(instrucciones.join(QStringLiteral("\\par\n")),
+                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Pregunta contestada correctamente:"))),
+                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "+ %1 puntos")).arg(formatoPuntos(d.puntosAcierto, d.idioma))),
+                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Pregunta contestada incorrectamente:"))),
+                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "- %1 puntos")).arg(formatoPuntos(d.puntosFallo, d.idioma))),
+                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Pregunta no contestada:"))),
+                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "0 puntos"))));
 
     if (n != Maquetador::kLetraGrande)
         tex += QStringLiteral("{\\letraexamen\n");
@@ -958,12 +1024,14 @@ QString Maquetador::cuerpoExamenLatex(const Modelo &modelo, const DatosConvocato
 
 QString Maquetador::solucionesLatex(const QVector<Modelo> &modelos, const DatosConvocatoria &d)
 {
-    QString tex = cabeceraLatex(d, QStringLiteral("{\\LARGE\\bfseries Soluciones}"));
+    QString tex = cabeceraLatex(d, QStringLiteral("{\\LARGE\\bfseries %1}").arg(escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones")))));
 
     // Estructura: qué preguntas de cada tema entran en cada modelo.
     const QList<int> temas = temasDe(modelos);
-    tex += QStringLiteral("\\subsection*{Estructura de la convocatoria}\n\\begin{tabular}{|l|%1}\\hline\n\\textbf{Examen}")
-               .arg(QStringLiteral("l|").repeated(temas.size()));
+    tex += QStringLiteral("\\subsection*{%2}\n\\begin{tabular}{|l|%1}\\hline\n\\textbf{%3}")
+               .arg(QStringLiteral("l|").repeated(temas.size()),
+                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Estructura de la convocatoria"))),
+                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Examen"))));
     for (int t : temas)
         tex += QStringLiteral(" & \\textbf{T%1}").arg(t);
     tex += QStringLiteral(" \\\\ \\hline\n");
@@ -993,7 +1061,8 @@ QString Maquetador::solucionesLatex(const QVector<Modelo> &modelos, const DatosC
             tex += linea + numeros.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\\n")
                    + linea + letras.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\\n") + linea;
         }
-        tex += QStringLiteral("\\end{tabular}\n\\par\\smallskip\nRespuestas correctas: ") + textoCorrectasPorLetra(m)
+        tex += QStringLiteral("\\end{tabular}\n\\par\\smallskip\n")
+               + escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Respuestas correctas: %1")).arg(textoCorrectasPorLetra(m)))
                + QStringLiteral("\\par\\smallskip\n{\\footnotesize\n"
                               "\\begin{tabularx}{\\linewidth}{@{}r@{\\hspace{1em}}l@{\\hspace{1em}}l@{\\hspace{1em}}Y@{}}\n");
         for (int i = 0; i < n; ++i) {

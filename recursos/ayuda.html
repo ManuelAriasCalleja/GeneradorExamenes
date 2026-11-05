@@ -112,6 +112,13 @@ lista) y aparecen a la derecha. Si se vuelve a generar, se sustituyen por otros.
 <ul>
 <li><b>Asignatura</b>: el nombre que va en la cabecera del examen. Es el del banco abierto: si se cambia aquí, se
 guarda en el banco (y sale en el título de la ventana).</li>
+<li><b>Idioma de los exámenes</b>: el de lo que pone el programa en los exámenes (las instrucciones que propone, la
+puntuación, «CON SOLUCIONES», la hoja de soluciones y los meses de las convocatorias) y en
+<a href="#moodle">Moodle</a>. Las preguntas salen como estén escritas. Se guarda en el banco, como la asignatura: un
+banco de una asignatura que se da en inglés hace los exámenes en inglés aunque el programa esté en castellano (el de
+la interfaz se elige aparte, ver <a href="#configuracion">Configuración</a>). Al cambiarlo, las convocatorias de la
+lista pasan al idioma nuevo, y también las instrucciones si no se habían cambiado. Decide además qué
+<a href="#pautas">pautas de estilo</a> se comprueban.</li>
 <li><b>Convocatoria</b>: elija Febrero, Junio o Septiembre, o escriba otro nombre. Con el año forma «Junio 2026», que
 va en la cabecera, en el pie de cada página y en el nombre de los ficheros que se exportan.</li>
 <li><b>Año</b>.</li>
@@ -538,6 +545,10 @@ que las demás, porque la delataría.</li>
 (ver <a href="#temas">Temas</a>): «Véase la página N (sección X.Y) del libro de teoría.» o «Pág. N libro (subsección
 X.Y.Z).».</li>
 </ul>
+<p>Son las pautas de una guía de redacción en castellano. En un banco con los exámenes en otro idioma (ver
+<a href="#convocatoria">Convocatoria</a>) solo se comprueban las que no dependen de él: la longitud y la mayúscula
+del enunciado, las comillas del código, las opciones iguales, las que remiten a las demás (también «All of the
+above»…), la correcta mucho más larga y que haya referencia.</p>
 <p>Para revisar todo el banco de una vez, ver <a href="#estilo">Revisar el estilo del banco</a>.</p>
 
 <h3><a name="parecidas"></a>Preguntas parecidas</h3>
@@ -591,7 +602,9 @@ preguntas y los avisos, no su texto.</li>
 <h2><a name="json"></a>Importar y exportar el banco</h2>
 
 <p>Además de la base de datos, el banco se puede guardar en un fichero JSON, que es texto: sirve para pasar las
-preguntas de un banco a otro y para crear el banco a partir del documento de preguntas del equipo docente.</p>
+preguntas de un banco a otro, para crear el banco a partir del documento de preguntas del equipo docente y para
+añadir muchas preguntas de una vez, escritas con un editor de textos (ver <a href="#formatojson">Formato del
+JSON</a>).</p>
 
 <h3><a name="importar"></a>Importar y exportar</h3>
 <ul>
@@ -602,12 +615,113 @@ preguntas de un banco a otro y para crear el banco a partir del documento de pre
   <li><b>Reemplazar todo</b>: borra antes todos los temas y preguntas del banco. Antes de borrarlos guarda una
   <a href="#copias">copia de seguridad</a>.</li>
   </ul>
-  Si el banco aún no tiene nombre de asignatura, toma el del JSON; si lo tiene, lo conserva. Los temas del JSON que no
-  dicen qué forma lleva su referencia (los del documento de preguntas no lo dicen) se quedan con la que tenía el tema
-  con su número.
+  Antes, el JSON se comprueba (ver <a href="#comprobarjson">Comprobar un JSON</a>): si tiene errores, no se importa;
+  si solo tiene avisos, se puede importar de todas formas.
+  Si el banco aún no tiene nombre de asignatura ni idioma de los exámenes, toma los del JSON; si los tiene, los
+  conserva. Los temas del JSON que no dicen su título, su autor o qué forma lleva su referencia (los del documento de
+  preguntas no dicen la forma) se quedan con los que tenía el tema con su número: para añadir preguntas a un tema que
+  ya está en el banco, basta con poner su número y las preguntas.
 </li>
 <li><i>Archivo → Exportar preguntas (JSON)…</i> guarda todo el banco en un JSON.</li>
 </ul>
+
+<h3><a name="formatojson"></a>Formato del JSON</h3>
+<p>Un JSON de preguntas se puede escribir con cualquier editor de textos (el Bloc de notas, VS Code…).
+<i>Archivo → Guardar un JSON de ejemplo…</i> guarda uno con unas preguntas inventadas que usan todo lo que se puede
+poner: lo más fácil es partir de él. Su primer campo, <tt>$schema</tt>, es la dirección del esquema del formato: con
+ella, los editores que entienden los esquemas JSON, como VS Code, avisan de los errores y proponen los campos mientras
+se escribe. Los JSON que exporta el programa también la llevan.</p>
+<p>Tiene esta forma (las preguntas de cada tema van en su lista <tt>preguntas</tt>, separadas por comas):</p>
+<pre>{
+  "asignatura": "Nombre de la asignatura",
+  "idioma": "es",
+  "temas": [
+    {
+      "numero": 1,
+      "titulo": "Título del tema",
+      "preguntas": [
+        {
+          "numero": 1,
+          "enunciado": "Texto de la pregunta:",
+          "opciones": ["Primera.", "Segunda.", "Tercera.", "Cuarta."],
+          "correcta": "B",
+          "referencia": "Véase la página 12 del libro de teoría."
+        }
+      ]
+    }
+  ]
+}</pre>
+<p>Lo que puede llevar el JSON entero y cada tema (en negrita, lo obligatorio):</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Campo</th><th align="left">Qué es</th></tr>
+<tr><td><b><tt>temas</tt></b></td><td>La lista de los temas, con sus preguntas.</td></tr>
+<tr><td><tt>asignatura</tt></td><td>El nombre de la asignatura. Solo se toma si el banco aún no tiene.</td></tr>
+<tr><td><tt>idioma</tt></td><td>El de los exámenes: <tt>"es"</tt> (castellano) o <tt>"en"</tt> (inglés). Solo se toma
+si el banco aún no lo dice.</td></tr>
+<tr><td><tt>$schema</tt>, <tt>origen</tt></td><td>La dirección del esquema, y de dónde salen las preguntas
+(informativo).</td></tr>
+<tr><td><b><tt>numero</tt></b> (del tema)</td><td>Número del tema. Si ya está en el banco, las preguntas se añaden a
+él.</td></tr>
+<tr><td><tt>titulo</tt>, <tt>autor</tt></td><td>Título del tema y autor en el libro. Si no se ponen, un tema que ya
+está en el banco conserva los suyos.</td></tr>
+<tr><td><tt>formato_referencia</tt></td><td>La forma de la referencia que se pide a sus preguntas (ver
+<a href="#temas">Temas</a>): <tt>"vease"</tt>, <tt>"pag"</tt> o <tt>""</tt> (cualquiera).</td></tr>
+<tr><td><b><tt>preguntas</tt></b></td><td>La lista de las preguntas del tema.</td></tr>
+</table>
+<p>Y cada pregunta:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Campo</th><th align="left">Qué es</th></tr>
+<tr><td><b><tt>numero</tt></b></td><td>Número de la pregunta en su tema, sin comillas. Las que tienen el mismo número
+son variantes (ver <a href="#codigos">Códigos, variantes y pseudorrepetidas</a>). Si en el banco ya hay una con el
+mismo tema, número y variante, se sustituye.</td></tr>
+<tr><td><tt>variante</tt></td><td>La letra de la variante: <tt>"a"</tt>, <tt>"b"</tt>… o <tt>""</tt> si no tiene.</td></tr>
+<tr><td><b><tt>enunciado</tt></b></td><td>El texto de la pregunta, con el <a href="#formato">formato del enunciado</a>
+(bloques de código y tablas). Los saltos de línea se escriben <tt>\n</tt>.</td></tr>
+<tr><td><b><tt>opciones</tt></b></td><td>Las cuatro opciones, a), b), c) y d), sin la letra: una lista de cuatro
+textos.</td></tr>
+<tr><td><b><tt>correcta</tt></b></td><td>La letra de la respuesta correcta: <tt>"A"</tt>, <tt>"B"</tt>, <tt>"C"</tt> o
+<tt>"D"</tt>.</td></tr>
+<tr><td><tt>referencia</tt></td><td>La referencia al libro de teoría.</td></tr>
+<tr><td><tt>explicacion</tt></td><td>Por qué la correcta es la correcta: se ve en la ficha de la pregunta y va en
+Moodle.</td></tr>
+<tr><td><tt>notas</tt></td><td>Notas internas, que no salen en los exámenes.</td></tr>
+<tr><td><tt>estado</tt></td><td><tt>"activa"</tt> (si no se pone, esta), <tt>"anulada"</tt> u <tt>"obsoleta"</tt>
+(ver <a href="#estados">Estado y marcas de una pregunta</a>).</td></tr>
+<tr><td><tt>old</tt>, <tt>revisar</tt></td><td>Ya ha salido en exámenes; marcada para revisar: <tt>true</tt> o
+<tt>false</tt>, sin comillas.</td></tr>
+<tr><td><tt>pseudo_con</tt></td><td>Otra pregunta equivalente de otro tema, con la que no saldrá junta: su tema y
+número, como <tt>"T1-7"</tt>.</td></tr>
+<tr><td><tt>imagen</tt></td><td>Una imagen PNG o JPG codificada en base64. Es más fácil ponerla después desde el
+<a href="#editor">editor de preguntas</a>.</td></tr>
+<tr><td><tt>codigo</tt>, <tt>etiqueta_original</tt></td><td>Informativos: los ponen el programa y la herramienta del
+documento de preguntas; al importar cuentan <tt>numero</tt> y <tt>variante</tt>.</td></tr>
+</table>
+<p>Lo que más se olvida al escribir un JSON a mano: los textos van entre comillas dobles y rectas (<tt>"</tt>, no
+<tt>“ ”</tt>, que salen al copiar de un procesador de textos); dentro de un texto, unas comillas se escriben
+<tt>\"</tt> y una barra invertida <tt>\\</tt>; <tt>true</tt>, <tt>false</tt>, <tt>null</tt> y los números van sin
+comillas; los elementos de una lista y los campos de un objeto se separan con comas, pero sin coma detrás del último;
+y no se pueden poner comentarios.</p>
+
+<h3><a name="comprobarjson"></a>Comprobar un JSON</h3>
+<p><i>Archivo → Comprobar un JSON…</i> lee un JSON de preguntas, sin importarlo, y dice todos sus problemas a la vez:
+cada uno con su línea, la pregunta en la que está («tema 3, pregunta 12b») y qué pasa.</p>
+<ul>
+<li><b>Errores</b>: el JSON está mal escrito (una coma de más o de menos, unas comillas sin cerrar…), falta un campo
+obligatorio o un valor no vale (una correcta «E», tres opciones, un estado que no existe, una pregunta repetida…).
+Con errores no se puede importar.</li>
+<li><b>Avisos</b>: un campo que no es del formato, que se ignora (si se parece a uno que sí lo es, por una errata, lo
+dice: «¿Quería decir «enunciado»?»); una pseudorrepetida con una pregunta que no está ni en el JSON ni en el banco;
+opciones iguales; un tema sin título. No impiden importar.</li>
+</ul>
+<p>Con el JSON abierto en un editor de textos, se corrige lo que diga, se guarda y se pulsa <b>Volver a
+comprobar</b>. <b>Abrir el fichero</b> lo abre con el programa que tenga asociado el sistema, y <b>Copiar el
+informe</b> copia la lista como texto, por ejemplo para mandarla por correo.</p>
+<p>Al importar se hace lo mismo: si el JSON tiene algún problema, se ve esta lista antes; con errores no se importa
+y con avisos se puede <b>Importar de todas formas</b>.</p>
+<p>También se puede comprobar sin abrir el programa, desde la línea de órdenes (en Windows, desde la consola):
+<tt>GeneradorExamenes --comprobar preguntas.json</tt>. Escribe los problemas como lo hacen los compiladores
+(<tt>preguntas.json:12:5: error: tema 3, pregunta 12b: …</tt>), que entienden muchos editores, y sale con 1 si hay
+errores, para usarlo en un script.</p>
 
 <h3><a name="json-enlazado"></a>El JSON enlazado al banco</h3>
 <p>El JSON del que se importa todo el banco queda <b>enlazado</b> con él como su copia en texto. Cuando la base de
@@ -651,6 +765,8 @@ XML», para que los estudiantes practiquen en el curso virtual.</p>
 como realimentación, y las imágenes, dentro del propio fichero.</li>
 <li>Si se marca, las respuestas erróneas restan el 30 % de la pregunta, como en el examen.</li>
 <li>Moodle baraja las opciones, salvo en las preguntas con opciones del tipo «Todas las anteriores».</li>
+<li>Lo que pone el programa (los nombres de los temas, «Respuesta correcta.») va en el idioma de los exámenes del
+banco (ver <a href="#convocatoria">Convocatoria</a>).</li>
 </ul>
 <p>El diálogo propone el fichero (el nombre de la asignatura sin tildes ni espacios y <tt>_moodle.xml</tt>, por ejemplo
 <tt>Historia_del_arte_moodle.xml</tt>, en la carpeta de las exportaciones)
@@ -662,8 +778,8 @@ y dice cuántas preguntas de cuántos temas se van a exportar.</p>
 
 <p>El programa guarda en un fichero de configuración la ruta del último banco abierto y lo que se deja en la ventana:
 las instrucciones, la lista de exámenes, las opciones, la puntuación, la carpeta de las exportaciones, la duración de
-los exámenes de práctica y el tamaño de la ventana. El nombre de la asignatura y los repartos de preguntas por tema no:
-van con cada banco. Está en:</p>
+los exámenes de práctica, el tamaño de la ventana y el idioma de la interfaz. El nombre de la asignatura, el idioma
+de los exámenes y los repartos de preguntas por tema no: van con cada banco. Está en:</p>
 <ul>
 <li>Linux: <tt>~/.config/UNED/GeneradorExamenes.conf</tt></li>
 <li>Windows: <tt>%APPDATA%\UNED\GeneradorExamenes.ini</tt></li>
@@ -676,7 +792,15 @@ configuración inicial, cierre el programa y borre ese fichero; los bancos no se
 <p>En Windows, para pasar a una versión nueva del programa, borre su carpeta y descomprima la nueva: la configuración
 se conserva.</p>
 <p>Desde la línea de órdenes se puede indicar el banco que se abre: <tt>GeneradorExamenes ruta/del/banco.db</tt>.
-Si no existe, se crea.</p>
+Si no existe, se crea. Con <tt>--comprobar</tt>, se comprueban JSON de preguntas sin abrir el programa (ver
+<a href="#comprobarjson">Comprobar un JSON</a>).</p>
+
+<h3><a name="idioma"></a>Idioma</h3>
+<p><i>Editar → Idioma</i> elige el idioma de la interfaz (menús, diálogos, avisos y esta ayuda): castellano o
+inglés, o <b>el del sistema</b>, que es el que se usa si no se elige ninguno (si el del sistema no es ninguno de los
+dos, castellano). Se guarda en la configuración, así que cada usuario tiene el suyo, y se aplica al volver a abrir el
+programa: el aviso que sale al cambiarlo permite reiniciarlo en ese momento.</p>
+<p>No cambia el idioma de los exámenes, que va con cada banco (ver <a href="#convocatoria">Convocatoria</a>).</p>
 
 <!-- ======================================================================================================= -->
 <h2><a name="atajos"></a>Teclado y ratón</h2>
@@ -746,7 +870,8 @@ seguridad</a>).</p>
 
 <h3><a name="problema-ingles"></a>Algunos botones de los diálogos salen en inglés</h3>
 <p>Faltan las traducciones al castellano de Qt, la biblioteca con la que está hecho el programa. No afecta a su
-funcionamiento.</p>
+funcionamiento. (Si todo el programa sale en inglés, elija el castellano en <i>Editar → Idioma</i>: ver
+<a href="#idioma">Idioma</a>.)</p>
 
 </body>
 </html>

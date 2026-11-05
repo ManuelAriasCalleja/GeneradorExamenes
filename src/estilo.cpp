@@ -1,6 +1,7 @@
 #include "estilo.h"
 #include "enunciado.h"
 
+#include <QCoreApplication>
 #include <QRegularExpression>
 
 namespace Estilo {
@@ -74,47 +75,50 @@ QString sinUrlsNiCitas(QString s)
     return s;
 }
 
-void revisarEnunciado(const Pregunta &p, QVector<Aviso> &avisos)
+void revisarEnunciado(const Pregunta &p, bool castellano, QVector<Aviso> &avisos)
 {
     auto avisar = [&](const QString &texto) { avisos.append({Aviso::Enunciado, texto}); };
     const Partes partes = partesDe(p.enunciado);
     const QString texto = partes.texto.join(QLatin1Char(' '));
 
-    if (!partes.texto.isEmpty()) {
+    if (castellano && !partes.texto.isEmpty()) {
         const QString ultima = partes.texto.last();
         if (ultima.endsWith(QLatin1Char('?')))
-            avisar(QStringLiteral("Las preguntas acaban en «?:», con los dos puntos detrás."));
+            avisar(QCoreApplication::translate("Estilo", "Las preguntas acaban en «?:», con los dos puntos detrás."));
         else if (ultima.endsWith(QLatin1Char('.')))
-            avisar(QStringLiteral("El enunciado debe acabar en dos puntos, no en punto."));
+            avisar(QCoreApplication::translate("Estilo", "El enunciado debe acabar en dos puntos, no en punto."));
         else if (!ultima.endsWith(QLatin1Char(':')))
-            avisar(QStringLiteral("El enunciado debe acabar en dos puntos (o en «?:» si es una pregunta)."));
+            avisar(QCoreApplication::translate("Estilo", "El enunciado debe acabar en dos puntos (o en «?:» si es una pregunta)."));
     }
     const QString sinCitas = sinUrlsNiCitas(texto);
-    if (sinCitas.contains(QLatin1Char('?')) && !sinCitas.contains(QStringLiteral("¿")))
-        avisar(QStringLiteral("Falta el «¿» de apertura de la pregunta."));
+    if (!castellano)
+        ;   // ¿? solo en castellano
+    else if (sinCitas.contains(QLatin1Char('?')) && !sinCitas.contains(QStringLiteral("¿")))
+        avisar(QCoreApplication::translate("Estilo", "Falta el «¿» de apertura de la pregunta."));
     else if (sinCitas.contains(QStringLiteral("¿")) && !sinCitas.contains(QLatin1Char('?')))
-        avisar(QStringLiteral("Falta el «?» de cierre de la pregunta."));
+        avisar(QCoreApplication::translate("Estilo", "Falta el «?» de cierre de la pregunta."));
     if (texto.size() > 180)
-        avisar(QStringLiteral("El enunciado es largo (%1 caracteres); conviene que no pase de unos 180.").arg(texto.size()));
+        avisar(QCoreApplication::translate("Estilo", "El enunciado es largo (%1 caracteres); conviene que no pase de unos 180.").arg(texto.size()));
     if (empiezaPorMinuscula(texto))
-        avisar(QStringLiteral("El enunciado debe empezar por mayúscula."));
+        avisar(QCoreApplication::translate("Estilo", "El enunciado debe empezar por mayúscula."));
 
     static const QRegularExpression falso(QStringLiteral("\\bes falso\\b"), kUnicode);
     static const QRegularExpression noEnPregunta(QStringLiteral("¿[^?]*\\b(?i:cuál|cuáles|qué)\\b[^?]*\\bno\\b"), kUnicode);
     static const QRegularExpression noAlPrincipio(QStringLiteral("^No es\\b"), kUnicode);
     static const QRegularExpression noMayusculas(QStringLiteral("\\bNO\\b"), kUnicode);
-    if (falso.match(texto).hasMatch() || noAlPrincipio.match(texto).hasMatch()
-        || (noEnPregunta.match(texto).hasMatch() && !noMayusculas.match(texto).hasMatch()))
-        avisar(QStringLiteral("La negación va en mayúsculas: «NO», «FALSO»."));
+    if (castellano && (falso.match(texto).hasMatch() || noAlPrincipio.match(texto).hasMatch())
+        || (castellano && noEnPregunta.match(texto).hasMatch() && !noMayusculas.match(texto).hasMatch()))
+        //: «NO» y «FALSO» son las palabras de los enunciados en castellano que la regla quiere en mayúsculas.
+        avisar(QCoreApplication::translate("Estilo", "La negación va en mayúsculas: «NO», «FALSO»."));
 
-    if (texto.contains(QLatin1Char('"')) && !pareceCodigo(texto))
-        avisar(QStringLiteral("En el texto, los literales van entre comillas tipográficas (“…”), no rectas."));
+    if (castellano && texto.contains(QLatin1Char('"')) && !pareceCodigo(texto))
+        avisar(QCoreApplication::translate("Estilo", "En el texto, los literales van entre comillas tipográficas (“…”), no rectas."));
     static const QRegularExpression tipograficas(QStringLiteral("[“”‘’«»]"));
     if (tipograficas.match(partes.codigo.join(QLatin1Char('\n'))).hasMatch())
-        avisar(QStringLiteral("Dentro del código, las comillas deben ser rectas (\")."));
+        avisar(QCoreApplication::translate("Estilo", "Dentro del código, las comillas deben ser rectas (\")."));
 }
 
-void revisarOpciones(const Pregunta &p, QVector<Aviso> &avisos)
+void revisarOpciones(const Pregunta &p, bool castellano, QVector<Aviso> &avisos)
 {
     auto avisar = [&](const QString &texto) { avisos.append({Aviso::Opciones, texto}); };
     for (int i = 0; i < 4; ++i) {
@@ -122,18 +126,19 @@ void revisarOpciones(const Pregunta &p, QVector<Aviso> &avisos)
         const QChar letra = Pregunta::letra(i);
         if (o.isEmpty())
             continue;   // los campos vacíos los rechaza el editor
-        if (!o.endsWith(QLatin1Char('.')))
-            avisar(QStringLiteral("La opción %1) debe terminar en punto.").arg(letra));
+        if (castellano && !o.endsWith(QLatin1Char('.')))
+            avisar(QCoreApplication::translate("Estilo", "La opción %1) debe terminar en punto.").arg(letra));
         if (empiezaPorMinuscula(o))
-            avisar(QStringLiteral("La opción %1) debe empezar por mayúscula.").arg(letra));
+            avisar(QCoreApplication::translate("Estilo", "La opción %1) debe empezar por mayúscula.").arg(letra));
         if (opcionDependiente(o))
-            avisar(QStringLiteral("La opción %1) remite a las demás («Todas las anteriores»…): conviene evitarlo, porque "
-                                  "impide barajar las opciones.").arg(letra));
-        if (o.contains(QLatin1Char('"')) && !pareceCodigo(o))
-            avisar(QStringLiteral("En la opción %1), los literales van entre comillas tipográficas (“…”), no rectas.").arg(letra));
+            //: %1 es la letra de la opción (a, b, c o d). «Todas las anteriores» es un ejemplo de opción de las que busca la regla.
+            avisar(QCoreApplication::translate("Estilo", "La opción %1) remite a las demás («Todas las anteriores»…): conviene evitarlo, porque "
+                                                         "impide barajar las opciones.").arg(letra));
+        if (castellano && o.contains(QLatin1Char('"')) && !pareceCodigo(o))
+            avisar(QCoreApplication::translate("Estilo", "En la opción %1), los literales van entre comillas tipográficas (“…”), no rectas.").arg(letra));
         for (int j = i + 1; j < 4; ++j)
             if (o.compare(p.opciones.value(j).trimmed(), Qt::CaseInsensitive) == 0)
-                avisar(QStringLiteral("Las opciones %1) y %2) son iguales.").arg(letra).arg(Pregunta::letra(j)));
+                avisar(QCoreApplication::translate("Estilo", "Las opciones %1) y %2) son iguales.").arg(letra).arg(Pregunta::letra(j)));
     }
 
     // La correcta no debe destacar por ser mucho más larga que las demás.
@@ -143,38 +148,43 @@ void revisarOpciones(const Pregunta &p, QVector<Aviso> &avisos)
         if (i != p.correcta)
             otras = qMax(otras, int(p.opciones.value(i).trimmed().size()));
     if (larga > otras * 3 / 2 && larga - otras >= 15)
-        avisar(QStringLiteral("La correcta es bastante más larga que las demás (%1 caracteres frente a %2 como mucho): "
-                              "puede delatarla.").arg(larga).arg(otras));
+        avisar(QCoreApplication::translate("Estilo", "La correcta es bastante más larga que las demás (%1 caracteres frente a %2 como mucho): "
+                                                     "puede delatarla.").arg(larga).arg(otras));
 }
 
-void revisarReferencia(const Pregunta &p, const QString &formato, QVector<Aviso> &avisos)
+void revisarReferencia(const Pregunta &p, const QString &formato, bool castellano, QVector<Aviso> &avisos)
 {
     auto avisar = [&](const QString &texto) { avisos.append({Aviso::Referencia, texto}); };
     const QString r = p.referencia.trimmed();
     if (r.isEmpty()) {
-        avisar(QStringLiteral("Falta la referencia al libro."));
+        avisar(QCoreApplication::translate("Estilo", "Falta la referencia al libro."));
         return;
     }
+    if (!castellano)
+        return;   // lo demás son las formas de la referencia en castellano
     const int antes = avisos.size();
     static const QRegularExpression pagSinPunto(QStringLiteral("^Págs? "), kUnicode);
     static const QRegularExpression sinNumero(QStringLiteral("^(Véase la página|Véanse las páginas|Págs?\\.?) +(?!\\d)"), kUnicode);
     static const QRegularExpression concordancia(
         QStringLiteral("^Véase las\\b|^Véase la páginas\\b|^Véanse la\\b|^Véanse las página\\b|^Véase la página \\d+ *(y|-|–) *\\d+"), kUnicode);
     if (pagSinPunto.match(r).hasMatch())
-        avisar(QStringLiteral("«Pág.» se escribe con punto."));
+        //: «Pág.» es la abreviatura de las referencias al libro en castellano que busca la regla.
+        avisar(QCoreApplication::translate("Estilo", "«Pág.» se escribe con punto."));
     if (!r.endsWith(QLatin1Char('.')))
-        avisar(QStringLiteral("La referencia debe terminar en punto."));
+        avisar(QCoreApplication::translate("Estilo", "La referencia debe terminar en punto."));
     if (sinNumero.match(r).hasMatch())
-        avisar(QStringLiteral("Falta el número de página."));
+        avisar(QCoreApplication::translate("Estilo", "Falta el número de página."));
     if (concordancia.match(r).hasMatch())
-        avisar(QStringLiteral("Falta concordancia: «Véase la página N» o «Véanse las páginas N y M»."));
+        //: Las formas entre «» son las de las referencias al libro en castellano que exige la regla.
+        avisar(QCoreApplication::translate("Estilo", "Falta concordancia: «Véase la página N» o «Véanse las páginas N y M»."));
 
     const bool vease = r.startsWith(QStringLiteral("Véase")) || r.startsWith(QStringLiteral("Véanse"));
     const bool pag = r.startsWith(QStringLiteral("Pág"));
     if (formato == kVease && !vease)
-        avisar(QStringLiteral("En el tema %1 la referencia tiene la forma %2").arg(p.temaNumero).arg(kFormatoVease));
+        //: %2 es la forma de la referencia al libro, en castellano y entre «»; no se traduce.
+        avisar(QCoreApplication::translate("Estilo", "En el tema %1 la referencia tiene la forma %2").arg(p.temaNumero).arg(kFormatoVease));
     else if (formato == kPag && !pag)
-        avisar(QStringLiteral("En el tema %1 la referencia tiene la forma %2").arg(p.temaNumero).arg(kFormatoPag));
+        avisar(QCoreApplication::translate("Estilo", "En el tema %1 la referencia tiene la forma %2").arg(p.temaNumero).arg(kFormatoPag));
 
     // Si no se ha visto nada concreto, el formato completo: «sección» o «subsección», y una página («y
     // siguientes») o varias («N-M», «N y M», «N, M y K»).
@@ -188,9 +198,10 @@ void revisarReferencia(const Pregunta &p, const QString &formato, QVector<Aviso>
                            "|^Págs\\. \\d+(-\\d+|(, \\d+)* y \\d+) libro \\((sub)?secci[oó]n(es)? [^)]+\\)\\.$"),
             kUnicode);
         if (vease && !completoVease.match(r).hasMatch())
-            avisar(QStringLiteral("La referencia no sigue la forma habitual: %1").arg(kFormatoVease));
+            //: %1 es la forma de la referencia al libro, en castellano y entre «»; no se traduce.
+            avisar(QCoreApplication::translate("Estilo", "La referencia no sigue la forma habitual: %1").arg(kFormatoVease));
         else if (pag && !completoPag.match(r).hasMatch())
-            avisar(QStringLiteral("La referencia no sigue la forma habitual: %1").arg(kFormatoPag));
+            avisar(QCoreApplication::translate("Estilo", "La referencia no sigue la forma habitual: %1").arg(kFormatoPag));
     }
 }
 
@@ -199,35 +210,41 @@ void revisarReferencia(const Pregunta &p, const QString &formato, QVector<Aviso>
 QString nombreParte(Aviso::Parte parte)
 {
     switch (parte) {
-    case Aviso::Enunciado: return QStringLiteral("Enunciado");
-    case Aviso::Opciones: return QStringLiteral("Opciones");
-    case Aviso::Referencia: return QStringLiteral("Referencia");
+    //: Parte de una pregunta: su enunciado.
+    case Aviso::Enunciado: return QCoreApplication::translate("Estilo", "Enunciado");
+    //: Parte de una pregunta: sus cuatro opciones de respuesta.
+    case Aviso::Opciones: return QCoreApplication::translate("Estilo", "Opciones");
+    //: Parte de una pregunta: la referencia al libro de teoría.
+    case Aviso::Referencia: return QCoreApplication::translate("Estilo", "Referencia");
     }
     return QString();
 }
 
 QVector<QPair<QString, QString>> formatosReferencia()
 {
-    return {{QString(), QStringLiteral("Cualquiera")},
+    //: Forma de la referencia al libro que se pide a un tema: cualquiera (no se pide ninguna).
+    return {{QString(), QCoreApplication::translate("Estilo", "Cualquiera")},
             {kVease, QStringLiteral("Véase la página N (sección X.Y) del libro de teoría.")},
             {kPag, QStringLiteral("Pág. N libro (subsección X.Y.Z).")}};
 }
 
-QVector<Aviso> revisar(const Pregunta &p, const QVector<Tema> &temas)
+QVector<Aviso> revisar(const Pregunta &p, const QVector<Tema> &temas, const QString &idioma)
 {
+    const bool castellano = idioma.isEmpty() || idioma == QLatin1String("es");
     QString formato;
     for (const Tema &t : temas)
         if (t.numero == p.temaNumero)
             formato = t.formatoReferencia;
     QVector<Aviso> avisos;
-    revisarEnunciado(p, avisos);
-    revisarOpciones(p, avisos);
-    revisarReferencia(p, formato, avisos);
+    revisarEnunciado(p, castellano, avisos);
+    revisarOpciones(p, castellano, avisos);
+    revisarReferencia(p, formato, castellano, avisos);
     for (const auto &errata : kErratas) {
         if (p.enunciado.contains(errata.first, Qt::CaseInsensitive))
-            avisos.append({Aviso::Enunciado, QStringLiteral("«%1» está mal escrito: es «%2».").arg(errata.first, errata.second)});
+            //: %1 es una palabra mal escrita y %2, cómo se escribe.
+            avisos.append({Aviso::Enunciado, QCoreApplication::translate("Estilo", "«%1» está mal escrito: es «%2».").arg(errata.first, errata.second)});
         if (p.opciones.join(QLatin1Char(' ')).contains(errata.first, Qt::CaseInsensitive))
-            avisos.append({Aviso::Opciones, QStringLiteral("«%1» está mal escrito: es «%2».").arg(errata.first, errata.second)});
+            avisos.append({Aviso::Opciones, QCoreApplication::translate("Estilo", "«%1» está mal escrito: es «%2».").arg(errata.first, errata.second)});
     }
     return avisos;
 }
@@ -242,7 +259,15 @@ bool opcionDependiente(const QString &opcion)
                        "|^ *[a-d]\\)? y [a-d]\\)?( (son|es|están) (correct|ciert|verdader|fals)[oa]s?)? *\\.? *$"
                        "|\\b(opciones|respuestas) [a-d]\\)? y [a-d]\\b"),
         QRegularExpression::CaseInsensitiveOption | kUnicode);
-    return re.match(opcion).hasMatch();
+    static const QRegularExpression ingles(
+        QStringLiteral("\\b(all|none|both|neither|any|each|either) of (the|these)( \\w+)? (above|previous|preceding|options|answers)\\b"
+                       "|\\b(all|none|both) (of )?the (above|previous)\\b"
+                       "|\\b(all|none|both) (of them )?(are|is) (correct|true|false)\\b"
+                       "|^ *(both|all|none|neither)( of them)? *\\.? *$"
+                       "|^ *[a-d]\\)? and [a-d]\\)?( (are|is) (correct|true|false))? *\\.? *$"
+                       "|\\b(options|answers) [a-d]\\)? and [a-d]\\b"),
+        QRegularExpression::CaseInsensitiveOption | kUnicode);
+    return re.match(opcion).hasMatch() || ingles.match(opcion).hasMatch();
 }
 
 bool tieneOpcionesDependientes(const Pregunta &p)

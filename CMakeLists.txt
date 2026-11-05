@@ -21,6 +21,9 @@ include(GNUInstallDirs)
 qt_add_library(nucleo STATIC
     src/pregunta.h src/pregunta.cpp
     src/utilidades.h
+    src/idioma.h src/idioma.cpp
+    src/comprobadorjson.h src/comprobadorjson.cpp
+    src/dialogocomprobacion.h src/dialogocomprobacion.cpp
     src/basedatos.h src/basedatos.cpp
     src/generador.h src/generador.cpp
     src/enunciado.h src/enunciado.cpp
@@ -47,7 +50,7 @@ target_include_directories(nucleo PUBLIC src)
 # El manual de uso (Ayuda → Manual de uso, F1), en la biblioteca para que lo tengan también las pruebas.
 qt_add_resources(nucleo "ayuda"
     PREFIX "/"
-    FILES recursos/ayuda.html
+    FILES recursos/ayuda.html recursos/ayuda_en.html recursos/banco.schema.json recursos/ejemplo_banco.json recursos/ejemplo_banco_en.json
 )
 target_link_libraries(nucleo PUBLIC Qt6::Widgets Qt6::Sql Qt6::PrintSupport)
 # Con Qt PDF (6.4 o posterior), «Registrar exámenes anteriores» lee los PDF; sin él, solo el texto pegado.
@@ -56,6 +59,21 @@ if(Qt6Pdf_FOUND AND Qt6_VERSION VERSION_GREATER_EQUAL 6.4)
     target_compile_definitions(nucleo PRIVATE LEER_PDF)
 else()
     message(STATUS "Sin Qt PDF: los exámenes anteriores no se podrán leer de sus PDF, solo pegando su texto.")
+endif()
+# Traducciones de la interfaz y de los textos de los exámenes (Qt Linguist; ver src/idioma.h). Los textos del código
+# están en castellano; cada idioma más es un traducciones/GeneradorExamenes_<código>.ts. «cmake --build build --target
+# update_translations» los pone al día con los textos nuevos, que se traducen con Qt Linguist, y al compilar se
+# convierten en .qm dentro del programa (:/traducciones). Sin Qt Linguist el programa compila, pero solo en castellano.
+find_package(Qt6 6.2 COMPONENTS LinguistTools)
+if(Qt6LinguistTools_FOUND)
+    get_target_property(fuentes_nucleo nucleo SOURCES)
+    qt_add_translations(nucleo
+        TS_FILES traducciones/GeneradorExamenes_en.ts
+        RESOURCE_PREFIX "/traducciones"
+        SOURCES ${fuentes_nucleo} src/main.cpp
+        LUPDATE_OPTIONS -no-obsolete -locations relative)
+else()
+    message(WARNING "Sin Qt Linguist (en Debian/Ubuntu, qt6-l10n-tools y qt6-tools-dev): el programa solo estará en castellano.")
 endif()
 # La versión del proyecto se usa en el diálogo «Acerca de», para no tenerla escrita a mano en dos sitios.
 target_compile_definitions(nucleo PRIVATE VERSION_APLICACION="${PROJECT_VERSION}")
@@ -206,11 +224,12 @@ if(PRUEBAS AND Qt6Test_FOUND)
         file(TO_CMAKE_PATH "${fuentes_windows}" fuentes_windows)
         list(APPEND entorno_pruebas "QT_QPA_FONTDIR=${fuentes_windows}")
     endif()
-    foreach(prueba generador estilo enunciado basedatos maqueta parecidas moodle anteriores interfaz bancos_reales)
+    foreach(prueba generador estilo enunciado basedatos maqueta parecidas moodle anteriores interfaz comprobador idiomas bancos_reales)
         qt_add_executable(prueba_${prueba} tests/prueba_${prueba}.cpp tests/datos_prueba.h)
         target_link_libraries(prueba_${prueba} PRIVATE nucleo Qt6::Test)
         add_test(NAME ${prueba} COMMAND prueba_${prueba})
         set_tests_properties(${prueba} PROPERTIES ENVIRONMENT "${entorno_pruebas}")
     endforeach()
     target_compile_definitions(prueba_bancos_reales PRIVATE RUTA_PROYECTO="${CMAKE_CURRENT_SOURCE_DIR}")
+    target_compile_definitions(prueba_idiomas PRIVATE RUTA_PROYECTO="${CMAKE_CURRENT_SOURCE_DIR}")
 endif()

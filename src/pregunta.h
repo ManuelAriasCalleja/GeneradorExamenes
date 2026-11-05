@@ -16,7 +16,9 @@ struct Tema
     // "vease", "pag" o vacía (cualquiera). Ver Estilo::formatosReferencia().
     QString formatoReferencia;
 
-    QString nombre() const { return QStringLiteral("Tema %1: %2").arg(numero).arg(titulo); }
+    // «Tema 3: …», en el idioma de la interfaz; nombreEn(), en el de los exámenes (para Moodle).
+    QString nombre() const;
+    QString nombreEn(const QString &idiomaExamen) const;
 };
 
 // Una pregunta tipo test de la base de datos.

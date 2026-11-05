@@ -14,10 +14,10 @@ class QObject;
 struct DatosConvocatoria
 {
     QString asignatura;              // la del banco (BaseDatos::asignatura())
+    QString idioma = QStringLiteral("es");   // el de los textos del examen: el del banco (BaseDatos::idioma())
     QString convocatoria;            // Febrero, Junio, Septiembre...
     int anio = 0;
-    QString instrucciones = QStringLiteral("Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.\n"
-                                           "No entregue el enunciado.");
+    QString instrucciones = instruccionesPorDefecto(QStringLiteral("es"));
     double puntosAcierto = 1.0;
     double puntosFallo = 0.3;        // se resta
 
@@ -27,17 +27,20 @@ struct DatosConvocatoria
         return anio > 0 ? QStringLiteral("%1 %2").arg(convocatoria).arg(anio).trimmed() : convocatoria;
     }
 
-    // Convocatorias ordinarias, en el orden del curso: Febrero, Junio y Septiembre.
-    static QStringList ordinarias();
-    // Mes de una convocatoria que se llama como un mes («Junio», «Septiembre (reserva)»...); 0 si no.
+    // Instrucciones que se proponen para los exámenes en ese idioma.
+    static QString instruccionesPorDefecto(const QString &idioma);
+    // Convocatorias ordinarias, en el orden del curso: Febrero, Junio y Septiembre (en el idioma de los exámenes).
+    static QStringList ordinarias(const QString &idioma = QStringLiteral("es"));
+    // Mes de una convocatoria que se llama como un mes («Junio», «Septiembre (reserva)», «June»...), en cualquiera de
+    // los idiomas del programa; 0 si no.
     static int mesDe(const QString &convocatoria);
-    // Nombre del mes, como el de una convocatoria: «Febrero» para el 2; vacío si no es un mes.
-    static QString nombreDeMes(int mes);
+    // Nombre del mes, como el de una convocatoria: «Febrero» para el 2 («February» en inglés); vacío si no es un mes.
+    static QString nombreDeMes(int mes, const QString &idioma = QStringLiteral("es"));
     // La próxima convocatoria ordinaria, con su año: la primera cuyo mes aún no ha llegado. El 27 de octubre de 2026 es
     // Febrero de 2027; en junio ya es Septiembre, porque los exámenes de la del mes en curso estarán hechos.
-    static DatosConvocatoria proxima(const QDate &hoy);
+    static DatosConvocatoria proxima(const QDate &hoy, const QString &idioma = QStringLiteral("es"));
     // La última convocatoria ordinaria, con su año: la anterior a la próxima (en octubre de 2026, Septiembre de 2026).
-    static DatosConvocatoria anterior(const QDate &hoy);
+    static DatosConvocatoria anterior(const QDate &hoy, const QString &idioma = QStringLiteral("es"));
 };
 
 // Convierte preguntas y exámenes a HTML (subconjunto que entiende QTextDocument) y los imprime.
@@ -103,7 +106,8 @@ public:
     // Evita que una pregunta quede partida entre dos páginas.
     static bool imprimir(QPagedPaintDevice *dispositivo, const QVector<QTextDocument *> &documentos, const QStringList &pies);
 
-    static QString formatoPuntos(double v);
+    // «0,30»: con los decimales del idioma (el del examen).
+    static QString formatoPuntos(double v, const QString &idioma = QStringLiteral("es"));
     // «A 3 · B 3 · C 2 · D 2»: cuántas veces es correcta cada letra en el examen.
     static QString textoCorrectasPorLetra(const Modelo &modelo);
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QMessageBox>
@@ -78,25 +79,29 @@ inline QString paraBuscar(QString texto)
     return texto;
 }
 
-// Pregunta Sí/No con los botones en castellano (aunque no estén instaladas las traducciones de Qt).
+// Pregunta Sí/No con los botones en el idioma del programa (aunque no estén instaladas las traducciones de Qt).
 inline bool confirmar(QWidget *padre, const QString &titulo, const QString &texto)
 {
     QMessageBox caja(QMessageBox::Question, titulo, texto, QMessageBox::NoButton, padre);
-    QPushButton *si = caja.addButton(QStringLiteral("Sí"), QMessageBox::YesRole);
-    caja.addButton(QStringLiteral("No"), QMessageBox::NoRole);
+    //: Botón para responder que sí a una pregunta.
+    QPushButton *si = caja.addButton(QCoreApplication::translate("Utilidades", "Sí"), QMessageBox::YesRole);
+    //: Botón para responder que no a una pregunta.
+    caja.addButton(QCoreApplication::translate("Utilidades", "No"), QMessageBox::NoRole);
     caja.exec();
     return caja.clickedButton() == si;
 }
 
-// Pide una línea de texto (en 'texto', el que se propone), con los botones en castellano. Devuelve false si se cancela.
+// Pide una línea de texto (en 'texto', el que se propone), con los botones en el idioma del programa. Devuelve false si se cancela.
 inline bool pedirTexto(QWidget *padre, const QString &titulo, const QString &etiqueta, QString *texto)
 {
     QInputDialog dialogo(padre);
     dialogo.setWindowTitle(titulo);
     dialogo.setLabelText(etiqueta);
     dialogo.setTextValue(*texto);
-    dialogo.setOkButtonText(QStringLiteral("Aceptar"));
-    dialogo.setCancelButtonText(QStringLiteral("Cancelar"));
+    //: Botón para aceptar el texto escrito.
+    dialogo.setOkButtonText(QCoreApplication::translate("Utilidades", "Aceptar"));
+    //: Botón para cancelar sin cambiar nada.
+    dialogo.setCancelButtonText(QCoreApplication::translate("Utilidades", "Cancelar"));
     if (dialogo.exec() != QDialog::Accepted)
         return false;
     *texto = dialogo.textValue().trimmed();

@@ -1,0 +1,135 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ManuelAriasCalleja/GeneradorExamenes/main/recursos/banco.schema.json",
+  "asignatura": "Earth sciences (example)",
+  "idioma": "en",
+  "temas": [
+    {
+      "numero": 1,
+      "titulo": "The Earth in the solar system",
+      "autor": "",
+      "preguntas": [
+        {
+          "numero": 1,
+          "variante": "",
+          "enunciado": "Which planet is closest to the Sun?",
+          "opciones": [
+            "Mercury.",
+            "Venus.",
+            "The Earth.",
+            "Mars."
+          ],
+          "correcta": "A",
+          "referencia": "See page 12 of the textbook.",
+          "old": true,
+          "explicacion": "Mercury is the first of the eight planets, counting from the Sun."
+        },
+        {
+          "numero": 2,
+          "variante": "a",
+          "enunciado": "The Moon takes approximately how long to go once around the Earth?",
+          "opciones": [
+            "One day.",
+            "One week.",
+            "One month.",
+            "One year."
+          ],
+          "correcta": "C",
+          "referencia": "See page 15 of the textbook."
+        },
+        {
+          "numero": 2,
+          "variante": "b",
+          "enunciado": "The Earth takes approximately how long to go once around the Sun?",
+          "opciones": [
+            "One day.",
+            "One month.",
+            "One year.",
+            "Ten years."
+          ],
+          "correcta": "C",
+          "referencia": "See page 15 of the textbook.",
+          "notas": "Variant of 2a: the two never appear in the same exam."
+        },
+        {
+          "numero": 3,
+          "variante": "",
+          "enunciado": "According to the table, which planet has the most moons?\n| Planet | Moons |\n| Venus | 0 |\n| The Earth | 1 |\n| Mars | 2 |",
+          "opciones": [
+            "Venus.",
+            "The Earth.",
+            "Mars.",
+            "They have the same number."
+          ],
+          "correcta": "C",
+          "referencia": "See pages 18 and 19 of the textbook.",
+          "revisar": true,
+          "notas": "Example of a question with a table in its text."
+        },
+        {
+          "numero": 4,
+          "variante": "",
+          "enunciado": "The most abundant gas in the air we breathe is:",
+          "opciones": [
+            "Oxygen.",
+            "Nitrogen.",
+            "Carbon dioxide.",
+            "Argon."
+          ],
+          "correcta": "B",
+          "referencia": "See page 22 of the textbook.",
+          "pseudo_con": "T2-2",
+          "notas": "Equivalent to T2-2: they will not appear together."
+        }
+      ]
+    },
+    {
+      "numero": 2,
+      "titulo": "The atmosphere",
+      "autor": "",
+      "preguntas": [
+        {
+          "numero": 1,
+          "variante": "",
+          "enunciado": "The layer of the atmosphere closest to the Earth's surface is the:",
+          "opciones": [
+            "Troposphere.",
+            "Stratosphere.",
+            "Mesosphere.",
+            "Thermosphere."
+          ],
+          "correcta": "A",
+          "referencia": "See page 30 of the textbook (section 2.1)."
+        },
+        {
+          "numero": 2,
+          "variante": "",
+          "enunciado": "Which gas is the most abundant in the Earth's atmosphere?",
+          "opciones": [
+            "Oxygen.",
+            "Nitrogen.",
+            "Water vapour.",
+            "Helium."
+          ],
+          "correcta": "B",
+          "referencia": "See page 32 of the textbook (section 2.2).",
+          "pseudo_con": "T1-4"
+        },
+        {
+          "numero": 3,
+          "variante": "",
+          "enunciado": "The ozone layer is found mainly in the:",
+          "opciones": [
+            "Troposphere.",
+            "Stratosphere.",
+            "Exosphere.",
+            "Ionosphere."
+          ],
+          "correcta": "B",
+          "referencia": "See page 35 of the textbook (section 2.3).",
+          "estado": "anulada",
+          "notas": "Voided in a review of the bank (example of a status)."
+        }
+      ]
+    }
+  ]
+}

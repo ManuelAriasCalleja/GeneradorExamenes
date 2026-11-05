@@ -22,30 +22,31 @@ enum { ColNumero, ColTitulo, ColAutor, ColReferencia, ColPreguntas };
 DialogoTemas::DialogoTemas(BaseDatos *bd, QWidget *parent)
     : QDialog(parent), m_bd(bd)
 {
-    setWindowTitle(QStringLiteral("Temas"));
+    setWindowTitle(tr("Temas"));
     resize(860, 420);
 
     m_tabla = new QTableWidget(0, 5);
-    m_tabla->setHorizontalHeaderLabels({QStringLiteral("Nº"), QStringLiteral("Título"), QStringLiteral("Autor"),
-                                        QStringLiteral("Referencia al libro"), QStringLiteral("Preguntas")});
+    //: Número del tema
+    m_tabla->setHorizontalHeaderLabels({tr("Nº"), tr("Título"), tr("Autor"),
+                                        tr("Referencia al libro"), tr("Preguntas")});
     m_tabla->horizontalHeader()->setSectionResizeMode(ColTitulo, QHeaderView::Stretch);
     m_tabla->horizontalHeader()->setSectionResizeMode(ColReferencia, QHeaderView::ResizeToContents);
-    m_tabla->horizontalHeaderItem(ColReferencia)->setToolTip(QStringLiteral("Forma que debe tener la referencia al libro en las "
-                                                                            "preguntas del tema (la comprueba la revisión de estilo)"));
+    m_tabla->horizontalHeaderItem(ColReferencia)->setToolTip(tr("Forma que debe tener la referencia al libro en las "
+                                                                "preguntas del tema (la comprueba la revisión de estilo)"));
     m_tabla->verticalHeader()->hide();
     m_tabla->setSelectionBehavior(QAbstractItemView::SelectRows);
     for (const Tema &t : bd->temas())
         anadirFila(t, bd->contarPreguntas(t.id));
 
-    auto *bAnadir = new QPushButton(QStringLiteral("Añadir tema"));
-    auto *bEliminar = new QPushButton(QStringLiteral("Eliminar tema"));
+    auto *bAnadir = new QPushButton(tr("Añadir tema"));
+    auto *bEliminar = new QPushButton(tr("Eliminar tema"));
     connect(bAnadir, &QPushButton::clicked, this, &DialogoTemas::anadir);
     connect(bEliminar, &QPushButton::clicked, this, &DialogoTemas::eliminar);
 
     // Botones con texto propio: los estándar (Save, Cancel) vuelven al inglés si no están las traducciones de Qt.
     auto *botones = new QDialogButtonBox;
-    botones->addButton(QStringLiteral("Guardar"), QDialogButtonBox::AcceptRole)->setDefault(true);
-    botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
+    botones->addButton(tr("Guardar"), QDialogButtonBox::AcceptRole)->setDefault(true);
+    botones->addButton(tr("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoTemas::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoTemas::reject);
     DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("temas"));
@@ -55,7 +56,7 @@ DialogoTemas::DialogoTemas(BaseDatos *bd, QWidget *parent)
     fila->addWidget(bEliminar);
     fila->addStretch();
     auto *l = new QVBoxLayout(this);
-    l->addWidget(new QLabel(QStringLiteral("Haga doble clic en una celda para modificarla.")));
+    l->addWidget(new QLabel(tr("Haga doble clic en una celda para modificarla.")));
     l->addWidget(m_tabla);
     l->addLayout(fila);
     l->addWidget(botones);
@@ -88,7 +89,7 @@ void DialogoTemas::anadir()
         maximo = qMax(maximo, m_tabla->item(f, ColNumero)->data(Qt::EditRole).toInt());
     Tema t;
     t.numero = maximo + 1;
-    t.titulo = QStringLiteral("Nuevo tema");
+    t.titulo = tr("Nuevo tema");
     anadirFila(t, 0);
     m_tabla->editItem(m_tabla->item(m_tabla->rowCount() - 1, ColTitulo));
 }
@@ -100,7 +101,7 @@ void DialogoTemas::eliminar()
         return;
     const int n = m_tabla->item(f, ColPreguntas)->text().toInt();
     if (n > 0 && !confirmar(this, windowTitle(),
-                            QStringLiteral("El tema tiene %1 preguntas, que también se borrarán. ¿Continuar?").arg(n)))
+                            tr("El tema tiene %1 preguntas, que también se borrarán. ¿Continuar?").arg(n)))
         return;
     const int id = m_tabla->item(f, ColNumero)->data(Qt::UserRole).toInt();
     if (id)
@@ -114,7 +115,7 @@ void DialogoTemas::accept()
     for (int f = 0; f < m_tabla->rowCount(); ++f) {
         const int n = m_tabla->item(f, ColNumero)->data(Qt::EditRole).toInt();
         if (n <= 0 || numeros.contains(n)) {
-            QMessageBox::warning(this, windowTitle(), QStringLiteral("Los números de tema deben ser positivos y distintos."));
+            QMessageBox::warning(this, windowTitle(), tr("Los números de tema deben ser positivos y distintos."));
             return;
         }
         numeros.insert(n);
@@ -130,7 +131,7 @@ void DialogoTemas::accept()
         temas << t;
     }
     if (!m_bd->guardarTemas(temas, m_borrados)) {
-        QMessageBox::warning(this, windowTitle(), QStringLiteral("No se guardó ningún cambio:\n%1").arg(m_bd->ultimoError()));
+        QMessageBox::warning(this, windowTitle(), tr("No se guardó ningún cambio:\n%1").arg(m_bd->ultimoError()));
         return;
     }
     QDialog::accept();

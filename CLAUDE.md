@@ -21,10 +21,27 @@ nunca se copian preguntas, opciones ni frases de los bancos, tampoco para reprod
 
 ## Manual de uso
 `recursos/ayuda.html` es la ayuda del programa (*Ayuda → Manual de uso*, F1, y el botón «Ayuda» de los diálogos, que
-abren cada uno por el ancla de su apartado). Si cambia lo que el usuario ve o hace, hay que actualizarla. Como el
+abren cada uno por el ancla de su apartado), y `recursos/ayuda_en.html` su traducción al inglés, con las mismas anclas
+y los nombres de menús y botones de la interfaz en inglés. Si cambia lo que el usuario ve o hace, hay que actualizar
+las dos. Como el
 README, no puede citar preguntas de los bancos. Lo mismo la presentación (`presentacion/`): sus capturas se rehacen
 con `cmake --build build --target capturas` y salen del banco inventado de `presentacion/banco_ejemplo.h`, en el que
 tampoco puede haber preguntas, opciones ni frases de los bancos.
+
+## Idiomas
+La interfaz es traducible (ver «Idiomas» en el README y `src/idioma.h`): los textos visibles se escriben en castellano
+dentro de `tr()` (o `QCoreApplication::translate()` fuera de las clases), y los que van dentro de los exámenes o de
+Moodle, con `Idioma::examen(idioma, QT_TRANSLATE_NOOP("Examen", "…"))`, porque siguen el idioma del banco y no el de
+la interfaz. Al añadir o cambiar textos: `cmake --build build --target update_translations` y traducirlos en
+`traducciones/GeneradorExamenes_en.ts` (la prueba `idiomas` falla si queda alguno sin traducir). Las pautas de estilo
+propias del castellano solo se comprueban en los bancos en castellano.
+
+## Formato del JSON
+El de las preguntas que se importan lo comprueba `src/comprobadorjson.cpp`, lo describe el esquema
+`recursos/banco.schema.json` (publicado en GitHub: su dirección va en el `$schema` de los JSON) y lo enseñan los
+ejemplos `recursos/ejemplo_banco*.json` y el apartado «Formato del JSON» de la ayuda. Si cambia, hay que cambiarlos
+todos (la prueba `comprobador` compara los campos del esquema con los del comprobador). Los ejemplos son preguntas
+inventadas, como los datos de prueba.
 
 ## La presentación no va en git
 `presentacion/` (la presentación del programa para el equipo docente, en Typst) está en `.gitignore` y se queda

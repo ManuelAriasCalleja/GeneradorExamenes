@@ -24,8 +24,9 @@ class DialogoPregunta : public QDialog
 {
     Q_OBJECT
 public:
+    // 'idioma', el de las preguntas del banco (BaseDatos::idioma()), para las pautas de estilo que se comprueban.
     DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregunta> &banco, const Pregunta &pregunta,
-                    QWidget *parent = nullptr);
+                    const QString &idioma = QStringLiteral("es"), QWidget *parent = nullptr);
 
     Pregunta pregunta() const;
 
@@ -58,6 +59,7 @@ private:
     bool decidirSiEsVariante();
 
     QVector<Tema> m_temas;
+    QString m_idioma;
     QVector<Pregunta> m_banco;
     Parecidas::Indice m_indice;
     Pregunta m_original;

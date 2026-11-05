@@ -37,16 +37,16 @@ DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombr
     auto *fila = new QHBoxLayout;
     m_carpeta = new QLineEdit(QSettings().value(QLatin1String(kClaveCarpeta),
                                                 QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString());
-    auto *elegir = new QPushButton(QStringLiteral("Elegir…"));
+    auto *elegir = new QPushButton(tr("Elegir…"));
     connect(elegir, &QPushButton::clicked, this, &DialogoExportar::elegirCarpeta);
-    fila->addWidget(new QLabel(QStringLiteral("Carpeta:")));
+    fila->addWidget(new QLabel(tr("Carpeta:")));
     fila->addWidget(m_carpeta, 1);
     fila->addWidget(elegir);
     l->addLayout(fila);
 
-    l->addWidget(new QLabel(QStringLiteral("Marque los exámenes que quiere exportar y cambie el nombre de sus ficheros si lo desea:")));
+    l->addWidget(new QLabel(tr("Marque los exámenes que quiere exportar y cambie el nombre de sus ficheros si lo desea:")));
     m_tabla = new QTableWidget(0, 2);
-    m_tabla->setHorizontalHeaderLabels({QStringLiteral("Examen"), QStringLiteral("Fichero")});
+    m_tabla->setHorizontalHeaderLabels({tr("Examen"), tr("Fichero")});
     m_tabla->horizontalHeader()->setSectionResizeMode(ColExamen, QHeaderView::ResizeToContents);
     m_tabla->horizontalHeader()->setSectionResizeMode(ColFichero, QHeaderView::Stretch);
     m_tabla->verticalHeader()->hide();
@@ -60,19 +60,19 @@ DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombr
         marca->setCheckState(marcado ? Qt::Checked : Qt::Unchecked);
         m_tabla->setItem(f, ColExamen, marca);
         auto *fichero = new QTableWidgetItem(nombrePropuesto(f, false));
-        fichero->setToolTip(QStringLiteral("Pulse sobre el nombre para cambiarlo"));
+        fichero->setToolTip(tr("Pulse sobre el nombre para cambiarlo"));
         m_tabla->setItem(f, ColFichero, fichero);
     };
     for (const QString &nombre : nombres)
         anadirFila(nombre, true);
     if (nombres.size() > 1)
-        anadirFila(QStringLiteral("Todos los exámenes en un fichero"), false);
+        anadirFila(tr("Todos los exámenes en un fichero"), false);
     l->addWidget(m_tabla, 1);
 
     auto *botones = new QDialogButtonBox;
-    QPushButton *exportar = botones->addButton(QStringLiteral("Exportar"), QDialogButtonBox::AcceptRole);
+    QPushButton *exportar = botones->addButton(tr("Exportar"), QDialogButtonBox::AcceptRole);
     exportar->setDefault(true);
-    botones->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
+    botones->addButton(tr("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoExportar::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoExportar::reject);
     DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("exportar"));
@@ -150,7 +150,7 @@ QVector<DialogoExportar::Fichero> DialogoExportar::ficheros() const
 
 void DialogoExportar::elegirCarpeta()
 {
-    const QString ruta = QFileDialog::getExistingDirectory(this, QStringLiteral("Carpeta donde guardar los exámenes"), carpeta());
+    const QString ruta = QFileDialog::getExistingDirectory(this, tr("Carpeta donde guardar los exámenes"), carpeta());
     if (!ruta.isEmpty())
         m_carpeta->setText(QDir::toNativeSeparators(ruta));
 }
@@ -163,16 +163,16 @@ void DialogoExportar::accept()
 
     const QString carpeta = this->carpeta();
     if (carpeta.isEmpty()) {
-        QMessageBox::warning(this, windowTitle(), QStringLiteral("Indique la carpeta donde guardar los ficheros."));
+        QMessageBox::warning(this, windowTitle(), tr("Indique la carpeta donde guardar los ficheros."));
         return;
     }
     if (!QDir(carpeta).exists() && !QDir().mkpath(carpeta)) {
-        QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo crear la carpeta\n%1").arg(carpeta));
+        QMessageBox::warning(this, windowTitle(), tr("No se pudo crear la carpeta\n%1").arg(carpeta));
         return;
     }
     const QVector<Fichero> lista = ficheros();
     if (lista.isEmpty()) {
-        QMessageBox::information(this, windowTitle(), QStringLiteral("Marque al menos un examen."));
+        QMessageBox::information(this, windowTitle(), tr("Marque al menos un examen."));
         return;
     }
     QSet<QString> vistos;
@@ -180,15 +180,15 @@ void DialogoExportar::accept()
     for (const Fichero &f : lista) {
         const QString nombre = QFileInfo(f.ruta).fileName();
         if (nombre.isEmpty() || nombre == QLatin1Char('.') + m_extension) {
-            QMessageBox::warning(this, windowTitle(), QStringLiteral("Hay un examen marcado sin nombre de fichero."));
+            QMessageBox::warning(this, windowTitle(), tr("Hay un examen marcado sin nombre de fichero."));
             return;
         }
         if (nombre.contains(QLatin1Char('/')) || nombre.contains(QLatin1Char('\\'))) {
-            QMessageBox::warning(this, windowTitle(), QStringLiteral("El nombre «%1» no puede contener barras.").arg(nombre));
+            QMessageBox::warning(this, windowTitle(), tr("El nombre «%1» no puede contener barras.").arg(nombre));
             return;
         }
         if (vistos.contains(f.ruta)) {
-            QMessageBox::warning(this, windowTitle(), QStringLiteral("Dos exámenes tienen el mismo nombre de fichero: %1").arg(nombre));
+            QMessageBox::warning(this, windowTitle(), tr("Dos exámenes tienen el mismo nombre de fichero: %1").arg(nombre));
             return;
         }
         vistos.insert(f.ruta);
@@ -197,7 +197,7 @@ void DialogoExportar::accept()
     }
     if (!existentes.isEmpty()
         && !confirmar(this, windowTitle(),
-                      QStringLiteral("Ya existen estos ficheros en la carpeta:\n%1\n\n¿Quiere sobrescribirlos?")
+                      tr("Ya existen estos ficheros en la carpeta:\n%1\n\n¿Quiere sobrescribirlos?")
                           .arg(existentes.join(QLatin1Char('\n')))))
         return;
     QSettings().setValue(QLatin1String(kClaveCarpeta), carpeta);

@@ -283,16 +283,18 @@ Pregunta Seleccion::sustituta(const QVector<Modelo> &modelos, int modelo, int in
     const Pregunta elegida = grupo.at(m_rng.bounded(qsizetype(grupo.size())));
 
     if (minimo[0])
-        aviso = QStringLiteral("no queda ninguna otra pregunta del tema %1; %2 es (o es variante de) una de las ya quitadas.")
+        //: Va detrás de «Examen», pregunta N: (por eso empieza en minúscula). %2 es el código de una pregunta (T1-7a).
+        aviso = Generador::tr("no queda ninguna otra pregunta del tema %1; %2 es (o es variante de) una de las ya quitadas.")
                     .arg(tema).arg(elegida.codigoCompleto());
     else if (minimo[1])
-        aviso = QStringLiteral("%1 está también en otro examen de la convocatoria: no queda ninguna otra del tema %2.")
+        aviso = Generador::tr("%1 está también en otro examen de la convocatoria: no queda ninguna otra del tema %2.")
                     .arg(elegida.codigoCompleto()).arg(tema);
     else if (minimo[2] >= 2)
-        aviso = QStringLiteral("%1 salió en una de las últimas convocatorias registradas: no queda ninguna otra del "
-                               "tema %2 sin usar.").arg(elegida.codigoCompleto()).arg(tema);
+        aviso = Generador::tr("%1 salió en una de las últimas convocatorias registradas: no queda ninguna otra del "
+                              "tema %2 sin usar.").arg(elegida.codigoCompleto()).arg(tema);
     else if (minimo[2] == 1)
-        aviso = QStringLiteral("%1 está marcada «old»: no queda ninguna otra del tema %2 sin usar.")
+        //: «old» es la marca de las preguntas que ya han salido en exámenes (la casilla «Ya ha salido en exámenes (old)»).
+        aviso = Generador::tr("%1 está marcada «old»: no queda ninguna otra del tema %2 sin usar.")
                     .arg(elegida.codigoCompleto()).arg(tema);
     return elegida;
 }
@@ -301,10 +303,10 @@ QStringList Seleccion::avisosUsoAnterior() const
 {
     QStringList avisos;
     for (auto it = m_usadasAntes.cbegin(); it != m_usadasAntes.cend(); ++it)
-        avisos << (it.value() >= 2 ? QStringLiteral("Tema %1: no quedan bastantes preguntas sin usar en las últimas "
-                                                     "convocatorias registradas; se repiten algunas (o variantes suyas).")
-                                   : QStringLiteral("Tema %1: no quedan bastantes preguntas sin la marca «old»; "
-                                                     "se usan algunas (o variantes suyas)."))
+        avisos << (it.value() >= 2 ? Generador::tr("Tema %1: no quedan bastantes preguntas sin usar en las últimas "
+                                                   "convocatorias registradas; se repiten algunas (o variantes suyas).")
+                                   : Generador::tr("Tema %1: no quedan bastantes preguntas sin la marca «old»; "
+                                                   "se usan algunas (o variantes suyas)."))
                       .arg(it.key());
     return avisos;
 }
@@ -319,6 +321,14 @@ void ordenar(QVector<PreguntaExamen> &preguntas, bool alAzar, QRandomGenerator &
                   [](const PreguntaExamen &a, const PreguntaExamen &b) { return a.pregunta.antesQue(b.pregunta); });
 }
 
+// Comienzo de los avisos sobre un examen entero («Nacional Original»: …). Con él se reconocen al cambiar una de sus
+// preguntas, así que el aviso y la búsqueda lo toman de aquí, en el idioma que sea.
+QString inicioAvisoExamen(const QString &nombre)
+{
+    //: Comienzo de un aviso sobre un examen entero: %1 es su nombre. Detrás va el aviso («la respuesta correcta es…»).
+    return Generador::tr("«%1»: ").arg(nombre);
+}
+
 // Aviso si la correcta queda muy desigualmente repartida: una letra con dos o más de las que le tocarían.
 QString avisoReparto(const Modelo &modelo, bool barajadas)
 {
@@ -327,11 +337,14 @@ QString avisoReparto(const Modelo &modelo, bool barajadas)
     const int masRepetida = int(std::max_element(cuenta.begin(), cuenta.end()) - cuenta.begin());
     if (n < 4 || cuenta[masRepetida] <= (n + 3) / 4 + 1)
         return QString();
-    return QStringLiteral("«%1»: la respuesta correcta es la %2) en %3 de %4 preguntas%5.")
-        .arg(modelo.nombre, QString(Pregunta::letra(masRepetida)))
+    //: Va detrás de «Nombre del examen»: . %1 es una letra (a, b, c o d); %4 está vacío o es «; marque «Barajar las opciones»…».
+    return inicioAvisoExamen(modelo.nombre)
+           + Generador::tr("la respuesta correcta es la %1) en %2 de %3 preguntas%4.")
+        .arg(QString(Pregunta::letra(masRepetida)))
         .arg(cuenta[masRepetida])
         .arg(n)
-        .arg(barajadas ? QString() : QStringLiteral("; marque «Barajar las opciones» para repartirla"));
+        //: «Barajar las opciones» es la casilla de la ventana principal que reparte la correcta entre a)–d).
+        .arg(barajadas ? QString() : Generador::tr("; marque «Barajar las opciones» para repartirla"));
 }
 
 } // namespace
@@ -358,8 +371,9 @@ bool Generador::cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExam
 
     // Los avisos de este examen que pueden haber cambiado: el del reparto de la correcta («Nacional Original»: …)
     // y el de la pregunta de este sitio («Nacional Original», pregunta 7: …).
-    const QString delReparto = QStringLiteral("«%1»:").arg(m.nombre);
-    const QString delSitio = QStringLiteral("«%1», pregunta %2: ").arg(m.nombre).arg(indice + 1);
+    const QString delReparto = inicioAvisoExamen(m.nombre);
+    //: Comienzo de un aviso sobre una pregunta: %1 es el nombre del examen y %2, el número de la pregunta en él.
+    const QString delSitio = tr("«%1», pregunta %2: ").arg(m.nombre).arg(indice + 1);
     resultado.avisos.removeIf([&](const QString &a) { return a.startsWith(delReparto) || a.startsWith(delSitio); });
     if (!aviso.isEmpty())
         resultado.avisos << delSitio + aviso;
@@ -405,13 +419,13 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
             modelo.preguntas += elegidas;
             if (elegidas.size() < pedidas && !temasAvisoFaltan.contains(tema)) {
                 temasAvisoFaltan.insert(tema);
-                res.avisos << QStringLiteral("Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas disponibles.")
+                res.avisos << tr("Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas disponibles.")
                                   .arg(tema).arg(pedidas).arg(elegidas.size());
             }
             if (repetida && config.noRepetirEntreModelos && !temasAvisoRepeticion.contains(tema)) {
                 temasAvisoRepeticion.insert(tema);
-                res.avisos << QStringLiteral("Tema %1: no hay preguntas suficientes para no repetir entre exámenes; "
-                                             "a partir del examen «%2» se repiten algunas.")
+                res.avisos << tr("Tema %1: no hay preguntas suficientes para no repetir entre exámenes; "
+                                 "a partir del examen «%2» se repiten algunas.")
                                   .arg(tema).arg(modelo.nombre);
             }
         }

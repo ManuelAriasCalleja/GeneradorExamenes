@@ -19,9 +19,10 @@ class DialogoEstilo : public QDialog
 public:
     // 'preguntas' da las del banco abierto (se vuelve a llamar tras editar una); 'editar' abre el editor de la
     // pregunta con ese id y devuelve true si se ha guardado pidiendo pasar a la siguiente; 'banco' es la ruta del
-    // banco, para el informe guardado; 'temas', los del banco (con la forma de la referencia de cada uno).
+    // banco, para el informe guardado; 'temas', los del banco (con la forma de la referencia de cada uno); 'idioma', el
+    // de sus preguntas (BaseDatos::idioma()), que dice qué pautas se comprueban.
     DialogoEstilo(std::function<QVector<Pregunta>()> preguntas, std::function<bool(int)> editar, const QString &banco,
-                  const QVector<Tema> &temas = {}, QWidget *parent = nullptr);
+                  const QVector<Tema> &temas = {}, const QString &idioma = QStringLiteral("es"), QWidget *parent = nullptr);
 
 private slots:
     void rellenar();
@@ -33,6 +34,7 @@ private:
     std::function<bool(int)> m_editar;
     QString m_banco;
     QVector<Tema> m_temas;
+    QString m_idioma;
     QComboBox *m_parte;
     QCheckBox *m_todas;
     QLabel *m_resumen;

@@ -1,6 +1,7 @@
 #include "moodle.h"
 #include "enunciado.h"
 #include "estilo.h"
+#include "idioma.h"
 #include "maquetador.h"
 
 #include <QFile>
@@ -136,9 +137,11 @@ void escribirPregunta(QXmlStreamWriter &x, const Pregunta &p, const Opciones &op
     x.writeTextElement(QStringLiteral("shuffleanswers"), Estilo::tieneOpcionesDependientes(p) ? QStringLiteral("false") : QStringLiteral("true"));
     x.writeTextElement(QStringLiteral("answernumbering"), QStringLiteral("abc"));
     x.writeTextElement(QStringLiteral("showstandardinstruction"), QStringLiteral("0"));
-    escribirHtml(x, QStringLiteral("correctfeedback"), QStringLiteral("<p>Respuesta correcta.</p>"));
+    escribirHtml(x, QStringLiteral("correctfeedback"),
+                 QStringLiteral("<p>%1</p>").arg(Maquetador::escapar(Idioma::examen(opciones.idioma, QT_TRANSLATE_NOOP("Examen", "Respuesta correcta.")))));
     escribirHtml(x, QStringLiteral("partiallycorrectfeedback"), QString());
-    escribirHtml(x, QStringLiteral("incorrectfeedback"), QStringLiteral("<p>Respuesta incorrecta.</p>"));
+    escribirHtml(x, QStringLiteral("incorrectfeedback"),
+                 QStringLiteral("<p>%1</p>").arg(Maquetador::escapar(Idioma::examen(opciones.idioma, QT_TRANSLATE_NOOP("Examen", "Respuesta incorrecta.")))));
 
     const QString erronea = opciones.penalizarFallos ? QStringLiteral("-30") : QStringLiteral("0");
     for (int i = 0; i < 4; ++i) {
@@ -178,9 +181,10 @@ QString xml(const QVector<Tema> &temas, const QVector<Pregunta> &preguntas, cons
     for (const Pregunta &p : seleccion(preguntas, opciones)) {
         if (p.temaId != temaActual) {
             temaActual = p.temaId;
-            QString tema = nombreTema(temas, p.temaId);
-            if (tema.isEmpty())
-                tema = QStringLiteral("Tema %1").arg(p.temaNumero);
+            QString tema = Idioma::examen(opciones.idioma, QT_TRANSLATE_NOOP("Examen", "Tema %1")).arg(p.temaNumero);
+            for (const Tema &t : temas)
+                if (t.id == p.temaId)
+                    tema = t.nombreEn(opciones.idioma);
             const QString raiz = opciones.asignatura.trimmed().isEmpty()
                                      ? QStringLiteral("$course$/top")
                                      : QStringLiteral("$course$/top/") + nombreCategoria(opciones.asignatura);

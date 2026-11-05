@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Exam Generator user manual</title>
+<style>
+h1 { margin-bottom: 2px; }
+h2 { margin-top: 28px; }
+h3 { margin-top: 18px; }
+p, li { line-height: 125%; }
+td, th { vertical-align: top; border-width: 1px; border-style: solid; border-color: #b0b0b0; }
+pre { margin-left: 20px; }
+</style>
+</head>
+<body>
+
+<h1><a name="portada"></a>Exam Generator</h1>
+<p><i>User manual</i></p>
+
+<p>This manual explains how to use the program. The index on the left takes you to each section, and the box at the
+top searches for a word in the whole text, ignoring accents and capitals (<b>Enter</b> moves to the next
+occurrence).</p>
+
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+Press <b>F1</b> in any window of the program and the help opens at the section about that window. Dialogs also have
+a <b>Help</b> button that does the same.
+</td></tr></table>
+
+<!-- ======================================================================================================= -->
+<h2><a name="inicio"></a>Getting started</h2>
+
+<p>The program generates multiple-choice exams by picking questions at random from a question bank, with the number
+of questions you specify for each topic. When choosing them it follows the rules of the subject’s exams: it never puts
+two versions of the same question in the same exam, it can spread the correct answer across a), b), c) and d), and it
+makes each exam fit on one page per 10 questions.</p>
+
+<p>It works for any subject: each question bank carries the name of its own subject, its topics (as many as it has)
+and its distributions of questions per topic.</p>
+
+<p>It is also a tool for maintaining the bank: searching, correcting and adding questions, reviewing their wording,
+keeping the exams of each exam session and taking the questions to Moodle so that students can practise.</p>
+
+<h3><a name="banco-fichero"></a>The bank file</h3>
+
+<p>The questions are stored in a database file (<tt>.db</tt>) that does not come with the program: either the
+teaching team gives it to you or you create it yourself. The first time, the program asks which bank to open or
+whether you want to create a new one; after that it always opens the last one that was opened. When opening or
+creating a bank, the dialog starts in the folder of the last one that was opened.</p>
+<ul>
+<li>To switch to another bank: <i>File → Open question bank…</i></li>
+<li>To start an empty one: <i>File → New question bank…</i> When it is created, the program asks for the name of
+the subject and offers to import questions from a JSON file (see <a href="#json">Importing and exporting the bank</a>).
+Then the topics are created in <i>Edit → Topics…</i> (see <a href="#temas">Topics</a>).</li>
+</ul>
+<p>The status bar, at the bottom, shows which bank is open, how many topics and questions it has and how many of
+those questions are active. The window title includes the name of its subject.</p>
+
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+The whole bank is in that single file, including the subject name, the distributions of questions per topic and the
+exam session history. To make a backup or
+take it to another computer, just copy the file (with the program closed).
+</td></tr></table>
+
+<h3><a name="ventana"></a>The main window</h3>
+
+<p>The window has two tabs:</p>
+<ul>
+<li><b>Generate exam</b>: on the left, the exam session details, the number of questions from each topic and the
+options; on the right, the generated exams and the buttons to print them, export them, record them in the history or
+take them on screen.</li>
+<li><b>Question bank</b>: the list of questions, with its filters, and the details of the selected question.</li>
+</ul>
+<p>The menus hold everything else: <i>File</i> (opening and creating banks, importing and exporting, exam session
+history), <i>Edit</i> (topics, new question, style check) and <i>Help</i>.</p>
+<p>When the program is closed, the instructions, the list of exams, the options and the window size are saved, and
+the next time they appear as you left them. The subject name and the last distribution of questions are saved in the
+bank, so each bank has its own. The exam session and the year, on the other hand, are set on start-up to those of the
+next exam session (see <a href="#convocatoria">Exam session</a>).</p>
+
+<h3><a name="primera-vez"></a>The first time</h3>
+<p>To avoid repeating questions from the last exam sessions, the program looks them up in its
+<a href="#historial">history</a>, where the exams generated with it are saved. Exam sessions from before the program
+was used are not there, and their questions could come up again. Before generating the first exams, record the
+previous ones from their PDFs with <i>File → Record previous exams…</i> (see
+<a href="#anteriores">Recording previous exams</a>). As long as none has been recorded, a warning is shown when
+generating.</p>
+
+<h3><a name="pasos"></a>An exam step by step</h3>
+<ol>
+<li>In the <b>Generate exam</b> tab, check the exam session and the year: the program suggests the next exam
+session.</li>
+<li>Tick the exams you want in the list, for example “Nacional Original” and “Nacional Reserva”.</li>
+<li>Enter how many questions you want from each topic, or click one of the distribution buttons (for example,
+<b>T1–T4</b>) to apply a usual distribution.</li>
+<li>Click <b>Generate exams</b>. Check each exam on the right (switch from one to another in <b>Exam</b>) and read
+the warnings in the yellow box, if there are any.</li>
+<li>If you are not happy with a question, replace it with another by right-clicking it (see
+<a href="#cambiar-pregunta">Replacing a question</a>). If you are not happy with the whole set, click
+<b>Generate exams</b> again: different ones come out each time.</li>
+<li>Click <b>Export PDF…</b> to save the exams and <b>Solutions PDF…</b> to save the solutions.</li>
+<li>When they are final, click <b>Record exam session…</b>: they are saved in the history and their questions will
+be avoided in the following exam sessions.</li>
+</ol>
+
+<!-- ======================================================================================================= -->
+<h2><a name="generar"></a>Generating exams</h2>
+
+<p>Everything is done in the <b>Generate exam</b> tab. Fill in the panel on the left, from top to bottom, and click
+<b>Generate exams</b>. All the exams of the exam session are generated at once (one for each name ticked in the
+list) and appear on the right. If you generate again, they are replaced by new ones.</p>
+
+<h3><a name="convocatoria"></a>Exam session</h3>
+<ul>
+<li><b>Subject</b>: the name printed in the exam header. It is the name of the open bank’s subject: if you change it
+here, it is saved in the bank (and appears in the window title).</li>
+<li><b>Exam language</b>: the language of the text that the program writes in the exams (the instructions it
+suggests, the scoring, “WITH SOLUTIONS”, the solutions sheet and the exam session months) and in
+<a href="#moodle">Moodle</a>. The questions appear as they are written. It is saved in the bank, like the subject: a
+bank for a subject taught in Spanish produces its exams in Spanish even if the program is in English, and a bank for
+a subject taught in English produces them in English even if the program is in Spanish (the interface language is
+chosen separately, see <a href="#configuracion">Settings</a>). When you change it, the exam sessions in the list
+switch to the new language, and so do the instructions if they had not been changed. It also decides which
+<a href="#pautas">style guidelines</a> are checked.</li>
+<li><b>Exam session</b>: choose February, June or September (their names are in the exam language: Febrero, Junio
+and Septiembre in Spanish), or type another name. Together with the year it forms “June 2026”, which goes in the
+header, in the footer of each page and in the names of the exported files.</li>
+<li><b>Year</b>.</li>
+<li>When the program starts, the exam session and the year are those of the next exam session according to the
+date: the first of February, June and September whose month has not yet arrived. From September to January, it is
+February; from February to May, June; and from June to August, September. If you are preparing another one, change
+them.</li>
+<li><b>Instructions</b>: the text of the instructions box below the header. The scoring is added below it. If an
+exam does not fit on its page, shortening the instructions helps.</li>
+</ul>
+
+<h3><a name="lista-examenes"></a>List of exams</h3>
+<p>One exam is generated for each ticked name, in the order of the list. The footer of each page carries the name of
+the exam, the exam session and the year: “Nacional Original · June 2026: 1 / 2”.</p>
+<ul>
+<li><b>Add</b>: adds a new name, which you type in at that moment.</li>
+<li><b>Remove</b>: removes the selected name from the list (it asks for confirmation).</li>
+<li><b>All</b> and <b>None</b>: tick or untick all the names.</li>
+<li>Double-click a name to change it; drag it to change its position.</li>
+</ul>
+<p>The list is kept from one year to the next. There cannot be two ticked exams with the same name, nor one without a
+name.</p>
+
+<h3><a name="reparto"></a>Questions per topic</h3>
+<p>There is one box per topic with the number of questions you want from it. Next to it, in grey, “of N” shows how
+many different questions there are: the variants a, b, c… of a question count as one, because only one of them can
+appear in an exam (see <a href="#codigos">Codes, variants and pseudo-duplicates</a>). Voided and obsolete questions
+do not count, and neither do those flagged for review unless the option “Include questions flagged for review” is
+ticked.</p>
+<p>Below are the buttons for the subject’s usual distributions, which are saved in the bank: each one sets the number
+of questions from each topic (hover the mouse over it to see how many). <b>None</b> sets all the topics to 0.
+For example, those of an eight-topic bank examined in two parts could be these:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Button</th><th align="left">Distribution</th></tr>
+<tr><td><b>T1–T4</b></td><td>First part: 3, 2, 3 and 2 questions from topics 1 to 4 (10 in total).</td></tr>
+<tr><td><b>T5–T8</b></td><td>Second part: 2, 3, 2 and 3 questions from topics 5 to 8 (10 in total).</td></tr>
+<tr><td><b>T1–T8</b></td><td>Both parts together: 20 questions.</td></tr>
+</table>
+<ul>
+<li><b>Save distribution…</b> saves the current number of questions from each topic as a new distribution, under the
+name you give it (a name such as “T1–T4” is suggested): its button appears. If there is already one with that name,
+it asks whether to replace it.</li>
+<li>Right-click a distribution to replace it with the current numbers of questions or to remove it.</li>
+</ul>
+<p>The total is shown below. The program remembers the last distribution used in each bank; the first time, it
+suggests the first of its distributions. A new bank has none.</p>
+
+<h3><a name="puntuacion"></a>Scoring</h3>
+<p>With <b>Automatic</b> ticked, the exam is worth 10 points and each wrong answer deducts 30% of the value of a
+correct one: with 10 questions, +1 per correct answer and −0.30 per wrong one; with 20, +0.50 and −0.15. Unanswered
+questions neither add nor deduct anything. To use other values, untick <b>Automatic</b> and enter them in
+<b>Correct</b> and <b>Wrong</b>.</p>
+<p>The scoring is printed below the exam instructions and is used to mark the exam when you
+<a href="#practicar">practise an exam</a>.</p>
+
+<h3><a name="opciones"></a>Options</h3>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Option</th><th align="left">What it does</th></tr>
+<tr><td><b>Do not repeat questions between exams</b></td>
+<td>No question (nor any variant of it) appears in two exams of the same exam session. If there are not enough, a
+warning is shown and, from some exam onwards, some are repeated.</td></tr>
+<tr><td><b>Avoid questions from the last N exam sessions</b></td>
+<td>Leaves until last the questions that appeared in the last N exam sessions recorded in the
+<a href="#historial">history</a>, together with their variants and pseudo-duplicates. The exams being generated do
+not count as already used, even if they had been recorded before: when they are recorded again, they replace the
+old ones.</td></tr>
+<tr><td><b>Also avoid those marked “old”</b></td>
+<td>Leaves until last the questions that already appeared in exams from before the history was kept (those marked
+“old” in the bank), though ahead of those from the recorded exam sessions.</td></tr>
+<tr><td><b>Include questions flagged for review</b></td>
+<td>If unticked, questions flagged for review are not used.</td></tr>
+<tr><td><b>Random order</b></td>
+<td>Shuffles the questions of the exam. If unticked, they are ordered by topic and number, as in the official
+exams.</td></tr>
+<tr><td><b>Shuffle the options</b></td>
+<td>Changes the order of the options to spread the correct answer across a), b), c) and d) (see
+<a href="#correctas">Distribution of the correct answer</a>).</td></tr>
+<tr><td><b>Seed</b></td>
+<td>If empty, different exams come out each time. With a number, the same ones come out again (see
+<a href="#semilla">The seed</a>).</td></tr>
+</table>
+
+<h3><a name="reglas"></a>How the questions are chosen</h3>
+<ul>
+<li>Voided or obsolete questions are never used.</li>
+<li>Two variants of the same question (for example, T2-4a and T2-4b) never appear together in an exam, nor do two
+pseudo-duplicates, which are equivalent questions from different topics linked in the
+<a href="#editor">question editor</a>.</li>
+<li>From each topic, the questions that have never been used are chosen first; then, if “Also avoid those marked
+old” was ticked, those marked “old”; and finally those from the recorded exam sessions, from the oldest to the most
+recent. That way, if a question has to be repeated, it is the one that was used longest ago. When the program has to
+fall back on them, a warning is shown.</li>
+<li>Exam sessions are ordered by year and, within the year, by month, if they are named after a month (February,
+June, September…).</li>
+<li>Among the questions that are equally well placed, one is chosen at random.</li>
+</ul>
+
+<h3><a name="correctas"></a>Distribution of the correct answer</h3>
+<p>With <b>Shuffle the options</b> ticked, in each exam the correct answer falls on a), b), c) and d) the same number
+of times (with a difference of one at most) and, where possible, never three times in a row on the same letter.
+Questions with options that refer to the others (“All of the above”, “a and b”…) are not shuffled, because their
+meaning would change.</p>
+<p>Without shuffling, the correct answer stays on the letter it has in the bank. If in any exam one letter comes up
+considerably more often than its share (5 out of 10, for example), a warning is shown.</p>
+<p>Next to <b>Large print</b> you can see how many times each letter is correct in the exam being shown
+(“Correct: A 3 · B 3 · C 2 · D 2”). The solutions sheet also shows it.</p>
+
+<h3><a name="vista"></a>The exam preview</h3>
+<p>The right-hand part of the tab shows the generated exams exactly as they will be printed.</p>
+<ul>
+<li><b>Exam</b>: which of the exams of the exam session is shown.</li>
+<li><b>Show solutions</b>: marks the correct answer in green and shows the code of each question in the preview.
+When exporting to HTML or LaTeX, it decides what is suggested for the “With solutions” box of the dialog.</li>
+<li><b>Large print</b>: the adapted version (see <a href="#letra-grande">Large print</a>).</li>
+<li>The grey line below shows the seed, the level of the compact layout, if it has been used, and the recording date,
+if the exams have been loaded from the history. Its text can be selected and copied.</li>
+<li>The yellow box gathers the warnings: topics without enough questions, repeated questions, a letter that is
+correct too many times, an exam that does not fit on its page… It is worth reading them before exporting.</li>
+<li><b>Question</b> and <b>Replace with another</b>, below the preview: replace a question of the exam being shown
+(see <a href="#cambiar-pregunta">Replacing a question</a>).</li>
+</ul>
+
+<h3><a name="cambiar-pregunta"></a>Replacing a question</h3>
+<p>If you are not happy with a question in an exam, there is no need to generate them all again: right-click it and
+choose “Replace question N with another from topic T”. You can also enter its number in <b>Question</b>, below the
+preview, and click <b>Replace with another</b>. The preview stays on the new question, and the status bar says which
+question has come in and which has gone out.</p>
+<ul>
+<li>The new one is from the same topic and goes in the same place. If the options are shuffled, its correct answer
+stays on the same letter as that of the removed question, so neither the rest of the exam, nor the other exams, nor
+the distribution of the correct answer change.</li>
+<li>It is chosen with the same rules as when generating: never a variant or a pseudo-duplicate of another question in
+the exam; if questions are not repeated between exams, none from the other exams; and first the ones that have never
+been used, then the “old” ones and finally those from the recorded exam sessions, from the oldest to the most
+recent.</li>
+<li>If you replace it again, the questions already removed from that exam do not come back as long as there are
+others left.</li>
+<li>If the new one is not among the desirable ones (for example, because it is already in another exam or was used
+in a recent exam session and there was no other left), the yellow box warns you. If no question can take its place,
+nothing is changed and a warning is shown.</li>
+<li><b>Undo the change</b> (or “Undo the last question change”, by right-clicking) undoes the changes, from the last
+to the first.</li>
+</ul>
+<p>Questions can also be replaced in exams loaded from the <a href="#historial">history</a>; the replacements are
+then chosen with the options currently set in the window. If the exams are then recorded again, they replace the ones
+that were there.</p>
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+After replacing questions by hand, the seed no longer reproduces the exams (the grey line says so). To keep them,
+record them.
+</td></tr></table>
+
+<h3><a name="maqueta"></a>One page per 10 questions</h3>
+<p>Each exam must fit on one page per 10 questions: a 10-question exam, on a single sheet. If it does not fit with
+the normal layout, the program compacts it in levels: it puts the options in two columns (a c / b d) when they take
+up fewer lines that way, reduces the spacing between questions and, finally, reduces the font size (down to 9
+points). The level used appears in the grey line (“Compact layout (level 2 of 4)”) and is the same for all the exams
+of the exam session, in the preview, when printing and in the three exports.</p>
+<p>If it still does not fit, a warning is shown: shorten the instructions or remove a question (those with an image
+or a long question text take up the most space).</p>
+
+<h3><a name="letra-grande"></a>Large print</h3>
+<p>The <b>Large print</b> box produces the adapted version for visually impaired students, the opposite of the
+compact layout: 16-point font (also in the header and the instructions), question texts in bold without italics,
+one option per line, more spacing between questions and larger images, with no page limit.</p>
+<p>It applies to the preview, printing and all exports. The files have “_letra_grande” in their name
+(<tt>2026_Junio_letra_grande_Nacional_Original.pdf</tt>), so as not to overwrite the normal ones. They are the same
+exams, with the same questions in the same order: just export the normal ones, tick the box and export again.</p>
+
+<h3><a name="semilla"></a>The seed</h3>
+<p>Each time exams are generated, a number called the seed is used; it appears in the grey line. If you enter that
+number in <b>Seed</b> and generate again with the same settings, exactly the same exams come out, provided that
+neither the bank nor the history has changed.</p>
+<p>While a seed is entered, the same exams come out every time: the field is shown in yellow and the grey line says
+“fixed”. To get different ones again, clear it (with the cross in the field).</p>
+<p>If questions have been replaced by hand, the seed no longer reproduces the exams. To recover the exams of a past
+exam session, the <a href="#historial">history</a> is a better option: it keeps them exactly as they were set, even
+if their questions are corrected later.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="exportar"></a>Printing and exporting</h2>
+
+<p>Once the exams have been generated, the buttons below the preview print them or save them to files:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Button</th><th align="left">What it does</th><th align="left">Suggested name</th></tr>
+<tr><td><b>Print…</b></td>
+<td>Opens the print preview of all the exams, from which they are printed. They are printed without
+solutions.</td><td></td></tr>
+<tr><td><b>Export PDF…</b></td><td>Saves the exams as PDF.</td>
+<td><tt>2026_Junio_Nacional_Original.pdf</tt></td></tr>
+<tr><td><b>Solutions PDF…</b></td>
+<td>Saves the solutions sheet (the structure by topic, like the one in the instructions, and the answer key)
+followed by the exams with the correct answer marked.</td>
+<td><tt>2026_Junio_soluciones_Nacional_Original.pdf</tt></td></tr>
+<tr><td><b>Export HTML…</b></td>
+<td>Saves the exams as HTML, which can be opened and edited in Word or LibreOffice. With the “With
+solutions” box of the dialog ticked, the correct answer is marked.</td>
+<td><tt>2026_Junio_Nacional_Original.html</tt></td></tr>
+<tr><td><b>Export LaTeX…</b></td>
+<td>Saves the exams as LaTeX (see <a href="#latex">LaTeX</a>).</td>
+<td><tt>2026_Junio_Nacional_Original.tex</tt></td></tr>
+</table>
+<p>To print the solutions, export them with <b>Solutions PDF…</b> and print the PDF.</p>
+
+<h3><a name="exportar-ficheros"></a>Folder and file names</h3>
+<p>When exporting, a dialog opens:</p>
+<ul>
+<li><b>Folder</b>: where the files are saved. It is remembered from one time to the next; <b>Choose…</b> lets you
+pick another one. If it does not exist, it is created.</li>
+<li>The table has one row per exam: the ticked ones are exported, each to its own file. Click a file name to change
+it.</li>
+<li>If there is more than one exam, the last row, “All the exams in one file”, also saves them all together in a
+single file, each starting on a new page.</li>
+<li>When exporting to HTML or LaTeX, the <b>With solutions</b> box decides whether the solutions are included. It is
+suggested ticked if “Show solutions” is ticked. When it is ticked, the suggested names include “_soluciones”
+(<tt>2026_Junio_soluciones_Nacional_Original.html</tt>), like those of <b>Solutions PDF…</b>, so as not to
+overwrite the others.</li>
+</ul>
+<p>If any of the files already exists, you are asked for permission to overwrite it. When the export is finished, the
+status bar says where the files have been saved and, on the right, the <b>Open the folder</b> button opens it (it
+stays there until other exams are generated).</p>
+<p>HTML and LaTeX exports save the images of the questions in a folder next to the file,
+<tt>&lt;name&gt;_imagenes</tt>. If you move the file, you must take that folder with it.</p>
+
+<h3><a name="latex"></a>LaTeX</h3>
+<p><b>Export LaTeX…</b> saves <tt>.tex</tt> files to be compiled with <tt>pdflatex</tt>. With the
+“With solutions” box of the dialog ticked, they also include the structure, the answer key and the exams with the
+solution marked. They must be compiled twice for the “page / total” in the footer to come out right:</p>
+<pre>pdflatex examen.tex
+pdflatex examen.tex</pre>
+
+<!-- ======================================================================================================= -->
+<h2><a name="practicar"></a>Practising an exam</h2>
+
+<p><b>Practise this exam…</b> opens the exam being shown so that you can take it on screen, as a student would, and
+have it marked. It is useful, for example, for checking an exam before approving it.</p>
+<ol>
+<li>Choose the duration (from 5 to 300 minutes; it is remembered from one time to the next) and click <b>Start</b>.
+Until then, no answers can be given.</li>
+<li>To answer, click the letter or the text of an option. <b>Leave blank</b> clears the answer to that
+question.</li>
+<li>The clock counts down and turns red in the last 5 minutes. If time runs out, the exam is marked
+automatically.</li>
+<li>Click <b>Finish and mark</b> when you have finished.</li>
+</ol>
+<p>When the exam is marked, each question shows whether it is right, wrong (and which answer was correct) or blank,
+with its code, the reference to the textbook and the explanation, if it has one. The correct answer is shown in green
+and the wrong answer is struck through in red. The score is calculated with the <a href="#puntuacion">scoring</a> of
+the main window.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="historial"></a>The exam session history</h2>
+
+<p>The history keeps, inside the bank, the exams set in each exam session. It serves two purposes: preventing the
+questions from the last exam sessions from being repeated in the following ones, and being able to recover an exam
+exactly as it was set.</p>
+
+<h3><a name="registrar"></a>Recording an exam session</h3>
+<p><b>Record exam session…</b>, below the exam preview, saves the generated exams in the history: a copy of their
+questions exactly as they were set, the order of the options and the exam session details (subject, instructions and
+scoring). The name of the exam session must have been entered.</p>
+<p>If exams with the same name, exam session and year had already been recorded, they are replaced (confirmation is
+asked first). So, if you generate the exams of an exam session again after recording it, just record it
+again.</p>
+<p>From then on, the option “Avoid questions from the last N exam sessions” takes those exams into account, and the
+details of each question, in the <b>Question bank</b> tab, show which exams it has appeared in.</p>
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+Record only the final exams: the recorded ones count as already used when generating the exams of the following
+exam sessions.
+</td></tr></table>
+<p>So that you do not forget, while the exams in the window have been exported (or printed) but not recorded, the
+<b>Record exam session…</b> button is shown in yellow and the grey line says “Exported but not recorded”. If they are
+then about to be lost (when generating others, loading from the history, opening another bank or quitting the
+program), you are asked first: <b>Record them…</b>, <b>Do not record them</b> or <b>Cancel</b>.</p>
+
+<h3><a name="anteriores"></a>Recording previous exams</h3>
+<p>The exams of exam sessions held outside the program (those from before it was used) are recorded with
+<i>File → Record previous exams…</i>. That way their questions are avoided when generating the following ones, just
+like those of the generated exam sessions.</p>
+<ol>
+<li>Click <b>Add PDF…</b> and choose the PDFs of the exam session’s exams (several at once). If an exam is only
+available in Word, open it, select all its text, copy it and click <b>Paste text…</b>.</li>
+<li>The program splits each exam into questions, numbered “1.-”, “2.-”…, with their options “a)”…“d)”, and
+recognises each one in the bank by its similarity. It also works out the order in which its options appeared.</li>
+<li>The exam session, the year and the name of each exam are suggested from the file name
+(<tt>2026_02_05_ae_original_ex_fi.pdf</tt> is “América Este Original” from February 2026), using the names in the
+list of exams. Check them: double-click a name to change it.</li>
+<li>Review the questions of each exam (they are shown when you select it in the list). The uncertain ones, which are
+not very similar to the recognised question or are almost as similar to another one, are shown in yellow. Hovering
+the mouse over the code shows the text of that question in the bank and, over “In the exam”, the text that was read.
+To correct one, double-click its code and enter the right one (<tt>T1-7a</tt>).</li>
+<li>Click <b>Record</b>. The exams are saved in the history like the generated ones, with the usual scoring (10
+points, and each wrong answer deducts 30%). If exams with the same name had already been recorded in that exam
+session, they are replaced.</li>
+</ol>
+<p>The questions are recorded as they are now in the bank, not as the text of the PDF: when one of these exams is
+loaded from the history, it comes with the current questions. To read PDFs, the program needs the Qt PDF library; if
+<b>Add PDF…</b> is disabled, copy and paste the text.</p>
+
+<h3><a name="consultar-historial"></a>Loading or deleting exam sessions</h3>
+<p><i>File → Exam session history…</i> shows the recorded exam sessions (for example, “June 2026”) with their exams,
+the number of questions in each one and when it was recorded.</p>
+<ul>
+<li><b>Load</b> (or double-click an exam): takes the selected exam session, or a single exam, to the
+<b>Generate exam</b> tab, so that you can view, export, print or practise it exactly as it was set, even if its
+questions have been corrected since. The exam session details are copied to the window (subject, exam session, year,
+instructions and scoring; if the scoring does not match the automatic one, <b>Automatic</b> is unticked). The grey
+line says “Recorded on …”.</li>
+<li><b>Delete from history…</b>: deletes the selected exam session or exam, after asking for confirmation. Its
+questions no longer count as already used, and it cannot be loaded again.</li>
+</ul>
+<p>After loading a past exam session, check the exam session and the year before generating new exams.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="banco"></a>The question bank</h2>
+
+<p>The <b>Question bank</b> tab shows all the questions of the bank in a table. When you select one, its details are
+shown on the right: the question text, the options, the correct answer with the reference to the textbook, the
+explanation, the question it is linked to, the notes and which recorded exams it has appeared in.</p>
+
+<h3><a name="buscar"></a>Searching and filtering</h3>
+<ul>
+<li><b>Topic</b>: only the questions of one topic.</li>
+<li><b>Status</b>: all, active, voided, obsolete, flagged for review or with an
+image.</li>
+<li>The search box finds the questions that contain a piece of text in the question text, the options or the notes,
+ignoring capitals and accents (“resume” finds “Résumé”). If you type a code (<tt>T1-22b</tt>), it finds that
+question.</li>
+</ul>
+<p>To the right of the filters you can see how many questions meet the conditions. Click a column heading to sort by
+that column. Hovering the mouse over a question text also shows its options. Voided and obsolete questions are shown
+struck through and in grey.</p>
+<p>Table columns: <b>Topic</b>; <b>Code</b> (number and variant, with “(old)” if it already appeared in exams from
+before the history was kept); <b>Status</b> (active, voided or obsolete, with “review” and “image” where applicable);
+<b>Question text</b>; and <b>Ans.</b>, the letter of the correct answer.</p>
+
+<h3><a name="codigos"></a>Codes, variants and pseudo-duplicates</h3>
+<p>Each question has a code with its topic, its number and, if it has one, its variant letter: <tt>T1-22b</tt> is
+variant b of question 22 of topic 1.</p>
+<ul>
+<li><b>Variants</b>: questions of the same topic with the same number (<tt>T2-4a</tt>, <tt>T2-4b</tt>…) are
+versions of the same question: different data, the question the other way round or another aspect of the same
+concept. Two of them never appear in the same exam, and when counting the questions available in a topic they count
+as one.</li>
+<li><b>Pseudo-duplicates</b>: two questions from different topics that ask the same thing are linked with the
+“Pseudo-duplicate of” field of the editor (for example, <tt>T3-5</tt> with <tt>T1-7</tt>). They never appear
+together either.</li>
+</ul>
+
+<h3><a name="estados"></a>Status and marks of a question</h3>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Status or mark</th><th align="left">Meaning</th></tr>
+<tr><td><b>Active</b></td><td>It can appear in exams.</td></tr>
+<tr><td><b>Voided</b></td><td>It is never used, but it is kept in the bank.</td></tr>
+<tr><td><b>Obsolete</b></td><td>It is never used: it no longer matches the syllabus.</td></tr>
+<tr><td><b>old</b></td><td>It already appeared in exams from before those recorded in the history. It can be left
+until last with the option “Also avoid those marked old”.</td></tr>
+<tr><td><b>Flagged for review</b></td><td>It needs improving. It appears in exams unless “Include questions flagged
+for review” is unticked.</td></tr>
+</table>
+
+<h3><a name="acciones"></a>Creating, editing and deleting questions</h3>
+<ul>
+<li><b>New…</b> (or <i>Edit → New question…</i>, <b>Ctrl+N</b>): opens the <a href="#editor">editor</a> with an
+empty question, in the topic selected in the filter (or in the first one) and with the first free number. To write
+several in a row, <b>Save and new</b> saves the question and opens another one in the same topic.</li>
+<li><b>Edit…</b> (or double-click the question): opens the selected question in the editor. To go through several,
+<b>Save and next</b> saves the question and opens the next one in the table, with its current filter and sort
+order.</li>
+<li><b>Duplicate as variant…</b>: copies the selected question as its next variant, with the first free letter
+(if the question has no letter, it counts as “a”), so that you can write another version of it. The copy does not
+have the “old” mark.</li>
+<li><b>Delete</b>: permanently deletes the question from the bank, after asking for confirmation.</li>
+</ul>
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
+If you only want a question to stop appearing in exams, do not delete it: edit it and set it to voided. That way it
+is kept, with its history, and can be recovered.
+</td></tr></table>
+
+<!-- ======================================================================================================= -->
+<h2><a name="editor"></a>The question editor</h2>
+
+<p>The editor opens when a question is created, edited or duplicated. The details are on the left; on the right
+there is a preview of the question, which is updated as you type, with the style warnings and the similar questions
+below it.</p>
+<ul>
+<li><b>Identification</b>: the topic, the number and the variant (a letter, or nothing if there are no variants);
+the status (active, voided or obsolete); the marks “Already used in exams (old)” and “Flag for review”; and
+“Pseudo-duplicate of”, the code of the equivalent question from another topic (for example, <tt>T1-7</tt>). See
+<a href="#codigos">Codes, variants and pseudo-duplicates</a>.</li>
+<li><b>Question text and answers</b>: the question text (see <a href="#formato">Question text format</a>) and the
+four options. The selected round button indicates which one is correct. All four options are required.</li>
+<li><b>Image</b>: optional; it is shown below the question text. <b>Load…</b> accepts PNG, JPG, BMP and GIF, and
+saves the image in the bank; <b>Remove</b> deletes it.</li>
+<li><b>Reference and notes</b>: the <b>reference</b> to the textbook, which goes in the solutions; the
+<b>explanation</b> of the answer, which is shown when a practice exam is marked and in Moodle; and the <b>internal
+notes</b>, which are only shown in the bank.</li>
+</ul>
+<p>When you click <b>Save</b>, the program checks that there is a topic, a question text and all four options. If the
+question does not follow some of the <a href="#pautas">style guidelines</a>, it lists them and asks whether to save
+it anyway or continue editing. If it is a new question, with a number that does not exist yet, and it is very similar
+to others in the bank, it shows them before saving it (see <a href="#parecidas">Similar questions</a>).</p>
+<p>When you create a new question and change its topic, the suggested number becomes the first free one in the new
+topic.</p>
+<p>If you click <b>Cancel</b> (or press Esc, or close the window) with unsaved changes, you are asked before they are
+discarded.</p>
+
+<h3><a name="formato"></a>Question text format</h3>
+<p>The question text is plain text, in one or more paragraphs. It also accepts code and tables:</p>
+<ul>
+<li><b>Code</b>: between two lines containing only three backticks (<tt>```</tt>). It is printed in a fixed-width
+font, keeping the spaces.</li>
+<li><b>Tables</b>: each row on one line, with the cells separated by bars: <tt>| cell | cell |</tt>.</li>
+</ul>
+<p>For example:</p>
+<pre>Text of the question, in one or more paragraphs:
+```
+code line 1
+    code line 2
+```
+| Column 1 | Column 2 |
+| data     | data     |</pre>
+<p>The preview shows how it will look.</p>
+
+<h3><a name="pautas"></a>Style guidelines</h3>
+<p>As you type, the bank’s writing guidelines that the question does not follow appear in yellow below the preview.
+They are warnings, not errors: there may be justified exceptions, and the question can be saved anyway. The
+guidelines come from a style guide for questions written in Spanish, so the forms they check for are quoted here in
+Spanish:</p>
+<ul>
+<li><b>Question text</b>: it must begin with a capital letter and end with a colon, or with “?:” if it is a
+question, with both its opening and closing question marks (“¿” and “?”); it should not exceed about 180 characters;
+negations go in capitals (“NO”, “FALSO”); literals go in typographic quotation marks (“…”) in the text and in
+straight quotation marks (") inside code.</li>
+<li><b>Options</b>: they begin with a capital letter and end with a full stop; they must not be repeated; options
+that refer to the others (“Todas las anteriores”, “a y b”…) are best avoided, because they prevent shuffling; and the
+correct one must not be much longer than the others, because that would give it away.</li>
+<li><b>Reference</b>: it must be present, end with a full stop and include the page number, in the format required
+by its topic (see <a href="#temas">Topics</a>): “Véase la página N (sección X.Y) del libro de teoría.” or “Pág. N
+libro (subsección X.Y.Z).”.</li>
+</ul>
+<p>These are the guidelines of a style guide written for Spanish. In a bank whose exams are in another language (see
+<a href="#convocatoria">Exam session</a>) only those that do not depend on the language are checked: the length and
+the initial capital of the question text, the quotation marks in code, identical options, options that refer to the
+others (also in English: “All of the above”…), a correct option that is much longer than the rest, and the presence
+of a reference.</p>
+<p>To check the whole bank at once, see <a href="#estilo">Checking the bank’s style</a>.</p>
+
+<h3><a name="parecidas"></a>Similar questions</h3>
+<p>Below the preview, in blue, the editor shows the questions in the bank that are most similar to the one being
+written, with their percentage of similarity. Only questions with other numbers count: variants of the same question
+do not. The similarity compares fragments of words in the question text and the options.</p>
+<p>When you save a new question with a number that does not exist yet, if it is very similar to others, a dialog opens
+with them: the list on the left, with the percentage of similarity; on the right, the details of the selected one. If
+it is the same idea, they should never appear together in an exam:</p>
+<ul>
+<li><b>Save as a variant of…</b> (if the selected one is from the same topic): the question takes the number of the
+selected one and its next free letter.</li>
+<li><b>Link to… (pseudo-duplicate)</b> (if it is from another topic): its code is entered in “Pseudo-duplicate
+of”.</li>
+<li><b>Save as a new question</b>: it is saved as it is.</li>
+<li><b>Continue editing</b>: goes back to the editor without saving.</li>
+</ul>
+
+<!-- ======================================================================================================= -->
+<h2><a name="temas"></a>Topics</h2>
+
+<p><i>Edit → Topics…</i> shows the topics of the bank: their number, title and author, the format of the textbook
+reference in their questions and how many questions they have. Each subject has as many topics as it needs.</p>
+<ul>
+<li>Double-click a cell to change the number, the title or the author.</li>
+<li><b>Textbook reference</b>: the format that the <a href="#pautas">style check</a> requires for the reference in
+the topic’s questions, which depends on its author: one of the two Spanish forms “Véase la página N (sección X.Y)
+del libro de teoría.” and “Pág. N libro (subsección X.Y.Z).”, or “Any” (not checked).</li>
+<li><b>Add topic</b> creates one with the number following the last one.</li>
+<li><b>Delete topic</b> removes it. If it has questions, it warns you: they would be deleted with it.</li>
+</ul>
+<p>The changes are not applied until you click <b>Save</b>, and then they are all applied at once. Topic numbers
+must be positive and different from each other. If the number of a topic is changed, the bank’s
+<a href="#reparto">distributions</a> follow it; if a topic is deleted, they lose it.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="estilo"></a>Checking the bank’s style</h2>
+
+<p><i>Edit → Check the bank’s style…</i> checks the <a href="#pautas">style guidelines</a> in all the questions of
+the bank and lists those that do not follow them, with their warnings.</p>
+<ul>
+<li><b>Show</b>: all warnings, or only those about the question text, the options or the reference.</li>
+<li><b>Include voided and obsolete questions</b>: by default only active ones are checked.</li>
+<li><b>Edit the question…</b> (or double-click): opens the question in the editor so that you can correct it. When
+you return, the list is updated. With <b>Save and next with warnings</b>, the editor saves the question and opens the
+next one in the list, without having to go back to it.</li>
+<li><b>Save the report…</b>: saves the list in a text file (by default, next to the bank). It contains only the codes
+of the questions and the warnings, not their text.</li>
+</ul>
+
+<!-- ======================================================================================================= -->
+<h2><a name="json"></a>Importing and exporting the bank</h2>
+
+<p>As well as in the database, the bank can be saved in a JSON file, which is plain text: it is useful for moving the
+questions from one bank to another, for creating the bank from the teaching team’s questions document and for adding
+many questions at once, written with a text editor (see <a href="#formatojson">JSON
+format</a>).</p>
+
+<h3><a name="importar"></a>Import and export</h3>
+<ul>
+<li><i>File → Import questions (JSON)…</i> asks how to import:
+  <ul>
+  <li><b>Add/update</b>: the questions in the JSON with the same topic, number and variant as one in the bank replace
+  it; the other questions in the bank are kept.</li>
+  <li><b>Replace all</b>: first deletes all the topics and questions in the bank. Before deleting them, it saves a
+  <a href="#copias">backup</a>.</li>
+  </ul>
+  First, the JSON is checked (see <a href="#comprobarjson">Checking a JSON file</a>): if it has errors, it is not
+  imported; if it only has warnings, it can be imported anyway.
+  If the bank does not yet have a subject name or an exam language, it takes those of the JSON; if it does, it keeps
+  them. Topics in the JSON that do not state their title, their author or the format of their reference (those from
+  the questions document do not state the format) keep the ones that the topic with that number already had: to add
+  questions to a topic that is already in the bank, just give its number and the questions.
+</li>
+<li><i>File → Export questions (JSON)…</i> saves the whole bank in a JSON file.</li>
+</ul>
+
+<h3><a name="formatojson"></a>JSON format</h3>
+<p>A JSON file of questions can be written with any text editor (Notepad, VS Code…).
+<i>File → Save an example JSON…</i> saves one with some made-up questions that use everything that can be included:
+the easiest way is to start from it. Its first field, <tt>$schema</tt>, is the address of the format’s schema: with
+it, editors that understand JSON schemas, such as VS Code, flag errors and suggest fields as you type. The JSON files
+exported by the program include it too.</p>
+<p>It has this form (the questions of each topic go in its <tt>preguntas</tt> list, separated by commas):</p>
+<pre>{
+  "asignatura": "Name of the subject",
+  "idioma": "en",
+  "temas": [
+    {
+      "numero": 1,
+      "titulo": "Title of the topic",
+      "preguntas": [
+        {
+          "numero": 1,
+          "enunciado": "Text of the question:",
+          "opciones": ["First.", "Second.", "Third.", "Fourth."],
+          "correcta": "B",
+          "referencia": "See page 12 of the textbook."
+        }
+      ]
+    }
+  ]
+}</pre>
+<p>What the whole JSON and each topic can contain (required fields in bold):</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Field</th><th align="left">What it is</th></tr>
+<tr><td><b><tt>temas</tt></b></td><td>The list of topics, with their questions.</td></tr>
+<tr><td><tt>asignatura</tt></td><td>The name of the subject. It is only used if the bank does not have one yet.</td></tr>
+<tr><td><tt>idioma</tt></td><td>The exam language: <tt>"es"</tt> (Spanish) or <tt>"en"</tt> (English). It is only
+used if the bank does not specify one yet.</td></tr>
+<tr><td><tt>$schema</tt>, <tt>origen</tt></td><td>The address of the schema, and where the questions come from
+(for information only).</td></tr>
+<tr><td><b><tt>numero</tt></b> (of the topic)</td><td>The topic number. If the topic is already in the bank, the
+questions are added to it.</td></tr>
+<tr><td><tt>titulo</tt>, <tt>autor</tt></td><td>The title of the topic and its author in the textbook. If they are
+not given, a topic that is already in the bank keeps its own.</td></tr>
+<tr><td><tt>formato_referencia</tt></td><td>The format of the reference required in its questions (see
+<a href="#temas">Topics</a>): <tt>"vease"</tt>, <tt>"pag"</tt> or <tt>""</tt> (any).</td></tr>
+<tr><td><b><tt>preguntas</tt></b></td><td>The list of the topic’s questions.</td></tr>
+</table>
+<p>And each question:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Field</th><th align="left">What it is</th></tr>
+<tr><td><b><tt>numero</tt></b></td><td>The number of the question within its topic, without quotes. Questions with
+the same number are variants (see <a href="#codigos">Codes, variants and pseudo-duplicates</a>). If the bank already
+has one with the same topic, number and variant, it is replaced.</td></tr>
+<tr><td><tt>variante</tt></td><td>The variant letter: <tt>"a"</tt>, <tt>"b"</tt>… or <tt>""</tt> if there is none.</td></tr>
+<tr><td><b><tt>enunciado</tt></b></td><td>The text of the question, in the <a href="#formato">question text format</a>
+(code blocks and tables). Line breaks are written <tt>\n</tt>.</td></tr>
+<tr><td><b><tt>opciones</tt></b></td><td>The four options, a), b), c) and d), without the letter: a list of four
+texts.</td></tr>
+<tr><td><b><tt>correcta</tt></b></td><td>The letter of the correct answer: <tt>"A"</tt>, <tt>"B"</tt>, <tt>"C"</tt> or
+<tt>"D"</tt>.</td></tr>
+<tr><td><tt>referencia</tt></td><td>The reference to the textbook.</td></tr>
+<tr><td><tt>explicacion</tt></td><td>Why the correct answer is correct: it is shown in the question’s details and goes
+to Moodle.</td></tr>
+<tr><td><tt>notas</tt></td><td>Internal notes, which do not appear in the exams.</td></tr>
+<tr><td><tt>estado</tt></td><td><tt>"activa"</tt> (active; the default if omitted), <tt>"anulada"</tt> (voided) or
+<tt>"obsoleta"</tt> (obsolete) (see <a href="#estados">Status and marks of a question</a>).</td></tr>
+<tr><td><tt>old</tt>, <tt>revisar</tt></td><td>Already used in exams; flagged for review: <tt>true</tt> or
+<tt>false</tt>, without quotes.</td></tr>
+<tr><td><tt>pseudo_con</tt></td><td>Another, equivalent question from another topic, with which it will never appear:
+its topic and number, such as <tt>"T1-7"</tt>.</td></tr>
+<tr><td><tt>imagen</tt></td><td>A PNG or JPG image encoded in base64. It is easier to add it later from the
+<a href="#editor">question editor</a>.</td></tr>
+<tr><td><tt>codigo</tt>, <tt>etiqueta_original</tt></td><td>For information only: they are written by the program and
+by the questions document tool; when importing, <tt>numero</tt> and <tt>variante</tt> are what count.</td></tr>
+</table>
+<p>The things most often forgotten when writing a JSON file by hand: texts go in straight double quotes (<tt>"</tt>,
+not <tt>“ ”</tt>, which appear when copying from a word processor); inside a text, a quotation mark is written
+<tt>\"</tt> and a backslash <tt>\\</tt>; <tt>true</tt>, <tt>false</tt>, <tt>null</tt> and numbers go without
+quotes; the items of a list and the fields of an object are separated by commas, but with no comma after the last
+one; and comments are not allowed.</p>
+
+<h3><a name="comprobarjson"></a>Checking a JSON file</h3>
+<p><i>File → Check a JSON file…</i> reads a JSON file of questions, without importing it, and lists all its problems
+at once: each with its line, the question it is in (“topic 3, question 12b”) and what is wrong.</p>
+<ul>
+<li><b>Errors</b>: the JSON is badly written (a comma too many or too few, unclosed quotes…), a required field is
+missing or a value is not valid (a correct answer “E”, three options, a status that does not exist, a repeated
+question…). A file with errors cannot be imported.</li>
+<li><b>Warnings</b>: a field that is not part of the format, which is ignored (if it looks like one that is, because
+of a typo, it says so: ‘Did you mean “enunciado”?’); a pseudo-duplicate of a question that is neither in the JSON nor
+in the bank; identical options; a topic without a title. They do not prevent importing.</li>
+</ul>
+<p>With the JSON open in a text editor, correct what it says, save it and click <b>Check
+again</b>. <b>Open the file</b> opens it with the program that the system associates with it, and <b>Copy the
+report</b> copies the list as text, for example to send it by email.</p>
+<p>The same is done when importing: if the JSON has any problem, this list is shown first; with errors it is not
+imported, and with warnings you can click <b>Import anyway</b>.</p>
+<p>It can also be checked without opening the program, from the command line (on Windows, from the console):
+<tt>GeneradorExamenes --comprobar preguntas.json</tt>. It writes the problems the way compilers do
+(<tt>preguntas.json:12:5: error: topic 3, question 12b: …</tt>), which many editors understand, and exits with 1 if
+there are errors, so that it can be used in a script.</p>
+
+<h3><a name="json-enlazado"></a>The JSON linked to the bank</h3>
+<p>The JSON file from which the whole bank is imported becomes <b>linked</b> to it as its text copy. When the
+database and that JSON no longer match (for example, after correcting a question in the program), the status bar
+shows a warning. Hovering the mouse over the warning shows how they differ; clicking it, or using <i>File → Update the
+bank’s JSON…</i>, overwrites the JSON with the contents of the database. The first time, if no JSON is
+linked, it asks which one it is.</p>
+<p>With <i>File → Keep the bank’s JSON up to date</i> ticked, the program rewrites the JSON by itself after each
+change to the bank. It never touches a JSON that no longer matches the database (for example, one freshly generated
+from the questions document and not yet imported): in that case it only shows a warning.</p>
+
+<h3><a name="copias"></a>Backups</h3>
+<p>Before “Replace all”, the program saves a copy of the database in the <tt>copias</tt> folder next to it, with the
+date and time in its name (<tt>copias/preguntas_2026-10-22_153045.db</tt>), and when it has finished it says where it
+has saved it. If the import fails, the database does not change and the copy is deleted.</p>
+<p>To go back, open the copy with <i>File → Open question bank…</i> or, with the program closed, copy it over the
+bank.</p>
+
+<h3><a name="docx"></a>From the questions document</h3>
+<p>When the teaching team publishes a new version of the Word document of questions, the person who maintains the
+bank converts it to JSON with the tool <tt>herramientas/importar_docx.py</tt>, which comes with the program’s source
+code, and imports it with
+<i>File → Import questions (JSON)…</i>. The labels in the document are interpreted as follows:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Label</th><th align="left">In the bank</th></tr>
+<tr><td><tt>old</tt></td><td>Already used in exams (“old” mark).</td></tr>
+<tr><td><tt>ANULADA</tt>, <tt>OBSOLETA</tt></td><td>Voided or obsolete: never used.</td></tr>
+<tr><td><tt>MEJORAR</tt>, <tt>REFINAR</tt>, <tt>DEFINIR …</tt></td><td>Flagged for review.</td></tr>
+<tr><td><tt>PSEUDORREPETIDA … TEMA1 preg 7</tt></td><td>Linked as a pseudo-duplicate of <tt>T1-7</tt>.</td></tr>
+</table>
+
+<!-- ======================================================================================================= -->
+<h2><a name="moodle"></a>Exporting to Moodle</h2>
+
+<p><i>File → Export to Moodle (XML)…</i> saves the bank’s questions as a quiz in “Moodle
+XML” format, so that students can practise in the online course.</p>
+<ul>
+<li>Active questions are included; voided and obsolete ones are not. Those flagged for review can be excluded.</li>
+<li>One category per topic, inside one with the name of the subject (“<i>Subject</i>/Topic 1: …”).</li>
+<li>Each question is multiple choice with a single correct answer. The reference to the textbook and the explanation
+go as feedback, and the images go inside the file itself.</li>
+<li>If the option is ticked, wrong answers deduct 30% of the question’s value, as in the exam.</li>
+<li>Moodle shuffles the options, except in questions with options such as “All of the above”.</li>
+<li>What the program writes (the topic names, “Correct answer.”) is in the bank’s exam language (see
+<a href="#convocatoria">Exam session</a>).</li>
+</ul>
+<p>The dialog suggests the file (the subject name without accents or spaces followed by <tt>_moodle.xml</tt>, for
+example <tt>Historia_del_arte_moodle.xml</tt>, in the exports folder)
+and says how many questions from how many topics will be exported.</p>
+<p>In Moodle, the file is imported from <i>Question bank → Import</i>, choosing the “Moodle XML” format.</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="configuracion"></a>Settings</h2>
+
+<p>The program saves in a settings file the path of the last bank opened and what you leave in the window: the
+instructions, the list of exams, the options, the scoring, the exports folder, the duration of practice exams, the
+window size and the interface language. The subject name, the exam language and the distributions of questions per
+topic are not saved there: they go with each bank. The file is located at:</p>
+<ul>
+<li>Linux: <tt>~/.config/UNED/GeneradorExamenes.conf</tt></li>
+<li>Windows: <tt>%APPDATA%\UNED\GeneradorExamenes.ini</tt></li>
+</ul>
+<p><i>Help → About…</i> shows where it is, together with the open bank and the version of the program. To go back to
+the initial settings, close the program and delete that file; the banks are not touched.</p>
+<p>Up to version 1.0, the program was called <tt>GeneradorExamenesFI</tt> and its settings were in
+<tt>~/.config/UNED-FI/GeneradorExamenesFI.conf</tt> (Linux) or <tt>%APPDATA%\UNED-FI\GeneradorExamenesFI.ini</tt>
+(Windows). The first time a later version is opened, they are copied from there; the old file is not touched.</p>
+<p>On Windows, to move to a new version of the program, delete its folder and unzip the new one: the settings are
+kept.</p>
+<p>From the command line you can specify the bank to open: <tt>GeneradorExamenes path/to/bank.db</tt>.
+If it does not exist, it is created. With <tt>--comprobar</tt>, JSON files of questions are checked without opening
+the program (see <a href="#comprobarjson">Checking a JSON file</a>).</p>
+
+<h3><a name="idioma"></a>Language</h3>
+<p><i>Edit → Language</i> chooses the interface language (menus, dialogs, warnings and this help): Español (Spanish)
+or English, or <b>System default</b>, which is used if none is chosen (if the system language is neither of the two,
+Spanish is used). It is saved in the settings, so each user has their own, and it takes effect the next time the
+program is opened: the message shown when you change it lets you restart it straight away.</p>
+<p>It does not change the exam language, which goes with each bank (see <a href="#convocatoria">Exam session</a>).</p>
+
+<!-- ======================================================================================================= -->
+<h2><a name="atajos"></a>Keyboard and mouse</h2>
+
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Key or action</th><th align="left">What it does</th></tr>
+<tr><td><b>F1</b></td><td>Opens this help at the section for the window you are in.</td></tr>
+<tr><td><b>Ctrl+N</b></td><td>New question.</td></tr>
+<tr><td><b>Ctrl+Q</b></td><td>Quit the program (on Linux).</td></tr>
+<tr><td><b>Ctrl+F</b>, <b>Enter</b></td><td>In the help: go to the search box and move to the next occurrence of
+the search text.</td></tr>
+<tr><td>Double-click an exam in the list</td><td>Change its name.</td></tr>
+<tr><td>Drag an exam in the list</td><td>Change the order of the exams.</td></tr>
+<tr><td>Right-click a question in the exam</td><td>Replace it with another from the same topic.</td></tr>
+<tr><td>Double-click a question in the bank</td><td>Open it in the editor.</td></tr>
+<tr><td>Click a column heading</td><td>Sort the bank table by that column.</td></tr>
+<tr><td>Double-click an exam in the history</td><td>Load it.</td></tr>
+<tr><td>Double-click in the style check</td><td>Open that question in the editor.</td></tr>
+</table>
+
+<!-- ======================================================================================================= -->
+<h2><a name="problemas"></a>Common problems</h2>
+
+<h3><a name="problema-banco"></a>On start-up, it says that the question bank cannot be found</h3>
+<p>The file of the last bank has been moved or renamed, or it is on a disk that is not connected. Click
+<b>Open bank…</b> and find it (the dialog starts in the folder where it was or, if that no longer exists, in the
+nearest one that still exists); from then on the program will open it from its new location.</p>
+
+<h3><a name="problema-historial"></a>“There is no exam session recorded in the history”</h3>
+<p>While the history is empty, the questions from previous exam sessions are not avoided. If those sessions were held
+outside the program, record them from their PDFs (see <a href="#anteriores">Recording previous exams</a>); if they
+were generated with it, record them with <b>Record exam session…</b>, or untick the option “Avoid questions from the
+last N exam sessions”.</p>
+
+<h3><a name="problema-faltan"></a>“N questions were requested but only M different ones are available”</h3>
+<p>The topic does not have enough different active questions (variants count as one). Ask for fewer questions from
+that topic or, if there are some, tick “Include questions flagged for review”.</p>
+
+<h3><a name="problema-repetir"></a>“There are not enough questions to avoid repeats between exams”</h3>
+<p>Across all the ticked exams, more questions are requested from a topic than it has. Generate fewer exams or
+untick “Do not repeat questions between exams”.</p>
+
+<h3><a name="problema-usadas"></a>“There are not enough questions left that were not used in the last recorded exam sessions”</h3>
+<p>The program has had to use questions that appeared in the last recorded exam sessions, or that are marked “old”.
+It is only a warning: the ones used longest ago are chosen. If you prefer to avoid them, reduce the number of exam
+sessions that are avoided or ask for fewer questions from that topic.</p>
+
+<h3><a name="problema-letra"></a>“The correct answer is b) in 5 of 10 questions”</h3>
+<p>Without shuffling the options, the correct answer stays where it is in the bank and may fall on the same letter
+many times. Tick “Shuffle the options” and generate again.</p>
+
+<h3><a name="problema-cabe"></a>“At least one exam does not fit on one page, even with the most compact layout”</h3>
+<p>Shorten the instructions or replace a long question or one with an image (by generating again or with another
+distribution). See <a href="#maqueta">One page per 10 questions</a>.</p>
+
+<h3><a name="problema-recuperar"></a>I want to get back the exams from another day</h3>
+<p>If they were recorded, load them from the <a href="#consultar-historial">history</a>. If not, and you noted down
+the seed, enter it in <b>Seed</b> and generate with the same settings (see <a href="#semilla">The seed</a>).</p>
+
+<h3><a name="problema-anular"></a>A question has an error and must not be used again</h3>
+<p>Correct it in the editor or, if it cannot be fixed, set it to voided. The exams already recorded in the history do
+not change: they keep the question exactly as it was set.</p>
+
+<h3><a name="problema-reemplazar"></a>I have replaced the bank by mistake</h3>
+<p>Open the backup that was saved in the <tt>copias</tt> folder (see <a href="#copias">Backups</a>).</p>
+
+<h3><a name="problema-ingles"></a>Some dialog buttons are in English with the Spanish interface</h3>
+<p>This only happens with the interface in Spanish: the Spanish translations of Qt, the library the program is built
+with, are missing. It does not affect how the program works. (If the whole program is in English and you want it in
+Spanish, choose Español in <i>Edit → Language</i>: see
+<a href="#idioma">Language</a>.)</p>
+
+</body>
+</html>

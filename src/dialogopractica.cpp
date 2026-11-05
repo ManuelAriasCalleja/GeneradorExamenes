@@ -1,4 +1,5 @@
 #include "dialogopractica.h"
+#include "idioma.h"
 #include "dialogoayuda.h"
 
 #include <QAbstractButton>
@@ -23,20 +24,21 @@
 DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &datos, int duracionMinutos, QWidget *parent)
     : QDialog(parent), m_modelo(modelo), m_datos(datos)
 {
-    setWindowTitle(QStringLiteral("Practicar: %1 - %2").arg(datos.asignatura, modelo.nombre));
+    setWindowTitle(tr("Practicar: %1 - %2").arg(datos.asignatura, modelo.nombre));
     resize(900, 800);
 
-    auto *titulo = new QLabel(QStringLiteral("<b>%1</b> &mdash; %2 &mdash; %3 preguntas<br>"
-                                             "<small>Acierto: +%4 &nbsp; Fallo: −%5 &nbsp; En blanco: 0</small>")
+    auto *titulo = new QLabel(tr("<b>%1</b> &mdash; %2 &mdash; %3 preguntas<br>"
+                                 "<small>Acierto: +%4 &nbsp; Fallo: −%5 &nbsp; En blanco: 0</small>")
                                   .arg(Maquetador::escapar(datos.asignatura), Maquetador::escapar(modelo.nombre))
                                   .arg(modelo.preguntas.size())
-                                  .arg(Maquetador::formatoPuntos(datos.puntosAcierto), Maquetador::formatoPuntos(datos.puntosFallo)));
+                                  .arg(Maquetador::formatoPuntos(datos.puntosAcierto, Idioma::interfaz()), Maquetador::formatoPuntos(datos.puntosFallo, Idioma::interfaz())));
     // Duración y «Empezar»; al empezar los sustituye el reloj.
     m_duracion = new QSpinBox;
     m_duracion->setRange(5, 300);
-    m_duracion->setSuffix(QStringLiteral(" min"));
+    //: Sufijo de la duración del examen, en minutos (con el espacio delante)
+    m_duracion->setSuffix(tr(" min"));
     m_duracion->setValue(duracionMinutos);
-    m_empezar = new QPushButton(QStringLiteral("Empezar"));
+    m_empezar = new QPushButton(tr("Empezar"));
     m_empezar->setDefault(true);
     connect(m_empezar, &QPushButton::clicked, this, &DialogoPractica::empezar);
     m_reloj = new QLabel;
@@ -48,7 +50,7 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
     cabecera->addWidget(titulo, 1);
     cabecera->addWidget(m_nota);
     cabecera->addSpacing(20);
-    cabecera->addWidget(new QLabel(QStringLiteral("Duración:")));
+    cabecera->addWidget(new QLabel(tr("Duración:")));
     cabecera->addWidget(m_duracion);
     cabecera->addWidget(m_empezar);
     cabecera->addWidget(m_reloj);
@@ -64,11 +66,11 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
     m_preguntas->setWidgetResizable(true);
     m_preguntas->setEnabled(false);   // hasta que se pulse «Empezar»
 
-    m_corregir = new QPushButton(QStringLiteral("Terminar y corregir"));
+    m_corregir = new QPushButton(tr("Terminar y corregir"));
     m_corregir->setEnabled(false);
     connect(m_corregir, &QPushButton::clicked, this, &DialogoPractica::corregir);
     auto *botones = new QDialogButtonBox;
-    botones->addButton(QStringLiteral("Cerrar"), QDialogButtonBox::RejectRole);
+    botones->addButton(tr("Cerrar"), QDialogButtonBox::RejectRole);
     botones->addButton(m_corregir, QDialogButtonBox::ActionRole);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoPractica::reject);
     DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("practicar"));
@@ -140,7 +142,7 @@ QWidget *DialogoPractica::crearPregunta(int numero, const PreguntaExamen &pe)
         ++fila;
     }
     auto *blanco = new QToolButton;
-    blanco->setText(QStringLiteral("Dejar en blanco"));
+    blanco->setText(tr("Dejar en blanco"));
     blanco->setAutoRaise(true);
     QButtonGroup *grupo = f.grupo;
     connect(blanco, &QToolButton::clicked, this, [grupo, this]() {
@@ -176,7 +178,7 @@ void DialogoPractica::tic()
     if (m_segundosRestantes <= 0) {
         m_reloj->setText(QStringLiteral("0:00"));
         m_temporizador->stop();
-        QMessageBox::information(this, windowTitle(), QStringLiteral("Se ha acabado el tiempo."));
+        QMessageBox::information(this, windowTitle(), tr("Se ha acabado el tiempo."));
         corregir();
         return;
     }
@@ -207,14 +209,14 @@ void DialogoPractica::corregir()
         QString texto;
         if (marcada < 0) {
             ++blancos;
-            texto = QStringLiteral("<span style=\"color:#7f8c8d\"><b>En blanco.</b></span>");
+            texto = tr("<span style=\"color:#7f8c8d\"><b>En blanco.</b></span>");
         } else if (marcada == correcta) {
             ++aciertos;
-            texto = QStringLiteral("<span style=\"color:%1\"><b>¡Correcto!</b></span>").arg(QLatin1String(Maquetador::kColorCorrecta));
+            texto = tr("<span style=\"color:%1\"><b>¡Correcto!</b></span>").arg(QLatin1String(Maquetador::kColorCorrecta));
         } else {
             ++fallos;
             f.opciones[marcada]->setStyleSheet(QStringLiteral("color: #c0392b; text-decoration: line-through"));
-            texto = QStringLiteral("<span style=\"color:#c0392b\"><b>Incorrecto.</b></span> La respuesta correcta es la %1).")
+            texto = tr("<span style=\"color:#c0392b\"><b>Incorrecto.</b></span> La respuesta correcta es la %1).")
                         .arg(Pregunta::letra(correcta));
         }
         texto += QStringLiteral(" <small>[%1] %2</small>").arg(Maquetador::escapar(pe.pregunta.codigoCompleto()),
@@ -226,9 +228,9 @@ void DialogoPractica::corregir()
     }
     const double nota = aciertos * m_datos.puntosAcierto - fallos * m_datos.puntosFallo;
     const double maximo = m_filas.size() * m_datos.puntosAcierto;
-    m_nota->setText(QStringLiteral("Nota: %1 / %2").arg(Maquetador::formatoPuntos(nota), Maquetador::formatoPuntos(maximo)));
+    m_nota->setText(tr("Nota: %1 / %2").arg(Maquetador::formatoPuntos(nota, Idioma::interfaz()), Maquetador::formatoPuntos(maximo, Idioma::interfaz())));
     QMessageBox::information(this, windowTitle(),
-                             QStringLiteral("Aciertos: %1\nFallos: %2\nEn blanco: %3\n\nNota: %4 sobre %5")
+                             tr("Aciertos: %1\nFallos: %2\nEn blanco: %3\n\nNota: %4 sobre %5")
                                  .arg(aciertos).arg(fallos).arg(blancos)
-                                 .arg(Maquetador::formatoPuntos(nota), Maquetador::formatoPuntos(maximo)));
+                                 .arg(Maquetador::formatoPuntos(nota, Idioma::interfaz()), Maquetador::formatoPuntos(maximo, Idioma::interfaz())));
 }

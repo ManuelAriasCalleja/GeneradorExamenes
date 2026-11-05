@@ -1,4 +1,5 @@
 #include "dialogoayuda.h"
+#include "idioma.h"
 #include "utilidades.h"
 
 #include <QDialogButtonBox>
@@ -18,23 +19,24 @@
 DialogoAyuda::DialogoAyuda(QWidget *parent)
     : QDialog(parent)
 {
-    setWindowTitle(QStringLiteral("Ayuda del generador de exámenes"));
+    setWindowTitle(tr("Ayuda del generador de exámenes"));
     setAttribute(Qt::WA_DeleteOnClose);
     resize(1000, 720);
 
     m_buscar = new QLineEdit;
-    m_buscar->setPlaceholderText(QStringLiteral("Buscar en la ayuda…"));
+    m_buscar->setPlaceholderText(tr("Buscar en la ayuda…"));
     m_buscar->setClearButtonEnabled(true);
-    m_buscar->setToolTip(QStringLiteral("Intro: siguiente vez que aparece"));
+    //: «Intro» es la tecla Intro (Entrar)
+    m_buscar->setToolTip(tr("Intro: siguiente vez que aparece"));
     connect(m_buscar, &QLineEdit::textEdited, this, [this]() { buscar(false); });
     connect(m_buscar, &QLineEdit::returnPressed, this, [this]() { buscar(true); });
     auto *fila = new QHBoxLayout;
-    fila->addWidget(new QLabel(QStringLiteral("Buscar:")));
+    fila->addWidget(new QLabel(tr("Buscar:")));
     fila->addWidget(m_buscar, 1);
 
     m_texto = new QTextBrowser;
     m_texto->setOpenExternalLinks(true);
-    m_texto->setSource(QUrl(QStringLiteral("qrc:/recursos/ayuda.html")));
+    m_texto->setSource(QUrl(Idioma::ayuda(Idioma::interfaz())));
     m_indice = new QTreeWidget;
     m_indice->setHeaderHidden(true);
     rellenarIndice();
@@ -51,7 +53,7 @@ DialogoAyuda::DialogoAyuda(QWidget *parent)
 
     // Botón con texto propio: los estándar vuelven al inglés si no están las traducciones de Qt.
     auto *botones = new QDialogButtonBox;
-    botones->addButton(QStringLiteral("Cerrar"), QDialogButtonBox::RejectRole);
+    botones->addButton(tr("Cerrar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoAyuda::reject);
 
     auto *l = new QVBoxLayout(this);
@@ -91,7 +93,7 @@ void DialogoAyuda::ponerAyuda(QDialog *dialogo, QDialogButtonBox *botones, const
     auto abrir = [dialogo, seccion]() { mostrar(dialogo, seccion); };
     connect(new QShortcut(QKeySequence::HelpContents, dialogo), &QShortcut::activated, dialogo, abrir);
     if (botones)
-        connect(botones->addButton(QStringLiteral("Ayuda"), QDialogButtonBox::HelpRole), &QPushButton::clicked, dialogo, abrir);
+        connect(botones->addButton(tr("Ayuda"), QDialogButtonBox::HelpRole), &QPushButton::clicked, dialogo, abrir);
 }
 
 // El índice sale de los títulos del manual: los capítulos (h2) y, dentro, sus apartados (h3). Cada título lleva el

@@ -1,4 +1,5 @@
 #include "basedatos.h"
+#include "comprobadorjson.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -71,8 +72,11 @@ struct ContenidoJson
 {
     bool diceAsignatura = false;      // si el JSON lleva el nombre de la asignatura (aunque sea vacío)
     QString asignatura;
+    QString idioma;                   // el de los exámenes; vacío si el JSON no lo dice
     QVector<Tema> temas;              // sin id
     QSet<int> temasSinFormato;        // números de los temas que no dicen la forma de su referencia
+    QSet<int> temasSinTitulo;         // … su título
+    QSet<int> temasSinAutor;          // … su autor
     QVector<Pregunta> preguntas;      // con el número de su tema, sin id
 };
 
@@ -105,17 +109,18 @@ bool leerJson(const QString &ruta, ContenidoJson *contenido, QString *error)
 {
     QFile f(ruta);
     if (!f.open(QIODevice::ReadOnly)) {
-        *error = QStringLiteral("No se puede abrir %1: %2").arg(ruta, f.errorString());
+        *error = BaseDatos::tr("No se puede abrir %1: %2").arg(ruta, f.errorString());
         return false;
     }
     QJsonParseError err;
     const QJsonDocument doc = QJsonDocument::fromJson(f.readAll(), &err);
     if (doc.isNull()) {
-        *error = QStringLiteral("JSON no válido: %1").arg(err.errorString());
+        *error = BaseDatos::tr("JSON no válido: %1").arg(err.errorString());
         return false;
     }
     contenido->diceAsignatura = doc.object().contains(QStringLiteral("asignatura"));
     contenido->asignatura = doc.object().value(QStringLiteral("asignatura")).toString().trimmed();
+    contenido->idioma = doc.object().value(QStringLiteral("idioma")).toString().trimmed();
     const QJsonArray jtemas = doc.object().value(QStringLiteral("temas")).toArray();
     for (const QJsonValue &vt : jtemas) {
         const QJsonObject jt = vt.toObject();
@@ -123,6 +128,10 @@ bool leerJson(const QString &ruta, ContenidoJson *contenido, QString *error)
         t.numero = jt.value(QStringLiteral("numero")).toInt();
         t.titulo = jt.value(QStringLiteral("titulo")).toString();
         t.autor = jt.value(QStringLiteral("autor")).toString();
+        if (!jt.contains(QStringLiteral("titulo")))
+            contenido->temasSinTitulo.insert(t.numero);
+        if (!jt.contains(QStringLiteral("autor")))
+            contenido->temasSinAutor.insert(t.numero);
         if (jt.contains(QStringLiteral("formato_referencia")))
             t.formatoReferencia = jt.value(QStringLiteral("formato_referencia")).toString();
         else
@@ -545,7 +554,7 @@ bool BaseDatos::guardarPregunta(Pregunta &p)
                                                   " referencia=?, explicacion=?, notas=?, pseudo_con=?, imagen=? WHERE id=?"),
                                    valores << p.id);
     if (!ok && m_error.contains(QLatin1String("UNIQUE")))
-        m_error = QStringLiteral("Ya existe una pregunta %1 en ese tema.").arg(p.codigo());
+        m_error = tr("Ya existe una pregunta %1 en ese tema.").arg(p.codigo());
     return ok;
 }
 
@@ -575,7 +584,7 @@ QString BaseDatos::copiaSeguridad()
     const QFileInfo info(m_ruta);
     const QDir carpeta(info.absolutePath() + QStringLiteral("/copias"));
     if (!carpeta.mkpath(QStringLiteral("."))) {
-        m_error = QStringLiteral("No se puede crear la carpeta %1").arg(carpeta.absolutePath());
+        m_error = tr("No se puede crear la carpeta %1").arg(carpeta.absolutePath());
         return {};
     }
     const QString base = info.completeBaseName() + QLatin1Char('_')
@@ -598,13 +607,19 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
     ContenidoJson contenido;
     if (!leerJson(ruta, &contenido, &m_error))
         return -1;
-    // Los temas del JSON que no dicen la forma de su referencia se quedan con la que tenía el tema con su número.
-    QHash<int, QString> formatoAntes;
+    // Los temas del JSON que no dicen su título, su autor o la forma de su referencia se quedan con lo que tenía el
+    // tema con su número (así un JSON con solo las preguntas nuevas de un tema no le borra nada).
+    QHash<int, Tema> antes;
     for (const Tema &t : temas())
-        formatoAntes.insert(t.numero, t.formatoReferencia);
-    for (Tema &t : contenido.temas)
+        antes.insert(t.numero, t);
+    for (Tema &t : contenido.temas) {
         if (contenido.temasSinFormato.contains(t.numero))
-            t.formatoReferencia = formatoAntes.value(t.numero);
+            t.formatoReferencia = antes.value(t.numero).formatoReferencia;
+        if (contenido.temasSinTitulo.contains(t.numero))
+            t.titulo = antes.value(t.numero).titulo;
+        if (contenido.temasSinAutor.contains(t.numero))
+            t.autor = antes.value(t.numero).autor;
+    }
 
     // Antes de borrar el banco, copia de seguridad (si hay algo que borrar: las preguntas van con sus temas). Si
     // la copia falla, no se toca nada.
@@ -618,7 +633,7 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
         if (hayTemas) {
             rutaCopia = copiaSeguridad();
             if (rutaCopia.isEmpty()) {
-                m_error = QStringLiteral("No se ha podido guardar la copia de seguridad del banco, así que no se ha borrado nada:\n%1").arg(m_error);
+                m_error = tr("No se ha podido guardar la copia de seguridad del banco, así que no se ha borrado nada:\n%1").arg(m_error);
                 return -1;
             }
         }
@@ -636,6 +651,9 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
 
     if (asignatura().isEmpty() && !contenido.asignatura.isEmpty() && !guardarAsignatura(contenido.asignatura))
         return fallo();
+    // El idioma, como la asignatura: solo si el banco aún no lo dice.
+    if (ajuste(QStringLiteral("idioma")).isEmpty() && !contenido.idioma.isEmpty() && !guardarIdioma(contenido.idioma))
+        return fallo();
     QHash<int, int> idDelTema;   // número de tema -> id
     for (const Tema &t : std::as_const(contenido.temas)) {
         const int temaId = idTema(t, true);
@@ -652,7 +670,7 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
         if (q.next())
             p.id = q.value(0).toInt();
         if (!guardarPregunta(p)) {
-            m_error = QStringLiteral("Tema %1, pregunta %2: %3").arg(p.temaNumero).arg(p.codigo(), m_error);
+            m_error = tr("Tema %1, pregunta %2: %3").arg(p.temaNumero).arg(p.codigo(), m_error);
             return fallo();
         }
         ++n;
@@ -685,6 +703,16 @@ QString BaseDatos::asignatura()
 bool BaseDatos::guardarAsignatura(const QString &nombre)
 {
     return guardarAjuste(QStringLiteral("asignatura"), nombre.trimmed());
+}
+
+QString BaseDatos::idioma()
+{
+    return ajuste(QStringLiteral("idioma"), QStringLiteral("es"));
+}
+
+bool BaseDatos::guardarIdioma(const QString &codigo)
+{
+    return guardarAjuste(QStringLiteral("idioma"), codigo);
 }
 
 QVector<Reparto> BaseDatos::repartos()
@@ -771,9 +799,9 @@ QStringList BaseDatos::diferenciasConJson(const QString &ruta)
     }
     soloJson = huellasJson.keys();
     std::sort(soloJson.begin(), soloJson.end());
-    diferencias << linea(distintas, QStringLiteral("pregunta distinta"), QStringLiteral("preguntas distintas"))
-                << linea(soloBd, QStringLiteral("pregunta solo en la base de datos"), QStringLiteral("preguntas solo en la base de datos"))
-                << linea(soloJson, QStringLiteral("pregunta solo en el JSON"), QStringLiteral("preguntas solo en el JSON"));
+    diferencias << linea(distintas, tr("pregunta distinta"), tr("preguntas distintas"))
+                << linea(soloBd, tr("pregunta solo en la base de datos"), tr("preguntas solo en la base de datos"))
+                << linea(soloJson, tr("pregunta solo en el JSON"), tr("preguntas solo en el JSON"));
 
     QHash<int, Tema> temasDelJson;   // número -> tema
     for (const Tema &t : std::as_const(json.temas))
@@ -795,13 +823,16 @@ QStringList BaseDatos::diferenciasConJson(const QString &ruta)
     std::sort(numerosSoloJson.begin(), numerosSoloJson.end());
     for (int numero : numerosSoloJson)
         temasSoloJson << QStringLiteral("T%1").arg(numero);
-    diferencias << linea(temasDistintos, QStringLiteral("tema con otro título, autor o forma de la referencia"),
-                         QStringLiteral("temas con otro título, autor o forma de la referencia"))
-                << linea(temasSoloBd, QStringLiteral("tema solo en la base de datos"), QStringLiteral("temas solo en la base de datos"))
-                << linea(temasSoloJson, QStringLiteral("tema solo en el JSON"), QStringLiteral("temas solo en el JSON"));
+    diferencias << linea(temasDistintos, tr("tema con otro título, autor o forma de la referencia"),
+                         tr("temas con otro título, autor o forma de la referencia"))
+                << linea(temasSoloBd, tr("tema solo en la base de datos"), tr("temas solo en la base de datos"))
+                << linea(temasSoloJson, tr("tema solo en el JSON"), tr("temas solo en el JSON"));
     if (json.diceAsignatura && json.asignatura != asignatura())
-        diferencias << (json.asignatura.isEmpty() ? QStringLiteral("En el JSON la asignatura no tiene nombre")
-                                                  : QStringLiteral("La asignatura tiene otro nombre en el JSON: «%1»").arg(json.asignatura));
+        diferencias << (json.asignatura.isEmpty() ? tr("En el JSON la asignatura no tiene nombre")
+                                                  : tr("La asignatura tiene otro nombre en el JSON: «%1»").arg(json.asignatura));
+    if (!json.idioma.isEmpty() && json.idioma != idioma())
+        //: %1 es el código del idioma de los exámenes que dice el JSON («es», «en»…).
+        diferencias << tr("Los exámenes están en otro idioma en el JSON: «%1»").arg(json.idioma);
     diferencias.removeAll(QString());
     return diferencias;
 }
@@ -824,7 +855,9 @@ bool BaseDatos::exportarJson(const QString &ruta)
         jtemas.append(jt);
     }
     QJsonObject raiz;
+    raiz[QStringLiteral("$schema")] = QLatin1String(ComprobadorJson::kEsquema);
     raiz[QStringLiteral("asignatura")] = asignatura();
+    raiz[QStringLiteral("idioma")] = idioma();
     raiz[QStringLiteral("temas")] = jtemas;
 
     QFile f(ruta);

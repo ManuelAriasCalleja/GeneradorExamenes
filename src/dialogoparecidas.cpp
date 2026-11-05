@@ -15,10 +15,10 @@ DialogoParecidas::DialogoParecidas(const Pregunta &nueva, const QVector<Parecida
                                    const QVector<Tema> &temas, QWidget *parent)
     : QDialog(parent), m_nueva(nueva), m_parecidas(parecidas), m_temas(temas)
 {
-    setWindowTitle(QStringLiteral("Preguntas parecidas"));
+    setWindowTitle(tr("Preguntas parecidas"));
     resize(900, 520);
 
-    auto *explicacion = new QLabel(QStringLiteral(
+    auto *explicacion = new QLabel(tr(
         "La pregunta nueva se parece mucho a estas del banco. Si es la misma idea (otro dato, la pregunta al revés u "
         "otro aspecto del mismo concepto), guárdela como variante de la existente: así nunca saldrán las dos en el "
         "mismo examen. Si es de otro tema, enlácelas como pseudorrepetidas."));
@@ -37,8 +37,8 @@ DialogoParecidas::DialogoParecidas(const Pregunta &nueva, const QVector<Parecida
 
     m_variante = new QPushButton;
     m_pseudorrepetida = new QPushButton;
-    auto *nuevaBoton = new QPushButton(QStringLiteral("Guardar como pregunta nueva"));
-    auto *seguir = new QPushButton(QStringLiteral("Seguir editando"));
+    auto *nuevaBoton = new QPushButton(tr("Guardar como pregunta nueva"));
+    auto *seguir = new QPushButton(tr("Seguir editando"));
     connect(m_variante, &QPushButton::clicked, this, [this]() { decidir(ComoVariante); });
     connect(m_pseudorrepetida, &QPushButton::clicked, this, [this]() { decidir(ComoPseudorrepetida); });
     connect(nuevaBoton, &QPushButton::clicked, this, [this]() { decidir(ComoNueva); });
@@ -71,9 +71,9 @@ void DialogoParecidas::mostrarElegida()
 
     // Una variante es del mismo tema; con una pregunta de otro tema, se enlazan como pseudorrepetidas.
     const bool mismoTema = p.temaNumero == m_nueva.temaNumero;
-    m_variante->setText(QStringLiteral("Guardar como variante de %1").arg(p.grupo()));
+    m_variante->setText(tr("Guardar como variante de %1").arg(p.grupo()));
     m_variante->setEnabled(mismoTema);
-    m_pseudorrepetida->setText(QStringLiteral("Enlazar con %1 (pseudorrepetida)").arg(p.grupo()));
+    m_pseudorrepetida->setText(tr("Enlazar con %1 (pseudorrepetida)").arg(p.grupo()));
     m_pseudorrepetida->setEnabled(!mismoTema);
 }
 

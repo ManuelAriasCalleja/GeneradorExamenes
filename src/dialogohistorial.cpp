@@ -20,11 +20,11 @@ enum Columna { ColNombre, ColPreguntas, ColRegistrado };
 DialogoHistorial::DialogoHistorial(BaseDatos *bd, QWidget *parent)
     : QDialog(parent), m_bd(bd)
 {
-    setWindowTitle(QStringLiteral("Historial de convocatorias"));
+    setWindowTitle(tr("Historial de convocatorias"));
     resize(620, 440);
 
     m_arbol = new QTreeWidget;
-    m_arbol->setHeaderLabels({QStringLiteral("Convocatoria / examen"), QStringLiteral("Preguntas"), QStringLiteral("Registrado")});
+    m_arbol->setHeaderLabels({tr("Convocatoria / examen"), tr("Preguntas"), tr("Registrado")});
     m_arbol->header()->setSectionResizeMode(ColNombre, QHeaderView::Stretch);
     m_arbol->header()->setStretchLastSection(false);
     connect(m_arbol, &QTreeWidget::itemDoubleClicked, this, [this](QTreeWidgetItem *item) {
@@ -32,17 +32,18 @@ DialogoHistorial::DialogoHistorial(BaseDatos *bd, QWidget *parent)
             accept();
     });
 
-    auto *bEliminar = new QPushButton(QStringLiteral("Eliminar del historial…"));
+    auto *bEliminar = new QPushButton(tr("Eliminar del historial…"));
     connect(bEliminar, &QPushButton::clicked, this, &DialogoHistorial::eliminar);
     auto *botones = new QDialogButtonBox;
-    QPushButton *cargar = botones->addButton(QStringLiteral("Cargar"), QDialogButtonBox::AcceptRole);
+    QPushButton *cargar = botones->addButton(tr("Cargar"), QDialogButtonBox::AcceptRole);
     cargar->setDefault(true);
-    botones->addButton(QStringLiteral("Cerrar"), QDialogButtonBox::RejectRole);
+    botones->addButton(tr("Cerrar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoHistorial::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoHistorial::reject);
     DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("historial"));
 
-    auto *explicacion = new QLabel(QStringLiteral(
+    //: «Registrar convocatoria…» es una orden del menú Archivo de la ventana principal: tradúzcase igual
+    auto *explicacion = new QLabel(tr(
         "Exámenes guardados con «Registrar convocatoria…». Cargue una convocatoria o un examen para verlo, "
         "exportarlo o imprimirlo tal como salió, aunque después se hayan corregido sus preguntas."));
     explicacion->setWordWrap(true);
@@ -80,9 +81,10 @@ void DialogoHistorial::rellenar()
     m_arbol->resizeColumnToContents(ColPreguntas);
     m_arbol->resizeColumnToContents(ColRegistrado);
     if (m_arbol->topLevelItemCount() == 0) {
-        auto *vacio = new QTreeWidgetItem(m_arbol, {QStringLiteral("Todavía no hay ninguna convocatoria registrada. Las "
-                                                                   "anteriores al programa se registran con Archivo → "
-                                                                   "Registrar exámenes anteriores…")});
+        //: «Archivo → Registrar exámenes anteriores…» es un menú de la ventana principal: tradúzcase igual
+        auto *vacio = new QTreeWidgetItem(m_arbol, {tr("Todavía no hay ninguna convocatoria registrada. Las "
+                                                       "anteriores al programa se registran con Archivo → "
+                                                       "Registrar exámenes anteriores…")});
         vacio->setFlags(Qt::NoItemFlags);
     }
 }
@@ -105,7 +107,7 @@ void DialogoHistorial::accept()
 {
     m_elegidos = examenesDe(m_arbol->currentItem());
     if (m_elegidos.isEmpty()) {
-        QMessageBox::information(this, windowTitle(), QStringLiteral("Elija una convocatoria o un examen."));
+        QMessageBox::information(this, windowTitle(), tr("Elija una convocatoria o un examen."));
         return;
     }
     QDialog::accept();
@@ -118,16 +120,16 @@ void DialogoHistorial::eliminar()
     if (ids.isEmpty())
         return;
     const QString que = item->parent()
-                            ? QStringLiteral("el examen «%1» de %2").arg(item->text(ColNombre), item->parent()->text(ColNombre))
-                            : ids.size() == 1 ? QStringLiteral("la convocatoria %1 (un examen)").arg(item->text(ColNombre))
-                            : QStringLiteral("la convocatoria %1 (%2 exámenes)").arg(item->text(ColNombre)).arg(ids.size());
+                            ? tr("el examen «%1» de %2").arg(item->text(ColNombre), item->parent()->text(ColNombre))
+                            : ids.size() == 1 ? tr("la convocatoria %1 (un examen)").arg(item->text(ColNombre))
+                            : tr("la convocatoria %1 (%2 exámenes)").arg(item->text(ColNombre)).arg(ids.size());
     if (!confirmar(this, windowTitle(),
-                   QStringLiteral("¿Eliminar del historial %1?\n\nSus preguntas dejarán de contar como usadas al generar "
-                                  "exámenes y no se podrá volver a cargarlo.").arg(que)))
+                   tr("¿Eliminar del historial %1?\n\nSus preguntas dejarán de contar como usadas al generar "
+                      "exámenes y no se podrá volver a cargarlo.").arg(que)))
         return;
     for (int id : ids) {
         if (!m_bd->borrarExamenRegistrado(id)) {
-            QMessageBox::warning(this, windowTitle(), QStringLiteral("No se pudo eliminar: %1").arg(m_bd->ultimoError()));
+            QMessageBox::warning(this, windowTitle(), tr("No se pudo eliminar: %1").arg(m_bd->ultimoError()));
             break;
         }
     }

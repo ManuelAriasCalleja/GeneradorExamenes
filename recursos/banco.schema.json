@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ManuelAriasCalleja/GeneradorExamenes/main/recursos/banco.schema.json",
+  "title": "Banco de preguntas del Generador de exámenes / Question bank of the exam generator",
+  "description": "Preguntas tipo test para importar en el Generador de exámenes (Archivo → Importar preguntas). El programa las comprueba antes con más detalle (Archivo → Comprobar un JSON). / Multiple-choice questions to import into the exam generator (File → Import questions).",
+  "type": "object",
+  "required": ["temas"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Dirección de este esquema, para que el editor compruebe el JSON. / Address of this schema, so that the editor checks the JSON."
+    },
+    "asignatura": {
+      "type": "string",
+      "description": "Nombre de la asignatura: va en la cabecera de los exámenes. Solo se toma si el banco aún no tiene. / Subject name, printed in the exam header. Only used if the bank has none yet."
+    },
+    "idioma": {
+      "type": "string",
+      "enum": ["es", "en"],
+      "description": "Idioma de los exámenes y de Moodle: \"es\" (castellano) o \"en\" (inglés). Solo se toma si el banco aún no lo dice. / Language of the exams and of Moodle: \"es\" (Spanish) or \"en\" (English). Only used if the bank does not say it yet."
+    },
+    "origen": {
+      "type": "string",
+      "description": "De dónde salen las preguntas (informativo, no se importa). / Where the questions come from (for information; not imported)."
+    },
+    "temas": {
+      "type": "array",
+      "description": "Los temas, con sus preguntas. / The topics, with their questions.",
+      "items": { "$ref": "#/$defs/tema" }
+    }
+  },
+  "$defs": {
+    "tema": {
+      "type": "object",
+      "required": ["numero", "preguntas"],
+      "additionalProperties": false,
+      "properties": {
+        "numero": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Número del tema; si ya está en el banco, las preguntas se añaden a él. / Topic number; if it is already in the bank, the questions are added to it."
+        },
+        "titulo": {
+          "type": "string",
+          "description": "Título del tema. Si no se pone, un tema que ya está en el banco conserva el suyo. / Topic title. If missing, a topic already in the bank keeps its own."
+        },
+        "autor": {
+          "type": "string",
+          "description": "Autor del tema en el libro (opcional). Si no se pone, se conserva el del banco. / Author of the topic in the textbook (optional). If missing, the bank's is kept."
+        },
+        "formato_referencia": {
+          "type": "string",
+          "enum": ["", "vease", "pag"],
+          "description": "Forma de la referencia al libro que se pide a las preguntas del tema: \"vease\" («Véase la página N…»), \"pag\" («Pág. N libro…») o \"\" (cualquiera). Si no se pone, se conserva la del banco. / Form required for the textbook reference: \"vease\", \"pag\" or \"\" (any)."
+        },
+        "preguntas": {
+          "type": "array",
+          "description": "Las preguntas del tema. / The questions of the topic.",
+          "items": { "$ref": "#/$defs/pregunta" }
+        }
+      }
+    },
+    "pregunta": {
+      "type": "object",
+      "required": ["numero", "enunciado", "opciones", "correcta"],
+      "additionalProperties": false,
+      "properties": {
+        "numero": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Número de la pregunta en su tema. Las que tienen el mismo número son variantes y nunca salen juntas. Si ya hay una con el mismo tema, número y variante, se sustituye. / Question number within its topic. Questions with the same number are variants and never appear together. One with the same topic, number and variant is replaced."
+        },
+        "variante": {
+          "type": "string",
+          "pattern": "^[a-z]?$",
+          "description": "Letra de la variante (\"a\", \"b\"…) o \"\" si no tiene. / Variant letter (\"a\", \"b\"…) or \"\" if none."
+        },
+        "codigo": {
+          "type": "string",
+          "description": "Número y variante juntos (\"12b\"); informativo: cuentan «numero» y «variante». / Number and variant together (\"12b\"); for information only."
+        },
+        "etiqueta_original": {
+          "type": "string",
+          "description": "Etiqueta de la pregunta en el documento del que se sacó (informativo). / Label of the question in its source document (for information)."
+        },
+        "old": {
+          "type": "boolean",
+          "description": "Ya ha salido en exámenes. / Has already appeared in exams."
+        },
+        "estado": {
+          "type": "string",
+          "enum": ["activa", "anulada", "obsoleta"],
+          "description": "\"activa\" (se usa en los exámenes; si no se pone, esta), \"anulada\" u \"obsoleta\" (no se usan). / \"activa\" (used in exams; the default), \"anulada\" (voided) or \"obsoleta\" (obsolete)."
+        },
+        "revisar": {
+          "type": "boolean",
+          "description": "Marcada para revisar. / Flagged for review."
+        },
+        "enunciado": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "description": "Texto de la pregunta. Admite bloques de código entre líneas ``` y filas de tabla «| celda | celda |»; los saltos de línea se escriben \\n. / Question text. Code blocks between ``` lines and table rows «| cell | cell |» are allowed; line breaks are written \\n."
+        },
+        "opciones": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "type": "string", "minLength": 1, "pattern": "\\S" },
+          "description": "Las cuatro opciones, a), b), c) y d), sin la letra. / The four options, a) to d), without the letter."
+        },
+        "correcta": {
+          "type": "string",
+          "pattern": "^[A-Da-d]$",
+          "description": "Letra de la respuesta correcta: \"A\", \"B\", \"C\" o \"D\". / Letter of the correct answer."
+        },
+        "referencia": {
+          "type": ["string", "null"],
+          "description": "Referencia al libro de teoría. / Reference to the textbook."
+        },
+        "explicacion": {
+          "type": ["string", "null"],
+          "description": "Por qué la correcta es la correcta (va en las soluciones y en Moodle). / Why the correct answer is correct (shown in the solutions and in Moodle)."
+        },
+        "notas": {
+          "type": ["string", "null"],
+          "description": "Notas internas, que no salen en los exámenes. / Internal notes, not printed in exams."
+        },
+        "pseudo_con": {
+          "type": ["string", "null"],
+          "pattern": "^(T\\d+-\\d+)?$",
+          "description": "Otra pregunta equivalente, de otro tema, con la que no debe salir: su tema y número, \"T1-7\". / An equivalent question from another topic that must not appear together with this one: \"T1-7\"."
+        },
+        "imagen": {
+          "type": ["string", "null"],
+          "contentEncoding": "base64",
+          "description": "Imagen PNG o JPG que va bajo el enunciado, codificada en base64 (es más fácil ponerla después desde el editor de preguntas del programa). / PNG or JPG image under the question text, base64-encoded (easier to add later in the program's question editor)."
+        }
+      }
+    }
+  }
+}

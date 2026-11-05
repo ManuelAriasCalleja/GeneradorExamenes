@@ -51,6 +51,8 @@ private slots:
     void abrirOtraBaseDatos();
     void nuevaBaseDatos();
     void importarJson();
+    void comprobarFicheroJson();   // Archivo → Comprobar un JSON…
+    void guardarJsonEjemplo();
     void exportarJson();
     void exportarMoodle();
     void actualizarJsonBanco();
@@ -62,6 +64,8 @@ private slots:
 
     // Generar examen
     void guardarAsignatura();   // si se ha cambiado en la ventana, en el banco
+    void cambiarIdiomaExamen();   // el elegido en la ventana, en el banco
+    void cambiarIdioma(const QString &codigo);   // de la interfaz (Editar → Idioma); vacío: el del sistema
     void guardarReparto();      // el de la ventana, como un reparto del banco con nombre (un botón más)
     void actualizarTotal();
     void actualizarPuntuacion();
@@ -157,6 +161,11 @@ private:
     // de la ventana no cuentan: son los que se generan, que sustituirán a los registrados con su nombre.
     QHash<QString, int> usoReciente(const QStringList &examenes);
     DatosConvocatoria datosConvocatoria() const;
+    QString idiomaExamen() const;
+    QSet<QString> gruposDelBanco() const;   // «T1-7» de las preguntas del banco abierto
+    // Al cambiar el idioma de los exámenes (de 'antes' al de la ventana), lo que la ventana propone en él: las
+    // convocatorias de la lista, la elegida si es una de ellas y las instrucciones si son las de por defecto.
+    void adaptarAlIdiomaExamen(const QString &antes);
     ConfigExamen configuracionExamen() const;
     QString nombreBaseFichero() const;
     QStringList nombresModelos() const;
@@ -207,6 +216,7 @@ private:
 
     // Pestaña de examen
     QLineEdit *m_asignatura;
+    QComboBox *m_idiomaExamen;              // el del banco (BaseDatos::idioma())
     QComboBox *m_convocatoria;
     QSpinBox *m_anio;
     QListWidget *m_listaExamenes;           // nombres de los exámenes; se generan los marcados

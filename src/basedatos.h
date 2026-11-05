@@ -3,6 +3,7 @@
 #include "maquetador.h"
 #include "pregunta.h"
 
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QHash>
 #include <QMap>
@@ -34,6 +35,8 @@ struct Reparto
 // Acceso a la base de datos SQLite de temas y preguntas.
 class BaseDatos
 {
+    Q_DECLARE_TR_FUNCTIONS(BaseDatos)
+
 public:
     BaseDatos();
     ~BaseDatos();
@@ -80,6 +83,10 @@ public:
     // Nombre de la asignatura del banco: va en la cabecera de los exámenes. Vacío si aún no se ha puesto.
     QString asignatura();
     bool guardarAsignatura(const QString &nombre);
+    // Idioma de los textos de los exámenes y de Moodle («es», «en»: ver Idioma::examen()). Va con el banco, como la
+    // asignatura; los bancos que no lo dicen están en castellano.
+    QString idioma();
+    bool guardarIdioma(const QString &codigo);
     // Repartos de preguntas por tema guardados en el banco, en el orden de sus botones.
     QVector<Reparto> repartos();
     bool guardarRepartos(const QVector<Reparto> &repartos);

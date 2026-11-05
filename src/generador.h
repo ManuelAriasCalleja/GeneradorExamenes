@@ -2,6 +2,7 @@
 
 #include "pregunta.h"
 
+#include <QCoreApplication>
 #include <QHash>
 #include <QMap>
 #include <QSet>
@@ -68,6 +69,8 @@ struct ResultadoGeneracion
 //  - opcionalmente, que no se repitan preguntas entre los modelos de la misma convocatoria.
 class Generador
 {
+    Q_DECLARE_TR_FUNCTIONS(Generador)
+
 public:
     static ResultadoGeneracion generar(const QVector<Pregunta> &banco, const ConfigExamen &config);
 

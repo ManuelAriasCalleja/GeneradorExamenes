@@ -11,8 +11,10 @@ programa daba entonces por hechos (`PRAGMA user_version` 1).
 ## Compilar y ejecutar
 
 Requisitos: Qt 6 (módulos Widgets, Sql con el driver SQLite y PrintSupport), CMake ≥ 3.19 y un compilador C++17.
-En Debian/Ubuntu: `sudo apt install qt6-base-dev libqt6sql6-sqlite cmake g++`. Opcionalmente, Qt PDF (6.4 o
-posterior; `qt6-pdf-dev`) para leer los PDF de los exámenes anteriores; sin él, se pega su texto.
+En Debian/Ubuntu: `sudo apt install qt6-base-dev libqt6sql6-sqlite qt6-tools-dev qt6-l10n-tools cmake g++`.
+`qt6-tools-dev` y `qt6-l10n-tools` (Qt Linguist) compilan las traducciones; sin ellas, el programa solo sale en
+castellano (ver «Idiomas»). Opcionalmente, Qt PDF (6.4 o posterior; `qt6-pdf-dev`) para leer los PDF de los
+exámenes anteriores; sin él, se pega su texto.
 
 ```sh
 cmake -S . -B build
@@ -85,19 +87,23 @@ estilo, el formato de los enunciados, la base de datos (JSON, copia de seguridad
 la maqueta (que un examen de 10 preguntas quepa en un folio, y la versión con letra grande) y las exportaciones, las
 parecidas, el cuestionario de Moodle, la lectura de los exámenes anteriores (texto, PDF y nombre del fichero), los
 recorridos principales de la interfaz y la ayuda (que tenga los apartados a
-los que lleva cada ventana y que sus enlaces lleven a algún sitio). Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
+los que lleva cada ventana y que sus enlaces lleven a algún sitio), el comprobador de los JSON (errores con su línea,
+los ejemplos y que el esquema JSON diga lo mismo que él) y los idiomas (la interfaz en inglés, los exámenes y Moodle
+en el idioma del banco, las pautas de estilo de cada idioma y que la traducción esté completa). Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
 trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`. Para no compilarlas:
 `cmake -S . -B build -DPRUEBAS=OFF`.
 
 ## Uso
 
 *Ayuda → Manual de uso* (o **F1**) abre el manual del programa por el apartado de la ventana en la que se está; los
-diálogos tienen además un botón «Ayuda». El manual es `recursos/ayuda.html` y va dentro del ejecutable: si cambia lo
-que se ve o se hace en el programa, hay que actualizarlo.
+diálogos tienen además un botón «Ayuda». El manual es `recursos/ayuda.html` (y `recursos/ayuda_en.html` en inglés) y
+va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay que actualizar los dos.
 
 **Generar examen**
 - Asignatura: va en la cabecera y en el título de la ventana. Es la del banco abierto; si se cambia en la ventana, se
   guarda en el banco. Al crear un banco nuevo se pide.
+- Idioma de los exámenes (castellano o inglés): el de lo que pone el programa en los exámenes y en Moodle. Va con el
+  banco, como la asignatura (ver «Idiomas»).
 - Convocatoria (Febrero, Junio, Septiembre…) y año: van en la cabecera («Junio 2026»), en el pie de cada página
   y en el nombre de los ficheros. Al abrir el programa se propone la próxima convocatoria según la fecha: la primera
   de febrero, junio y septiembre cuyo mes aún no ha llegado (el 27 de octubre de 2026, Febrero 2027).
@@ -214,6 +220,54 @@ examen. El parecido compara trozos de palabras del enunciado y de las opciones; 
 de una pregunta sale entre las tres más parecidas en ocho de cada diez casos. *Duplicar como variante* y las
 variantes nuevas toman la siguiente letra libre (si la pregunta existente no tiene letra, cuenta como la «a»).
 
+## Idiomas
+
+Hay dos idiomas, independientes (ver `src/idioma.h`):
+
+- **El de la interfaz** (menús, diálogos, avisos y el manual), que cada usuario elige en *Editar → Idioma* y se
+  guarda en su configuración; por defecto, el del sistema si hay traducción y, si no, el castellano. Se aplica al
+  volver a abrir el programa.
+- **El de los exámenes** (instrucciones propuestas, puntuación, soluciones, meses de las convocatorias, babel en
+  LaTeX, realimentación y categorías de Moodle), que va con cada banco (`BaseDatos::idioma()`, en sus ajustes y en
+  su JSON) y se elige en la ventana, en «Idioma de los exámenes». Decide también qué pautas de estilo se comprueban:
+  las de la guía de redacción son del castellano.
+
+Los textos del código están en castellano, que es el idioma de origen, dentro de `tr()` (o
+`QCoreApplication::translate()` fuera de las clases). Los de los exámenes van en el contexto «Examen» y se
+traducen con el idioma del banco: `Idioma::examen(idioma, QT_TRANSLATE_NOOP("Examen", "…"))`. Cada idioma más es
+un `traducciones/GeneradorExamenes_<código>.ts` de Qt Linguist, que al compilar se convierte en `.qm` dentro del
+programa. Al añadir o cambiar textos:
+
+```sh
+cmake --build build --target update_translations   # pone los textos nuevos en los .ts
+linguist traducciones/GeneradorExamenes_en.ts      # traducirlos (o editando el .ts a mano)
+```
+
+La prueba `idiomas` falla si queda alguno sin traducir. Para añadir un idioma: su código en
+`Idioma::disponibles()`, su `.ts` en `TS_FILES` de `CMakeLists.txt` (y `update_translations`), su manual
+`recursos/ayuda_<código>.html` (con las mismas anclas que `ayuda.html`) y, para el LaTeX, su opción de babel en
+`Maquetador::examenesLatex()`.
+
+## Escribir un JSON de preguntas
+
+Las preguntas se pueden escribir en un JSON con un editor de textos e importarlas con *Archivo → Importar
+preguntas (JSON)…*. El formato está en la ayuda (apartado «Formato del JSON») y en el esquema JSON
+`recursos/banco.schema.json`: con su dirección en el campo `$schema` (la llevan los JSON que exporta el programa y
+los de ejemplo), editores como VS Code avisan de los errores y completan los campos mientras se escribe.
+*Archivo → Guardar un JSON de ejemplo…* guarda `recursos/ejemplo_banco.json` (o `ejemplo_banco_en.json`, con la
+interfaz en inglés), con preguntas inventadas que usan todo el formato.
+
+Antes de importar, el programa comprueba el JSON (`src/comprobadorjson.h`) y dice todos los problemas a la vez, con
+su línea, su columna y la pregunta: con errores no importa. También se comprueba con *Archivo → Comprobar un JSON…*
+o sin abrir el programa:
+
+```sh
+./build/GeneradorExamenes --comprobar preguntas.json   # «preguntas.json:12:5: error: tema 3, pregunta 12b: …»; sale con 1 si hay errores
+```
+
+Si cambia el formato, hay que cambiar a la vez el comprobador, el esquema (la prueba `comprobador` compara sus
+campos), los ejemplos y la ayuda.
+
 ## Ficheros
 
 | Ruta | Contenido |
@@ -222,8 +276,9 @@ variantes nuevas toman la siguiente letra libre (si la pregunta existente no tie
 | `compilar.sh`, `compilar.bat`, `compilar.ps1` | Compilan, pasan las pruebas e instalan el programa (Linux y Windows). |
 | `.github/workflows/windows.yml` | Prepara en GitHub el paquete de Windows (se lanza a mano o con una etiqueta `v*`). |
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
+| `traducciones/` | Traducciones de la interfaz y de los textos de los exámenes (Qt Linguist), una por idioma. |
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |
-| `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `GeneradorExamenes.desktop.in` es el lanzador del menú del escritorio de Linux. `LEEME_windows.txt` va en el paquete de Windows. |
+| `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*, y `ayuda_en.html` en inglés), esquema JSON del formato de las preguntas (`banco.schema.json`) y JSON de ejemplo (`ejemplo_banco.json`, `ejemplo_banco_en.json`), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `GeneradorExamenes.desktop.in` es el lanzador del menú del escritorio de Linux. `LEEME_windows.txt` va en el paquete de Windows. |
 | `src/` | Código fuente del programa. |
 | `tests/` | Pruebas automáticas, con datos inventados. |
 
