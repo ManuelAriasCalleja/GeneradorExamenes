@@ -1,12 +1,12 @@
-# Generador de exámenes de Fundamentos de Informática
+# Generador de exámenes tipo test
 
 Programa en C++/Qt 6 que genera exámenes tipo test eligiendo al azar preguntas de una base de datos SQLite,
 con el número de preguntas que se indique de cada tema.
 
-Se hizo para Fundamentos de la informática, pero vale para cualquier asignatura: cada banco (base de datos) lleva el
-nombre de su asignatura, sus temas, tantos como tenga, y sus repartos de preguntas por tema. Los bancos de versiones
-anteriores, que eran todos de Fundamentos de la informática, se ponen al día al abrirlos: se les pone ese nombre, sus
-repartos (T1–T4, T5–T8 y T1–T8) y la forma de la referencia al libro de cada tema (`PRAGMA user_version` 1).
+Vale para cualquier asignatura: cada banco (base de datos) lleva el nombre de su asignatura, sus temas, tantos como
+tenga, y sus repartos de preguntas por tema. Los bancos de versiones anteriores, que no guardaban esos datos, se ponen
+al día al abrirlos: se les ponen el nombre, los repartos y la forma de la referencia al libro de cada tema que el
+programa daba entonces por hechos (`PRAGMA user_version` 1).
 
 ## Compilar y ejecutar
 
@@ -105,7 +105,7 @@ que se ve o se hace en el programa, hay que actualizarlo.
   añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando). El pie de cada página lleva el nombre
   del examen, la convocatoria y el año: «Nacional Original · Junio 2026: 1 / 2».
 - Número de preguntas de cada tema. Junto a cada tema se ve cuántas preguntas distintas hay. Los botones de reparto
-  son los del banco (en el de Fundamentos de la informática, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3) más «Ninguna»;
+  son los del banco (por ejemplo, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3) más «Ninguna»;
   «Guardar reparto…» guarda los números de ese momento como un reparto nuevo, con nombre, y con el botón derecho
   sobre uno se sustituye o se quita. Cada banco recuerda su último reparto usado; la primera vez se propone el primero
   de sus repartos. (Las versiones anteriores guardaban el último reparto en la configuración: pasa al primer banco
@@ -198,7 +198,7 @@ en un fichero de texto, solo con los códigos de las preguntas y los avisos.
 
 *Archivo → Exportar a Moodle (XML)…* guarda las preguntas activas del banco como cuestionario en formato
 «Moodle XML», para que los estudiantes practiquen en el curso virtual: una categoría por tema dentro de la de la
-asignatura (`Fundamentos de la informática/Tema 1: …`), cada pregunta de opción múltiple con una sola respuesta, la referencia al libro y la
+asignatura (`<asignatura>/Tema 1: …`), cada pregunta de opción múltiple con una sola respuesta, la referencia al libro y la
 explicación como realimentación general, las imágenes incrustadas y, si se marca, las respuestas erróneas
 restando el 30 % de la pregunta, como en el examen. Las opciones se barajan en Moodle salvo en las preguntas con
 opciones del tipo «Todas las anteriores»; las anuladas y obsoletas no se exportan, y las marcadas para revisar
@@ -263,8 +263,8 @@ ella, con la fecha y la hora en el nombre (`copias/preguntas_2026-10-22_153045.d
 ha dejado; si la importación falla, la base de datos no cambia y la copia se quita. Para volver atrás, basta con
 abrir esa copia (*Archivo → Abrir banco de preguntas…*) o copiarla sobre `preguntas.db`.
 El script avisa de preguntas sin cuatro opciones o sin respuesta y de dibujos sin imagen. El JSON lleva el nombre de
-la asignatura (`--asignatura`, por defecto «Fundamentos de la informática»), que el programa solo toma si el banco aún
-no tiene; no dice la forma de la referencia de cada tema, así que al importarlo cada tema conserva la que tenía.
+la asignatura (`--asignatura`), que el programa solo toma si el banco aún no tiene; no dice la forma de la referencia
+de cada tema, así que al importarlo cada tema conserva la que tenía.
 Las etiquetas del documento se interpretan así: `old` → ya salió en exámenes; `ANULADA`/`OBSOLETA` → no
 sale; `MEJORAR`, `REFINAR`, `DEFINIR …` → marcada para revisar; `PSEUDORREPETIDA … TEMA1 preg 7` → enlace
 con T1-7.

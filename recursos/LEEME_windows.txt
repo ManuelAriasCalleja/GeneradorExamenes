@@ -1,5 +1,5 @@
-Generador de exámenes de Fundamentos de Informática
-===================================================
+Generador de exámenes tipo test
+===============================
 
 1. Descomprima la carpeta GeneradorExamenesFI entera donde quiera (por ejemplo, en Documentos). No saque el
    programa de ella: necesita los demás ficheros que la acompañan.
