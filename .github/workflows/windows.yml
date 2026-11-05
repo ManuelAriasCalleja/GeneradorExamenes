@@ -1,8 +1,7 @@
 # Paquete para Windows (ver README, «Compilar en GitHub»). Solo se lanza a mano (Actions → Paquete para Windows →
-# Run workflow) o al subir una etiqueta de versión (v1.1…), para no gastar minutos: el repositorio es privado y los
-# minutos de Windows cuentan doble. Compila con el Qt y el MinGW del instalador oficial de Qt, prepara el paquete
-# (objetivo «paquete» de CMake), lo deja para descargar y pasa las pruebas. Con una etiqueta, además, publica una
-# versión (release) con el zip.
+# Run workflow) o al subir una etiqueta de versión (v1.1…), nunca con cada push. Compila con el Qt y el MinGW del
+# instalador oficial de Qt, prepara el paquete (objetivo «paquete» de CMake), lo deja para descargar y pasa las
+# pruebas. Con una etiqueta, además, publica una versión (release) con el zip.
 name: Paquete para Windows
 
 on:

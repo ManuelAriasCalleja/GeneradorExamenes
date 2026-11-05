@@ -51,7 +51,7 @@ El paquete también se prepara en GitHub, sin un Windows a mano (`.github/workfl
 para Windows → Run workflow*. Compila con Qt 6.8 y el MinGW del instalador de Qt (con Qt PDF), pasa las pruebas y deja
 el zip para descargar en la página de la ejecución, durante 30 días. Al subir una etiqueta de versión
 (`git tag v1.1 && git push origin v1.1`) se lanza solo y publica además una *release* con el zip. No se lanza con
-cada `push`, para no gastar minutos.
+cada `push`.
 
 ### Compilar e instalar con un script
 
