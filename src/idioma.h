@@ -24,16 +24,18 @@ QVector<Disponible> disponibles();
 QString nombre(const QString &codigo);   // el código si no es uno de los disponibles
 bool disponible(const QString &codigo);
 
-// El elegido en Editar → Idioma (vacío: el del sistema) y el que se usa de verdad.
+// El elegido en Editar → Idioma (vacío: el del sistema), el que tendrá el programa al abrirlo y el que tiene.
 QString elegido();
 void elegir(const QString &codigo);
 QString delSistema();      // el primero de los del sistema que esté disponible; si no, el castellano
-QString interfaz();        // elegido() o, si está vacío o ya no está disponible, delSistema()
+QString preferido();       // elegido() o, si está vacío o ya no está disponible, delSistema()
+QString interfaz();        // el que se ha instalado (el que se ve); si no se ha instalado ninguno, preferido()
 
 // Pone la interfaz en ese idioma: las traducciones del programa y las de Qt (botones de los diálogos estándar) y el
 // formato de números y fechas. Se llama al arrancar; cambiarlo con el programa abierto no traduce lo que ya está a
-// la vista, por eso el idioma nuevo se aplica al volver a abrirlo.
-void instalar(const QString &codigo);
+// la vista, por eso el idioma nuevo se aplica al volver a abrirlo. Sin 'deQt', no se cargan las de Qt (las pruebas
+// de la interfaz, que pulsan los botones estándar por su texto).
+void instalar(const QString &codigo, bool deQt = true);
 
 // Texto de los exámenes (o de Moodle) en el idioma 'idioma' del banco. 'texto' es el original en castellano,
 // marcado para lupdate con QT_TRANSLATE_NOOP("Examen", "…"): todos los textos de los exámenes van en el contexto

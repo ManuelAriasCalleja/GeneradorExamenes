@@ -1198,9 +1198,9 @@ void VentanaPrincipal::adaptarAlIdiomaExamen(const QString &antes)
 
 void VentanaPrincipal::cambiarIdioma(const QString &codigo)
 {
-    const QString antes = Idioma::interfaz();
+    const QString antes = Idioma::interfaz();   // el que se ve
     Idioma::elegir(codigo);
-    const QString ahora = Idioma::interfaz();
+    const QString ahora = Idioma::preferido();  // el que tendrá al volver a abrirlo
     if (ahora == antes)
         return;
     // Lo que ya está a la vista no se traduce: el idioma nuevo se aplica al volver a abrir el programa.

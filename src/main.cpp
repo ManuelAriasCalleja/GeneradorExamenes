@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         traerConfiguracionAntigua(QSettings(QStringLiteral("UNED-FI"), QStringLiteral("GeneradorExamenesFI")), nueva);
     }
     // Idioma de la interfaz (Editar → Idioma; si no se ha elegido, el del sistema) y diálogos estándar de Qt en él.
-    Idioma::instalar(Idioma::interfaz());
+    Idioma::instalar(Idioma::preferido());
 
     QCommandLineParser opciones;
     opciones.setApplicationDescription(QCoreApplication::translate("main", "Generador de exámenes tipo test"));

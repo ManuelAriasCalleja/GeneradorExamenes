@@ -98,6 +98,9 @@ private slots:
         QApplication::setOrganizationName(QStringLiteral("UNED-pruebas"));
         QApplication::setApplicationName(QStringLiteral("GeneradorExamenes-pruebas"));
         QSettings().clear();
+        // La interfaz en castellano, sea cual sea el idioma del sistema (la ayuda, los decimales…), sin las traducciones
+        // de Qt: responder() pulsa los botones estándar por su texto («OK»).
+        Idioma::instalar(QStringLiteral("es"), false);
     }
 
     void cleanupTestCase()

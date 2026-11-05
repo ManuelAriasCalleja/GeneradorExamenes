@@ -38,6 +38,12 @@ std::unique_ptr<QTranslator> &traductorQt()
     return t;
 }
 
+QString &instalado()
+{
+    static QString codigo;
+    return codigo;
+}
+
 } // namespace
 
 QVector<Disponible> disponibles()
@@ -85,14 +91,20 @@ QString delSistema()
     return QLatin1String(kOrigen);
 }
 
-QString interfaz()
+QString preferido()
 {
     const QString e = elegido();
     return disponible(e) ? e : delSistema();
 }
 
-void instalar(const QString &codigo)
+QString interfaz()
 {
+    return instalado().isEmpty() ? preferido() : instalado();
+}
+
+void instalar(const QString &codigo, bool deQt)
+{
+    instalado() = codigo;
     for (auto *t : {&traductorPrograma(), &traductorQt()}) {
         if (*t)
             QCoreApplication::removeTranslator(t->get());
@@ -107,7 +119,7 @@ void instalar(const QString &codigo)
     }
     // Las de Qt (botones de los diálogos estándar, menús contextuales): junto al programa en el paquete de Windows
     // (windeployqt puede juntarlas en qt_<idioma>.qm) o donde estén las de Qt. Los textos de Qt están en inglés.
-    if (codigo != QLatin1String("en")) {
+    if (deQt && codigo != QLatin1String("en")) {
         auto t = std::make_unique<QTranslator>();
         for (const QString &carpeta : {QCoreApplication::applicationDirPath() + QStringLiteral("/translations"),
                                        QLibraryInfo::path(QLibraryInfo::TranslationsPath)}) {
