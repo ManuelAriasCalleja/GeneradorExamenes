@@ -47,7 +47,7 @@ case $PREFIJO in
 esac
 
 DATOS=${XDG_DATA_HOME:-$HOME/.local/share}
-ESCRITORIO=$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")/GeneradorExamenesFI.desktop
+ESCRITORIO=$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")/GeneradorExamenes.desktop
 
 # Pone al día las cachés de iconos y de lanzadores de la carpeta de datos (share/) del prefijo. Cambiar la fecha de
 # las carpetas hace que el escritorio (y el menú de Cinnamon) vuelva a leerlas sin cerrar la sesión.
@@ -68,8 +68,8 @@ if [ $DESINSTALAR = 1 ]; then
         echo "No hay $MANIFIESTO: no consta que se haya instalado desde esta carpeta." >&2
         exit 1
     fi
-    # El prefijo de la instalación, por la ruta del ejecutable (…/bin/GeneradorExamenesFI).
-    EJECUTABLE=$(grep '/GeneradorExamenesFI$' "$MANIFIESTO" | head -n 1)
+    # El prefijo de la instalación, por la ruta del ejecutable (…/bin/GeneradorExamenes).
+    EJECUTABLE=$(grep '/GeneradorExamenes$' "$MANIFIESTO" | head -n 1)
     [ -n "$EJECUTABLE" ] && PREFIJO=${EJECUTABLE%/*/*}
     # Las líneas del manifiesto son rutas absolutas; si alguna no se puede borrar sin permisos, con sudo.
     while IFS= read -r fichero || [ -n "$fichero" ]; do  # la última línea no acaba en salto de línea
@@ -85,7 +85,7 @@ if [ $DESINSTALAR = 1 ]; then
     rm -f "$MANIFIESTO" 2>/dev/null || sudo rm -f "$MANIFIESTO"
     [ -w "$PREFIJO/share" ] || SUDO=sudo
     actualizar_caches "$PREFIJO/share"
-    echo "Desinstalado. La configuración (~/.config/UNED-FI/) y los bancos de preguntas no se han tocado."
+    echo "Desinstalado. La configuración (~/.config/UNED/) y los bancos de preguntas no se han tocado."
     exit 0
 fi
 
@@ -108,7 +108,7 @@ if [ $PRUEBAS = ON ]; then
 fi
 
 if [ $INSTALAR = 0 ]; then
-    echo "Compilado: $COMPILACION/GeneradorExamenesFI"
+    echo "Compilado: $COMPILACION/GeneradorExamenes"
     exit 0
 fi
 
@@ -122,7 +122,7 @@ $SUDO cmake --install "$COMPILACION" --prefix "$PREFIJO"
 # El lanzador del escritorio. Si ya estaba, se sobrescribe sin sustituir el fichero, para que conserve la marca de «de
 # confianza» que le pone el gestor de archivos. Si es nuevo, se marca como ejecutable y de confianza (en Nemo, el de
 # Cinnamon, y en Nautilus), para que se abra con doble clic sin preguntar.
-LANZADOR=$PREFIJO/share/applications/GeneradorExamenesFI.desktop
+LANZADOR=$PREFIJO/share/applications/GeneradorExamenes.desktop
 if [ -f "$ESCRITORIO" ] && [ -w "$ESCRITORIO" ]; then
     cat "$LANZADOR" > "$ESCRITORIO"
 elif [ $EN_ESCRITORIO = 1 ] && [ -d "$(dirname "$ESCRITORIO")" ]; then
@@ -133,8 +133,8 @@ fi
 actualizar_caches "$PREFIJO/share"
 
 echo
-echo "Instalado: $PREFIJO/bin/GeneradorExamenesFI"
-echo "En el menú está en Educación, como «Generador de exámenes FI»."
+echo "Instalado: $PREFIJO/bin/GeneradorExamenes"
+echo "En el menú está en Educación, como «Generador de exámenes»."
 [ -f "$ESCRITORIO" ] && echo "Lanzador en el escritorio: $ESCRITORIO"
 case ":$PATH:" in
     *":$PREFIJO/bin:"*) ;;

@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QRegularExpression>
+#include <QSettings>
 #include <QStandardPaths>
 #include <QTextBrowser>
 #include <QTextDocument>
@@ -39,6 +40,20 @@ inline QString carpetaBancos(const QString &rutaAbierta, const QString &rutaUlti
             return ruta;
     }
     return QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+}
+
+// Copia en 'nueva' toda la configuración de 'antigua' si 'nueva' está vacía, y devuelve si ha copiado algo. La
+// antigua no se toca. Sirve para que la configuración de cuando el programa se llamaba GeneradorExamenesFI (hasta la
+// versión 1.0) pase a la de ahora la primera vez que se abre.
+inline bool traerConfiguracionAntigua(const QSettings &antigua, QSettings &nueva)
+{
+    if (!nueva.allKeys().isEmpty())
+        return false;
+    const QStringList claves = antigua.allKeys();
+    for (const QString &clave : claves)
+        nueva.setValue(clave, antigua.value(clave));
+    nueva.sync();
+    return !claves.isEmpty();
 }
 
 // Nombre de fichero sin tildes, espacios ni símbolos: «2026 Junio», «Unión Europea» → «2026_Junio», «Union_Europea».

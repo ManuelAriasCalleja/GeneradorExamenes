@@ -93,8 +93,8 @@ private slots:
     {
         // La configuración de las pruebas, aparte de la del programa.
         QStandardPaths::setTestModeEnabled(true);
-        QApplication::setOrganizationName(QStringLiteral("UNED-FI-pruebas"));
-        QApplication::setApplicationName(QStringLiteral("GeneradorExamenesFI-pruebas"));
+        QApplication::setOrganizationName(QStringLiteral("UNED-pruebas"));
+        QApplication::setApplicationName(QStringLiteral("GeneradorExamenes-pruebas"));
         QSettings().clear();
     }
 
@@ -971,6 +971,43 @@ private slots:
         QCOMPARE(carpetaBancos(QString(), raiz + QStringLiteral("/borrada/dentro/banco.db")), raiz);
         QCOMPARE(carpetaBancos(QString(), QString()),
                  QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+    }
+
+    // La configuración de cuando el programa se llamaba GeneradorExamenesFI pasa a la nueva si esta está vacía, con
+    // sus tipos (texto, listas y datos binarios, como la geometría de la ventana), sin tocar la antigua. Si la nueva
+    // ya tiene algo, no se vuelve a copiar.
+    void configuracionAntigua()
+    {
+        QTemporaryDir tmp;
+        QVERIFY(tmp.isValid());
+        const QByteArray binario("\x01\x02\x00\xff", 4);
+        const QStringList lista{QStringLiteral("Original"), QStringLiteral("Reserva")};
+        {
+            QSettings escrita(tmp.filePath(QStringLiteral("antigua.ini")), QSettings::IniFormat);
+            escrita.setValue(QStringLiteral("bd/ruta"), QStringLiteral("/ruta/inventada/banco.db"));
+            escrita.setValue(QStringLiteral("ventana/geometria"), binario);
+            escrita.setValue(QStringLiteral("examen/nombres"), lista);
+        }
+        const QSettings antigua(tmp.filePath(QStringLiteral("antigua.ini")), QSettings::IniFormat);
+        QSettings nueva(tmp.filePath(QStringLiteral("nueva.ini")), QSettings::IniFormat);
+        QVERIFY(traerConfiguracionAntigua(antigua, nueva));
+        {
+            const QSettings leida(tmp.filePath(QStringLiteral("nueva.ini")), QSettings::IniFormat);
+            QCOMPARE(leida.value(QStringLiteral("bd/ruta")).toString(), QStringLiteral("/ruta/inventada/banco.db"));
+            QCOMPARE(leida.value(QStringLiteral("ventana/geometria")).toByteArray(), binario);
+            QCOMPARE(leida.value(QStringLiteral("examen/nombres")).toStringList(), lista);
+        }
+        QCOMPARE(antigua.allKeys().size(), 3);
+
+        nueva.setValue(QStringLiteral("bd/ruta"), QStringLiteral("/otra/ruta/banco.db"));
+        QVERIFY(!traerConfiguracionAntigua(antigua, nueva));
+        QCOMPARE(nueva.value(QStringLiteral("bd/ruta")).toString(), QStringLiteral("/otra/ruta/banco.db"));
+
+        // Sin configuración antigua no se copia nada.
+        const QSettings ninguna(tmp.filePath(QStringLiteral("ninguna.ini")), QSettings::IniFormat);
+        QSettings vacia(tmp.filePath(QStringLiteral("vacia.ini")), QSettings::IniFormat);
+        QVERIFY(!traerConfiguracionAntigua(ninguna, vacia));
+        QVERIFY(vacia.allKeys().isEmpty());
     }
 };
 

@@ -664,14 +664,17 @@ las instrucciones, la lista de exámenes, las opciones, la puntuación, la carpe
 los exámenes de práctica y el tamaño de la ventana. El nombre de la asignatura y los repartos de preguntas por tema no:
 van con cada banco. Está en:</p>
 <ul>
-<li>Linux: <tt>~/.config/UNED-FI/GeneradorExamenesFI.conf</tt></li>
-<li>Windows: <tt>%APPDATA%\UNED-FI\GeneradorExamenesFI.ini</tt></li>
+<li>Linux: <tt>~/.config/UNED/GeneradorExamenes.conf</tt></li>
+<li>Windows: <tt>%APPDATA%\UNED\GeneradorExamenes.ini</tt></li>
 </ul>
 <p><i>Ayuda → Acerca de…</i> dice cuál es, junto con el banco abierto y la versión del programa. Para volver a la
 configuración inicial, cierre el programa y borre ese fichero; los bancos no se tocan.</p>
+<p>Hasta la versión 1.0, el programa se llamaba <tt>GeneradorExamenesFI</tt> y su configuración estaba en
+<tt>~/.config/UNED-FI/GeneradorExamenesFI.conf</tt> (Linux) o <tt>%APPDATA%\UNED-FI\GeneradorExamenesFI.ini</tt>
+(Windows). La primera vez que se abre una versión posterior, se copia de allí; la antigua no se toca.</p>
 <p>En Windows, para pasar a una versión nueva del programa, borre su carpeta y descomprima la nueva: la configuración
 se conserva.</p>
-<p>Desde la línea de órdenes se puede indicar el banco que se abre: <tt>GeneradorExamenesFI ruta/del/banco.db</tt>.
+<p>Desde la línea de órdenes se puede indicar el banco que se abre: <tt>GeneradorExamenes ruta/del/banco.db</tt>.
 Si no existe, se crea.</p>
 
 <!-- ======================================================================================================= -->

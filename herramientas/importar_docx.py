@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Convierte la base de datos de preguntas en Word (FI_preguntas_examen_base_de_datos_total_verXX.docx)
-al fichero JSON que importa el programa GeneradorExamenesFI.
+al fichero JSON que importa el programa GeneradorExamenes.
 
 Uso:
     python3 importar_docx.py ENTRADA.docx SALIDA.json [--imagenes DIR]

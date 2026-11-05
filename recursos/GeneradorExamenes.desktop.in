@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Generador de exámenes
+GenericName=Generador de exámenes tipo test
+Comment=Exámenes tipo test a partir de un banco de preguntas
+Exec="@RUTA_EJECUTABLE@"
+Icon=generador-examenes
+Terminal=false
+Categories=Education;
+StartupWMClass=GeneradorExamenes

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
-project(GeneradorExamenesFI VERSION 1.0 LANGUAGES CXX)
+project(GeneradorExamenes VERSION 1.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -60,11 +60,11 @@ endif()
 # La versión del proyecto se usa en el diálogo «Acerca de», para no tenerla escrita a mano en dos sitios.
 target_compile_definitions(nucleo PRIVATE VERSION_APLICACION="${PROJECT_VERSION}")
 
-qt_add_executable(GeneradorExamenesFI src/main.cpp)
-target_link_libraries(GeneradorExamenesFI PRIVATE nucleo)
+qt_add_executable(GeneradorExamenes src/main.cpp)
+target_link_libraries(GeneradorExamenes PRIVATE nucleo)
 
 # Foto del autor para el diálogo «Acerca de» e icono de la aplicación (PNG generados con recursos/generar_iconos.sh).
-qt_add_resources(GeneradorExamenesFI "recursos"
+qt_add_resources(GeneradorExamenes "recursos"
     PREFIX "/"
     FILES
         recursos/manuel-arias-calleja.jpg
@@ -79,13 +79,13 @@ qt_add_resources(GeneradorExamenesFI "recursos"
 
 # En Windows, aplicación gráfica (sin ventana de consola) y con icono en el .exe. El de las ventanas lo pone main.cpp.
 if(WIN32)
-    set_target_properties(GeneradorExamenesFI PROPERTIES WIN32_EXECUTABLE TRUE)
-    target_sources(GeneradorExamenesFI PRIVATE recursos/icono.rc)
+    set_target_properties(GeneradorExamenes PROPERTIES WIN32_EXECUTABLE TRUE)
+    target_sources(GeneradorExamenes PRIVATE recursos/icono.rc)
 endif()
 
 # Paquete para Windows: «cmake --build build --target paquete» (en Release) prepara la carpeta build/paquete/
-# GeneradorExamenesFI con el programa y todo lo que necesita (las bibliotecas de Qt, que copia windeployqt, y las del
-# compilador) y la comprime en build/GeneradorExamenesFI-<versión>-windows.zip. Se descomprime en cualquier ordenador
+# GeneradorExamenes con el programa y todo lo que necesita (las bibliotecas de Qt, que copia windeployqt, y las del
+# compilador) y la comprime en build/GeneradorExamenes-<versión>-windows.zip. Se descomprime en cualquier ordenador
 # con Windows y funciona sin instalar nada.
 if(WIN32)
     find_program(WINDEPLOYQT windeployqt HINTS "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}")
@@ -104,13 +104,13 @@ if(WIN32)
     endif()
     set(copiar_bibliotecas_compilador)
     if(bibliotecas_compilador)
-        set(copiar_bibliotecas_compilador COMMAND ${CMAKE_COMMAND} -E copy ${bibliotecas_compilador} paquete/GeneradorExamenesFI)
+        set(copiar_bibliotecas_compilador COMMAND ${CMAKE_COMMAND} -E copy ${bibliotecas_compilador} paquete/GeneradorExamenes)
     else()
         message(WARNING "No se encuentran las bibliotecas del compilador: el paquete de Windows no funcionaría en otro ordenador.")
     endif()
     # Instalación (la de compilar.ps1): el programa, en la carpeta de destino sin subcarpetas, con las bibliotecas
     # de Qt que copia windeployqt y las del compilador, como en el paquete.
-    install(TARGETS GeneradorExamenesFI RUNTIME DESTINATION .)
+    install(TARGETS GeneradorExamenes RUNTIME DESTINATION .)
     if(bibliotecas_compilador)
         install(FILES ${bibliotecas_compilador} DESTINATION .)
     endif()
@@ -118,7 +118,7 @@ if(WIN32)
         install(CODE "
             execute_process(COMMAND \"${WINDEPLOYQT}\" $<IF:$<CONFIG:Debug>,--debug,--release> --no-compiler-runtime
                     --no-opengl-sw --no-system-d3d-compiler --translations es
-                    \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/$<TARGET_FILE_NAME:GeneradorExamenesFI>\"
+                    \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/$<TARGET_FILE_NAME:GeneradorExamenes>\"
                 RESULT_VARIABLE resultado)
             if(NOT resultado EQUAL 0)
                 message(FATAL_ERROR \"windeployqt no ha podido copiar las bibliotecas de Qt\")
@@ -126,46 +126,46 @@ if(WIN32)
         ")
     endif()
 
-    set(zip GeneradorExamenesFI-${PROJECT_VERSION}-windows.zip)
+    set(zip GeneradorExamenes-${PROJECT_VERSION}-windows.zip)
     add_custom_target(paquete
         COMMAND ${CMAKE_COMMAND} -E rm -rf paquete ${zip}
-        COMMAND ${CMAKE_COMMAND} -E make_directory paquete/GeneradorExamenesFI
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:GeneradorExamenesFI> paquete/GeneradorExamenesFI
+        COMMAND ${CMAKE_COMMAND} -E make_directory paquete/GeneradorExamenes
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:GeneradorExamenes> paquete/GeneradorExamenes
         # Sin las bibliotecas de OpenGL por software ni el compilador de Direct3D, que no usa, y con las
         # traducciones al castellano de los diálogos de Qt.
         COMMAND ${WINDEPLOYQT} $<IF:$<CONFIG:Debug>,--debug,--release> --no-compiler-runtime --no-opengl-sw
-                --no-system-d3d-compiler --translations es paquete/GeneradorExamenesFI/$<TARGET_FILE_NAME:GeneradorExamenesFI>
+                --no-system-d3d-compiler --translations es paquete/GeneradorExamenes/$<TARGET_FILE_NAME:GeneradorExamenes>
         ${copiar_bibliotecas_compilador}
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/recursos/LEEME_windows.txt paquete/GeneradorExamenesFI/LEEME.txt
-        COMMAND ${CMAKE_COMMAND} -E chdir paquete ${CMAKE_COMMAND} -E tar cf ../${zip} --format=zip GeneradorExamenesFI
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/recursos/LEEME_windows.txt paquete/GeneradorExamenes/LEEME.txt
+        COMMAND ${CMAKE_COMMAND} -E chdir paquete ${CMAKE_COMMAND} -E tar cf ../${zip} --format=zip GeneradorExamenes
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        DEPENDS GeneradorExamenesFI
+        DEPENDS GeneradorExamenes
         COMMENT "Preparando ${zip}"
         VERBATIM
     )
 endif()
 
 # Instalación en Linux (la de compilar.sh, que instala en ~/.local): el ejecutable en bin/, el lanzador del menú del
-# escritorio en share/applications y el icono en el tema hicolor. El lanzador (recursos/GeneradorExamenesFI.desktop.in,
+# escritorio en share/applications y el icono en el tema hicolor. El lanzador (recursos/GeneradorExamenes.desktop.in,
 # que usa también herramientas/instalar_lanzador.sh) se escribe al instalar, para que apunte al ejecutable del prefijo
 # de verdad (el de «cmake --install --prefix», si se indica). Su StartupWMClass es la clase de las ventanas del programa
 # (su nombre de aplicación en Qt): así el panel agrupa la ventana con el lanzador.
 if(UNIX AND NOT APPLE)
-    install(TARGETS GeneradorExamenesFI RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(TARGETS GeneradorExamenes RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     foreach(n 16 24 32 48 64 128 256)
         install(FILES recursos/icono/icono_${n}.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/${n}x${n}/apps
-                RENAME generador-examenes-fi.png)
+                RENAME generador-examenes.png)
     endforeach()
     install(FILES recursos/icono.svg DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
-            RENAME generador-examenes-fi.svg)
+            RENAME generador-examenes.svg)
     install(CODE "
-        set(plantilla_lanzador \"${CMAKE_CURRENT_SOURCE_DIR}/recursos/GeneradorExamenesFI.desktop.in\")
+        set(plantilla_lanzador \"${CMAKE_CURRENT_SOURCE_DIR}/recursos/GeneradorExamenes.desktop.in\")
         set(dir_bin \"${CMAKE_INSTALL_BINDIR}\")
         set(dir_datos \"${CMAKE_INSTALL_DATADIR}\")
     ")
     install(CODE [[
-        set(RUTA_EJECUTABLE "${CMAKE_INSTALL_PREFIX}/${dir_bin}/GeneradorExamenesFI")
-        set(lanzador "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${dir_datos}/applications/GeneradorExamenesFI.desktop")
+        set(RUTA_EJECUTABLE "${CMAKE_INSTALL_PREFIX}/${dir_bin}/GeneradorExamenes")
+        set(lanzador "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${dir_datos}/applications/GeneradorExamenes.desktop")
         message(STATUS "Installing: ${lanzador}")
         configure_file("${plantilla_lanzador}" "${lanzador}" @ONLY)
         list(APPEND CMAKE_INSTALL_MANIFEST_FILES "${lanzador}")

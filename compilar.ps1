@@ -1,10 +1,10 @@
 ﻿<#
 .SYNOPSIS
-Compila el Generador de exámenes FI en Windows, pasa las pruebas automáticas y lo instala para el usuario actual.
+Compila el Generador de exámenes en Windows, pasa las pruebas automáticas y lo instala para el usuario actual.
 
 .DESCRIPTION
 Busca Qt 6 (en C:\Qt o en la carpeta Qt del usuario, si no se indica con -Qt), compila en Release en build\ y, si
-las pruebas pasan, lo instala en %LOCALAPPDATA%\Programs\GeneradorExamenesFI con las bibliotecas de Qt que necesita
+las pruebas pasan, lo instala en %LOCALAPPDATA%\Programs\GeneradorExamenes con las bibliotecas de Qt que necesita
 (las copia windeployqt) y crea sus accesos directos en el menú Inicio y en el escritorio. No hace falta ser
 administrador.
 
@@ -40,7 +40,7 @@ Quita el programa instalado y sus accesos directos. La configuración y los banc
 [CmdletBinding()]
 param(
     [string]$Qt,
-    [string]$Destino = (Join-Path $env:LOCALAPPDATA 'Programs\GeneradorExamenesFI'),
+    [string]$Destino = (Join-Path $env:LOCALAPPDATA 'Programs\GeneradorExamenes'),
     [switch]$SinPruebas,
     [switch]$SinInstalar,
     [switch]$SinEscritorio,
@@ -50,8 +50,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $proyecto = $PSScriptRoot
 $compilacion = Join-Path $proyecto 'build'
-$ejecutable = 'GeneradorExamenesFI.exe'
-$nombreAcceso = 'Generador de exámenes FI.lnk'
+$ejecutable = 'GeneradorExamenes.exe'
+$nombreAcceso = 'Generador de exámenes.lnk'
 $accesoMenu = Join-Path ([Environment]::GetFolderPath('Programs')) $nombreAcceso
 $accesoEscritorio = Join-Path ([Environment]::GetFolderPath('Desktop')) $nombreAcceso
 
@@ -75,7 +75,7 @@ function Quitar-Instalacion {
 if ($Desinstalar) {
     Quitar-Instalacion
     Remove-Item -Force -ErrorAction SilentlyContinue $accesoMenu, $accesoEscritorio
-    Write-Host "Desinstalado. La configuración (%APPDATA%\UNED-FI) y los bancos de preguntas no se han tocado."
+    Write-Host "Desinstalado. La configuración (%APPDATA%\UNED) y los bancos de preguntas no se han tocado."
     exit 0
 }
 
@@ -180,10 +180,10 @@ foreach ($ruta in $accesos) {
     $acceso.TargetPath = $programa
     $acceso.WorkingDirectory = $Destino
     $acceso.IconLocation = "$programa,0"
-    $acceso.Description = 'Exámenes tipo test de Fundamentos de Informática (Curso de Acceso, UNED)'
+    $acceso.Description = 'Exámenes tipo test a partir de un banco de preguntas'
     $acceso.Save()
 }
 
 Write-Host ''
 Write-Host "Instalado: $programa" -ForegroundColor Green
-Write-Host "Acceso directo «Generador de exámenes FI» en el menú Inicio$(if ($accesos.Count -gt 1) { ' y en el escritorio' })."
+Write-Host "Acceso directo «Generador de exámenes» en el menú Inicio$(if ($accesos.Count -gt 1) { ' y en el escritorio' })."

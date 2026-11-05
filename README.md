@@ -17,17 +17,18 @@ posterior; `qt6-pdf-dev`) para leer los PDF de los exámenes anteriores; sin él
 ```sh
 cmake -S . -B build
 cmake --build build
-./build/GeneradorExamenesFI            # o: ./build/GeneradorExamenesFI ruta/del/banco.db
+./build/GeneradorExamenes            # o: ./build/GeneradorExamenes ruta/del/banco.db
 ```
 
 Las preguntas no están en el repositorio (ver «Bancos de preguntas»). El programa abre el último banco de
 preguntas que se abrió; la primera vez, o si se ha movido, pregunta cuál abrir o si crear uno nuevo. La ruta
 del último banco y las opciones se guardan (los diálogos para abrir o crear un banco empiezan en la carpeta del último que se abrió) en un fichero de configuración:
-`~/.config/UNED-FI/GeneradorExamenesFI.conf` en Linux y `%APPDATA%\UNED-FI\GeneradorExamenesFI.ini` en Windows
-(el diálogo *Ayuda → Acerca de* dice cuál es).
+`~/.config/UNED/GeneradorExamenes.conf` en Linux y `%APPDATA%\UNED\GeneradorExamenes.ini` en Windows
+(el diálogo *Ayuda → Acerca de* dice cuál es). Hasta la versión 1.0 el programa se llamaba `GeneradorExamenesFI`
+y la configuración estaba en `UNED-FI/GeneradorExamenesFI`: si la nueva está vacía, al arrancar se copia de allí.
 
 Para tenerlo en el menú del escritorio (Cinnamon, GNOME, KDE…) con su icono: `herramientas/instalar_lanzador.sh`
-(con `--quitar`, se desinstala), sin instalar el programa: el lanzador apunta a `build/GeneradorExamenesFI`; si hay una copia en el
+(con `--quitar`, se desinstala), sin instalar el programa: el lanzador apunta a `build/GeneradorExamenes`; si hay una copia en el
 escritorio, también la actualiza. Si se mueve el proyecto, hay que volver a ejecutarlo.
 
 En Windows se compila igual con CMake (o desde Qt Creator), con Qt 6 para MinGW o MSVC. Sale como aplicación
@@ -41,7 +42,7 @@ Para llevarlo a otros ordenadores con Windows, se prepara un paquete (compilado 
 cmake --build build --target paquete
 ```
 
-Deja `build\GeneradorExamenesFI-<versión>-windows.zip`, con una carpeta que contiene el programa, las bibliotecas de Qt
+Deja `build\GeneradorExamenes-<versión>-windows.zip`, con una carpeta que contiene el programa, las bibliotecas de Qt
 que necesita (las copia `windeployqt`, con las traducciones al castellano de los diálogos), las del compilador
 (MinGW o Visual Studio) y un `LEEME.txt` para quien lo reciba (`recursos/LEEME_windows.txt`). Se descomprime y
 funciona sin instalar nada; no lleva preguntas. Desde Qt Creator: *Proyectos → Compilar → Pasos de compilación*,
@@ -65,7 +66,7 @@ permisos de administrador. Si había una versión instalada, la sustituyen.
 - Windows: doble clic en `compilar.bat`. Busca Qt 6 en `C:\Qt` (el más reciente, preferiblemente el de MinGW, con el
   compilador, CMake y Ninja que trae el instalador de Qt en `C:\Qt\Tools`; con el de Visual Studio, usa el Visual Studio
   instalado) e instala el programa con sus bibliotecas (las copia `windeployqt`) en
-  `%LOCALAPPDATA%\Programs\GeneradorExamenesFI`, con accesos directos en el menú Inicio y en el escritorio. Parámetros: `-Qt C:\Qt\6.8.3\mingw_64`
+  `%LOCALAPPDATA%\Programs\GeneradorExamenes`, con accesos directos en el menú Inicio y en el escritorio. Parámetros: `-Qt C:\Qt\6.8.3\mingw_64`
   (otro Qt), `-Destino`, `-SinEscritorio`, `-SinPruebas`, `-SinInstalar` y
   `-Desinstalar`.
 
@@ -222,7 +223,7 @@ variantes nuevas toman la siguiente letra libre (si la pregunta existente no tie
 | `.github/workflows/windows.yml` | Prepara en GitHub el paquete de Windows (se lanza a mano o con una etiqueta `v*`). |
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |
-| `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `GeneradorExamenesFI.desktop.in` es el lanzador del menú del escritorio de Linux. `LEEME_windows.txt` va en el paquete de Windows. |
+| `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `GeneradorExamenes.desktop.in` es el lanzador del menú del escritorio de Linux. `LEEME_windows.txt` va en el paquete de Windows. |
 | `src/` | Código fuente del programa. |
 | `tests/` | Pruebas automáticas, con datos inventados. |
 

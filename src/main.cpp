@@ -1,3 +1,4 @@
+#include "utilidades.h"
 #include "ventanaprincipal.h"
 
 #include <QApplication>
@@ -11,15 +12,22 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    QApplication::setOrganizationName(QStringLiteral("UNED-FI"));
-    QApplication::setApplicationName(QStringLiteral("GeneradorExamenesFI"));
-    QApplication::setApplicationDisplayName(QStringLiteral("Generador de exámenes FI"));
+    QApplication::setOrganizationName(QStringLiteral("UNED"));
+    QApplication::setApplicationName(QStringLiteral("GeneradorExamenes"));
+    QApplication::setApplicationDisplayName(QStringLiteral("Generador de exámenes"));
 #ifdef Q_OS_WIN
     // La configuración (último banco de preguntas abierto y opciones) va en un fichero también en Windows
-    // (%APPDATA%\UNED-FI\GeneradorExamenesFI.ini), no en el registro. En Linux ya es un fichero:
-    // ~/.config/UNED-FI/GeneradorExamenesFI.conf.
+    // (%APPDATA%\UNED\GeneradorExamenes.ini), no en el registro. En Linux ya es un fichero:
+    // ~/.config/UNED/GeneradorExamenes.conf.
     QSettings::setDefaultFormat(QSettings::IniFormat);
 #endif
+    // Hasta la versión 1.0 el programa se llamaba GeneradorExamenesFI y su configuración estaba en
+    // ~/.config/UNED-FI/GeneradorExamenesFI.conf (%APPDATA%\UNED-FI\GeneradorExamenesFI.ini en Windows): si la de
+    // ahora está vacía, se copia de allí.
+    {
+        QSettings nueva;
+        traerConfiguracionAntigua(QSettings(QStringLiteral("UNED-FI"), QStringLiteral("GeneradorExamenesFI")), nueva);
+    }
     QLocale::setDefault(QLocale(QLocale::Spanish, QLocale::Spain));
 
     QIcon icono;

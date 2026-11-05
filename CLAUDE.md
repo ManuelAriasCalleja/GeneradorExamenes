@@ -1,4 +1,4 @@
-# GeneradorExamenesFI
+# GeneradorExamenes
 
 Generador de exámenes tipo test de Fundamentos de Informática (Curso de Acceso, UNED) en C++/Qt 6.
 Compilación, uso y ficheros: ver `README.md`. Mejoras pendientes: ver `PENDIENTE.md`.
@@ -12,7 +12,7 @@ exportados (PDF, HTML, LaTeX) tampoco se guardan dentro del proyecto.
 
 `asignatura` es un enlace local (en `.gitignore`) al directorio de la asignatura, para llegar a los bancos
 desde aquí. Si falta: `ln -s "<directorio de la asignatura>" asignatura`. El programa no lo usa: abre el
-último banco que se abrió, cuya ruta guarda en su fichero de configuración (`~/.config/UNED-FI/GeneradorExamenesFI.conf`).
+último banco que se abrió, cuya ruta guarda en su fichero de configuración (`~/.config/UNED/GeneradorExamenes.conf`).
 
 ## Pruebas
 `ctest --test-dir build --output-on-failure` (ver README). Pasarlas antes de dar por bueno un cambio, y añadir
