@@ -845,10 +845,8 @@ void VentanaPrincipal::acercaDe()
                                 "con el número de preguntas que se indique de cada tema.</p>"
                                 "<p>Nunca pone en un mismo examen dos variantes de una pregunta (3a/3b) ni "
                                 "pseudorrepetidas, y puede evitar que se repitan preguntas entre exámenes.</p>"
-                                "<p>Asignatura: %2</p>"
-                                "<p>Base de datos: <tt>%3</tt></p><p>Configuración: <tt>%4</tt></p><p>Qt %5</p>")
-                     .arg(QStringLiteral(VERSION_APLICACION), m_bd.asignatura().isEmpty() ? QStringLiteral("—") : m_bd.asignatura().toHtmlEscaped(),
-                          QDir::toNativeSeparators(m_bd.ruta()).toHtmlEscaped(),
+                                "<p>Base de datos: <tt>%2</tt></p><p>Configuración: <tt>%3</tt></p><p>Qt %4</p>")
+                     .arg(QStringLiteral(VERSION_APLICACION), QDir::toNativeSeparators(m_bd.ruta()).toHtmlEscaped(),
                           QDir::toNativeSeparators(QSettings().fileName()).toHtmlEscaped(), QString::fromLatin1(qVersion())));
     caja.setStandardButtons(QMessageBox::Ok);
     // QMessageBox elige el ancho del texto y lo deja muy estrecho (hasta el nombre se partía en dos líneas).

@@ -953,6 +953,36 @@ private slots:
         delete editor;
     }
 
+    // «Acerca de» habla del programa, que vale para cualquier asignatura: dice la versión, el banco abierto y la
+    // configuración, pero no la asignatura del banco (esa va en el título de la ventana).
+    void acercaDeNoDiceLaAsignatura()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        {
+            BaseDatos bd;
+            QVERIFY(crearBancoInventado(ruta));
+            QVERIFY(bd.abrir(ruta));
+            QVERIFY(bd.guardarAsignatura(QStringLiteral("Asignatura inventada")));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QAction *acerca = nullptr;
+        for (QAction *a : v.findChildren<QAction *>())
+            if (a->text() == QStringLiteral("&Acerca de…"))
+                acerca = a;
+        QVERIFY(acerca);
+        QString texto;
+        responder(QStringLiteral("OK"), &texto);
+        acerca->trigger();
+        QVERIFY2(texto.contains(QStringLiteral("<h3>Generador de exámenes</h3>")), qPrintable(texto));
+        QVERIFY2(texto.contains(QStringLiteral("<p>Versión ")), qPrintable(texto));
+        QVERIFY2(texto.contains(QDir::toNativeSeparators(ruta).toHtmlEscaped()), qPrintable(texto));
+        QVERIFY2(!texto.contains(QStringLiteral("Asignatura inventada")), qPrintable(texto));
+        QVERIFY2(!texto.contains(QStringLiteral("Asignatura:")), qPrintable(texto));
+    }
+
     // Los diálogos para elegir un banco se abren en la carpeta del banco abierto o, si no hay ninguno, en la del último
     // que se abrió (o la más cercana que siga existiendo, si se ha borrado).
     void carpetaDeLosBancos()
