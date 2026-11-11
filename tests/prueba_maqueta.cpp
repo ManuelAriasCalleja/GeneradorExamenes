@@ -280,6 +280,10 @@ private slots:
         QVERIFY(!Maquetador::examenHtml(m, convocatoria(), false, 0, true).contains(titulo));
         QVERIFY(Maquetador::examenesHtml({m}, convocatoria(), true).contains(titulo));
         QVERIFY(!Maquetador::examenesHtml({m}, convocatoria(), false).contains(titulo));
+        // La estructura, con tabulary: a su ancho si cabe; si no, al de la página, partiendo las celdas (antes se salía
+        // por la derecha con muchas preguntas).
+        QVERIFY(tex.contains(QStringLiteral("\\begin{tabulary}{\\linewidth}{|l|L|L|L|L|L|L|L|L|}")));
+        QVERIFY(tex.contains(QStringLiteral("\\usepackage{graphicx,array,tabularx,tabulary,")));
         // El fin de la hoja de soluciones, en un párrafo propio: detrás de la tabla de las referencias, que ocupa todo el
         // ancho, podía pasar a una página más, vacía salvo el pie.
         QVERIFY(tex.contains(QStringLiteral("\\end{tabularx}}\n\\par\\label{fin:soluciones}")));

@@ -839,7 +839,7 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage[a4paper,left=18mm,right=18mm,top=15mm,bottom=12mm,includefoot,footskip=8mm]{geometry}
 \usepackage{xcolor}
-\usepackage{graphicx,array,tabularx,fancyvrb,fancyhdr,amssymb}
+\usepackage{graphicx,array,tabularx,tabulary,fancyvrb,fancyhdr,amssymb}
 \definecolor{verde}{HTML}{0A7D32}
 % Símbolos que pdflatex no reconoce por sí solo (válidos también dentro de los bloques de código).
 \DeclareUnicodeCharacter{03BC}{\textmu}
@@ -1139,10 +1139,12 @@ QString Maquetador::solucionesLatex(const QVector<Modelo> &modelos, const DatosC
 {
     QString tex = cabeceraLatex(d, QStringLiteral("{\\LARGE\\bfseries %1}").arg(escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones")))));
 
-    // Estructura: qué preguntas de cada tema entran en cada modelo.
+    // Estructura: qué preguntas de cada tema entran en cada modelo. Con tabulary, la tabla tiene su ancho natural si
+    // cabe; si no (muchas preguntas o muchos temas), ocupa el de la página y las celdas parten sus líneas tras las comas,
+    // como en el PDF.
     const QList<int> temas = temasDe(modelos);
-    tex += QStringLiteral("\\subsection*{%2}\n\\begin{tabular}{|l|%1}\\hline\n\\textbf{%3}")
-               .arg(QStringLiteral("l|").repeated(temas.size()),
+    tex += QStringLiteral("\\subsection*{%2}\n\\begin{tabulary}{\\linewidth}{|l|%1}\\hline\n\\textbf{%3}")
+               .arg(QStringLiteral("L|").repeated(temas.size()),
                     escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Estructura de la convocatoria"))),
                     escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Examen"))));
     for (int t : temas)
@@ -1154,7 +1156,7 @@ QString Maquetador::solucionesLatex(const QVector<Modelo> &modelos, const DatosC
             tex += QStringLiteral(" & ") + escaparLatex(codigosDelTema(m, t).join(QStringLiteral(", ")));
         tex += QStringLiteral(" \\\\ \\hline\n");
     }
-    tex += QStringLiteral("\\end{tabular}\n");
+    tex += QStringLiteral("\\end{tabulary}\n");
 
     // Plantilla de corrección de cada modelo («1 C», «2 A»…, en filas de 10) y, debajo, código, respuesta y referencia de
     // cada pregunta.
