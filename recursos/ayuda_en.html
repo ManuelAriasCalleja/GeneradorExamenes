@@ -576,19 +576,36 @@ discarded.</p>
 <p>The question text is plain text, in one or more paragraphs. It also accepts code and tables:</p>
 <ul>
 <li><b>Code</b>: between two lines containing only three backticks (<tt>```</tt>). It is printed in a grey box, so
-that it stands out from the text, in a fixed-width font and keeping the spaces; the same in the preview, the exports
-and Moodle.</li>
+that it stands out from the text, in a fixed-width font and keeping the spaces; lines that do not fit in the width of
+the page are wrapped. The same in the preview, the exports and Moodle.</li>
 <li><b>Tables</b>: each row on one line, with the cells separated by bars: <tt>| cell | cell |</tt>.</li>
 </ul>
 <p>For example:</p>
 <pre>Text of the question, in one or more paragraphs:
-```
-code line 1
-    code line 2
+```java numerado
+int total = 0;
+for (int i = 1; i &lt;= 3; i++)
+    total += i;
 ```
 | Column 1 | Column 2 |
 | data     | data     |</pre>
-<p>The preview shows how it will look.</p>
+<p>The line that opens the code can say its <b>language</b>, and then it is highlighted (keywords in bold blue,
+comments in grey italics, strings in maroon: it can also be told apart when printed in black and white), and
+<b>numerado</b> (Spanish for “numbered”), so that it has line numbers on the left: <tt>```java</tt>,
+<tt>```xml numerado</tt>, <tt>``` numerado</tt>. The languages are:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Written</th><th align="left">For</th></tr>
+<tr><td><tt>xml</tt></td><td>XML, and also XML Schema, XSLT, WSDL or SOAP (<tt>xsd</tt>, <tt>xsl</tt>, <tt>xslt</tt>,
+<tt>wsdl</tt> and <tt>soap</tt> are accepted).</td></tr>
+<tr><td><tt>dtd</tt></td><td>A DTD, or an XML document with its internal DTD.</td></tr>
+<tr><td><tt>idl</tt></td><td>CORBA IDL.</td></tr>
+<tr><td><tt>html</tt>, <tt>json</tt>, <tt>yaml</tt> (or <tt>yml</tt>), <tt>java</tt>, <tt>c</tt>, <tt>python</tt>,
+<tt>sql</tt></td><td>Those languages.</td></tr>
+<tr><td><tt>texto</tt>, or nothing</td><td>Not highlighted.</td></tr>
+</table>
+<p>After <tt>```</tt> only the language and <tt>numerado</tt> may go. A language that is not in the list, an extra
+word or a code block that is not closed give a style warning (and when <a href="#comprobarjson">checking a JSON
+file</a>). The preview shows how it will look.</p>
 
 <h3><a name="pautas"></a>Style guidelines</h3>
 <p>As you type, the bank’s writing guidelines that the question does not follow appear in yellow below the preview.
@@ -760,6 +777,9 @@ its topic and number, such as <tt>"T1-7"</tt>.</td></tr>
 <tr><td><tt>codigo</tt>, <tt>etiqueta_original</tt></td><td>For information only: they are written by the program and
 by the questions document tool; when importing, <tt>numero</tt> and <tt>variante</tt> are what count.</td></tr>
 </table>
+<p>To write questions, or to ask an assistant such as Claude for them, there is a guide (in Spanish) with the format,
+how code is written and the rules that are checked: <a href="https://github.com/ManuelAriasCalleja/GeneradorExamenes/blob/main/docs/redactar_preguntas.md">Redactar preguntas para el generador de
+exámenes</a>. For an assistant, it is enough to give it the address.</p>
 <p>The things most often forgotten when writing a JSON file by hand: texts go in straight double quotes (<tt>"</tt>,
 not <tt>“ ”</tt>, which appear when copying from a word processor); inside a text, a quotation mark is written
 <tt>\"</tt> and a backslash <tt>\\</tt>; <tt>true</tt>, <tt>false</tt>, <tt>null</tt> and numbers go without
@@ -775,7 +795,8 @@ missing or a value is not valid (a correct answer “E”, three options, a stat
 question…). A file with errors cannot be imported.</li>
 <li><b>Warnings</b>: a field that is not part of the format, which is ignored (if it looks like one that is, because
 of a typo, it says so: ‘Did you mean “enunciado”?’); a pseudo-duplicate of a question that is neither in the JSON nor
-in the bank; identical options; a topic without a title. They do not prevent importing.</li>
+in the bank; identical options; a topic without a title; a code block in a language that is not highlighted, with
+extra words after the <tt>```</tt> or not closed. They do not prevent importing.</li>
 </ul>
 <p>With the JSON open in a text editor, correct what it says, save it and click <b>Check
 again</b>. <b>Open the file</b> opens it with the program that the system associates with it, and <b>Copy the

@@ -27,6 +27,7 @@ qt_add_library(nucleo STATIC
     src/basedatos.h src/basedatos.cpp
     src/generador.h src/generador.cpp
     src/enunciado.h src/enunciado.cpp
+    src/resaltado.h src/resaltado.cpp
     src/estilo.h src/estilo.cpp
     src/exportacion.h src/exportacion.cpp
     src/parecidas.h src/parecidas.cpp

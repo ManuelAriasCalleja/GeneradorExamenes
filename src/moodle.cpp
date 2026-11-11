@@ -1,5 +1,6 @@
 #include "moodle.h"
 #include "enunciado.h"
+#include "resaltado.h"
 #include "estilo.h"
 #include "idioma.h"
 #include "maquetador.h"
@@ -27,11 +28,19 @@ QString enunciadoHtml(const QString &texto)
             html += QStringLiteral("<p>%1</p>").arg(lineas.join(QStringLiteral("<br>")));
             break;
         }
-        case Enunciado::Bloque::Codigo:
-            // En un recuadro gris, como en los exámenes.
+        case Enunciado::Bloque::Codigo: {
+            // En un recuadro gris y resaltado, como en los exámenes; con números de línea, si los lleva, en gris.
+            QStringList lineas = Resaltado::html(b.lineas, b.lenguaje);
+            if (b.numerado) {
+                const int cifras = QString::number(lineas.size()).size();
+                for (int i = 0; i < lineas.size(); ++i)
+                    lineas[i] = QStringLiteral("<span style=\"color:#%1\">%2</span>  %3")
+                                    .arg(QLatin1String(Resaltado::kColorNumero), QString::number(i + 1).rightJustified(cifras), lineas.at(i));
+            }
             html += QStringLiteral("<pre style=\"background-color:#eeeeee; border:1px solid #808080; padding:4px\">%1</pre>")
-                        .arg(Maquetador::escapar(b.lineas.join(QLatin1Char('\n'))));
+                        .arg(lineas.join(QLatin1Char('\n')));
             break;
+        }
         case Enunciado::Bloque::Tabla:
             html += QStringLiteral("<table border=\"1\" cellpadding=\"3\" style=\"border-collapse:collapse\">");
             for (const QStringList &fila : b.filas) {

@@ -104,6 +104,10 @@ private slots:
         QTest::newRow("formato del otro grupo, tema 1") << conReferencia(1, "Pág. 10 libro (subsección 1.2).") << "En el tema 1";
         QTest::newRow("sin «del libro de teoría»") << conReferencia(1, "Véase la página 10.") << "forma habitual";
         QTest::newRow("sin «subsección»") << conReferencia(2, "Pág. 10 libro (2.3.1).") << "forma habitual";
+        QTest::newRow("código con lenguaje y números") << conEnunciado("Este código:\n```java numerado\nint x;\n```\nQué hace:") << QString();
+        QTest::newRow("código en un lenguaje que no se resalta") << conEnunciado("Este código:\n```cobol\nMOVE A TO B.\n```\nQué hace:")
+                                                              << "«cobol»";
+        QTest::newRow("código sin cerrar") << conEnunciado("Este código:\n```java\nint x;") << "no se cierra";
     }
 
     void revisar()

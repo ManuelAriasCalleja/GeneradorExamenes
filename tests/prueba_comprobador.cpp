@@ -233,6 +233,16 @@ private slots:
         QVERIFY(buscar(r, QStringLiteral("Las opciones a) y d) son iguales")));
         QCOMPARE(r.avisos(), 5);
 
+        // Los bloques de código del enunciado: un lenguaje que no se resalta, lo que sobra tras ``` y uno sin cerrar.
+        const Resultado codigo = comprobar(banco(pregunta(1).replace("Enunciado inventado:", "Este:\\n```cobol numerdo\\nMOVE A TO B.")));
+        QVERIFY2(codigo.valido(), qPrintable(describir(codigo)));
+        QCOMPARE(codigo.avisos(), 3);
+        QVERIFY(buscar(codigo, QStringLiteral("El código dice ser «cobol»")));
+        QVERIFY(buscar(codigo, QStringLiteral("sobra «numerdo»")));
+        QVERIFY(buscar(codigo, QStringLiteral("no se cierra")));
+        QCOMPARE(buscar(codigo, QStringLiteral("no se cierra"))->donde, QStringLiteral("tema 1, pregunta 1"));
+        QCOMPARE(comprobar(banco(pregunta(1).replace("Enunciado inventado:", "Este:\\n```java numerado\\nint x;\\n```"))).problemas.size(), 0);
+
         // Si la pseudorrepetida está en el banco en el que se importa, no hay aviso; tampoco si está en el JSON.
         const QByteArray conPseudo = banco(pregunta(1, "\"pseudo_con\": \"T5-2\"") + ",\n" + pregunta(2, "\"pseudo_con\": \"T1-1\""));
         QCOMPARE(comprobar(conPseudo, {QStringLiteral("T5-2")}).problemas.size(), 0);

@@ -89,7 +89,7 @@ ctest --test-dir build --output-on-failure
 
 Están en `tests/`, con Qt Test (incluido en `qt6-base-dev`), y tardan unos segundos. Comprueban el generador
 (reparto por tema, variantes y pseudorrepetidas, reparto de la correcta, preguntas ya usadas, cambio de una pregunta), el comprobador de
-estilo, el formato de los enunciados, la base de datos (JSON, copia de seguridad, transacciones, historial, temas),
+estilo, el formato de los enunciados (y el resaltado de su código), la base de datos (JSON, copia de seguridad, transacciones, historial, temas),
 la maqueta (que un examen de 10 preguntas quepa en un folio, y la versión con letra grande) y las exportaciones, las
 parecidas, el cuestionario de Moodle, la lectura de los exámenes anteriores (texto, PDF y nombre del fichero), los
 recorridos principales de la interfaz y la ayuda (que tenga los apartados a
@@ -207,7 +207,11 @@ crear, «Guardar y nueva» (otra en el mismo tema), para repasar o escribir vari
 menú *Editar → Temas* para añadir o renombrar temas y elegir la forma de la referencia al libro de cada uno (depende
 de su autor). En el enunciado se puede escribir código entre
 líneas ```` ``` ```` (sale en un recuadro gris, en letra de ancho fijo, en la vista, las exportaciones y Moodle) y
-filas de tabla como `| celda | celda |`; también se puede añadir una imagen.
+filas de tabla como `| celda | celda |`; también se puede añadir una imagen. La línea que abre el código puede decir
+su lenguaje, para que salga resaltado, y `numerado`, para que lleve números de línea: ```` ```java ````,
+```` ```xml numerado ````. Los lenguajes son c, dtd, html, idl (el de CORBA), java, json, python, sql, xml (también xsd,
+xsl, xslt, wsdl y soap) y yaml (o yml); `src/resaltado.h` los resalta en la vista, el PDF, el HTML y Moodle, y en LaTeX lo hace el
+paquete listings, con los mismos colores.
 
 Al editar una pregunta, bajo la vista previa se avisa de las pautas de redacción que no cumple: enunciado
 acabado en dos puntos (o en «?:» si es una pregunta) y de no más de unos 180 caracteres, negaciones en
@@ -274,6 +278,11 @@ los de ejemplo), editores como VS Code avisan de los errores y completan los cam
 *Archivo → Guardar un JSON de ejemplo…* guarda `recursos/ejemplo_banco.json` (o `ejemplo_banco_en.json`, con la
 interfaz en inglés), con preguntas inventadas que usan todo el formato.
 
+Para escribirlas, o pedírselas a un asistente como Claude, está la guía
+[Redactar preguntas para el generador de exámenes](docs/redactar_preguntas.md): el formato, cómo se escribe el código
+y las reglas que se comprueban. A un asistente basta con darle su dirección:
+<https://raw.githubusercontent.com/ManuelAriasCalleja/GeneradorExamenes/main/docs/redactar_preguntas.md>.
+
 Antes de importar, el programa comprueba el JSON (`src/comprobadorjson.h`) y dice todos los problemas a la vez, con
 su línea, su columna y la pregunta: con errores no importa. También se comprueba con *Archivo → Comprobar un JSON…*
 o sin abrir el programa:
@@ -283,7 +292,7 @@ o sin abrir el programa:
 ```
 
 Si cambia el formato, hay que cambiar a la vez el comprobador, el esquema (la prueba `comprobador` compara sus
-campos), los ejemplos y la ayuda.
+campos), los ejemplos, la ayuda y la guía `docs/redactar_preguntas.md`.
 
 ## Ficheros
 
@@ -295,6 +304,7 @@ campos), los ejemplos y la ayuda.
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `traducciones/` | Traducciones de la interfaz y de los textos de los exámenes (Qt Linguist), una por idioma. |
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |
+| `docs/redactar_preguntas.md` | Guía para escribir preguntas, o pedírselas a Claude: el formato del JSON, el código con su lenguaje y números de línea, y las reglas que se comprueban. |
 | `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*, y `ayuda_en.html` en inglés), esquema JSON del formato de las preguntas (`banco.schema.json`) y JSON de ejemplo (`ejemplo_banco.json`, `ejemplo_banco_en.json`), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `GeneradorExamenes.desktop.in` es el lanzador del menú del escritorio de Linux. `LEEME_windows.txt` va en el paquete de Windows. |
 | `src/` | Código fuente del programa. |
 | `tests/` | Pruebas automáticas, con datos inventados. |

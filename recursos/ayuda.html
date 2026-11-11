@@ -563,19 +563,36 @@ descartarlos.</p>
 <p>El enunciado es texto normal, en uno o varios párrafos. Admite además código y tablas:</p>
 <ul>
 <li><b>Código</b>: entre dos líneas que solo tengan tres comillas invertidas (<tt>```</tt>). Se imprime en un
-recuadro gris, para que se distinga del texto, en letra de ancho fijo y respetando los espacios; igual en la vista,
-en las exportaciones y en Moodle.</li>
+recuadro gris, para que se distinga del texto, en letra de ancho fijo y respetando los espacios; las líneas que no
+caben en el ancho de la página se parten. Igual en la vista, en las exportaciones y en Moodle.</li>
 <li><b>Tablas</b>: cada fila en una línea, con las celdas separadas por barras: <tt>| celda | celda |</tt>.</li>
 </ul>
 <p>Por ejemplo:</p>
 <pre>Texto del enunciado, en uno o varios párrafos:
-```
-línea de código 1
-    línea de código 2
+```java numerado
+int total = 0;
+for (int i = 1; i &lt;= 3; i++)
+    total += i;
 ```
 | Columna 1 | Columna 2 |
 | dato      | dato      |</pre>
-<p>La vista previa enseña cómo quedará.</p>
+<p>La línea que abre el código puede decir su <b>lenguaje</b>, y entonces sale resaltado (las palabras clave en
+negrita y azul, los comentarios en cursiva y gris, las cadenas en granate: se distingue también impreso en blanco y
+negro), y <b>numerado</b>, para que lleve los números de línea a la izquierda: <tt>```java</tt>,
+<tt>```xml numerado</tt>, <tt>``` numerado</tt>. Los lenguajes son:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Se escribe</th><th align="left">Para</th></tr>
+<tr><td><tt>xml</tt></td><td>XML, y también XML Schema, XSLT, WSDL o SOAP (se admiten <tt>xsd</tt>, <tt>xsl</tt>,
+<tt>xslt</tt>, <tt>wsdl</tt> y <tt>soap</tt>).</td></tr>
+<tr><td><tt>dtd</tt></td><td>Una DTD, o un documento XML con su DTD interna.</td></tr>
+<tr><td><tt>idl</tt></td><td>El IDL de CORBA.</td></tr>
+<tr><td><tt>html</tt>, <tt>json</tt>, <tt>yaml</tt> (o <tt>yml</tt>), <tt>java</tt>, <tt>c</tt>, <tt>python</tt>,
+<tt>sql</tt></td><td>Esos lenguajes.</td></tr>
+<tr><td><tt>texto</tt>, o nada</td><td>Sin resaltar.</td></tr>
+</table>
+<p>Detrás de <tt>```</tt> solo pueden ir el lenguaje y <tt>numerado</tt>. Un lenguaje que no está en la lista, una
+palabra de más o un bloque de código sin cerrar dan un aviso de estilo (y al <a href="#comprobarjson">comprobar un
+JSON</a>). La vista previa enseña cómo quedará.</p>
 
 <h3><a name="pautas"></a>Pautas de estilo</h3>
 <p>Mientras se escribe, bajo la vista previa aparecen en amarillo las pautas de redacción del banco que la pregunta
@@ -743,6 +760,9 @@ número, como <tt>"T1-7"</tt>.</td></tr>
 <tr><td><tt>codigo</tt>, <tt>etiqueta_original</tt></td><td>Informativos: los ponen el programa y la herramienta del
 documento de preguntas; al importar cuentan <tt>numero</tt> y <tt>variante</tt>.</td></tr>
 </table>
+<p>Para escribir preguntas, o pedírselas a un asistente como Claude, hay una guía con el formato, cómo se escribe el
+código y las reglas que se comprueban: <a href="https://github.com/ManuelAriasCalleja/GeneradorExamenes/blob/main/docs/redactar_preguntas.md">Redactar preguntas para el generador de
+exámenes</a>. A un asistente basta con darle su dirección.</p>
 <p>Lo que más se olvida al escribir un JSON a mano: los textos van entre comillas dobles y rectas (<tt>"</tt>, no
 <tt>“ ”</tt>, que salen al copiar de un procesador de textos); dentro de un texto, unas comillas se escriben
 <tt>\"</tt> y una barra invertida <tt>\\</tt>; <tt>true</tt>, <tt>false</tt>, <tt>null</tt> y los números van sin
@@ -758,7 +778,8 @@ obligatorio o un valor no vale (una correcta «E», tres opciones, un estado que
 Con errores no se puede importar.</li>
 <li><b>Avisos</b>: un campo que no es del formato, que se ignora (si se parece a uno que sí lo es, por una errata, lo
 dice: «¿Quería decir «enunciado»?»); una pseudorrepetida con una pregunta que no está ni en el JSON ni en el banco;
-opciones iguales; un tema sin título. No impiden importar.</li>
+opciones iguales; un tema sin título; un bloque de código en un lenguaje que no se resalta, con palabras de más tras
+las <tt>```</tt> o sin cerrar. No impiden importar.</li>
 </ul>
 <p>Con el JSON abierto en un editor de textos, se corrige lo que diga, se guarda y se pulsa <b>Volver a
 comprobar</b>. <b>Abrir el fichero</b> lo abre con el programa que tenga asociado el sistema, y <b>Copiar el

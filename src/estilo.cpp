@@ -116,6 +116,8 @@ void revisarEnunciado(const Pregunta &p, bool castellano, QVector<Aviso> &avisos
     static const QRegularExpression tipograficas(QStringLiteral("[“”‘’«»]"));
     if (tipograficas.match(partes.codigo.join(QLatin1Char('\n'))).hasMatch())
         avisar(QCoreApplication::translate("Estilo", "Dentro del código, las comillas deben ser rectas (\")."));
+    for (const QString &aviso : Enunciado::avisosDelCodigo(p.enunciado))
+        avisar(aviso);
 }
 
 void revisarOpciones(const Pregunta &p, bool castellano, QVector<Aviso> &avisos)

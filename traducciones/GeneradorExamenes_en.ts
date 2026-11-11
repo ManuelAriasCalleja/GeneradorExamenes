@@ -115,7 +115,7 @@
 <context>
     <name>ComprobadorJson</name>
     <message>
-        <location filename="../src/comprobadorjson.cpp" line="+66"/>
+        <location filename="../src/comprobadorjson.cpp" line="+67"/>
         <source>El fichero está vacío.</source>
         <translation>The file is empty.</translation>
     </message>
@@ -452,12 +452,12 @@
         <translation>“estado” must be &quot;activa&quot;, &quot;anulada&quot; or &quot;obsoleta&quot;, and it is “%1”.</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+4"/>
         <source>El enunciado está vacío.</source>
         <translation>The question text is empty.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+12"/>
         <source>«pseudo_con» tiene que ser el código de otra pregunta sin la letra de la variante, como &quot;T1-7&quot; (tema 1, número 7), y es «%1».</source>
         <translation>“pseudo_con” must be the code of another question without the variant letter, such as &quot;T1-7&quot; (topic 1, number 7), and it is “%1”.</translation>
     </message>
@@ -1798,6 +1798,26 @@ Do you want to save it anyway?</translation>
     </message>
 </context>
 <context>
+    <name>Enunciado</name>
+    <message>
+        <location filename="../src/enunciado.cpp" line="+64"/>
+        <source>El código dice ser «%1», un lenguaje que el programa no resalta: saldrá sin resaltar. Los que resalta son %2.</source>
+        <extracomment>%1 es el lenguaje que se ha escrito tras ``` y %2, la lista de los que conoce el programa</extracomment>
+        <translation>The code claims to be “%1”, a language the program does not highlight: it will come out unhighlighted. The ones it highlights are %2.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>En la línea que abre el código sobra «%1»: detrás de ``` solo van el lenguaje y «numerado».</source>
+        <extracomment>«numerado» no se traduce: es la palabra que hay que escribir tras ``` para que el código lleve números de línea</extracomment>
+        <translation>The line that opens the code has “%1” too many: after ``` only the language and “numerado” may go.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Un bloque de código no se cierra con otra línea ```: llega hasta el final del enunciado.</source>
+        <translation>A code block is not closed with another ``` line: it runs to the end of the question text.</translation>
+    </message>
+</context>
+<context>
     <name>Estilo</name>
     <message>
         <location filename="../src/estilo.cpp" line="+87"/>
@@ -1851,7 +1871,7 @@ Do you want to save it anyway?</translation>
         <translation>Inside code, quotation marks must be straight (&quot;).</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+14"/>
         <source>La opción %1) debe terminar en punto.</source>
         <translation>Option %1) must end with a full stop.</translation>
     </message>
@@ -1962,76 +1982,76 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="+289"/>
-        <location line="+721"/>
+        <location filename="../src/maquetador.cpp" line="+290"/>
+        <location line="+809"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
     <message>
-        <location line="-720"/>
-        <location line="+721"/>
+        <location line="-808"/>
+        <location line="+809"/>
         <source>Referencia:</source>
         <translation>Reference:</translation>
     </message>
     <message>
-        <location line="-710"/>
-        <location line="+939"/>
+        <location line="-798"/>
+        <location line="+1026"/>
         <source>Plantilla de corrección: %1</source>
         <translation>Answer key: %1</translation>
     </message>
     <message>
-        <location line="-876"/>
+        <location line="-963"/>
         <source>Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.
 No entregue el enunciado.</source>
         <translation>Mark the correct answer on the answer sheet only.
 Do not hand in the question paper.</translation>
     </message>
     <message>
-        <location line="+226"/>
-        <location line="+571"/>
+        <location line="+248"/>
+        <location line="+636"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
     <message>
-        <location line="-558"/>
-        <location line="+577"/>
+        <location line="-623"/>
+        <location line="+642"/>
         <source>Pregunta contestada correctamente:</source>
         <translation>Question answered correctly:</translation>
     </message>
     <message>
-        <location line="-576"/>
-        <location line="+577"/>
+        <location line="-641"/>
+        <location line="+642"/>
         <source>+ %1 puntos</source>
         <translation>+ %1 points</translation>
     </message>
     <message>
-        <location line="-576"/>
-        <location line="+577"/>
+        <location line="-641"/>
+        <location line="+642"/>
         <source>Pregunta contestada incorrectamente:</source>
         <translation>Question answered incorrectly:</translation>
     </message>
     <message>
-        <location line="-576"/>
-        <location line="+577"/>
+        <location line="-641"/>
+        <location line="+642"/>
         <source>- %1 puntos</source>
         <translation>- %1 points</translation>
     </message>
     <message>
-        <location line="-576"/>
-        <location line="+577"/>
+        <location line="-641"/>
+        <location line="+642"/>
         <source>Pregunta no contestada:</source>
         <translation>Question not answered:</translation>
     </message>
     <message>
-        <location line="-576"/>
-        <location line="+577"/>
+        <location line="-641"/>
+        <location line="+642"/>
         <source>0 puntos</source>
         <translation>0 points</translation>
     </message>
     <message>
-        <location line="-539"/>
+        <location line="-604"/>
         <location line="+179"/>
-        <location line="+314"/>
+        <location line="+379"/>
         <location line="+73"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
         <location line="+1"/>
@@ -2041,25 +2061,25 @@ Do not hand in the question paper.</translation>
         <translation>Solutions</translation>
     </message>
     <message>
-        <location line="-560"/>
-        <location line="+576"/>
+        <location line="-625"/>
+        <location line="+641"/>
         <source>Estructura de la convocatoria</source>
         <translation>Session structure</translation>
     </message>
     <message>
-        <location line="-575"/>
-        <location line="+565"/>
+        <location line="-640"/>
+        <location line="+630"/>
         <source>Examen</source>
         <translation>Exam</translation>
     </message>
     <message>
-        <location line="-907"/>
-        <location line="+942"/>
+        <location line="-994"/>
+        <location line="+1029"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
     <message>
-        <location filename="../src/moodle.cpp" line="+144"/>
+        <location filename="../src/moodle.cpp" line="+153"/>
         <source>Respuesta correcta.</source>
         <translation>Correct answer.</translation>
     </message>
@@ -2159,7 +2179,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-726"/>
+        <location filename="../src/maquetador.cpp" line="-791"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>

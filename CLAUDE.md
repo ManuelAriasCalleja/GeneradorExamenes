@@ -39,9 +39,14 @@ propias del castellano solo se comprueban en los bancos en castellano.
 ## Formato del JSON
 El de las preguntas que se importan lo comprueba `src/comprobadorjson.cpp`, lo describe el esquema
 `recursos/banco.schema.json` (publicado en GitHub: su dirección va en el `$schema` de los JSON) y lo enseñan los
-ejemplos `recursos/ejemplo_banco*.json` y el apartado «Formato del JSON» de la ayuda. Si cambia, hay que cambiarlos
-todos (la prueba `comprobador` compara los campos del esquema con los del comprobador). Los ejemplos son preguntas
-inventadas, como los datos de prueba.
+ejemplos `recursos/ejemplo_banco*.json`, el apartado «Formato del JSON» de la ayuda y la guía
+`docs/redactar_preguntas.md`. Si cambia, hay que cambiarlos todos (la prueba `comprobador` compara los campos del
+esquema con los del comprobador). Los ejemplos son preguntas inventadas, como los datos de prueba.
+
+La guía `docs/redactar_preguntas.md` es la que se da a Claude (por su enlace en GitHub) para que escriba preguntas
+para un banco: el formato, el código (```` ```java numerado ````…) y las reglas que se comprueban. Al escribir o
+proponer preguntas, seguirla y comprobar el JSON con `./build/GeneradorExamenes --comprobar fichero.json` hasta que no
+dé ni errores ni avisos. Como el README, no puede citar preguntas de los bancos.
 
 ## La presentación no va en git
 `presentacion/` (la presentación del programa para el equipo docente, en Typst) está en `.gitignore` y se queda

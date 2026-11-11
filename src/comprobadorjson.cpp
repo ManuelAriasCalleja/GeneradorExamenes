@@ -1,4 +1,5 @@
 #include "comprobadorjson.h"
+#include "enunciado.h"
 #include "idioma.h"
 
 #include <QCoreApplication>
@@ -572,8 +573,12 @@ private:
             if (!estados.contains(e->texto))
                 error(*e, donde, tr("«estado» tiene que ser \"activa\", \"anulada\" u \"obsoleta\", y es «%1».").arg(e->texto));
         }
-        if (const Valor *e = texto(p, QStringLiteral("enunciado"), donde, true); e && e->texto.trimmed().isEmpty())
-            error(*e, donde, tr("El enunciado está vacío."));
+        if (const Valor *e = texto(p, QStringLiteral("enunciado"), donde, true)) {
+            if (e->texto.trimmed().isEmpty())
+                error(*e, donde, tr("El enunciado está vacío."));
+            for (const QString &problema : Enunciado::avisosDelCodigo(e->texto))
+                aviso(*e, donde, problema);
+        }
         comprobarOpciones(p, donde);
         comprobarCorrecta(p, donde);
         texto(p, QStringLiteral("referencia"), donde, false);

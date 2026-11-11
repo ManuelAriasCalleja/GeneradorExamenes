@@ -29,6 +29,8 @@ private:
                 p.imagen = imagenInventada();
             else if (codigo == QLatin1String("T2-2"))
                 p.enunciado = QStringLiteral("Este programa:\n```\nint x = 1 << 2;\n```\ny esta tabla:\n| a | b |\nDan:");
+            else if (codigo == QLatin1String("T2-3"))
+                p.enunciado = QStringLiteral("Este código:\n```java numerado\nint x = 1; // uno\n```\nHace:");
             else if (codigo == QLatin1String("T3-1"))
                 p.explicacion = QStringLiteral("Porque sí & punto.");
         }
@@ -92,6 +94,14 @@ private slots:
         QVERIFY(xml.contains(QStringLiteral("<file name=\"T2-1.png\" path=\"/\" encoding=\"base64\">")
                              + QString::fromLatin1(imagenInventada().toBase64())));
         QVERIFY(xml.contains(QStringLiteral("<pre style=\"background-color:#eeeeee; border:1px solid #808080; padding:4px\">int x = 1 &lt;&lt; 2;</pre>")));
+        // Con lenguaje, resaltado; con «numerado», el número de cada línea delante, en gris.
+        QVERIFY2(xml.contains(QStringLiteral("padding:4px\"&gt;&lt;span style=\"color:#808080\"&gt;1&lt;/span&gt;  &lt;span "
+                                             "style=\"font-weight:bold; color:#1F3A93\"&gt;int&lt;/span&gt; x = 1; &lt;span "
+                                             "style=\"font-style:italic; color:#666666\"&gt;// uno&lt;/span&gt;&lt;/pre&gt;"))
+                     || xml.contains(QStringLiteral("padding:4px\"><span style=\"color:#808080\">1</span>  <span "
+                                                    "style=\"font-weight:bold; color:#1F3A93\">int</span> x = 1; <span "
+                                                    "style=\"font-style:italic; color:#666666\">// uno</span></pre>")),
+                 qPrintable(xml.mid(xml.indexOf(QStringLiteral("Este código")), 600)));
         QVERIFY(xml.contains(QStringLiteral("<tr><td>a</td><td>b</td></tr>")));
         QVERIFY(xml.contains(QStringLiteral("<p>Véase la página 31 del libro de teoría.</p><p>Porque sí &amp; punto.</p>")));
 

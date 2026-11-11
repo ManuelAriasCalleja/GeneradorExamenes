@@ -1,4 +1,7 @@
 #include "enunciado.h"
+#include "resaltado.h"
+
+#include <QCoreApplication>
 
 namespace Enunciado {
 
@@ -15,8 +18,22 @@ QVector<Bloque> bloques(const QString &texto)
     for (const QString &linea : texto.split(QLatin1Char('\n'))) {
         const QString t = linea.trimmed();
         if (t.startsWith(QLatin1String("```"))) {
-            if (!enCodigo)
+            if (!enCodigo) {
                 res.append(Bloque{Bloque::Codigo, {}, {}});   // aunque se quede vacío
+                Bloque &b = res.last();
+                b.cerrado = false;
+                // «```java numerado»: el lenguaje (la primera palabra que no es «numerado») y las opciones.
+                for (const QString &palabra : t.mid(3).split(QLatin1Char(' '), Qt::SkipEmptyParts)) {
+                    if (palabra.compare(QLatin1String("numerado"), Qt::CaseInsensitive) == 0)
+                        b.numerado = true;
+                    else if (b.lenguaje.isEmpty())
+                        b.lenguaje = palabra.toLower();
+                    else
+                        b.sobrantes << palabra;
+                }
+            } else {
+                res.last().cerrado = true;
+            }
             enCodigo = !enCodigo;
         } else if (enCodigo) {
             res.last().lineas << linea;
@@ -33,6 +50,27 @@ QVector<Bloque> bloques(const QString &texto)
         }
     }
     return res;
+}
+
+QStringList avisosDelCodigo(const QString &texto)
+{
+    const auto tr = [](const char *t) { return QCoreApplication::translate("Enunciado", t); };
+    QStringList avisos;
+    for (const Bloque &b : bloques(texto)) {
+        if (b.tipo != Bloque::Codigo)
+            continue;
+        if (!b.lenguaje.isEmpty() && !Resaltado::conocido(b.lenguaje))
+            //: %1 es el lenguaje que se ha escrito tras ``` y %2, la lista de los que conoce el programa
+            avisos << tr("El código dice ser «%1», un lenguaje que el programa no resalta: saldrá sin resaltar. Los que "
+                         "resalta son %2.").arg(b.lenguaje, Resaltado::lenguajes().join(QStringLiteral(", ")));
+        if (!b.sobrantes.isEmpty())
+            //: «numerado» no se traduce: es la palabra que hay que escribir tras ``` para que el código lleve números de línea
+            avisos << tr("En la línea que abre el código sobra «%1»: detrás de ``` solo van el lenguaje y «numerado».")
+                          .arg(b.sobrantes.join(QLatin1Char(' ')));
+        if (!b.cerrado)
+            avisos << tr("Un bloque de código no se cierra con otra línea ```: llega hasta el final del enunciado.");
+    }
+    return avisos;
 }
 
 } // namespace Enunciado

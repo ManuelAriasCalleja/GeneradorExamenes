@@ -1,5 +1,6 @@
 #include "maquetador.h"
 #include "enunciado.h"
+#include "resaltado.h"
 #include "idioma.h"
 
 #include <QAbstractTextDocumentLayout>
@@ -465,6 +466,34 @@ QString Maquetador::formatoPuntos(double v, const QString &idioma)
     return localeExamen(idioma).toString(v, 'f', 2);
 }
 
+namespace {
+
+// Un bloque de código en un recuadro gris, para que se distinga del texto (QTextDocument solo pone borde a las
+// tablas), resaltado según su lenguaje. Las líneas que no caben en el ancho de la página se parten. Con números de
+// línea, una fila por línea: el número a la izquierda, en gris, y la línea (aunque se parta) a su derecha.
+QString codigoHtml(const Enunciado::Bloque &b)
+{
+    const QString pre = QStringLiteral("<pre style=\"margin:0px; white-space:pre-wrap; font-family:%1; font-weight:normal; font-style:normal\">%2</pre>");
+    const QStringList lineas = Resaltado::html(b.lineas, b.lenguaje);
+    QString contenido;
+    if (b.numerado) {
+        contenido = QStringLiteral("<table cellspacing=\"0\" cellpadding=\"0\">");
+        for (int i = 0; i < lineas.size(); ++i)
+            contenido += QStringLiteral("<tr><td align=\"right\" style=\"padding-right:8px; color:#%1\">%2</td><td>%3</td></tr>")
+                             .arg(QLatin1String(Resaltado::kColorNumero),
+                                  pre.arg(QLatin1String(kFuenteCodigo), QString::number(i + 1)),
+                                  pre.arg(QLatin1String(kFuenteCodigo), lineas.at(i).isEmpty() ? QStringLiteral(" ") : lineas.at(i)));
+        contenido += QStringLiteral("</table>");
+    } else {
+        contenido = pre.arg(QLatin1String(kFuenteCodigo), lineas.join(QLatin1Char('\n')));
+    }
+    return QStringLiteral("<table cellspacing=\"0\" cellpadding=\"4\" style=\"margin-left:26px; margin-top:3px; margin-bottom:3px; border-collapse:collapse; border:1px solid %1\">"
+                          "<tr><td bgcolor=\"%2\" style=\"border:1px solid %1\">%3</td></tr></table>")
+        .arg(QLatin1String(kBordeCodigo), QLatin1String(kFondoCodigo), contenido);
+}
+
+} // namespace
+
 QString Maquetador::enunciadoHtml(const QString &texto, const QString &prefijo)
 {
     QString html;
@@ -503,14 +532,8 @@ QString Maquetador::enunciadoHtml(const QString &texto, const QString &prefijo)
             html += QStringLiteral("</table>");
             break;
         case Enunciado::Bloque::Codigo:
-            // En un recuadro gris, para que se distinga del texto (QTextDocument solo pone borde a las tablas).
             ponerPrefijoSolo();
-            html += QStringLiteral("<table cellspacing=\"0\" cellpadding=\"4\" style=\"margin-left:26px; margin-top:3px; margin-bottom:3px; border-collapse:collapse; border:1px solid %1\">"
-                                   "<tr><td bgcolor=\"%2\" style=\"border:1px solid %1\">"
-                                   "<pre style=\"margin:0px; font-family:%3; font-weight:normal; font-style:normal\">%4</pre>"
-                                   "</td></tr></table>")
-                        .arg(QLatin1String(kBordeCodigo), QLatin1String(kFondoCodigo), QLatin1String(kFuenteCodigo),
-                             escapar(b.lineas.join(QLatin1Char('\n'))));
+            html += codigoHtml(b);
             break;
         }
     }
@@ -893,7 +916,7 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage[a4paper,left=18mm,right=18mm,top=15mm,bottom=12mm,includefoot,footskip=8mm]{geometry}
 \usepackage{xcolor}
-\usepackage{graphicx,array,tabularx,fancyvrb,fancyhdr,amssymb}
+\usepackage{graphicx,array,tabularx,listings,fancyhdr,amssymb}
 \definecolor{verde}{HTML}{0A7D32}
 % Símbolos que pdflatex no reconoce por sí solo (válidos también dentro de los bloques de código).
 \DeclareUnicodeCharacter{03BC}{\textmu}
@@ -930,13 +953,41 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \newcommand{\letraexamen}{\normalsize}
 % Cada pregunta va en un bloque que no se parte entre dos páginas.
 \newenvironment{pregunta}{\par\addvspace{\seppregunta}\noindent\begin{minipage}{\linewidth}}{\end{minipage}\par}
-% Código de los enunciados: en un recuadro gris, como en el PDF.
+\newsavebox{\cajaestructura}
+% Código de los enunciados, como en el PDF: en un recuadro gris (el marco y el fondo de listings) del ancho de su línea
+% más larga (como mucho, el de la línea del examen, y entonces se parten las líneas que no caben), resaltado según su
+% lenguaje: palabras clave en negrita, comentarios en cursiva y cadenas en granate.
+% \begin{codigo}[opciones de listings]{caracteres de la línea más larga}{caracteres de los números de línea y su
+% separación, o 0}. No se mete en una caja (minipage, lrbox): listings dejaría mal las letras con tilde del texto que
+% sigue. Los caracteres que no son ASCII van como texto LaTeX entre (*@ y @*), salvo las letras con tilde, diéresis o
+% eñe, que las cambia listings.
 \definecolor{fondocodigo}{HTML}{EEEEEE}
 \definecolor{bordecodigo}{HTML}{808080}
-\newsavebox{\cajacodigo}
-\newsavebox{\cajaestructura}
-\newenvironment{codigo}{\VerbatimEnvironment\begin{lrbox}{\cajacodigo}\begin{BVerbatim}[formatcom=\normalfont\ttfamily]}%
-{\end{BVerbatim}\end{lrbox}\par\smallskip\sangria{\setlength{\fboxsep}{4pt}\fcolorbox{bordecodigo}{fondocodigo}{\usebox{\cajacodigo}}}\par\smallskip}
+\definecolor{codigoclave}{HTML}{1F3A93}
+\definecolor{codigocomentario}{HTML}{666666}
+\definecolor{codigocadena}{HTML}{8B1A1A}
+\definecolor{codigonumero}{HTML}{808080}
+\lstset{basicstyle=\ttfamily, columns=fullflexible, keepspaces=true, showstringspaces=false, tabsize=4,
+  breaklines=true, keywordstyle=\bfseries\color{codigoclave},
+  commentstyle=\itshape\color{codigocomentario}, stringstyle=\color{codigocadena},
+  numberstyle=\ttfamily\color{codigonumero}, escapeinside={(*@}{@*)}, frame=single, framesep=4pt,
+  framerule=0.4pt, rulecolor=\color{bordecodigo}, backgroundcolor=\color{fondocodigo}, aboveskip=4pt, belowskip=4pt,
+  literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1
+    {Ó}{{\'O}}1 {Ú}{{\'U}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1}
+\lstdefinelanguage{JSON}{morestring=[b]", morekeywords={true,false,null}, sensitive=true}
+\lstdefinelanguage{YAML}{morecomment=[l]\#, morestring=[b]", morestring=[b]', morekeywords={true,false,null,yes,no},
+  sensitive=false}
+\newlength{\anchocaracter}
+\newlength{\anchocodigo}
+\newlength{\anchonumeros}
+\lstnewenvironment{codigo}[3][]{%
+  \settowidth{\anchocaracter}{\ttfamily 0}%
+  \setlength{\anchocodigo}{#2\anchocaracter}%
+  \setlength{\anchonumeros}{#3\anchocaracter}%
+  \ifdim\anchocodigo>\dimexpr\linewidth-8mm-8.8pt-\anchonumeros\relax
+    \setlength{\anchocodigo}{\dimexpr\linewidth-8mm-8.8pt-\anchonumeros\relax}\fi
+  \lstset{framexleftmargin=\anchonumeros, xleftmargin=\dimexpr8mm+4.4pt+\anchonumeros\relax,
+    linewidth=\dimexpr8mm+8.8pt+\anchonumeros+\anchocodigo\relax, #1}}{}
 )tex";
 
 QString imagenLatex(const Pregunta &p, const QString &carpeta, int n)
@@ -992,6 +1043,44 @@ QString opcionesLatex(const PreguntaExamen &pe, bool soluciones, int n)
     }
     return QStringLiteral("\\par\\vspace{1pt}\n\\begin{tabularx}{\\linewidth}{@{\\sangria}%1@{}}\n%2\\end{tabularx}\n")
         .arg(columnas, cuerpo);
+}
+
+// Equivalente a codigoHtml(): el entorno codigo del preámbulo, con el lenguaje en listings y los números de línea si los
+// lleva. Los tabuladores pasan a ser cuatro espacios.
+QString codigoLatex(const Enunciado::Bloque &b)
+{
+    static const QString conLiterate = QStringLiteral("áéíóúÁÉÍÓÚüÜñÑ");
+    QStringList lineas;
+    int maximo = 1;
+    for (QString linea : b.lineas) {
+        linea.replace(QLatin1Char('\t'), QStringLiteral("    "));
+        // Los caracteres que van como texto LaTeX («→») pueden ser más anchos que los demás: cuentan por dos.
+        int ancho = 0;
+        QString escrita;
+        for (const QChar c : linea) {
+            const bool comoTexto = c.unicode() >= 128 && !conLiterate.contains(c);
+            escrita += comoTexto ? QStringLiteral("(*@%1@*)").arg(c) : QString(c);
+            ancho += comoTexto ? 2 : 1;
+        }
+        maximo = qMax(maximo, ancho);
+        lineas << escrita;
+    }
+    QStringList opciones;
+    const QString lenguaje = Resaltado::enListings(Resaltado::lenguaje(b.lenguaje));
+    // Entre llaves si lleva corchetes («[CORBA]IDL»), que cerrarían antes de tiempo las opciones de \begin{codigo}.
+    if (!lenguaje.isEmpty())
+        opciones << QStringLiteral("language=") + (lenguaje.contains(QLatin1Char('[')) ? QLatin1Char('{') + lenguaje + QLatin1Char('}') : lenguaje);
+    // En XML y HTML, el nombre de cada etiqueta en negrita, como las palabras clave (la opción solo existe con ellos).
+    if (lenguaje == QLatin1String("XML") || lenguaje == QLatin1String("HTML"))
+        opciones << QStringLiteral("markfirstintag=true");
+    // Los números de línea, a la izquierda y dentro del recuadro: sus cifras y un espacio.
+    int numeros = 0;
+    if (b.numerado) {
+        numeros = QString::number(qMax(1, int(b.lineas.size()))).size() + 1;
+        opciones << QStringLiteral("numbers=left") << QStringLiteral("numbersep=\\anchocaracter");
+    }
+    return QStringLiteral("\\begin{codigo}[%1]{%2}{%3}\n%4\n\\end{codigo}\n")
+        .arg(opciones.join(QLatin1Char(',')), QString::number(maximo), QString::number(numeros), lineas.join(QLatin1Char('\n')));
 }
 
 // Equivalente a explicacionHtml: la explicación y la referencia de la pregunta, debajo de las opciones.
@@ -1062,8 +1151,7 @@ QString enunciadoLatex(const QString &texto, const QString &prefijo)
         }
         case Enunciado::Bloque::Codigo:
             ponerPrefijoSolo();
-            tex += QStringLiteral("\\begin{codigo}\n%1\n\\end{codigo}\n")
-                       .arg(b.lineas.join(QLatin1Char('\n')));
+            tex += codigoLatex(b);
             break;
         }
     }

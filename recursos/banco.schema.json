@@ -101,7 +101,7 @@
           "type": "string",
           "minLength": 1,
           "pattern": "\\S",
-          "description": "Texto de la pregunta. Admite bloques de código entre líneas ``` y filas de tabla «| celda | celda |»; los saltos de línea se escriben \\n. / Question text. Code blocks between ``` lines and table rows «| cell | cell |» are allowed; line breaks are written \\n."
+          "description": "Texto de la pregunta. Admite bloques de código entre líneas ``` (la que lo abre puede decir el lenguaje y «numerado»: ```java numerado) y filas de tabla «| celda | celda |»; los saltos de línea se escriben \\n. Ver https://github.com/ManuelAriasCalleja/GeneradorExamenes/blob/main/docs/redactar_preguntas.md / Question text. Code blocks between ``` lines (the opening one may give the language and «numerado» for line numbers: ```java numerado) and table rows «| cell | cell |» are allowed; line breaks are written \\n."
         },
         "opciones": {
           "type": "array",
