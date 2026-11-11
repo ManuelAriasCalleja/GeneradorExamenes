@@ -839,7 +839,7 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage[a4paper,left=18mm,right=18mm,top=15mm,bottom=12mm,includefoot,footskip=8mm]{geometry}
 \usepackage{xcolor}
-\usepackage{graphicx,array,tabularx,tabulary,fancyvrb,fancyhdr,amssymb}
+\usepackage{graphicx,array,tabularx,fancyvrb,fancyhdr,amssymb}
 \definecolor{verde}{HTML}{0A7D32}
 % Símbolos que pdflatex no reconoce por sí solo (válidos también dentro de los bloques de código).
 \DeclareUnicodeCharacter{03BC}{\textmu}
@@ -880,6 +880,7 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \definecolor{fondocodigo}{HTML}{EEEEEE}
 \definecolor{bordecodigo}{HTML}{808080}
 \newsavebox{\cajacodigo}
+\newsavebox{\cajaestructura}
 \newenvironment{codigo}{\VerbatimEnvironment\begin{lrbox}{\cajacodigo}\begin{BVerbatim}[formatcom=\normalfont\ttfamily]}%
 {\end{BVerbatim}\end{lrbox}\par\smallskip\sangria{\setlength{\fboxsep}{4pt}\fcolorbox{bordecodigo}{fondocodigo}{\usebox{\cajacodigo}}}\par\smallskip}
 )tex";
@@ -1139,24 +1140,26 @@ QString Maquetador::solucionesLatex(const QVector<Modelo> &modelos, const DatosC
 {
     QString tex = cabeceraLatex(d, QStringLiteral("{\\LARGE\\bfseries %1}").arg(escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones")))));
 
-    // Estructura: qué preguntas de cada tema entran en cada modelo. Con tabulary, la tabla tiene su ancho natural si
-    // cabe; si no (muchas preguntas o muchos temas), ocupa el de la página y las celdas parten sus líneas tras las comas,
-    // como en el PDF.
+    // Estructura: qué preguntas de cada tema entran en cada modelo. Si la tabla cabe en la línea, con su ancho natural;
+    // si no (muchas preguntas o muchos temas), del ancho de la página, con las celdas partiendo sus líneas tras las
+    // comas, como en el PDF. Se mide en LaTeX (\sbox) para no depender de paquetes que no son los básicos.
     const QList<int> temas = temasDe(modelos);
-    tex += QStringLiteral("\\subsection*{%2}\n\\begin{tabulary}{\\linewidth}{|l|%1}\\hline\n\\textbf{%3}")
-               .arg(QStringLiteral("L|").repeated(temas.size()),
-                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Estructura de la convocatoria"))),
-                    escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Examen"))));
+    QString cuerpo = QStringLiteral("\\hline\n\\textbf{%1}").arg(escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Examen"))));
     for (int t : temas)
-        tex += QStringLiteral(" & \\textbf{T%1}").arg(t);
-    tex += QStringLiteral(" \\\\ \\hline\n");
+        cuerpo += QStringLiteral(" & \\textbf{T%1}").arg(t);
+    cuerpo += QStringLiteral(" \\\\ \\hline\n");
     for (const Modelo &m : modelos) {
-        tex += QStringLiteral("\\textbf{") + escaparLatex(m.nombre) + QLatin1Char('}');
+        cuerpo += QStringLiteral("\\textbf{") + escaparLatex(m.nombre) + QLatin1Char('}');
         for (int t : temas)
-            tex += QStringLiteral(" & ") + escaparLatex(codigosDelTema(m, t).join(QStringLiteral(", ")));
-        tex += QStringLiteral(" \\\\ \\hline\n");
+            cuerpo += QStringLiteral(" & ") + escaparLatex(codigosDelTema(m, t).join(QStringLiteral(", ")));
+        cuerpo += QStringLiteral(" \\\\ \\hline\n");
     }
-    tex += QStringLiteral("\\end{tabulary}\n");
+    tex += QStringLiteral("\\subsection*{%1}\n").arg(escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Estructura de la convocatoria"))));
+    tex += QStringLiteral("\\sbox{\\cajaestructura}{\\begin{tabular}{|l|%1}%2\\end{tabular}}%\n"
+                          "\\ifdim\\wd\\cajaestructura>\\linewidth\n"
+                          "\\begin{tabularx}{\\linewidth}{|l|%3}%2\\end{tabularx}\n"
+                          "\\else\\usebox{\\cajaestructura}\\fi\n")
+               .arg(QStringLiteral("l|").repeated(temas.size()), cuerpo, QStringLiteral("Y|").repeated(temas.size()));
 
     // Plantilla de corrección de cada modelo («1 C», «2 A»…, en filas de 10) y, debajo, código, respuesta y referencia de
     // cada pregunta.
