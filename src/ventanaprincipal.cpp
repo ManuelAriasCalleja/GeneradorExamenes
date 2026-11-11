@@ -97,22 +97,25 @@ QString nombreDeReparto(const QMap<int, int> &reparto)
 // Lista de exámenes la primera vez que se abre el programa; luego se recuerda la que se haya hecho.
 const QStringList kExamenesPorDefecto{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")};
 
-// Lee de la configuración el valor de un control (si no está, se queda con el que tiene) y el valor que hay que
-// guardar de él, según su tipo.
-void leerAjuste(const QSettings &s, const QString &clave, QWidget *control)
+// Carpetas de los diálogos (las guardan ellos en la configuración) que van con cada banco: la de las exportaciones
+// (exámenes y Moodle) y la de los PDF de los exámenes anteriores.
+const QStringList kCarpetasDelBanco{QStringLiteral("exportar/carpeta"), QStringLiteral("anteriores/carpeta")};
+
+// Pone en un control el valor guardado de un ajuste y da el valor que hay que guardar de él, según su tipo.
+void ponerAjuste(QWidget *control, const QVariant &valor)
 {
     if (auto *c = qobject_cast<QCheckBox *>(control))
-        c->setChecked(s.value(clave, c->isChecked()).toBool());
+        c->setChecked(valor.toBool());
     else if (auto *n = qobject_cast<QSpinBox *>(control))
-        n->setValue(s.value(clave, n->value()).toInt());
+        n->setValue(valor.toInt());
     else if (auto *d = qobject_cast<QDoubleSpinBox *>(control))
-        d->setValue(s.value(clave, d->value()).toDouble());
+        d->setValue(valor.toDouble());
     else if (auto *l = qobject_cast<QLineEdit *>(control))
-        l->setText(s.value(clave, l->text()).toString());
+        l->setText(valor.toString());
     else if (auto *t = qobject_cast<QPlainTextEdit *>(control))
-        t->setPlainText(s.value(clave, t->toPlainText()).toString());
+        t->setPlainText(valor.toString());
     else if (auto *b = qobject_cast<QComboBox *>(control))
-        b->setCurrentText(s.value(clave, b->currentText()).toString());
+        b->setCurrentText(valor.toString());
 }
 
 QVariant valorAjuste(const QWidget *control)
@@ -615,8 +618,14 @@ void VentanaPrincipal::crearMenus()
 
 bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
 {
-    if (m_bd.abierta())
+    // Las carpetas de la configuración son las del último banco abierto: las toma el que no tenga las suyas solo si
+    // es ese (el primero que se abre tras pasar a esta versión, que guarda las opciones en el banco).
+    const QString ultimo = QSettings().value(QStringLiteral("bd/ruta")).toString();
+    const bool carpetasPropias = ultimo.isEmpty() || QFileInfo(ruta).absoluteFilePath() != QFileInfo(ultimo).absoluteFilePath();
+    if (m_bd.abierta()) {
         guardarEstadoBanco();
+        guardarConfiguracion();
+    }
     if (!m_bd.abrir(ruta)) {
         QMessageBox::critical(this, windowTitle(),
                               tr("No se pudo abrir la base de datos\n%1\n\n%2").arg(ruta, m_bd.ultimoError()));
@@ -642,6 +651,7 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
         adaptarAlIdiomaExamen(antes);
     }
     actualizarTitulo();
+    aplicarOpcionesDelBanco(m_bd.opciones(), carpetasPropias);
     // El último reparto usado con el banco. Si no hay ninguno, el que guardaban en la configuración las versiones
     // anteriores (uno para todos los bancos: se pasa al primero que se abre) o, si no, el primero de los del banco.
     m_cantidadesGuardadas = m_bd.ultimoReparto();
@@ -658,6 +668,8 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
     m_cantidades.clear();   // las casillas del banco anterior, que no deben pasar sus números a este
     recargarDatos();
     QSettings().setValue(QStringLiteral("bd/ruta"), ruta);
+    // Ya, para que la configuración tenga las opciones de este banco y él las suyas aunque el programa no se cierre bien.
+    guardarConfiguracion();
     return true;
 }
 
@@ -843,6 +855,7 @@ void VentanaPrincipal::exportarMoodle()
     DialogoMoodle dialogo(m_preguntas, m_asignatura->text().trimmed(), this);
     if (dialogo.exec() != QDialog::Accepted)
         return;
+    guardarConfiguracion();   // la carpeta, en el banco
     Moodle::Opciones opciones = dialogo.opciones();
     opciones.idioma = idiomaExamen();
     QString error;
@@ -1059,12 +1072,15 @@ void VentanaPrincipal::reconstruirTemas()
 // ---------------------------------------------------------------------------------------------
 // Configuración
 
+// La configuración guarda las opciones del último banco abierto; al abrir uno, se cambian por las suyas (ver
+// aplicarOpcionesDelBanco()). Un banco que aún no tiene se queda con las que haya.
 void VentanaPrincipal::leerConfiguracion()
 {
     QSettings s;
     restoreGeometry(s.value(QStringLiteral("ventana/geometria")).toByteArray());
     for (const Ajuste &a : ajustes())
-        leerAjuste(s, a.clave, a.control);
+        if (s.contains(a.clave))
+            ponerAjuste(a.control, s.value(a.clave));
     const QStringList examenes = s.value(QStringLiteral("examenes/nombres"), kExamenesPorDefecto).toStringList();
     const QStringList marcados = s.value(QStringLiteral("examenes/marcados"), examenes).toStringList();
     for (const QString &nombre : examenes)
@@ -1079,19 +1095,71 @@ void VentanaPrincipal::guardarConfiguracion()
     s.setValue(QStringLiteral("ventana/geometria"), saveGeometry());
     for (const Ajuste &a : ajustes())
         s.setValue(a.clave, valorAjuste(a.control));
-    QStringList examenes, marcados;
+    QStringList marcados;
+    s.setValue(QStringLiteral("examenes/nombres"), listaExamenes(&marcados));
+    s.setValue(QStringLiteral("examenes/marcados"), marcados);
+    s.remove(QStringLiteral("examen/asignatura"));   // de las versiones anteriores: ahora va en el banco
+    if (m_bd.abierta())
+        m_bd.guardarOpciones(opcionesDelBanco());
+}
+
+QStringList VentanaPrincipal::listaExamenes(QStringList *marcados) const
+{
+    QStringList examenes;
     for (int i = 0; i < m_listaExamenes->count(); ++i) {
         const QListWidgetItem *item = m_listaExamenes->item(i);
         const QString nombre = item->text().trimmed();
         if (nombre.isEmpty())
             continue;
         examenes << nombre;
-        if (item->checkState() == Qt::Checked)
-            marcados << nombre;
+        if (marcados && item->checkState() == Qt::Checked)
+            *marcados << nombre;
     }
-    s.setValue(QStringLiteral("examenes/nombres"), examenes);
-    s.setValue(QStringLiteral("examenes/marcados"), marcados);
-    s.remove(QStringLiteral("examen/asignatura"));   // de las versiones anteriores: ahora va en el banco
+    return examenes;
+}
+
+QVariantMap VentanaPrincipal::opcionesDelBanco() const
+{
+    QVariantMap opciones;
+    for (const Ajuste &a : ajustes())
+        opciones.insert(a.clave, valorAjuste(a.control));
+    QStringList marcados;
+    opciones.insert(QStringLiteral("examenes/nombres"), listaExamenes(&marcados));
+    opciones.insert(QStringLiteral("examenes/marcados"), marcados);
+    const QDir carpetaBanco = QFileInfo(m_bd.ruta()).absoluteDir();
+    QSettings s;
+    for (const QString &clave : kCarpetasDelBanco) {
+        const QString carpeta = QDir::fromNativeSeparators(s.value(clave).toString().trimmed());
+        if (carpeta.isEmpty())
+            continue;
+        const QString relativa = carpetaBanco.relativeFilePath(carpeta);
+        opciones.insert(clave, relativa.isEmpty() ? QStringLiteral(".") : relativa);
+    }
+    return opciones;
+}
+
+void VentanaPrincipal::aplicarOpcionesDelBanco(const QVariantMap &opciones, bool carpetasPropias)
+{
+    // En el orden de ajustes(): «Automática» antes que los puntos, para que se queden los guardados.
+    for (const Ajuste &a : ajustes())
+        if (opciones.contains(a.clave))
+            ponerAjuste(a.control, opciones.value(a.clave));
+    if (opciones.contains(QStringLiteral("examenes/nombres"))) {
+        const QStringList marcados = opciones.value(QStringLiteral("examenes/marcados")).toStringList();
+        m_listaExamenes->clear();
+        for (const QString &nombre : opciones.value(QStringLiteral("examenes/nombres")).toStringList())
+            anadirExamen(nombre, marcados.contains(nombre));
+    }
+    actualizarPuntuacion();
+    // Las carpetas, en la configuración, que es donde las buscan los diálogos.
+    const QDir carpetaBanco = QFileInfo(m_bd.ruta()).absoluteDir();
+    QSettings s;
+    for (const QString &clave : kCarpetasDelBanco) {
+        if (opciones.contains(clave))
+            s.setValue(clave, QDir::toNativeSeparators(QDir::cleanPath(carpetaBanco.absoluteFilePath(opciones.value(clave).toString()))));
+        else if (carpetasPropias)
+            s.setValue(clave, QDir::toNativeSeparators(carpetaBanco.absolutePath()));
+    }
 }
 
 void VentanaPrincipal::guardarEstadoBanco()
@@ -1633,6 +1701,7 @@ void VentanaPrincipal::exportar(const QString &titulo, const QString &nombreBase
         dialogo.ofrecerSoluciones(casillaSoluciones, soluciones, nombreBaseFichero() + QStringLiteral("_soluciones"));
     if (dialogo.exec() != QDialog::Accepted)
         return;
+    guardarConfiguracion();   // la carpeta, en el banco
     if (!casillaSoluciones.isEmpty())
         soluciones = dialogo.conSoluciones();
     const DatosConvocatoria d = datosConvocatoria();
@@ -1717,7 +1786,9 @@ void VentanaPrincipal::registrarAnteriores()
     for (int i = 0; i < m_listaExamenes->count(); ++i)
         nombres << m_listaExamenes->item(i)->text().trimmed();
     DialogoAnteriores dialogo(&m_bd, m_preguntas, datosConvocatoria(), nombres, this);
-    if (dialogo.exec() != QDialog::Accepted)
+    const bool registrados = dialogo.exec() == QDialog::Accepted;
+    guardarConfiguracion();   // la carpeta de los PDF, en el banco
+    if (!registrados)
         return;
     statusBar()->showMessage(tr("Registrados en el historial los exámenes de %1").arg(dialogo.convocatoriaYAnio()), 8000);
     seleccionCambiada();   // la ficha de la pregunta dice en qué exámenes ha salido

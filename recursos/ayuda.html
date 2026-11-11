@@ -56,10 +56,21 @@ Después, los temas se crean en <i>Editar → Temas…</i> (ver <a href="#temas"
 activas. El título de la ventana lleva el nombre de su asignatura.</p>
 
 <table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
-Todo el banco está en ese único fichero: también el nombre de la asignatura, los repartos de preguntas por tema y el
-historial de convocatorias. Para hacer una copia de seguridad o
+Todo el banco está en ese único fichero: también el nombre de la asignatura, los repartos de preguntas por tema, las
+opciones de los exámenes y el historial de convocatorias. Para hacer una copia de seguridad o
 llevarlo a otro ordenador, basta con copiar el fichero (con el programa cerrado).
 </td></tr></table>
+
+<h3><a name="asignaturas"></a>Varias asignaturas</h3>
+<p>Cada asignatura tiene su banco, y cada banco lleva lo suyo: sus preguntas, su <a href="#historial">historial</a>
+de convocatorias y lo que se deja en la pestaña <b>Generar examen</b> (la lista de exámenes, las instrucciones, las
+opciones, la puntuación y el último reparto), además de la carpeta donde se exportan sus exámenes. Así, al generar los
+de una asignatura se evitan las preguntas de sus propias convocatorias registradas, y cada asignatura tiene su lista
+de exámenes y su carpeta. Se pasa de una a otra con <i>Archivo → Abrir banco de preguntas…</i>; si los exámenes de la
+ventana están exportados y sin registrar, antes se pregunta si registrarlos en el banco del que son.</p>
+<p>Un banco que aún no tiene sus opciones (uno nuevo o de una versión anterior del programa) toma la primera vez las
+que hay en la ventana, salvo la carpeta de las exportaciones, que es la del banco (o la que se usaba, si es el último
+banco que se abrió). Revíselas antes de generar sus primeros exámenes.</p>
 
 <h3><a name="ventana"></a>La ventana principal</h3>
 
@@ -72,10 +83,10 @@ historial o hacerlos en pantalla.</li>
 </ul>
 <p>Los menús reúnen lo demás: <i>Archivo</i> (abrir y crear bancos, importar y exportar, historial de
 convocatorias), <i>Editar</i> (temas, nueva pregunta, revisión del estilo) y <i>Ayuda</i>.</p>
-<p>Al cerrar el programa se guardan las instrucciones, la lista de exámenes, las opciones y el tamaño de la ventana,
-y la próxima vez aparecen como se dejaron. El nombre de la asignatura y el último reparto de preguntas se guardan en
-el banco, así que cada banco tiene los suyos. La convocatoria y el año, en cambio, son al abrir los de la próxima
-convocatoria (ver <a href="#convocatoria">Convocatoria</a>).</p>
+<p>Las instrucciones, la lista de exámenes, las opciones, la puntuación y el último reparto de preguntas se guardan
+en el banco, como el nombre de la asignatura, así que cada banco tiene los suyos y, al volver a abrirlo, aparecen
+como se dejaron (ver <a href="#asignaturas">Varias asignaturas</a>). La convocatoria y el año, en cambio, son al abrir
+los de la próxima convocatoria (ver <a href="#convocatoria">Convocatoria</a>).</p>
 
 <h3><a name="primera-vez"></a>La primera vez</h3>
 <p>Para no repetir preguntas de las últimas convocatorias, el programa las busca en su
@@ -138,8 +149,8 @@ examen, la convocatoria y el año: «Nacional Original · Junio 2026: 1 / 2».</
 <li><b>Todos</b> y <b>Ninguno</b>: marcan o desmarcan todos los nombres.</li>
 <li>Con un doble clic se cambia un nombre; arrastrándolo, se cambia su posición.</li>
 </ul>
-<p>La lista se conserva de un año a otro. No puede haber dos exámenes marcados con el mismo nombre ni uno sin
-nombre.</p>
+<p>La lista se guarda en el banco, así que cada asignatura tiene la suya, y se conserva de un año a otro. No puede
+haber dos exámenes marcados con el mismo nombre ni uno sin nombre.</p>
 
 <h3><a name="reparto"></a>Preguntas por tema</h3>
 <p>Hay una casilla por tema con el número de preguntas que se quieren de él. Al lado, en gris, «de N» dice cuántas
@@ -181,7 +192,9 @@ avisa y, a partir de algún examen, se repiten algunas.</td></tr>
 <tr><td><b>Evitar las preguntas de las últimas N convocatorias</b></td>
 <td>Deja para el final las preguntas que salieron en las últimas N convocatorias registradas en el
 <a href="#historial">historial</a>, con sus variantes y pseudorrepetidas. Los exámenes que se están generando no
-cuentan como ya salidos, aunque se hubieran registrado antes: al registrarlos de nuevo, se sustituyen.</td></tr>
+cuentan como ya salidos, aunque se hubieran registrado antes: al registrarlos de nuevo, se sustituyen. Las de
+convocatorias anteriores a esas N cuentan como no salidas: con un número mayor que el de convocatorias registradas
+(por ejemplo, 99) se evitan todas, y las primeras en volver son las que salieron hace más tiempo.</td></tr>
 <tr><td><b>Evitar también las marcadas «old»</b></td>
 <td>Deja para el final las preguntas que ya salieron en exámenes anteriores al historial (las marcadas «old» en el
 banco), aunque antes que las de las convocatorias registradas.</td></tr>
@@ -318,7 +331,8 @@ soluciones» del diálogo, con la correcta marcada.</td>
 <h3><a name="exportar-ficheros"></a>Carpeta y nombre de los ficheros</h3>
 <p>Al exportar se abre un diálogo:</p>
 <ul>
-<li><b>Carpeta</b>: dónde se guardan los ficheros. Se recuerda de una vez a otra; con <b>Elegir…</b> se busca otra.
+<li><b>Carpeta</b>: dónde se guardan los ficheros. Se recuerda de una vez a otra en cada banco (cada asignatura
+tiene la suya); con <b>Elegir…</b> se busca otra.
 Si no existe, se crea.</li>
 <li>La tabla tiene una fila por examen: se exportan los marcados, cada uno en su fichero. Pulsando sobre el nombre
 del fichero se puede cambiar.</li>
@@ -365,7 +379,8 @@ rojo. La nota se calcula con la <a href="#puntuacion">puntuación</a> de la vent
 
 <p>El historial guarda, dentro del banco, los exámenes que se pusieron en cada convocatoria. Sirve para dos cosas:
 evitar que las preguntas de las últimas convocatorias se repitan en las siguientes y poder recuperar un examen tal
-como salió.</p>
+como salió. Cada banco tiene el suyo: las convocatorias de una asignatura no cuentan en otra (ver
+<a href="#asignaturas">Varias asignaturas</a>).</p>
 
 <h3><a name="registrar"></a>Registrar una convocatoria</h3>
 <p><b>Registrar convocatoria…</b>, bajo la vista del examen, guarda en el historial los exámenes generados: una copia
@@ -776,10 +791,11 @@ y dice cuántas preguntas de cuántos temas se van a exportar.</p>
 <!-- ======================================================================================================= -->
 <h2><a name="configuracion"></a>Configuración</h2>
 
-<p>El programa guarda en un fichero de configuración la ruta del último banco abierto y lo que se deja en la ventana:
-las instrucciones, la lista de exámenes, las opciones, la puntuación, la carpeta de las exportaciones, la duración de
-los exámenes de práctica, el tamaño de la ventana y el idioma de la interfaz. El nombre de la asignatura, el idioma
-de los exámenes y los repartos de preguntas por tema no: van con cada banco. Está en:</p>
+<p>El programa guarda en un fichero de configuración la ruta del último banco abierto, la duración de los exámenes
+de práctica, el tamaño de la ventana y el idioma de la interfaz. Lo que depende de la asignatura va con cada banco (ver
+<a href="#asignaturas">Varias asignaturas</a>): el nombre de la asignatura, el idioma de los exámenes, los repartos de
+preguntas por tema, las instrucciones, la lista de exámenes, las opciones, la puntuación y la carpeta de las
+exportaciones; la configuración guarda solo una copia de los del último banco abierto. Está en:</p>
 <ul>
 <li>Linux: <tt>~/.config/UNED/GeneradorExamenes.conf</tt></li>
 <li>Windows: <tt>%APPDATA%\UNED\GeneradorExamenes.ini</tt></li>

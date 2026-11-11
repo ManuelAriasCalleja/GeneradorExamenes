@@ -93,6 +93,12 @@ public:
     // El último reparto usado (número de tema -> preguntas); vacío si no se ha guardado ninguno.
     QMap<int, int> ultimoReparto();
     bool guardarUltimoReparto(const QMap<int, int> &reparto);
+    // Opciones de la ventana que van con el banco, para que cada asignatura tenga las suyas: las de los exámenes
+    // (instrucciones, opciones al elegir las preguntas, puntuación), la lista de exámenes de la convocatoria y las
+    // carpetas de las exportaciones. Clave de la configuración («examen/numRecientes») -> valor; vacío si el banco
+    // aún no tiene (los de las versiones anteriores).
+    QVariantMap opciones();
+    bool guardarOpciones(const QVariantMap &opciones);
 
     // JSON enlazado con el banco: su copia en texto (preguntas_fi.json), que es el último JSON del que se importó
     // todo o el elegido en «Actualizar el JSON del banco». El programa avisa cuando no coinciden y, si se pide,

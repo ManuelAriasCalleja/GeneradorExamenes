@@ -56,10 +56,22 @@ Then the topics are created in <i>Edit → Topics…</i> (see <a href="#temas">T
 those questions are active. The window title includes the name of its subject.</p>
 
 <table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
-The whole bank is in that single file, including the subject name, the distributions of questions per topic and the
-exam session history. To make a backup or
+The whole bank is in that single file, including the subject name, the distributions of questions per topic, the
+exam options and the exam session history. To make a backup or
 take it to another computer, just copy the file (with the program closed).
 </td></tr></table>
+
+<h3><a name="asignaturas"></a>Several subjects</h3>
+<p>Each subject has its own bank, and each bank carries its own things: its questions, its exam session
+<a href="#historial">history</a> and what you leave in the <b>Generate exam</b> tab (the list of exams, the
+instructions, the options, the scoring and the last distribution), as well as the folder where its exams are exported.
+So, when generating the exams of one subject, the questions from its own recorded exam sessions are avoided, and each
+subject has its own list of exams and its own folder. You switch from one to another with <i>File → Open question
+bank…</i>; if the exams in the window have been exported but not recorded, you are first asked whether to record them
+in the bank they belong to.</p>
+<p>A bank that does not yet have its own options (a new one, or one from an earlier version of the program) takes, the
+first time, those in the window, except the exports folder, which is the bank's own folder (or the one that was in
+use, if it is the last bank opened). Check them before generating its first exams.</p>
 
 <h3><a name="ventana"></a>The main window</h3>
 
@@ -72,10 +84,10 @@ take them on screen.</li>
 </ul>
 <p>The menus hold everything else: <i>File</i> (opening and creating banks, importing and exporting, exam session
 history), <i>Edit</i> (topics, new question, style check) and <i>Help</i>.</p>
-<p>When the program is closed, the instructions, the list of exams, the options and the window size are saved, and
-the next time they appear as you left them. The subject name and the last distribution of questions are saved in the
-bank, so each bank has its own. The exam session and the year, on the other hand, are set on start-up to those of the
-next exam session (see <a href="#convocatoria">Exam session</a>).</p>
+<p>The instructions, the list of exams, the options, the scoring and the last distribution of questions are saved in
+the bank, like the subject name, so each bank has its own and, when you open it again, they appear as you left them
+(see <a href="#asignaturas">Several subjects</a>). The exam session and the year, on the other hand, are set on
+start-up to those of the next exam session (see <a href="#convocatoria">Exam session</a>).</p>
 
 <h3><a name="primera-vez"></a>The first time</h3>
 <p>To avoid repeating questions from the last exam sessions, the program looks them up in its
@@ -142,8 +154,8 @@ the exam, the exam session and the year: “Nacional Original · June 2026: 1 / 
 <li><b>All</b> and <b>None</b>: tick or untick all the names.</li>
 <li>Double-click a name to change it; drag it to change its position.</li>
 </ul>
-<p>The list is kept from one year to the next. There cannot be two ticked exams with the same name, nor one without a
-name.</p>
+<p>The list is saved in the bank, so each subject has its own, and it is kept from one year to the next. There cannot
+be two ticked exams with the same name, nor one without a name.</p>
 
 <h3><a name="reparto"></a>Questions per topic</h3>
 <p>There is one box per topic with the number of questions you want from it. Next to it, in grey, “of N” shows how
@@ -187,7 +199,8 @@ warning is shown and, from some exam onwards, some are repeated.</td></tr>
 <td>Leaves until last the questions that appeared in the last N exam sessions recorded in the
 <a href="#historial">history</a>, together with their variants and pseudo-duplicates. The exams being generated do
 not count as already used, even if they had been recorded before: when they are recorded again, they replace the
-old ones.</td></tr>
+old ones. Those from exam sessions before those N count as not used: with a number greater than the number of recorded
+exam sessions (for example, 99) all of them are avoided, and the first to come back are those used longest ago.</td></tr>
 <tr><td><b>Also avoid those marked “old”</b></td>
 <td>Leaves until last the questions that already appeared in exams from before the history was kept (those marked
 “old” in the bank), though ahead of those from the recorded exam sessions.</td></tr>
@@ -328,8 +341,8 @@ solutions” box of the dialog ticked, the correct answer is marked.</td>
 <h3><a name="exportar-ficheros"></a>Folder and file names</h3>
 <p>When exporting, a dialog opens:</p>
 <ul>
-<li><b>Folder</b>: where the files are saved. It is remembered from one time to the next; <b>Choose…</b> lets you
-pick another one. If it does not exist, it is created.</li>
+<li><b>Folder</b>: where the files are saved. It is remembered from one time to the next in each bank (each subject
+has its own); <b>Choose…</b> lets you pick another one. If it does not exist, it is created.</li>
 <li>The table has one row per exam: the ticked ones are exported, each to its own file. Click a file name to change
 it.</li>
 <li>If there is more than one exam, the last row, “All the exams in one file”, also saves them all together in a
@@ -376,7 +389,8 @@ the main window.</p>
 
 <p>The history keeps, inside the bank, the exams set in each exam session. It serves two purposes: preventing the
 questions from the last exam sessions from being repeated in the following ones, and being able to recover an exam
-exactly as it was set.</p>
+exactly as it was set. Each bank has its own: the exam sessions of one subject do not count in another (see
+<a href="#asignaturas">Several subjects</a>).</p>
 
 <h3><a name="registrar"></a>Recording an exam session</h3>
 <p><b>Record exam session…</b>, below the exam preview, saves the generated exams in the history: a copy of their
@@ -795,10 +809,11 @@ and says how many questions from how many topics will be exported.</p>
 <!-- ======================================================================================================= -->
 <h2><a name="configuracion"></a>Settings</h2>
 
-<p>The program saves in a settings file the path of the last bank opened and what you leave in the window: the
-instructions, the list of exams, the options, the scoring, the exports folder, the duration of practice exams, the
-window size and the interface language. The subject name, the exam language and the distributions of questions per
-topic are not saved there: they go with each bank. The file is located at:</p>
+<p>The program saves in a settings file the path of the last bank opened, the duration of practice exams, the window
+size and the interface language. What depends on the subject goes with each bank (see
+<a href="#asignaturas">Several subjects</a>): the subject name, the exam language, the distributions of questions per
+topic, the instructions, the list of exams, the options, the scoring and the exports folder; the settings file only
+keeps a copy of those of the last bank opened. The file is located at:</p>
 <ul>
 <li>Linux: <tt>~/.config/UNED/GeneradorExamenes.conf</tt></li>
 <li>Windows: <tt>%APPDATA%\UNED\GeneradorExamenes.ini</tt></li>

@@ -26,6 +26,7 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPointer>
@@ -45,6 +46,7 @@
 #include <QTreeWidget>
 #include <QtTest>
 #include <functional>
+#include <memory>
 
 namespace {
 
@@ -507,6 +509,101 @@ private slots:
         QCOMPARE(valores(), (QList<int>{2, 1, 3, 0}));
         QVERIFY(v.abrirBaseDatos(segundo));
         QCOMPARE(valores(), (QList<int>{5, 0, 0}));
+        QSettings().clear();
+    }
+
+    void cadaBancoConSusOpciones()
+    {
+        // Dos asignaturas, cada una con su banco en su carpeta.
+        QTemporaryDir dir;
+        QDir(dir.path()).mkpath(QStringLiteral("a"));
+        QDir(dir.path()).mkpath(QStringLiteral("b"));
+        const QString primero = dir.filePath(QStringLiteral("a/banco.db")), segundo = dir.filePath(QStringLiteral("b/banco.db"));
+        QVERIFY(crearBancoInventado(primero));
+        QVERIFY(crearBancoInventado(segundo));
+        auto nativa = [](const QString &ruta) { return QDir::toNativeSeparators(QDir::cleanPath(ruta)); };
+        auto carpeta = [] { return QSettings().value(QStringLiteral("exportar/carpeta")).toString(); };
+
+        // La configuración de una versión anterior, que tenía las opciones de todos los bancos: son las del último que
+        // se abrió, y se las queda él.
+        QSettings().clear();
+        QSettings().setValue(QStringLiteral("bd/ruta"), primero);
+        QSettings().setValue(QStringLiteral("exportar/carpeta"), nativa(dir.filePath(QStringLiteral("a/exportados"))));
+        QSettings().setValue(QStringLiteral("examen/numRecientes"), 4);
+        QSettings().setValue(QStringLiteral("examenes/nombres"), QStringList{QStringLiteral("Original"), QStringLiteral("Reserva")});
+        QSettings().setValue(QStringLiteral("examenes/marcados"), QStringList{QStringLiteral("Original")});
+
+        auto ventana = std::make_unique<VentanaPrincipal>();
+        VentanaPrincipal &v = *ventana;
+        v.show();
+        auto lista = [&v]() -> QListWidget * {
+            for (QListWidget *l : v.findChildren<QListWidget *>())
+                if (l->toolTip().startsWith(QStringLiteral("Se genera un examen")))
+                    return l;
+            return nullptr;
+        };
+        auto examenes = [&lista]() {
+            QStringList res;
+            for (int i = 0; i < lista()->count(); ++i)
+                res << lista()->item(i)->text() + (lista()->item(i)->checkState() == Qt::Checked ? QStringLiteral(" ✓") : QString());
+            return res;
+        };
+        auto recientes = [&v]() -> QSpinBox * {
+            for (QSpinBox *s : v.findChildren<QSpinBox *>())
+                if (s->suffix() == QStringLiteral(" convocatorias"))
+                    return s;
+            return nullptr;
+        };
+        QVERIFY(v.abrirBancoInicial(QString()));
+        QVERIFY(lista() && recientes());
+        QCOMPARE(examenes(), (QStringList{QStringLiteral("Original ✓"), QStringLiteral("Reserva")}));
+        QCOMPARE(recientes()->value(), 4);
+        QCOMPARE(carpeta(), nativa(dir.filePath(QStringLiteral("a/exportados"))));
+        recientes()->setValue(9);
+        lista()->item(1)->setCheckState(Qt::Checked);
+
+        // Otro banco, aún sin opciones: se queda con las de la ventana, pero las carpetas son la suya.
+        QVERIFY(v.abrirBaseDatos(segundo));
+        QCOMPARE(examenes(), (QStringList{QStringLiteral("Original ✓"), QStringLiteral("Reserva ✓")}));
+        QCOMPARE(recientes()->value(), 9);
+        QCOMPARE(carpeta(), nativa(dir.filePath(QStringLiteral("b"))));
+        {
+            // El primero ya tiene las suyas, con la carpeta relativa a la del banco.
+            BaseDatos bd;
+            QVERIFY(bd.abrir(primero));
+            QCOMPARE(bd.opciones().value(QStringLiteral("examen/numRecientes")).toInt(), 9);
+            QCOMPARE(bd.opciones().value(QStringLiteral("exportar/carpeta")).toString(), QStringLiteral("exportados"));
+        }
+        lista()->clear();
+        for (const QString &nombre : {QStringLiteral("Primera semana"), QStringLiteral("Segunda semana")})
+            (new QListWidgetItem(nombre, lista()))->setCheckState(nombre.startsWith(QLatin1Char('P')) ? Qt::Checked : Qt::Unchecked);
+        recientes()->setValue(2);
+        QSettings().setValue(QStringLiteral("exportar/carpeta"), nativa(dir.filePath(QStringLiteral("b/examenes"))));   // como el diálogo
+
+        // Cada banco, con las suyas.
+        QVERIFY(v.abrirBaseDatos(primero));
+        QCOMPARE(examenes(), (QStringList{QStringLiteral("Original ✓"), QStringLiteral("Reserva ✓")}));
+        QCOMPARE(recientes()->value(), 9);
+        QCOMPARE(carpeta(), nativa(dir.filePath(QStringLiteral("a/exportados"))));
+        QVERIFY(v.abrirBaseDatos(segundo));
+        QCOMPARE(examenes(), (QStringList{QStringLiteral("Primera semana ✓"), QStringLiteral("Segunda semana")}));
+        QCOMPARE(recientes()->value(), 2);
+        QCOMPARE(carpeta(), nativa(dir.filePath(QStringLiteral("b/examenes"))));
+
+        // También al volver a abrir el programa: la configuración tiene las del segundo, y el primero, las suyas.
+        v.close();
+        ventana.reset();
+        VentanaPrincipal w;
+        w.show();
+        QVERIFY(w.abrirBancoInicial(primero));
+        QSpinBox *recientesW = nullptr;
+        for (QSpinBox *s : w.findChildren<QSpinBox *>())
+            if (s->suffix() == QStringLiteral(" convocatorias"))
+                recientesW = s;
+        QVERIFY(recientesW);
+        QCOMPARE(recientesW->value(), 9);
+        QCOMPARE(carpeta(), nativa(dir.filePath(QStringLiteral("a/exportados"))));
+        w.close();
         QSettings().clear();
     }
 

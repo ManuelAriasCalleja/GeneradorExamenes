@@ -3,8 +3,13 @@
 Programa en C++/Qt 6 que genera exámenes tipo test eligiendo al azar preguntas de una base de datos SQLite,
 con el número de preguntas que se indique de cada tema.
 
-Vale para cualquier asignatura: cada banco (base de datos) lleva el nombre de su asignatura, sus temas, tantos como
-tenga, y sus repartos de preguntas por tema. Los bancos de versiones anteriores, que no guardaban esos datos, se ponen
+Vale para cualquier asignatura, y para varias a la vez: cada banco (base de datos) lleva el nombre de su asignatura,
+sus temas, tantos como tenga, sus repartos de preguntas por tema, su historial de convocatorias (así, al generar se
+evitan las preguntas de las convocatorias de esa asignatura) y las opciones de sus exámenes: la lista de exámenes de
+la convocatoria, las instrucciones, las opciones al elegir las preguntas, la puntuación y la carpeta donde se
+exportan (`BaseDatos::opciones()`, con la carpeta relativa a la del banco). Un banco que aún no tiene sus opciones
+toma la primera vez las de la ventana, salvo la carpeta de las exportaciones, que es la del banco (o la que se usaba,
+si es el último banco que se abrió). Los bancos de versiones anteriores, que no guardaban esos datos, se ponen
 al día al abrirlos: se les ponen el nombre, los repartos y la forma de la referencia al libro de cada tema que el
 programa daba entonces por hechos (`PRAGMA user_version` 1).
 
@@ -24,7 +29,8 @@ cmake --build build
 
 Las preguntas no están en el repositorio (ver «Bancos de preguntas»). El programa abre el último banco de
 preguntas que se abrió; la primera vez, o si se ha movido, pregunta cuál abrir o si crear uno nuevo. La ruta
-del último banco y las opciones se guardan (los diálogos para abrir o crear un banco empiezan en la carpeta del último que se abrió) en un fichero de configuración:
+del último banco (los diálogos para abrir o crear un banco empiezan en su carpeta), el idioma de la interfaz, la
+duración de los exámenes de práctica y una copia de las opciones del último banco se guardan en un fichero de configuración:
 `~/.config/UNED/GeneradorExamenes.conf` en Linux y `%APPDATA%\UNED\GeneradorExamenes.ini` en Windows
 (el diálogo *Ayuda → Acerca de* dice cuál es). Hasta la versión 1.0 el programa se llamaba `GeneradorExamenesFI`
 y la configuración estaba en `UNED-FI/GeneradorExamenesFI`: si la nueva está vacía, al arrancar se copia de allí.
@@ -109,7 +115,7 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   de febrero, junio y septiembre cuyo mes aún no ha llegado (el 27 de octubre de 2026, Febrero 2027).
 - Lista de exámenes de la convocatoria (Nacional Original, Nacional Reserva…) con casillas: se genera un examen
   por cada nombre marcado, en el orden de la lista. La lista se mantiene de un año a otro; los nombres se
-  añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando). El pie de cada página lleva el nombre
+  añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando); cada banco tiene la suya. El pie de cada página lleva el nombre
   del examen, la convocatoria y el año: «Nacional Original · Junio 2026: 1 / 2».
 - Número de preguntas de cada tema. Junto a cada tema se ve cuántas preguntas distintas hay. Los botones de reparto
   son los del banco (por ejemplo, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3) más «Ninguna»;
@@ -175,7 +181,8 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   suficientes, se avisa).
 - Opcionalmente, se dejan para el final las preguntas que ya han salido, con sus variantes y pseudorrepetidas:
   primero se eligen las nunca usadas, luego las marcadas «old» (si se marca la opción) y por último las de las
-  últimas N convocatorias registradas, de la más antigua a la más reciente. Si no hay bastantes, se avisa. Las
+  últimas N convocatorias registradas, de la más antigua a la más reciente; las de convocatorias anteriores a esas N
+  cuentan como nunca usadas (con N = 99, se evitan todas). Si no hay bastantes, se avisa. Las
   convocatorias se ordenan por año y por mes (si se llaman como un mes: Febrero, Junio…).
 - Si se marca «Barajar las opciones», en cada examen la correcta sale en a), b), c) y d) por igual (como mucho,
   una de diferencia) y, si se puede, nunca tres veces seguidas en la misma letra. Las preguntas con opciones que

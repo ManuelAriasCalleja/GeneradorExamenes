@@ -158,6 +158,49 @@ private slots:
         QCOMPARE(bd.ultimoReparto(), (QMap<int, int>{{1, 2}, {2, 0}, {3, 4}, {4, 0}}));
     }
 
+    void opcionesDelBanco()
+    {
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd, 2, 5), qPrintable(bd.ultimoError()));
+        QVERIFY(bd.opciones().isEmpty());
+        const QVariantMap opciones{
+            {QStringLiteral("examen/numRecientes"), 7},
+            {QStringLiteral("examen/evitarRecientes"), true},
+            {QStringLiteral("examen/fallo"), 0.25},
+            {QStringLiteral("examen/instrucciones"), QStringLiteral("Instrucciones inventadas.\nSegunda línea.")},
+            {QStringLiteral("examenes/nombres"), QStringList{QStringLiteral("Primero"), QStringLiteral("Segundo")}},
+            {QStringLiteral("examenes/marcados"), QStringList{QStringLiteral("Segundo")}},
+            {QStringLiteral("exportar/carpeta"), QStringLiteral("../exportados")},
+        };
+        QVERIFY(bd.guardarOpciones(opciones));
+        // Una convocatoria registrada, para ver que «Reemplazar todo» no se lleva ni las opciones ni el historial.
+        Modelo m;
+        m.nombre = QStringLiteral("Primero");
+        for (const Pregunta &p : bd.preguntas().mid(0, 2))
+            m.preguntas.append({p, {{0, 1, 2, 3}}});
+        DatosConvocatoria datos;
+        datos.convocatoria = QStringLiteral("Junio");
+        datos.anio = 2030;
+        QVERIFY(bd.registrarExamenes({m}, datos, 1));
+        const QString json = m_dir.filePath(QStringLiteral("opciones.json"));
+        QVERIFY(bd.exportarJson(json));
+        QVERIFY(bd.importarJson(json, true) > 0);
+        const QString ruta = bd.ruta();
+        bd.cerrar();
+        QVERIFY(bd.abrir(ruta));
+        const QVariantMap leidas = bd.opciones();
+        QCOMPARE(leidas.keys(), opciones.keys());
+        QCOMPARE(leidas.value(QStringLiteral("examen/numRecientes")).toInt(), 7);
+        QCOMPARE(leidas.value(QStringLiteral("examen/evitarRecientes")).toBool(), true);
+        QCOMPARE(leidas.value(QStringLiteral("examen/fallo")).toDouble(), 0.25);
+        QCOMPARE(leidas.value(QStringLiteral("examen/instrucciones")).toString(), QStringLiteral("Instrucciones inventadas.\nSegunda línea."));
+        QCOMPARE(leidas.value(QStringLiteral("examenes/nombres")).toStringList(), (QStringList{QStringLiteral("Primero"), QStringLiteral("Segundo")}));
+        QCOMPARE(leidas.value(QStringLiteral("examenes/marcados")).toStringList(), QStringList{QStringLiteral("Segundo")});
+        QCOMPARE(leidas.value(QStringLiteral("exportar/carpeta")).toString(), QStringLiteral("../exportados"));
+        QCOMPARE(bd.examenesRegistrados().size(), 1);
+        QCOMPARE(bd.usoReciente(1, 2031, QStringLiteral("Febrero"), {}).size(), 2);
+    }
+
     void bancoAntiguoSePoneAlDia()
     {
         // Bancos de una versión anterior (sin PRAGMA user_version): sin la forma de la referencia de los temas, ni

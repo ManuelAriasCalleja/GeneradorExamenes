@@ -121,10 +121,21 @@ private:
     // «Generador de exámenes - <asignatura del banco>».
     void actualizarTitulo();
     void leerConfiguracion();
+    // Guarda las opciones de la ventana en la configuración y, las que van con él (ver opcionesDelBanco()), en el banco
+    // abierto. Al generar, al exportar, al cambiar de banco y al salir.
     void guardarConfiguracion();
     // Lo que va con el banco abierto y no se guarda al momento: el nombre de la asignatura, si se está cambiando, y el
     // reparto de la ventana (el último usado). Antes de cerrarlo (al salir o abrir otro).
     void guardarEstadoBanco();
+    // Las opciones de la ventana que van con cada banco (BaseDatos::opciones()): las de ajustes(), la lista de
+    // exámenes y las carpetas de las exportaciones, relativas a la del banco (como el JSON enlazado).
+    QVariantMap opcionesDelBanco() const;
+    // Pone en la ventana las opciones de un banco. Las que no tenga (un banco de una versión anterior) se quedan como
+    // están, salvo las carpetas si 'carpetasPropias': entonces, la del banco, para no exportar los exámenes de una
+    // asignatura en la carpeta de otra.
+    void aplicarOpcionesDelBanco(const QVariantMap &opciones, bool carpetasPropias);
+    // Los nombres de la lista de exámenes y, en 'marcados', los marcados.
+    QStringList listaExamenes(QStringList *marcados = nullptr) const;
     // Ajustes que se guardan tal cual en la configuración: su clave y el control que los muestra. El valor por
     // defecto es el que tiene el control al crearlo.
     struct Ajuste

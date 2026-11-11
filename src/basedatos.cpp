@@ -744,6 +744,18 @@ bool BaseDatos::guardarUltimoReparto(const QMap<int, int> &reparto)
     return guardarAjuste(QStringLiteral("reparto"), QString::fromUtf8(QJsonDocument(repartoAJson(reparto)).toJson(QJsonDocument::Compact)));
 }
 
+QVariantMap BaseDatos::opciones()
+{
+    // {"examen/numRecientes": 3, "examenes/nombres": ["Nacional Original", …], …}
+    return QJsonDocument::fromJson(ajuste(QStringLiteral("opciones")).toUtf8()).object().toVariantMap();
+}
+
+bool BaseDatos::guardarOpciones(const QVariantMap &opciones)
+{
+    return guardarAjuste(QStringLiteral("opciones"),
+                         QString::fromUtf8(QJsonDocument(QJsonObject::fromVariantMap(opciones)).toJson(QJsonDocument::Compact)));
+}
+
 QString BaseDatos::jsonEnlazado()
 {
     const QString relativa = ajuste(QStringLiteral("json_enlazado"));
