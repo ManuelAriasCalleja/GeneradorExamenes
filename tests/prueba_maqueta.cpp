@@ -164,6 +164,56 @@ private slots:
         QVERIFY(!caben);
     }
 
+    void imagenAlLadoDeLasOpciones()
+    {
+        // Una imagen de 'ancho' × 'alto' píxeles a 96 ppp, con cuatro opciones como 'opcion'.
+        auto modelo = [](int ancho, int alto, const QString &opcion) {
+            QImage img(ancho, alto, QImage::Format_RGB32);
+            img.fill(Qt::blue);
+            img.setDotsPerMeterX(3780);
+            img.setDotsPerMeterY(3780);
+            QByteArray datos;
+            QBuffer buffer(&datos);
+            buffer.open(QIODevice::WriteOnly);
+            img.save(&buffer, "PNG");
+            Modelo m;
+            PreguntaExamen pe;
+            pe.pregunta = bancoInventado(1, 1).first();
+            pe.pregunta.imagen = datos;
+            for (int i = 0; i < 4; ++i)
+                pe.pregunta.opciones[i] = opcion.arg(i + 1);
+            m.preguntas << pe;
+            return m;
+        };
+        auto alLado = [](const Modelo &m, int nivel, bool soluciones = false) {
+            const QString html = Maquetador::examenHtml(m, convocatoria(), soluciones, nivel);
+            const QString tex = Maquetador::examenesLatex({m}, convocatoria(), soluciones, QStringLiteral("img"), nivel);
+            const bool htmlAlLado = html.contains(QStringLiteral("<td valign=\"top\"><img src=\"img:"));
+            const bool texAlLado = tex.contains(QStringLiteral("\\raisebox{\\dimexpr\\ht\\strutbox-\\height}{\\includegraphics"));
+            // Una cosa o la otra, igual en los dos formatos.
+            if (htmlAlLado != texAlLado || htmlAlLado == html.contains(QStringLiteral("margin-bottom:4px\"><img src=\"img:")))
+                return -1;
+            return htmlAlLado ? 1 : 0;
+        };
+        // Estrecha y con opciones cortas: al lado, también con soluciones, y en la maqueta compacta.
+        const Modelo estrecha = modelo(80, 110, QStringLiteral("Opción corta %1."));
+        QCOMPARE(alLado(estrecha, 0), 1);
+        QCOMPARE(alLado(estrecha, 0, true), 1);
+        QCOMPARE(alLado(estrecha, Maquetador::numNiveles() - 1), 1);
+        QVERIFY(Maquetador::examenHtml(estrecha, convocatoria(), false).contains(QStringLiteral("<img src=\"img:1\" width=\"80\"></td>")));
+        // Con letra grande, siempre debajo.
+        QCOMPARE(alLado(estrecha, Maquetador::kLetraGrande), 0);
+        // Con alguna opción que no cabe en una línea al lado de la imagen, debajo.
+        Modelo larga = estrecha;
+        larga.preguntas[0].pregunta.opciones[2] = QStringLiteral("Una opción inventada bastante larga, que al lado de la imagen ya no cabría.");
+        QCOMPARE(alLado(larga, 0), 0);
+        // Ancha, pero con opciones muy cortas: al lado, si caben.
+        QCOMPARE(alLado(modelo(450, 120, QStringLiteral("Corta %1.")), 0), 1);
+        QCOMPARE(alLado(modelo(560, 120, QStringLiteral("Opción corta %1.")), 0), 0);
+        // Pequeña y con opciones que van en una fila: al lado ocuparía más (cuatro líneas), así que debajo.
+        QCOMPARE(alLado(modelo(40, 20, QStringLiteral("Uno %1.")), 0), 0);
+    }
+
     void letraGrande()
     {
         QVector<Pregunta> banco = bancoInventado();

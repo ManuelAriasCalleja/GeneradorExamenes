@@ -554,7 +554,11 @@ the status (active, voided or obsolete); the marks “Already used in exams (old
 <li><b>Question text and answers</b>: the question text (see <a href="#formato">Question text format</a>) and the
 four options. The selected round button indicates which one is correct. All four options are required.</li>
 <li><b>Image</b>: optional; it is shown below the question text. <b>Load…</b> accepts PNG, JPG, BMP and GIF, and
-saves the image in the bank; <b>Remove</b> deletes it.</li>
+saves the image in the bank; <b>Remove</b> deletes it. In the exams, if the image is narrow enough for each option to
+fit on one line to its left, the options go one below the other with the image to their right, aligned at the top;
+otherwise, the image goes below the question text and the options below it. This is only done if the question does
+not take up more space that way (a very short image with options that fit on one row stays below), and never with
+<a href="#letra-grande">large print</a>.</li>
 <li><b>Reference and notes</b>: the <b>reference</b> to the textbook, which goes in the solutions; the
 <b>explanation</b> of the answer, which is shown when a practice exam is marked and in Moodle; and the <b>internal
 notes</b>, which are only shown in the bank.</li>

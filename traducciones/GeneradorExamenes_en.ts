@@ -1962,25 +1962,25 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="+239"/>
-        <location line="+696"/>
+        <location filename="../src/maquetador.cpp" line="+289"/>
+        <location line="+721"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
     <message>
-        <location line="-695"/>
-        <location line="+696"/>
+        <location line="-720"/>
+        <location line="+721"/>
         <source>Referencia:</source>
         <translation>Reference:</translation>
     </message>
     <message>
-        <location line="-685"/>
-        <location line="+902"/>
+        <location line="-710"/>
+        <location line="+939"/>
         <source>Plantilla de corrección: %1</source>
         <translation>Answer key: %1</translation>
     </message>
     <message>
-        <location line="-846"/>
+        <location line="-876"/>
         <source>Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.
 No entregue el enunciado.</source>
         <translation>Mark the correct answer on the answer sheet only.
@@ -1988,51 +1988,51 @@ Do not hand in the question paper.</translation>
     </message>
     <message>
         <location line="+226"/>
-        <location line="+549"/>
+        <location line="+571"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
     <message>
-        <location line="-536"/>
-        <location line="+555"/>
+        <location line="-558"/>
+        <location line="+577"/>
         <source>Pregunta contestada correctamente:</source>
         <translation>Question answered correctly:</translation>
     </message>
     <message>
-        <location line="-554"/>
-        <location line="+555"/>
+        <location line="-576"/>
+        <location line="+577"/>
         <source>+ %1 puntos</source>
         <translation>+ %1 points</translation>
     </message>
     <message>
-        <location line="-554"/>
-        <location line="+555"/>
+        <location line="-576"/>
+        <location line="+577"/>
         <source>Pregunta contestada incorrectamente:</source>
         <translation>Question answered incorrectly:</translation>
     </message>
     <message>
-        <location line="-554"/>
-        <location line="+555"/>
+        <location line="-576"/>
+        <location line="+577"/>
         <source>- %1 puntos</source>
         <translation>- %1 points</translation>
     </message>
     <message>
-        <location line="-554"/>
-        <location line="+555"/>
+        <location line="-576"/>
+        <location line="+577"/>
         <source>Pregunta no contestada:</source>
         <translation>Question not answered:</translation>
     </message>
     <message>
-        <location line="-554"/>
-        <location line="+555"/>
+        <location line="-576"/>
+        <location line="+577"/>
         <source>0 puntos</source>
         <translation>0 points</translation>
     </message>
     <message>
-        <location line="-521"/>
+        <location line="-539"/>
         <location line="+179"/>
-        <location line="+296"/>
-        <location line="+69"/>
+        <location line="+314"/>
+        <location line="+73"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
         <location line="+1"/>
         <location line="+2"/>
@@ -2041,20 +2041,20 @@ Do not hand in the question paper.</translation>
         <translation>Solutions</translation>
     </message>
     <message>
-        <location line="-538"/>
-        <location line="+544"/>
+        <location line="-560"/>
+        <location line="+576"/>
         <source>Estructura de la convocatoria</source>
         <translation>Session structure</translation>
     </message>
     <message>
-        <location line="-543"/>
-        <location line="+544"/>
+        <location line="-575"/>
+        <location line="+565"/>
         <source>Examen</source>
         <translation>Exam</translation>
     </message>
     <message>
-        <location line="-875"/>
-        <location line="+905"/>
+        <location line="-907"/>
+        <location line="+942"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
@@ -2159,7 +2159,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-696"/>
+        <location filename="../src/maquetador.cpp" line="-726"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>

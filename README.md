@@ -144,6 +144,9 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   en el mismo sitio y, si se barajan las opciones, con la correcta en la misma letra, así que el resto de los exámenes
   no cambia; se elige con las reglas de la generación, y las ya quitadas de ese examen no vuelven mientras queden
   otras. «Deshacer el cambio» los deshace del último al primero. Después, la semilla ya no reproduce los exámenes.
+- Una pregunta con imagen lleva las opciones una debajo de otra y la imagen a su derecha si, al lado de la imagen,
+  cada opción cabe en una línea y así no ocupa más; si no, la imagen va bajo el enunciado y las opciones debajo. Igual
+  en la vista, el PDF, el HTML y el LaTeX; con letra grande, la imagen siempre debajo.
 - Con la opción «Ajustar a una página por cada 10 preguntas» (marcada salvo que se desmarque, y guardada en cada
   banco), cada examen cabe en una página por cada 10 preguntas (un examen de 10 preguntas, en un folio). Si con la
   maqueta normal no cabe, el programa la compacta por niveles: opciones en dos columnas (a c / b d) cuando

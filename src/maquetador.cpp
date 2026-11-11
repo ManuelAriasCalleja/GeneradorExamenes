@@ -140,18 +140,27 @@ QString letraExplicacionLatex(int n)
                                                                           : QStringLiteral("\\small");
 }
 
-// Ancho con el que se muestra la imagen de la pregunta, en píxeles a 96 ppp (0 si no tiene).
-int anchoImagen(const Pregunta &p, int n = 0)
+// Tamaño con el que se muestra la imagen de la pregunta, en píxeles a 96 ppp: el suyo según su resolución (96 ppp si
+// no la dice), a escala con la letra del nivel y como mucho 500 de ancho (a escala). Vacío si no tiene.
+QSize tamanoImagen(const Pregunta &p, int n = 0)
 {
     if (p.imagen.isEmpty())
-        return 0;
+        return QSize();
     QImage img;
-    if (!img.loadFromData(p.imagen))
-        return 0;
+    if (!img.loadFromData(p.imagen) || img.width() == 0)
+        return QSize();
     qreal dpi = img.dotsPerMeterX() * 0.0254;
     if (dpi < 50)
         dpi = 96;
-    return qMin(qRound(500 * escala(n)), qRound(img.width() * 96.0 / dpi * escala(n)));
+    const int ancho = qMin(qRound(500 * escala(n)), qRound(img.width() * 96.0 / dpi * escala(n)));
+    return QSize(ancho, qRound(qreal(ancho) * img.height() / img.width()));
+}
+
+// Ancho con el que se muestra la imagen de la pregunta, en píxeles a 96 ppp (0 si no tiene).
+int anchoImagen(const Pregunta &p, int n = 0)
+{
+    const QSize tamano = tamanoImagen(p, n);
+    return tamano.isEmpty() ? 0 : tamano.width();
 }
 
 QString imagenHtml(const Pregunta &p, int n = 0)
@@ -222,6 +231,47 @@ QString opcionesHtml(const PreguntaExamen &pe, bool soluciones, int n = 0)
             html += QStringLiteral("<tr>") + sangria + celda(i, QStringLiteral("96%")) + QStringLiteral("</tr>");
     }
     return html + QStringLiteral("</table>");
+}
+
+// Imagen al lado de las opciones: estas, una por línea en su sitio de siempre, y la imagen a su derecha, alineadas
+// por arriba, en lugar de la imagen debajo del enunciado y las opciones debajo de ella.
+constexpr qreal kAnchoLinea = 174 / 25.4 * 96;   // la línea del examen (A4 menos los márgenes), en píxeles a 96 ppp
+constexpr int kSangriaOpciones = 26;               // la de las opciones (la celda vacía de opcionesHtml())
+constexpr int kSeparacionImagen = 24;              // entre la opción más larga y la imagen
+
+// Se pone así si la pregunta tiene imagen, cada opción cabe en una línea en el ancho que deja la imagen (estimando,
+// como filasOpciones(), los caracteres que caben; con margen para «a) », la marca de las soluciones y la negrita de la
+// correcta) y no ocupa más alto que la imagen debajo. Con letra grande, nunca: la imagen va siempre debajo.
+bool imagenAlLado(const PreguntaExamen &pe, int n)
+{
+    if (n == Maquetador::kLetraGrande)
+        return false;
+    const QSize imagen = tamanoImagen(pe.pregunta, n);
+    if (imagen.isEmpty())
+        return false;
+    const qreal ancho = kAnchoLinea - kSangriaOpciones - kSeparacionImagen - imagen.width();
+    const qreal caben = 0.9 * 88.0 * 10.5 / nivel(n).fuentePt * ancho / (kAnchoLinea - kSangriaOpciones);
+    for (int i = 0; i < 4; ++i)
+        if (pe.opcion(i).size() + 5 > caben)
+            return false;
+    const qreal fila = nivel(n).fuentePt * 96 / 72 * 1.15 + 4;   // alto de una fila de opciones
+    const qreal debajo = imagen.height() + 8 + filasOpciones(pe, n) * fila;
+    return qMax(qreal(imagen.height()), 4 * fila) <= debajo;
+}
+
+QString opcionesConImagenHtml(const PreguntaExamen &pe, bool soluciones, int n)
+{
+    const int correcta = pe.correcta();
+    QString opciones = QStringLiteral("<table cellspacing=\"0\" cellpadding=\"1\">");
+    for (int i = 0; i < 4; ++i)
+        opciones += QStringLiteral("<tr><td style=\"padding:1px 4px 1px 0\">%1</td></tr>")
+                        .arg(textoOpcion(QString(Pregunta::letra(i)), pe.opcion(i), soluciones && i == correcta));
+    opciones += QStringLiteral("</table>");
+    return QStringLiteral("<table cellspacing=\"0\" cellpadding=\"0\" style=\"margin-top:2px\"><tr>"
+                          "<td width=\"%1\"></td><td valign=\"top\">%2</td><td width=\"%3\"></td>"
+                          "<td valign=\"top\"><img src=\"img:%4\" width=\"%5\"></td></tr></table>")
+        .arg(QString::number(kSangriaOpciones), opciones, QString::number(kSeparacionImagen),
+             QString::number(pe.pregunta.id), QString::number(anchoImagen(pe.pregunta, n)));
 }
 
 // En los exámenes con soluciones, debajo de las opciones: por qué es correcta la correcta (la explicación de la
@@ -571,8 +621,12 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
                     .arg(i == 0 ? separacion + 4 : separacion)
                     .arg(enunciadoHtml(pe.pregunta.enunciado, prefijo),
                          n == Maquetador::kLetraGrande ? QString() : QStringLiteral("; font-style:italic"));
-        html += imagenHtml(pe.pregunta, n);
-        html += opcionesHtml(pe, soluciones, n);
+        if (imagenAlLado(pe, n)) {
+            html += opcionesConImagenHtml(pe, soluciones, n);
+        } else {
+            html += imagenHtml(pe.pregunta, n);
+            html += opcionesHtml(pe, soluciones, n);
+        }
         if (soluciones)
             html += explicacionHtml(pe.pregunta, d, n);
     }
@@ -901,6 +955,19 @@ QString opcionLatex(int i, const QString &texto, bool marcada)
              Maquetador::escaparLatex(texto));
 }
 
+// Equivalente a opcionesConImagenHtml(): las opciones, una por línea, y la imagen a su derecha, con su borde de
+// arriba a la altura del de la primera opción.
+QString opcionesConImagenLatex(const PreguntaExamen &pe, bool soluciones, const QString &carpeta, int n)
+{
+    QStringList opciones;
+    for (int i = 0; i < 4; ++i)
+        opciones << opcionLatex(i, pe.opcion(i), soluciones && i == pe.correcta());
+    return QStringLiteral("\\par\\vspace{1pt}\n\\noindent\\sangria\\begin{tabular}[t]{@{}l@{}}\n%1\n\\end{tabular}"
+                          "\\hspace{%2mm}\\raisebox{\\dimexpr\\ht\\strutbox-\\height}{\\includegraphics[width=%3cm]{%4/%5}}\\par\n")
+        .arg(opciones.join(QStringLiteral(" \\\\\n")), QString::number(kSeparacionImagen * 25.4 / 96, 'f', 1),
+             QString::number(anchoImagen(pe.pregunta, n) * 2.54 / 96, 'f', 2), carpeta, Maquetador::nombreImagen(pe.pregunta));
+}
+
 // Mismo reparto que opcionesHtml: en una fila, en dos columnas (a c / b d) o una por línea.
 QString opcionesLatex(const PreguntaExamen &pe, bool soluciones, int n)
 {
@@ -1126,8 +1193,12 @@ QString Maquetador::cuerpoExamenLatex(const Modelo &modelo, const DatosConvocato
             prefijo += QStringLiteral("\\textcolor{verde}{\\upshape[%1]} ").arg(escaparLatex(pe.pregunta.codigoCompleto()));
         tex += QStringLiteral("\\begin{pregunta}\n");
         tex += enunciadoLatex(pe.pregunta.enunciado, prefijo);
-        tex += imagenLatex(pe.pregunta, carpetaImagenes, n);
-        tex += opcionesLatex(pe, soluciones, n);
+        if (imagenAlLado(pe, n)) {
+            tex += opcionesConImagenLatex(pe, soluciones, carpetaImagenes, n);
+        } else {
+            tex += imagenLatex(pe.pregunta, carpetaImagenes, n);
+            tex += opcionesLatex(pe, soluciones, n);
+        }
         if (soluciones)
             tex += explicacionLatex(pe.pregunta, d, n);
         tex += QStringLiteral("\\end{pregunta}\n");
