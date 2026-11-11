@@ -14,6 +14,7 @@
 class FiltroPreguntas;
 class ModeloPreguntas;
 class QAction;
+class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
@@ -183,7 +184,7 @@ private:
     QListWidgetItem *anadirExamen(const QString &nombre, bool marcado);
     QVector<Modelo> modelosDe(const QVector<int> &indices) const;
     // Nivel de la maqueta: el de letra grande si está marcada la casilla; si no, el de compactación con el que los
-    // modelos generados caben en sus páginas (ver Maquetador).
+    // modelos generados caben en sus páginas (ver Maquetador), o el normal si no hay que ajustarlos a ellas.
     int nivelMaqueta() const;
     // Exporta los exámenes que se elijan en el diálogo, cada fichero con 'escribir' (ver exportacion.h); 'nota' se
     // añade al mensaje del final. Con 'casillaSoluciones', el diálogo tiene la casilla «Con soluciones» con ese texto,
@@ -238,7 +239,8 @@ private:
     QMap<int, int> m_cantidadesGuardadas;
     QGridLayout *m_rejillaRepartos;         // botones de los repartos del banco y «Ninguna»
     QLabel *m_total;
-    QCheckBox *m_puntuacionAuto;
+    QWidget *m_puntuacion;                  // los botones de las formas de puntuar (DatosConvocatoria::Puntuacion)
+    QButtonGroup *m_formasPuntuacion;       // los mismos, con la forma como id
     QDoubleSpinBox *m_acierto;
     QDoubleSpinBox *m_fallo;
     QCheckBox *m_noRepetir;
@@ -248,6 +250,7 @@ private:
     QCheckBox *m_incluirRevisar;
     QCheckBox *m_ordenAleatorio;
     QCheckBox *m_barajarOpciones;
+    QCheckBox *m_limitarPaginas;            // compactar la maqueta para que quepa en una página por cada 10 preguntas
     QLineEdit *m_semilla;
     QComboBox *m_selectorModelo;
     QCheckBox *m_verSoluciones;

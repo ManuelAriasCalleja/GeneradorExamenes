@@ -91,7 +91,7 @@ private slots:
         QVERIFY(xml.contains(QStringLiteral("<img src=\"@@PLUGINFILE@@/T2-1.png\"")));
         QVERIFY(xml.contains(QStringLiteral("<file name=\"T2-1.png\" path=\"/\" encoding=\"base64\">")
                              + QString::fromLatin1(imagenInventada().toBase64())));
-        QVERIFY(xml.contains(QStringLiteral("<pre>int x = 1 &lt;&lt; 2;</pre>")));
+        QVERIFY(xml.contains(QStringLiteral("<pre style=\"background-color:#eeeeee; border:1px solid #808080; padding:4px\">int x = 1 &lt;&lt; 2;</pre>")));
         QVERIFY(xml.contains(QStringLiteral("<tr><td>a</td><td>b</td></tr>")));
         QVERIFY(xml.contains(QStringLiteral("<p>Véase la página 31 del libro de teoría.</p><p>Porque sí &amp; punto.</p>")));
 

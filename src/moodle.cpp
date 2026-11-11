@@ -13,7 +13,8 @@ namespace Moodle {
 
 namespace {
 
-// Enunciado en HTML sencillo, que el editor de Moodle conserva: párrafos, código en <pre> y tablas con borde.
+// Enunciado en HTML sencillo, que el editor de Moodle conserva: párrafos, código en <pre> (en un recuadro gris) y
+// tablas con borde.
 QString enunciadoHtml(const QString &texto)
 {
     QString html;
@@ -27,7 +28,9 @@ QString enunciadoHtml(const QString &texto)
             break;
         }
         case Enunciado::Bloque::Codigo:
-            html += QStringLiteral("<pre>%1</pre>").arg(Maquetador::escapar(b.lineas.join(QLatin1Char('\n'))));
+            // En un recuadro gris, como en los exámenes.
+            html += QStringLiteral("<pre style=\"background-color:#eeeeee; border:1px solid #808080; padding:4px\">%1</pre>")
+                        .arg(Maquetador::escapar(b.lineas.join(QLatin1Char('\n'))));
             break;
         case Enunciado::Bloque::Tabla:
             html += QStringLiteral("<table border=\"1\" cellpadding=\"3\" style=\"border-collapse:collapse\">");

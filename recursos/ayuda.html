@@ -32,7 +32,7 @@ diálogos tienen además un botón <b>Ayuda</b> que hace lo mismo.
 <p>El programa genera exámenes tipo test eligiendo al azar preguntas de un banco de preguntas, con el número de
 preguntas que se indique de cada tema. Al elegirlas sigue las reglas de los exámenes de la asignatura: nunca pone en
 un mismo examen dos versiones de una misma pregunta, puede repartir la respuesta correcta entre a), b), c) y d) y
-hace que cada examen quepa en una página por cada 10 preguntas.</p>
+puede hacer que cada examen quepa en una página por cada 10 preguntas.</p>
 
 <p>Sirve para cualquier asignatura: cada banco de preguntas lleva el nombre de la suya, sus temas (tantos como
 tenga) y sus repartos de preguntas por tema.</p>
@@ -144,11 +144,12 @@ puntuación. Si un examen no cabe en su página, acortar las instrucciones ayuda
 <p>Se genera un examen por cada nombre marcado, en el orden de la lista. El pie de cada página lleva el nombre del
 examen, la convocatoria y el año: «Nacional Original · Junio 2026: 1 / 2».</p>
 <ul>
-<li><b>Añadir</b>: añade un nombre nuevo, que se escribe en ese momento.</li>
-<li><b>Quitar</b>: quita de la lista el nombre elegido (pide confirmación).</li>
-<li><b>Todos</b> y <b>Ninguno</b>: marcan o desmarcan todos los nombres.</li>
+<li><b>Añadir</b> (Alt+D): añade un nombre nuevo, que se escribe en ese momento.</li>
+<li><b>Quitar</b> (Alt+Q): quita de la lista el nombre elegido (pide confirmación).</li>
+<li><b>Todos</b> (Alt+T) y <b>Ninguno</b> (Alt+N): marcan o desmarcan todos los nombres.</li>
 <li>Con un doble clic se cambia un nombre; arrastrándolo, se cambia su posición.</li>
 </ul>
+<p>La letra del atajo de cada botón está subrayada en él (en algunos escritorios, solo mientras se pulsa Alt).</p>
 <p>La lista se guarda en el banco, así que cada asignatura tiene la suya, y se conserva de un año a otro. No puede
 haber dos exámenes marcados con el mismo nombre ni uno sin nombre.</p>
 
@@ -177,9 +178,19 @@ sustituirlo.</li>
 primero de sus repartos. Un banco nuevo no tiene ninguno.</p>
 
 <h3><a name="puntuacion"></a>Puntuación</h3>
-<p>Con <b>Automática</b> marcada, el examen vale 10 puntos y cada fallo resta el 30 % de lo que vale un acierto: con
-10 preguntas, +1 por acierto y −0,30 por fallo; con 20, +0,50 y −0,15. Las preguntas en blanco no suman ni restan.
-Para poner otros valores, desmarque <b>Automática</b> y escríbalos en <b>Acierto</b> y <b>Fallo</b>.</p>
+<p>Hay cuatro formas de puntuar. En las tres primeras, el examen vale 10 puntos (cada acierto, 10 entre el número de
+preguntas) y los puntos se calculan solos:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Forma</th><th align="left">Con 10 preguntas</th><th align="left">Con 20 preguntas</th></tr>
+<tr><td><b>Cada fallo resta el 30 %</b> de lo que vale un acierto</td><td>+1 y −0,30</td><td>+0,50 y −0,15</td></tr>
+<tr><td><b>Cada fallo resta el 33,3 %</b>: lo justo para que contestar al azar dé 0 puntos de media (con cuatro
+opciones se acierta una vez de cada cuatro, y ese acierto compensa los otros tres fallos)</td><td>+1 y −0,33</td>
+<td>+0,50 y −0,17</td></tr>
+<tr><td><b>Los fallos no restan</b></td><td>+1 y 0</td><td>+0,50 y 0</td></tr>
+</table>
+<p>Con <b>Personalizada</b>, los puntos de cada acierto y de cada fallo los escribe quien hace el examen en
+<b>Acierto</b> y <b>Fallo</b>. Los puntos van con dos decimales, como se imprimen. Las preguntas en blanco no suman ni
+restan.</p>
 <p>La puntuación se imprime bajo las instrucciones del examen y se usa para calificar al
 <a href="#practicar">practicar un examen</a>.</p>
 
@@ -205,6 +216,10 @@ banco), aunque antes que las de las convocatorias registradas.</td></tr>
 <tr><td><b>Barajar las opciones</b></td>
 <td>Cambia el orden de las opciones para repartir la respuesta correcta entre a), b), c) y d) (ver
 <a href="#correctas">Reparto de la respuesta correcta</a>).</td></tr>
+<tr><td><b>Ajustar a una página por cada 10 preguntas</b></td>
+<td>Compacta la maqueta hasta que cada examen quepa en una página por cada 10 preguntas, y avisa si no se consigue
+(ver <a href="#maqueta">Una página por cada 10 preguntas</a>). Si se desmarca, los exámenes van con la maqueta normal y
+ocupan las páginas que necesiten.</td></tr>
 <tr><td><b>Semilla</b></td>
 <td>Vacía, cada vez salen exámenes distintos. Con un número, se repiten los mismos (ver
 <a href="#semilla">La semilla</a>).</td></tr>
@@ -277,13 +292,16 @@ conservarlos, regístrelos.
 </td></tr></table>
 
 <h3><a name="maqueta"></a>Una página por cada 10 preguntas</h3>
-<p>Cada examen debe caber en una página por cada 10 preguntas: un examen de 10 preguntas, en un folio. Si con la
+<p>Con la opción <b>Ajustar a una página por cada 10 preguntas</b> marcada (lo está salvo que se desmarque), cada
+examen debe caber en una página por cada 10 preguntas: un examen de 10 preguntas, en un folio. Si con la
 maqueta normal no cabe, el programa la compacta por niveles: pone las opciones en dos columnas (a c / b d) cuando así
 ocupan menos líneas, reduce la separación entre preguntas y, por último, la letra (hasta 9 puntos). El nivel usado
 aparece en la línea gris («Maqueta compacta (nivel 2 de 4)») y es el mismo para todos los exámenes de la
 convocatoria, en la vista, al imprimir y en las tres exportaciones.</p>
 <p>Si ni así cabe, se avisa: acorte las instrucciones o quite alguna pregunta (las que llevan imagen o un enunciado
 largo son las que más ocupan).</p>
+<p>Si la asignatura no tiene ese límite, desmarque la opción: los exámenes irán con la maqueta normal y ocuparán las
+páginas que necesiten, y la línea gris dirá «Sin límite de páginas». Como las demás opciones, se guarda en el banco.</p>
 
 <h3><a name="letra-grande"></a>Letra grande</h3>
 <p>La casilla <b>Letra grande</b> hace la versión adaptada para estudiantes con discapacidad visual, lo contrario de
@@ -431,7 +449,8 @@ sus exámenes, el número de preguntas de cada uno y cuándo se registró.</p>
 <li><b>Cargar</b> (o doble clic en un examen): lleva la convocatoria elegida, o un solo examen, a la pestaña
 <b>Generar examen</b>, para verla, exportarla, imprimirla o practicarla tal como salió, aunque después se hayan
 corregido sus preguntas. Los datos de la convocatoria pasan a la ventana (asignatura, convocatoria, año,
-instrucciones y puntuación; si la puntuación no coincide con la automática, se desmarca <b>Automática</b>). La línea
+instrucciones y puntuación; si la puntuación no coincide con la de la ventana, se pone la registrada, como
+<b>Personalizada</b>). La línea
 gris dice «Registrada el …».</li>
 <li><b>Eliminar del historial…</b>: borra la convocatoria o el examen elegido, después de pedir confirmación. Sus
 preguntas dejan de contar como ya salidas y no se podrá volver a cargarlo.</li>
@@ -531,8 +550,9 @@ descartarlos.</p>
 <h3><a name="formato"></a>Formato del enunciado</h3>
 <p>El enunciado es texto normal, en uno o varios párrafos. Admite además código y tablas:</p>
 <ul>
-<li><b>Código</b>: entre dos líneas que solo tengan tres comillas invertidas (<tt>```</tt>). Se imprime en letra de
-ancho fijo, respetando los espacios.</li>
+<li><b>Código</b>: entre dos líneas que solo tengan tres comillas invertidas (<tt>```</tt>). Se imprime en un
+recuadro gris, para que se distinga del texto, en letra de ancho fijo y respetando los espacios; igual en la vista,
+en las exportaciones y en Moodle.</li>
 <li><b>Tablas</b>: cada fila en una línea, con las celdas separadas por barras: <tt>| celda | celda |</tt>.</li>
 </ul>
 <p>Por ejemplo:</p>
@@ -869,8 +889,9 @@ se evitan o pida menos preguntas de ese tema.</p>
 Marque «Barajar las opciones» y vuelva a generar.</p>
 
 <h3><a name="problema-cabe"></a>«Algún examen no cabe en una página ni con la maqueta más compacta»</h3>
-<p>Acorte las instrucciones o cambie alguna pregunta larga o con imagen (volviendo a generar o con otro reparto).
-Ver <a href="#maqueta">Una página por cada 10 preguntas</a>.</p>
+<p>Acorte las instrucciones o cambie alguna pregunta larga o con imagen (volviendo a generar o con otro reparto). Si
+los exámenes de la asignatura no tienen límite de páginas, desmarque «Ajustar a una página por cada 10 preguntas» en
+las opciones. Ver <a href="#maqueta">Una página por cada 10 preguntas</a>.</p>
 
 <h3><a name="problema-recuperar"></a>Quiero volver a tener los exámenes de otro día</h3>
 <p>Si se registraron, cárguelos desde el <a href="#consultar-historial">historial</a>. Si no, y apuntó la semilla,

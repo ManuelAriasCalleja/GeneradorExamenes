@@ -133,6 +133,27 @@ private slots:
         QVERIFY(maximo > 0);
     }
 
+    void formasDePuntuar()
+    {
+        // Sobre 10 puntos; con «al azar», contestar al azar da 0 de media (salvo el redondeo a centésimas).
+        auto puntos = [](DatosConvocatoria::Puntuacion forma, int preguntas) {
+            DatosConvocatoria d;
+            d.puntosAcierto = 2;
+            d.puntosFallo = 0.5;
+            d.puntuar(forma, preguntas);
+            return qMakePair(d.puntosAcierto, d.puntosFallo);
+        };
+        QCOMPARE(puntos(DatosConvocatoria::Resta30, 10), qMakePair(1.0, 0.3));
+        QCOMPARE(puntos(DatosConvocatoria::Resta30, 20), qMakePair(0.5, 0.15));
+        QCOMPARE(puntos(DatosConvocatoria::RestaAlAzar, 10), qMakePair(1.0, 0.33));
+        QCOMPARE(puntos(DatosConvocatoria::RestaAlAzar, 20), qMakePair(0.5, 0.17));
+        QCOMPARE(puntos(DatosConvocatoria::SinResta, 20), qMakePair(0.5, 0.0));
+        QCOMPARE(puntos(DatosConvocatoria::Personalizada, 20), qMakePair(2.0, 0.5));
+        QCOMPARE(puntos(DatosConvocatoria::Resta30, 0), qMakePair(2.0, 0.5));   // sin preguntas, como estaba
+        const double alAzar = 0.25 * 1.0 - 0.75 * DatosConvocatoria::fraccionFalloAlAzar();
+        QVERIFY(qAbs(alAzar) < 1e-12);
+    }
+
     void avisaSiNoCabe()
     {
         QVector<Pregunta> banco = bancoInventado();

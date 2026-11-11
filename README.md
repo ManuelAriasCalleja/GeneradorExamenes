@@ -115,7 +115,8 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   de febrero, junio y septiembre cuyo mes aún no ha llegado (el 27 de octubre de 2026, Febrero 2027).
 - Lista de exámenes de la convocatoria (Nacional Original, Nacional Reserva…) con casillas: se genera un examen
   por cada nombre marcado, en el orden de la lista. La lista se mantiene de un año a otro; los nombres se
-  añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando); cada banco tiene la suya. El pie de cada página lleva el nombre
+  añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando); cada banco tiene la suya. Los botones
+  tienen atajo: Añadir (Alt+D), Quitar (Alt+Q), Todos (Alt+T) y Ninguno (Alt+N). El pie de cada página lleva el nombre
   del examen, la convocatoria y el año: «Nacional Original · Junio 2026: 1 / 2».
 - Número de preguntas de cada tema. Junto a cada tema se ve cuántas preguntas distintas hay. Los botones de reparto
   son los del banco (por ejemplo, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3) más «Ninguna»;
@@ -123,8 +124,10 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   sobre uno se sustituye o se quita. Cada banco recuerda su último reparto usado; la primera vez se propone el primero
   de sus repartos. (Las versiones anteriores guardaban el último reparto en la configuración: pasa al primer banco
   que se abre.)
-- Puntuación automática (10 puntos en total y cada fallo resta el 30 %: +1/−0,30 con 10 preguntas,
-  +0,50/−0,15 con 20) o manual.
+- Puntuación: sobre 10 puntos, cada fallo resta el 30 % de un acierto (+1/−0,30 con 10 preguntas, +0,50/−0,15
+  con 20), el 33,3 % (lo justo para que contestar al azar dé 0 de media: +1/−0,33 y +0,50/−0,17) o nada; o
+  personalizada, con los puntos que se escriban. (Las versiones anteriores tenían la casilla «Automática»: marcada,
+  es la del 30 %; sin marcar, la personalizada.)
 - Exportar a PDF, a HTML editable en Word/LibreOffice o a LaTeX: se abre un diálogo donde se elige la
   carpeta y el nombre del fichero de cada examen (por defecto `2026_Junio_Nacional_Original.pdf`…) y se
   exportan todos de una vez; también se puede marcar «Todos los exámenes en un fichero». Las soluciones en PDF
@@ -140,11 +143,13 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   en el mismo sitio y, si se barajan las opciones, con la correcta en la misma letra, así que el resto de los exámenes
   no cambia; se elige con las reglas de la generación, y las ya quitadas de ese examen no vuelven mientras queden
   otras. «Deshacer el cambio» los deshace del último al primero. Después, la semilla ya no reproduce los exámenes.
-- Cada examen cabe en una página por cada 10 preguntas (un examen de 10 preguntas, en un folio). Si con la
+- Con la opción «Ajustar a una página por cada 10 preguntas» (marcada salvo que se desmarque, y guardada en cada
+  banco), cada examen cabe en una página por cada 10 preguntas (un examen de 10 preguntas, en un folio). Si con la
   maqueta normal no cabe, el programa la compacta por niveles: opciones en dos columnas (a c / b d) cuando
   así ocupan menos líneas, menos separación entre preguntas y letra algo menor (hasta 9 pt). El nivel usado
   se indica junto a la semilla y vale para todos los exámenes de la convocatoria, la vista previa y las tres
-  exportaciones; si ni así cabe, se avisa.
+  exportaciones; si ni así cabe, se avisa. Sin marcar, los exámenes van con la maqueta normal y ocupan las
+  páginas que necesiten.
 - «Letra grande», junto a «Mostrar soluciones», es la versión adaptada para estudiantes con discapacidad
   visual, lo contrario de la maqueta compacta: letra de 16 pt (también la cabecera y las instrucciones), los
   enunciados en negrita sin cursiva, una opción por línea, más separación entre preguntas e imágenes más
@@ -197,7 +202,8 @@ y eliminar preguntas. El editor tiene «Guardar y siguiente» (la siguiente de l
 crear, «Guardar y nueva» (otra en el mismo tema), para repasar o escribir varias seguidas;
 menú *Editar → Temas* para añadir o renombrar temas y elegir la forma de la referencia al libro de cada uno (depende
 de su autor). En el enunciado se puede escribir código entre
-líneas ```` ``` ```` y filas de tabla como `| celda | celda |`; también se puede añadir una imagen.
+líneas ```` ``` ```` (sale en un recuadro gris, en letra de ancho fijo, en la vista, las exportaciones y Moodle) y
+filas de tabla como `| celda | celda |`; también se puede añadir una imagen.
 
 Al editar una pregunta, bajo la vista previa se avisa de las pautas de redacción que no cumple: enunciado
 acabado en dos puntos (o en «?:» si es una pregunta) y de no más de unos 180 caracteres, negaciones en

@@ -48,6 +48,9 @@ const QList<QPair<int, QString>> kConvocatoriasOrdinarias{
 
 const char *const kFuente = "'Liberation Sans', Arial, 'DejaVu Sans', sans-serif";
 const char *const kFuenteCodigo = "'DejaVu Sans Mono', 'Liberation Mono', monospace";
+// Recuadro del código de los enunciados: fondo gris claro (que se nota también en fotocopia) y borde gris.
+const char *const kFondoCodigo = "#eeeeee";
+const char *const kBordeCodigo = "#808080";
 
 // Documento que sirve las imágenes de las preguntas como recursos "img:<id>".
 class DocumentoConImagenes : public QTextDocument
@@ -253,6 +256,16 @@ QString DatosConvocatoria::instruccionesPorDefecto(const QString &idioma)
                                                             "No entregue el enunciado."));
 }
 
+void DatosConvocatoria::puntuar(Puntuacion puntuacion, int numPreguntas)
+{
+    if (puntuacion == Personalizada || numPreguntas <= 0)
+        return;
+    const double acierto = 10.0 / numPreguntas;
+    const double fraccion = puntuacion == Resta30 ? 0.3 : puntuacion == RestaAlAzar ? fraccionFalloAlAzar() : 0.0;
+    puntosAcierto = qRound(acierto * 100) / 100.0;
+    puntosFallo = qRound(acierto * fraccion * 100) / 100.0;
+}
+
 QStringList DatosConvocatoria::ordinarias(const QString &idioma)
 {
     QStringList nombres;
@@ -381,9 +394,14 @@ QString Maquetador::enunciadoHtml(const QString &texto, const QString &prefijo)
             html += QStringLiteral("</table>");
             break;
         case Enunciado::Bloque::Codigo:
+            // En un recuadro gris, para que se distinga del texto (QTextDocument solo pone borde a las tablas).
             ponerPrefijoSolo();
-            html += QStringLiteral("<pre style=\"margin-left:26px; margin-top:2px; margin-bottom:2px; font-family:%1; font-weight:normal; font-style:normal\">%2</pre>")
-                        .arg(QLatin1String(kFuenteCodigo), escapar(b.lineas.join(QLatin1Char('\n'))));
+            html += QStringLiteral("<table cellspacing=\"0\" cellpadding=\"4\" style=\"margin-left:26px; margin-top:3px; margin-bottom:3px; border-collapse:collapse; border:1px solid %1\">"
+                                   "<tr><td bgcolor=\"%2\" style=\"border:1px solid %1\">"
+                                   "<pre style=\"margin:0px; font-family:%3; font-weight:normal; font-style:normal\">%4</pre>"
+                                   "</td></tr></table>")
+                        .arg(QLatin1String(kBordeCodigo), QLatin1String(kFondoCodigo), QLatin1String(kFuenteCodigo),
+                             escapar(b.lineas.join(QLatin1Char('\n'))));
             break;
         }
     }
@@ -798,6 +816,12 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \newcommand{\letraexamen}{\normalsize}
 % Cada pregunta va en un bloque que no se parte entre dos páginas.
 \newenvironment{pregunta}{\par\addvspace{\seppregunta}\noindent\begin{minipage}{\linewidth}}{\end{minipage}\par}
+% Código de los enunciados: en un recuadro gris, como en el PDF.
+\definecolor{fondocodigo}{HTML}{EEEEEE}
+\definecolor{bordecodigo}{HTML}{808080}
+\newsavebox{\cajacodigo}
+\newenvironment{codigo}{\VerbatimEnvironment\begin{lrbox}{\cajacodigo}\begin{BVerbatim}[formatcom=\normalfont\ttfamily]}%
+{\end{BVerbatim}\end{lrbox}\par\smallskip\sangria{\setlength{\fboxsep}{4pt}\fcolorbox{bordecodigo}{fondocodigo}{\usebox{\cajacodigo}}}\par\smallskip}
 )tex";
 
 QString imagenLatex(const Pregunta &p, const QString &carpeta, int n)
@@ -889,7 +913,7 @@ QString enunciadoLatex(const QString &texto, const QString &prefijo)
         }
         case Enunciado::Bloque::Codigo:
             ponerPrefijoSolo();
-            tex += QStringLiteral("\\begin{Verbatim}[xleftmargin=8mm,formatcom=\\normalfont\\ttfamily]\n%1\n\\end{Verbatim}\n")
+            tex += QStringLiteral("\\begin{codigo}\n%1\n\\end{codigo}\n")
                        .arg(b.lineas.join(QLatin1Char('\n')));
             break;
         }

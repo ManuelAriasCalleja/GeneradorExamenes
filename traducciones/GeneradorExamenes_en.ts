@@ -36,7 +36,7 @@
         <translation>Topic %1, question %2: %3</translation>
     </message>
     <message>
-        <location line="+129"/>
+        <location line="+141"/>
         <source>pregunta distinta</source>
         <translation>question that differs</translation>
     </message>
@@ -867,7 +867,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
 Record them?</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+17"/>
         <source>No se pudieron registrar:
 %1</source>
         <translation>They could not be recorded:
@@ -1962,58 +1962,58 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="+252"/>
+        <location filename="../src/maquetador.cpp" line="+255"/>
         <source>Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.
 No entregue el enunciado.</source>
         <translation>Mark the correct answer on the answer sheet only.
 Do not hand in the question paper.</translation>
     </message>
     <message>
-        <location line="+208"/>
-        <location line="+522"/>
+        <location line="+223"/>
+        <location line="+528"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
     <message>
-        <location line="-509"/>
-        <location line="+528"/>
+        <location line="-515"/>
+        <location line="+534"/>
         <source>Pregunta contestada correctamente:</source>
         <translation>Question answered correctly:</translation>
     </message>
     <message>
-        <location line="-527"/>
-        <location line="+528"/>
+        <location line="-533"/>
+        <location line="+534"/>
         <source>+ %1 puntos</source>
         <translation>+ %1 points</translation>
     </message>
     <message>
-        <location line="-527"/>
-        <location line="+528"/>
+        <location line="-533"/>
+        <location line="+534"/>
         <source>Pregunta contestada incorrectamente:</source>
         <translation>Question answered incorrectly:</translation>
     </message>
     <message>
-        <location line="-527"/>
-        <location line="+528"/>
+        <location line="-533"/>
+        <location line="+534"/>
         <source>- %1 puntos</source>
         <translation>- %1 points</translation>
     </message>
     <message>
-        <location line="-527"/>
-        <location line="+528"/>
+        <location line="-533"/>
+        <location line="+534"/>
         <source>Pregunta no contestada:</source>
         <translation>Question not answered:</translation>
     </message>
     <message>
-        <location line="-527"/>
-        <location line="+528"/>
+        <location line="-533"/>
+        <location line="+534"/>
         <source>0 puntos</source>
         <translation>0 points</translation>
     </message>
     <message>
-        <location line="-503"/>
+        <location line="-509"/>
         <location line="+190"/>
-        <location line="+269"/>
+        <location line="+275"/>
         <location line="+65"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
         <location line="+1"/>
@@ -2023,25 +2023,25 @@ Do not hand in the question paper.</translation>
         <translation>Solutions</translation>
     </message>
     <message>
-        <location line="-518"/>
-        <location line="+524"/>
+        <location line="-524"/>
+        <location line="+530"/>
         <source>Estructura de la convocatoria</source>
         <translation>Session structure</translation>
     </message>
     <message>
-        <location line="-523"/>
-        <location line="+524"/>
+        <location line="-529"/>
+        <location line="+530"/>
         <source>Examen</source>
         <translation>Exam</translation>
     </message>
     <message>
-        <location line="-499"/>
-        <location line="+530"/>
+        <location line="-505"/>
+        <location line="+536"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
     <message>
-        <location filename="../src/moodle.cpp" line="+141"/>
+        <location filename="../src/moodle.cpp" line="+144"/>
         <source>Respuesta correcta.</source>
         <translation>Correct answer.</translation>
     </message>
@@ -2141,7 +2141,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-665"/>
+        <location filename="../src/maquetador.cpp" line="-671"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>
@@ -2288,13 +2288,13 @@ Do not hand in the question paper.</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+82"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+85"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="+81"/>
         <source>Generar examen</source>
         <translation>Generate exam</translation>
     </message>
@@ -2372,31 +2372,7 @@ Doble clic para cambiar el nombre; arrastre para cambiar el orden.</source>
 Double-click to change the name; drag to change the order.</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>Añadir</source>
-        <extracomment>Botón: añade un examen a la lista de exámenes que se generan</extracomment>
-        <translation>Add</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Quitar</source>
-        <extracomment>Botón: quita de la lista el examen seleccionado</extracomment>
-        <translation>Remove</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Todos</source>
-        <extracomment>Botón: marca todos los exámenes de la lista</extracomment>
-        <translation>All</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Ninguno</source>
-        <extracomment>Botón: desmarca todos los exámenes de la lista</extracomment>
-        <translation>None</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location line="+33"/>
         <source>Preguntas por tema</source>
         <translation>Questions per topic</translation>
     </message>
@@ -2416,24 +2392,100 @@ Double-click to change the name; drag to change the order.</translation>
         <translation>Scoring</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Automática (10 puntos; cada fallo resta el 30 %)</source>
-        <translation>Automatic (10 points; each wrong answer deducts 30%)</translation>
+        <location line="-35"/>
+        <source>Aña&amp;dir</source>
+        <extracomment>Botón: añade un examen a la lista de exámenes que se generan. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de un menú ni la de otro de estos cuatro botones.</extracomment>
+        <translation>A&amp;dd</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+0"/>
+        <source>Añade un examen a la lista</source>
+        <translation>Adds an exam to the list</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Quitar</source>
+        <extracomment>Botón: quita de la lista el examen seleccionado. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
+        <translation>&amp;Remove</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Quita de la lista el examen seleccionado</source>
+        <translation>Removes the selected exam from the list</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Todos</source>
+        <extracomment>Botón: marca todos los exámenes de la lista. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
+        <translation>&amp;All</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Marca todos los exámenes de la lista</source>
+        <translation>Ticks all the exams in the list</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Ninguno</source>
+        <extracomment>Botón: desmarca todos los exámenes de la lista. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
+        <translation>&amp;None</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Desmarca todos los exámenes de la lista</source>
+        <translation>Unticks all the exams in the list</translation>
+    </message>
+    <message>
+        <location line="+36"/>
+        <source>El examen vale 10 puntos: cada acierto, 10 entre el número de preguntas.</source>
+        <translation>The exam is worth 10 points: each correct answer, 10 divided by the number of questions.</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Cada fallo resta el 30 %</source>
+        <translation>Each wrong answer deducts 30%</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Cada fallo resta el %1 %</source>
+        <extracomment>%1 es el porcentaje de un acierto que resta cada fallo para que contestar al azar dé 0 de media («33,3»)</extracomment>
+        <translation>Each wrong answer deducts %1%</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Es lo justo para que contestar al azar dé 0 puntos de media: con cuatro opciones se acierta una vez de cada cuatro, y ese acierto compensa los tres fallos.</source>
+        <translation>Just enough for random guessing to score 0 points on average: with four options, one guess in four is right, and that correct answer makes up for the three wrong ones.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Los fallos no restan</source>
+        <translation>Wrong answers deduct nothing</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Personalizada</source>
+        <extracomment>Forma de puntuar: los puntos de cada acierto y de cada fallo los escribe quien hace el examen</extracomment>
+        <translation>Custom</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Los puntos de cada acierto y de cada fallo, los que se escriban abajo.</source>
+        <translation>The points for each correct and each wrong answer are the ones entered below.</translation>
+    </message>
+    <message>
+        <location line="+15"/>
         <source>Acierto:</source>
         <extracomment>Puntos que suma cada respuesta correcta</extracomment>
         <translation>Correct:</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+4"/>
         <source>Fallo:</source>
         <extracomment>Puntos que resta cada respuesta incorrecta</extracomment>
         <translation>Wrong:</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+13"/>
         <source>Opciones</source>
         <translation>Options</translation>
     </message>
@@ -2493,7 +2545,19 @@ No se barajan las preguntas con opciones del tipo «Todas las anteriores».</sou
 Questions with options such as “All of the above” are not shuffled.</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+3"/>
+        <source>Ajustar a una página por cada 10 preguntas</source>
+        <translation>Fit on one page per 10 questions</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Compacta la maqueta (opciones en dos columnas, menos separación, letra menor) hasta que cada examen quepa en una página por cada 10 preguntas, y avisa si no se consigue.
+Sin marcar, los exámenes van con la maqueta normal y ocupan las páginas que necesiten.</source>
+        <translation>Compacts the layout (options in two columns, less spacing, smaller font) until each exam fits on one page per 10 questions, and warns if it cannot.
+Unticked, exams use the normal layout and take as many pages as they need.</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>aleatoria</source>
         <extracomment>Lo que pone el campo «Semilla» cuando está vacío (la semilla será aleatoria)</extracomment>
         <translation>random</translation>
@@ -2506,7 +2570,7 @@ Vacía, cada vez salen otros.</source>
 If empty, different exams come out each time.</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>Semilla:</source>
         <extracomment>Semilla del generador de números aleatorios</extracomment>
         <translation>Seed:</translation>
@@ -2824,7 +2888,7 @@ You can also right-click the question.</translation>
         <translation>&amp;About…</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+18"/>
         <source>No se pudo abrir la base de datos
 %1
 
@@ -2835,7 +2899,7 @@ You can also right-click the question.</translation>
 %2</translation>
     </message>
     <message>
-        <location line="+51"/>
+        <location line="+54"/>
         <source>Elija el banco de preguntas (fichero .db) con el que quiere trabajar.</source>
         <translation>Choose the question bank (.db file) you want to work with.</translation>
     </message>
@@ -2929,12 +2993,12 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+864"/>
+        <location line="+931"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-856"/>
+        <location line="-923"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3000,7 +3064,7 @@ Open it with a text editor; in one that understands JSON schemas, such as VS Cod
         <translation>Questions exported to %1</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+16"/>
         <source>%1 preguntas exportadas a %2 (en Moodle: Banco de preguntas → Importar, formato «Moodle XML»)</source>
         <translation>%1 questions exported to %2 (in Moodle: Question bank → Import, “Moodle XML” format)</translation>
     </message>
@@ -3110,7 +3174,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Distinct questions available (variants a, b, c... count as one)</translation>
     </message>
     <message>
-        <location line="+95"/>
+        <location line="+156"/>
         <source>Generador de exámenes</source>
         <translation>Exam Generator</translation>
     </message>
@@ -3301,6 +3365,12 @@ Replace it with this one?</translation>
         <translation>  ·  Large print (adapted version, no page limit)</translation>
     </message>
     <message>
+        <location line="+3"/>
+        <source>  ·  Sin límite de páginas</source>
+        <extracomment>Se añade a la línea de información del examen (con el separador delante): no se ajusta a una página por cada 10 preguntas</extracomment>
+        <translation>  ·  No page limit</translation>
+    </message>
+    <message>
         <location line="+7"/>
         <source>Algún examen no cabe en %1 ni con la maqueta más compacta: acorte las instrucciones o quite preguntas.</source>
         <extracomment>%1 es «una página» o «N páginas»</extracomment>
@@ -3326,10 +3396,10 @@ Replace it with this one?</translation>
         <location line="+6"/>
         <source>Escriba esta semilla en Opciones para volver a obtener los mismos exámenes.
 Si se han cambiado preguntas a mano, ya no los reproduce: regístrelos para conservarlos.
-La maqueta se compacta (opciones en dos columnas, menos separación, letra menor) hasta que cada examen cabe en una página por cada 10 preguntas; con «Letra grande» no se compacta.</source>
+Con «Ajustar a una página por cada 10 preguntas» (en Opciones), la maqueta se compacta (opciones en dos columnas, menos separación, letra menor) hasta que cada examen cabe en sus páginas; con «Letra grande» no se compacta.</source>
         <translation>Enter this seed in Options to get the same exams again.
 If questions have been changed by hand, the seed no longer reproduces them: record them to keep them.
-The layout is compacted (options in two columns, less spacing, smaller font) until each exam fits on one page per 10 questions; with “Large print” it is not compacted.</translation>
+With “Fit on one page per 10 questions” (in Options), the layout is compacted (options in two columns, less spacing, smaller font) until each exam fits on its pages; with “Large print” it is not compacted.</translation>
     </message>
     <message>
         <location line="+20"/>
@@ -3338,7 +3408,7 @@ The layout is compacted (options in two columns, less spacing, smaller font) unt
         <translation>Correct: %1</translation>
     </message>
     <message>
-        <location line="+42"/>
+        <location line="+44"/>
         <source>No se pudieron escribir estos ficheros:
 %1</source>
         <translation>Could not write these files:
@@ -3390,7 +3460,7 @@ If they are the final ones, record them first.</translation>
         <translation>Do not record them</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+34"/>
         <source>Exportar exámenes a PDF</source>
         <translation>Export exams to PDF</translation>
     </message>
@@ -3461,7 +3531,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
     </message>
     <message>
         <location line="+3"/>
-        <location line="+22"/>
+        <location line="+24"/>
         <source>Registrados en el historial los exámenes de %1</source>
         <translation>Exams for %1 recorded in the history</translation>
     </message>

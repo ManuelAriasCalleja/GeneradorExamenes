@@ -21,6 +21,17 @@ struct DatosConvocatoria
     double puntosAcierto = 1.0;
     double puntosFallo = 0.3;        // se resta
 
+    // Formas de puntuar que se eligen en la ventana. Con las tres primeras el examen vale 10 puntos (cada acierto, 10
+    // entre el número de preguntas) y cada fallo resta el 30 % de un acierto, lo justo para que contestar al azar dé
+    // 0 de media (fraccionFalloAlAzar()) o nada; con la personalizada, los puntos los pone quien hace el examen.
+    enum Puntuacion { Resta30, RestaAlAzar, SinResta, Personalizada };
+    // Pone los puntos de un examen de n preguntas con una de las tres primeras (con Personalizada, o sin preguntas, no
+    // los cambia). Redondeados a centésimas, como se imprimen.
+    void puntuar(Puntuacion puntuacion, int numPreguntas);
+    // Parte de un acierto que debe restar un fallo para que contestar al azar dé 0 de media: con cuatro opciones se
+    // acierta una vez de cada cuatro, y ese acierto tiene que compensar los otros tres fallos (1/3).
+    static double fraccionFalloAlAzar() { return 1.0 / 3; }
+
     // «Junio 2026»: va en la cabecera, en el pie de página y en el nombre de los ficheros.
     QString convocatoriaYAnio() const
     {
@@ -45,7 +56,8 @@ struct DatosConvocatoria
 
 // Convierte preguntas y exámenes a HTML (subconjunto que entiende QTextDocument) y los imprime.
 //
-// Un examen debe caber en una página por cada 10 preguntas (paginasObjetivo). Para conseguirlo la maqueta tiene
+// Si se pide (la opción «Ajustar a una página por cada 10 preguntas» de la ventana, que se puede desmarcar), un examen
+// debe caber en una página por cada 10 preguntas (paginasObjetivo). Para conseguirlo la maqueta tiene
 // varios niveles de compactación (0 = normal): a partir del 1 las opciones se ponen en dos columnas (a c / b d)
 // siempre que así ocupen menos líneas, y en los siguientes se reduce la separación entre preguntas y el tamaño
 // de la letra. nivelParaCaber() elige el menor nivel con el que caben todos los modelos.

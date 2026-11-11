@@ -32,7 +32,7 @@ a <b>Help</b> button that does the same.
 <p>The program generates multiple-choice exams by picking questions at random from a question bank, with the number
 of questions you specify for each topic. When choosing them it follows the rules of the subject’s exams: it never puts
 two versions of the same question in the same exam, it can spread the correct answer across a), b), c) and d), and it
-makes each exam fit on one page per 10 questions.</p>
+can make each exam fit on one page per 10 questions.</p>
 
 <p>It works for any subject: each question bank carries the name of its own subject, its topics (as many as it has)
 and its distributions of questions per topic.</p>
@@ -149,11 +149,12 @@ exam does not fit on its page, shortening the instructions helps.</li>
 <p>One exam is generated for each ticked name, in the order of the list. The footer of each page carries the name of
 the exam, the exam session and the year: “Nacional Original · June 2026: 1 / 2”.</p>
 <ul>
-<li><b>Add</b>: adds a new name, which you type in at that moment.</li>
-<li><b>Remove</b>: removes the selected name from the list (it asks for confirmation).</li>
-<li><b>All</b> and <b>None</b>: tick or untick all the names.</li>
+<li><b>Add</b> (Alt+D): adds a new name, which you type in at that moment.</li>
+<li><b>Remove</b> (Alt+R): removes the selected name from the list (it asks for confirmation).</li>
+<li><b>All</b> (Alt+A) and <b>None</b> (Alt+N): tick or untick all the names.</li>
 <li>Double-click a name to change it; drag it to change its position.</li>
 </ul>
+<p>The shortcut letter of each button is underlined on it (on some desktops, only while Alt is held down).</p>
 <p>The list is saved in the bank, so each subject has its own, and it is kept from one year to the next. There cannot
 be two ticked exams with the same name, nor one without a name.</p>
 
@@ -182,10 +183,19 @@ it asks whether to replace it.</li>
 suggests the first of its distributions. A new bank has none.</p>
 
 <h3><a name="puntuacion"></a>Scoring</h3>
-<p>With <b>Automatic</b> ticked, the exam is worth 10 points and each wrong answer deducts 30% of the value of a
-correct one: with 10 questions, +1 per correct answer and −0.30 per wrong one; with 20, +0.50 and −0.15. Unanswered
-questions neither add nor deduct anything. To use other values, untick <b>Automatic</b> and enter them in
-<b>Correct</b> and <b>Wrong</b>.</p>
+<p>There are four ways of scoring. In the first three, the exam is worth 10 points (each correct answer, 10 divided by
+the number of questions) and the points are worked out automatically:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Scoring</th><th align="left">With 10 questions</th><th align="left">With 20 questions</th></tr>
+<tr><td><b>Each wrong answer deducts 30%</b> of the value of a correct one</td><td>+1 and −0.30</td><td>+0.50 and −0.15</td></tr>
+<tr><td><b>Each wrong answer deducts 33.3%</b>: just enough for random guessing to score 0 points on average (with
+four options, one guess in four is right, and that correct answer makes up for the other three wrong ones)</td>
+<td>+1 and −0.33</td><td>+0.50 and −0.17</td></tr>
+<tr><td><b>Wrong answers deduct nothing</b></td><td>+1 and 0</td><td>+0.50 and 0</td></tr>
+</table>
+<p>With <b>Custom</b>, whoever sets the exam enters the points for each correct and each wrong answer in
+<b>Correct</b> and <b>Wrong</b>. Points have two decimal places, as they are printed. Unanswered questions neither add
+nor deduct anything.</p>
 <p>The scoring is printed below the exam instructions and is used to mark the exam when you
 <a href="#practicar">practise an exam</a>.</p>
 
@@ -212,6 +222,10 @@ exams.</td></tr>
 <tr><td><b>Shuffle the options</b></td>
 <td>Changes the order of the options to spread the correct answer across a), b), c) and d) (see
 <a href="#correctas">Distribution of the correct answer</a>).</td></tr>
+<tr><td><b>Fit on one page per 10 questions</b></td>
+<td>Compacts the layout until each exam fits on one page per 10 questions, and warns if it cannot (see
+<a href="#maqueta">One page per 10 questions</a>). If unticked, exams use the normal layout and take as many pages
+as they need.</td></tr>
 <tr><td><b>Seed</b></td>
 <td>If empty, different exams come out each time. With a number, the same ones come out again (see
 <a href="#semilla">The seed</a>).</td></tr>
@@ -287,13 +301,16 @@ record them.
 </td></tr></table>
 
 <h3><a name="maqueta"></a>One page per 10 questions</h3>
-<p>Each exam must fit on one page per 10 questions: a 10-question exam, on a single sheet. If it does not fit with
+<p>With the <b>Fit on one page per 10 questions</b> option ticked (it is, unless you untick it), each exam must fit
+on one page per 10 questions: a 10-question exam, on a single sheet. If it does not fit with
 the normal layout, the program compacts it in levels: it puts the options in two columns (a c / b d) when they take
 up fewer lines that way, reduces the spacing between questions and, finally, reduces the font size (down to 9
 points). The level used appears in the grey line (“Compact layout (level 2 of 4)”) and is the same for all the exams
 of the exam session, in the preview, when printing and in the three exports.</p>
 <p>If it still does not fit, a warning is shown: shorten the instructions or remove a question (those with an image
 or a long question text take up the most space).</p>
+<p>If the subject has no such limit, untick the option: the exams will use the normal layout and take as many pages
+as they need, and the grey line will say “No page limit”. Like the other options, it is saved in the bank.</p>
 
 <h3><a name="letra-grande"></a>Large print</h3>
 <p>The <b>Large print</b> box produces the adapted version for visually impaired students, the opposite of the
@@ -441,7 +458,8 @@ the number of questions in each one and when it was recorded.</p>
 <li><b>Load</b> (or double-click an exam): takes the selected exam session, or a single exam, to the
 <b>Generate exam</b> tab, so that you can view, export, print or practise it exactly as it was set, even if its
 questions have been corrected since. The exam session details are copied to the window (subject, exam session, year,
-instructions and scoring; if the scoring does not match the automatic one, <b>Automatic</b> is unticked). The grey
+instructions and scoring; if the scoring does not match the one in the window, the recorded one is set, as
+<b>Custom</b>). The grey
 line says “Recorded on …”.</li>
 <li><b>Delete from history…</b>: deletes the selected exam session or exam, after asking for confirmation. Its
 questions no longer count as already used, and it cannot be loaded again.</li>
@@ -545,8 +563,9 @@ discarded.</p>
 <h3><a name="formato"></a>Question text format</h3>
 <p>The question text is plain text, in one or more paragraphs. It also accepts code and tables:</p>
 <ul>
-<li><b>Code</b>: between two lines containing only three backticks (<tt>```</tt>). It is printed in a fixed-width
-font, keeping the spaces.</li>
+<li><b>Code</b>: between two lines containing only three backticks (<tt>```</tt>). It is printed in a grey box, so
+that it stands out from the text, in a fixed-width font and keeping the spaces; the same in the preview, the exports
+and Moodle.</li>
 <li><b>Tables</b>: each row on one line, with the cells separated by bars: <tt>| cell | cell |</tt>.</li>
 </ul>
 <p>For example:</p>
@@ -888,7 +907,8 @@ many times. Tick “Shuffle the options” and generate again.</p>
 
 <h3><a name="problema-cabe"></a>“At least one exam does not fit on one page, even with the most compact layout”</h3>
 <p>Shorten the instructions or replace a long question or one with an image (by generating again or with another
-distribution). See <a href="#maqueta">One page per 10 questions</a>.</p>
+distribution). If the subject’s exams have no page limit, untick “Fit on one page per 10 questions” in the options.
+See <a href="#maqueta">One page per 10 questions</a>.</p>
 
 <h3><a name="problema-recuperar"></a>I want to get back the exams from another day</h3>
 <p>If they were recorded, load them from the <a href="#consultar-historial">history</a>. If not, and you noted down

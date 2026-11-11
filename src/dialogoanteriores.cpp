@@ -401,8 +401,7 @@ void DialogoAnteriores::accept()
     DatosConvocatoria datos = m_datos;
     datos.convocatoria = convocatoria;
     datos.anio = m_anio->value();
-    datos.puntosAcierto = 10.0 / modelos.first().preguntas.size();
-    datos.puntosFallo = qRound(datos.puntosAcierto * 0.3 * 100) / 100.0;
+    datos.puntuar(DatosConvocatoria::Resta30, int(modelos.first().preguntas.size()));
     if (!m_bd->registrarExamenes(modelos, datos, 0)) {
         QMessageBox::warning(this, windowTitle(), tr("No se pudieron registrar:\n%1").arg(m_bd->ultimoError()));
         return;

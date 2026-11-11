@@ -17,6 +17,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QCloseEvent>
 #include <QComboBox>
@@ -34,6 +35,7 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QIntValidator>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -47,6 +49,7 @@
 #include <QPrintPreviewDialog>
 #include <QPrinter>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QRegularExpression>
 #include <QScrollArea>
 #include <QSet>
@@ -116,6 +119,10 @@ void ponerAjuste(QWidget *control, const QVariant &valor)
         t->setPlainText(valor.toString());
     else if (auto *b = qobject_cast<QComboBox *>(control))
         b->setCurrentText(valor.toString());
+    else   // un grupo de botones de opción: el que lleva ese valor (ver valorAjuste())
+        for (QRadioButton *r : control->findChildren<QRadioButton *>())
+            if (r->property("valor").toString() == valor.toString())
+                r->setChecked(true);
 }
 
 QVariant valorAjuste(const QWidget *control)
@@ -132,7 +139,21 @@ QVariant valorAjuste(const QWidget *control)
         return t->toPlainText();
     if (auto *b = qobject_cast<const QComboBox *>(control))
         return b->currentText().trimmed();
+    // Un grupo de botones de opción: el valor (propiedad «valor») del marcado.
+    for (const QRadioButton *r : control->findChildren<QRadioButton *>())
+        if (r->isChecked())
+            return r->property("valor");
     return QVariant();
+}
+
+// La puntuación se guarda con esta clave. Las versiones anteriores tenían en su lugar la casilla «Automática»
+// («examen/puntuacionAuto»): marcada, cada fallo restaba el 30 %; sin marcar, los puntos eran los de la ventana.
+const QString kClavePuntuacion = QStringLiteral("examen/puntuacion");
+const QString kClavePuntuacionAntigua = QStringLiteral("examen/puntuacionAuto");
+
+QString puntuacionAntigua(const QVariant &automatica)
+{
+    return automatica.toBool() ? QStringLiteral("resta30") : QStringLiteral("personalizada");
 }
 
 } // namespace
@@ -257,9 +278,12 @@ QWidget *VentanaPrincipal::crearGrupoExamenes()
     m_listaExamenes->setDragDropMode(QAbstractItemView::InternalMove);
     m_listaExamenes->setMaximumHeight(150);
     le->addWidget(m_listaExamenes);
+    // Cada botón tiene su atajo, Alt y la letra subrayada (sin las de los menús), que dice su descripción emergente.
     auto *botonesExamenes = new QHBoxLayout;
-    auto botonExamenes = [&](const QString &texto, auto accion) {
+    auto botonExamenes = [&](const QString &texto, const QString &descripcion, auto accion) {
         auto *b = new QPushButton(texto);
+        const QString atajo = QKeySequence::mnemonic(texto).toString(QKeySequence::NativeText);
+        b->setToolTip(atajo.isEmpty() ? descripcion : QStringLiteral("%1 (%2)").arg(descripcion, atajo));
         connect(b, &QPushButton::clicked, this, accion);
         botonesExamenes->addWidget(b);
     };
@@ -267,14 +291,15 @@ QWidget *VentanaPrincipal::crearGrupoExamenes()
         for (int i = 0; i < m_listaExamenes->count(); ++i)
             m_listaExamenes->item(i)->setCheckState(marcar ? Qt::Checked : Qt::Unchecked);
     };
-    //: Botón: añade un examen a la lista de exámenes que se generan
-    botonExamenes(tr("Añadir"), &VentanaPrincipal::nuevoExamen);
-    //: Botón: quita de la lista el examen seleccionado
-    botonExamenes(tr("Quitar"), &VentanaPrincipal::quitarExamen);
-    //: Botón: marca todos los exámenes de la lista
-    botonExamenes(tr("Todos"), [marcarTodos]() { marcarTodos(true); });
-    //: Botón: desmarca todos los exámenes de la lista
-    botonExamenes(tr("Ninguno"), [marcarTodos]() { marcarTodos(false); });
+    //: Botón: añade un examen a la lista de exámenes que se generan. El & marca la letra del atajo (Alt+letra):
+    //: no puede ser la de un menú ni la de otro de estos cuatro botones.
+    botonExamenes(tr("Aña&dir"), tr("Añade un examen a la lista"), &VentanaPrincipal::nuevoExamen);
+    //: Botón: quita de la lista el examen seleccionado. El & marca la letra del atajo (Alt+letra).
+    botonExamenes(tr("&Quitar"), tr("Quita de la lista el examen seleccionado"), &VentanaPrincipal::quitarExamen);
+    //: Botón: marca todos los exámenes de la lista. El & marca la letra del atajo (Alt+letra).
+    botonExamenes(tr("&Todos"), tr("Marca todos los exámenes de la lista"), [marcarTodos]() { marcarTodos(true); });
+    //: Botón: desmarca todos los exámenes de la lista. El & marca la letra del atajo (Alt+letra).
+    botonExamenes(tr("&Ninguno"), tr("Desmarca todos los exámenes de la lista"), [marcarTodos]() { marcarTodos(false); });
     le->addLayout(botonesExamenes);
     return gExamenes;
 }
@@ -304,9 +329,32 @@ QWidget *VentanaPrincipal::crearGrupoTemas()
 QWidget *VentanaPrincipal::crearGrupoPuntuacion()
 {
     auto *gPunt = new QGroupBox(tr("Puntuación"));
-    auto *fPunt = new QFormLayout(gPunt);
-    m_puntuacionAuto = new QCheckBox(tr("Automática (10 puntos; cada fallo resta el 30 %)"));
-    m_puntuacionAuto->setChecked(true);
+    auto *lPunt = new QVBoxLayout(gPunt);
+    // Las cuatro formas de puntuar. Cada botón lleva en «valor» lo que se guarda en la configuración (ver ponerAjuste()).
+    m_puntuacion = new QWidget;
+    auto *lFormas = new QVBoxLayout(m_puntuacion);
+    lFormas->setContentsMargins(0, 0, 0, 0);
+    m_formasPuntuacion = new QButtonGroup(m_puntuacion);
+    const QString sobre10 = tr("El examen vale 10 puntos: cada acierto, 10 entre el número de preguntas.");
+    auto forma = [&](DatosConvocatoria::Puntuacion id, const char *valor, const QString &texto, const QString &ayuda) {
+        auto *b = new QRadioButton(texto);
+        b->setProperty("valor", QString::fromLatin1(valor));
+        b->setToolTip(ayuda);
+        m_formasPuntuacion->addButton(b, id);
+        lFormas->addWidget(b);
+    };
+    forma(DatosConvocatoria::Resta30, "resta30", tr("Cada fallo resta el 30 %"), sobre10);
+    //: %1 es el porcentaje de un acierto que resta cada fallo para que contestar al azar dé 0 de media («33,3»)
+    forma(DatosConvocatoria::RestaAlAzar, "restaAlAzar",
+          tr("Cada fallo resta el %1 %").arg(QLocale().toString(100 * DatosConvocatoria::fraccionFalloAlAzar(), 'f', 1)),
+          sobre10 + QLatin1Char('\n')
+              + tr("Es lo justo para que contestar al azar dé 0 puntos de media: con cuatro opciones se acierta una vez "
+                   "de cada cuatro, y ese acierto compensa los tres fallos."));
+    forma(DatosConvocatoria::SinResta, "sinResta", tr("Los fallos no restan"), sobre10);
+    //: Forma de puntuar: los puntos de cada acierto y de cada fallo los escribe quien hace el examen
+    forma(DatosConvocatoria::Personalizada, "personalizada", tr("Personalizada"),
+          tr("Los puntos de cada acierto y de cada fallo, los que se escriban abajo."));
+    m_formasPuntuacion->button(DatosConvocatoria::Resta30)->setChecked(true);
     m_acierto = new QDoubleSpinBox;
     m_acierto->setRange(0, 10);
     m_acierto->setSingleStep(0.05);
@@ -317,12 +365,21 @@ QWidget *VentanaPrincipal::crearGrupoPuntuacion()
     m_fallo->setPrefix(QStringLiteral("- "));
     m_acierto->setValue(DatosConvocatoria().puntosAcierto);
     m_fallo->setValue(DatosConvocatoria().puntosFallo);
-    fPunt->addRow(m_puntuacionAuto);
+    lPunt->addWidget(m_puntuacion);
+    auto *puntos = new QHBoxLayout;
     //: Puntos que suma cada respuesta correcta
-    fPunt->addRow(tr("Acierto:"), m_acierto);
+    puntos->addWidget(new QLabel(tr("Acierto:")));
+    puntos->addWidget(m_acierto);
+    puntos->addSpacing(12);
     //: Puntos que resta cada respuesta incorrecta
-    fPunt->addRow(tr("Fallo:"), m_fallo);
-    connect(m_puntuacionAuto, &QCheckBox::toggled, this, &VentanaPrincipal::actualizarPuntuacion);
+    puntos->addWidget(new QLabel(tr("Fallo:")));
+    puntos->addWidget(m_fallo);
+    puntos->addStretch();
+    lPunt->addLayout(puntos);
+    connect(m_formasPuntuacion, &QButtonGroup::idToggled, this, [this](int, bool marcado) {
+        if (marcado)
+            actualizarPuntuacion();
+    });
     return gPunt;
 }
 
@@ -359,6 +416,15 @@ QWidget *VentanaPrincipal::crearGrupoOpciones()
     m_barajarOpciones->setToolTip(tr("En cada examen, la correcta sale en a), b), c) y d) por igual y nunca tres veces "
                                      "seguidas en la misma letra (si se puede).\nNo se barajan las preguntas con "
                                      "opciones del tipo «Todas las anteriores»."));
+    m_limitarPaginas = new QCheckBox(tr("Ajustar a una página por cada 10 preguntas"));
+    m_limitarPaginas->setToolTip(tr("Compacta la maqueta (opciones en dos columnas, menos separación, letra menor) hasta "
+                                    "que cada examen quepa en una página por cada 10 preguntas, y avisa si no se consigue.\n"
+                                    "Sin marcar, los exámenes van con la maqueta normal y ocupan las páginas que necesiten."));
+    m_limitarPaginas->setChecked(true);
+    connect(m_limitarPaginas, &QCheckBox::toggled, this, [this]() {
+        if (hayExamen())
+            actualizarMaqueta();
+    });
     m_semilla = new QLineEdit;
     m_semilla->setValidator(new QIntValidator(0, 2147483647, m_semilla));
     //: Lo que pone el campo «Semilla» cuando está vacío (la semilla será aleatoria)
@@ -376,6 +442,7 @@ QWidget *VentanaPrincipal::crearGrupoOpciones()
     fOpc->addRow(m_incluirRevisar);
     fOpc->addRow(m_ordenAleatorio);
     fOpc->addRow(m_barajarOpciones);
+    fOpc->addRow(m_limitarPaginas);
     //: Semilla del generador de números aleatorios
     fOpc->addRow(tr("Semilla:"), m_semilla);
     return gOpc;
@@ -1081,6 +1148,8 @@ void VentanaPrincipal::leerConfiguracion()
     for (const Ajuste &a : ajustes())
         if (s.contains(a.clave))
             ponerAjuste(a.control, s.value(a.clave));
+    if (!s.contains(kClavePuntuacion) && s.contains(kClavePuntuacionAntigua))
+        ponerAjuste(m_puntuacion, puntuacionAntigua(s.value(kClavePuntuacionAntigua)));
     const QStringList examenes = s.value(QStringLiteral("examenes/nombres"), kExamenesPorDefecto).toStringList();
     const QStringList marcados = s.value(QStringLiteral("examenes/marcados"), examenes).toStringList();
     for (const QString &nombre : examenes)
@@ -1099,6 +1168,7 @@ void VentanaPrincipal::guardarConfiguracion()
     s.setValue(QStringLiteral("examenes/nombres"), listaExamenes(&marcados));
     s.setValue(QStringLiteral("examenes/marcados"), marcados);
     s.remove(QStringLiteral("examen/asignatura"));   // de las versiones anteriores: ahora va en el banco
+    s.remove(kClavePuntuacionAntigua);
     if (m_bd.abierta())
         m_bd.guardarOpciones(opcionesDelBanco());
 }
@@ -1140,10 +1210,12 @@ QVariantMap VentanaPrincipal::opcionesDelBanco() const
 
 void VentanaPrincipal::aplicarOpcionesDelBanco(const QVariantMap &opciones, bool carpetasPropias)
 {
-    // En el orden de ajustes(): «Automática» antes que los puntos, para que se queden los guardados.
+    // En el orden de ajustes(): la forma de puntuar antes que los puntos, para que se queden los guardados.
     for (const Ajuste &a : ajustes())
         if (opciones.contains(a.clave))
             ponerAjuste(a.control, opciones.value(a.clave));
+    if (!opciones.contains(kClavePuntuacion) && opciones.contains(kClavePuntuacionAntigua))
+        ponerAjuste(m_puntuacion, puntuacionAntigua(opciones.value(kClavePuntuacionAntigua)));
     if (opciones.contains(QStringLiteral("examenes/nombres"))) {
         const QStringList marcados = opciones.value(QStringLiteral("examenes/marcados")).toStringList();
         m_listaExamenes->clear();
@@ -1174,7 +1246,7 @@ void VentanaPrincipal::guardarEstadoBanco()
 
 QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
 {
-    // En este orden se leen: «Automática» antes que los puntos, para que se queden los guardados.
+    // En este orden se leen: la forma de puntuar antes que los puntos, para que se queden los guardados.
     return {
         {QStringLiteral("examen/instrucciones"), m_instrucciones},
         {QStringLiteral("examen/noRepetir"), m_noRepetir},
@@ -1184,7 +1256,8 @@ QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
         {QStringLiteral("examen/incluirRevisar"), m_incluirRevisar},
         {QStringLiteral("examen/ordenAleatorio"), m_ordenAleatorio},
         {QStringLiteral("examen/barajarOpciones"), m_barajarOpciones},
-        {QStringLiteral("examen/puntuacionAuto"), m_puntuacionAuto},
+        {QStringLiteral("examen/limitarPaginas"), m_limitarPaginas},
+        {kClavePuntuacion, m_puntuacion},
         {QStringLiteral("examen/acierto"), m_acierto},
         {QStringLiteral("examen/fallo"), m_fallo},
     };
@@ -1393,19 +1466,19 @@ void VentanaPrincipal::actualizarTotal()
 
 void VentanaPrincipal::actualizarPuntuacion()
 {
-    const bool automatica = m_puntuacionAuto->isChecked();
-    m_acierto->setEnabled(!automatica);
-    m_fallo->setEnabled(!automatica);
-    if (!automatica)
-        return;
+    const int forma = m_formasPuntuacion->checkedId();
+    const auto puntuacion = forma < 0 ? DatosConvocatoria::Personalizada : DatosConvocatoria::Puntuacion(forma);
+    m_acierto->setEnabled(puntuacion == DatosConvocatoria::Personalizada);
+    m_fallo->setEnabled(puntuacion == DatosConvocatoria::Personalizada);
     int total = 0;
     for (QSpinBox *s : std::as_const(m_cantidades))
         total += s->value();
-    if (total == 0)
-        return;
-    const double acierto = 10.0 / total;
-    m_acierto->setValue(acierto);
-    m_fallo->setValue(qRound(acierto * 0.3 * 100) / 100.0);
+    DatosConvocatoria d;
+    d.puntosAcierto = m_acierto->value();
+    d.puntosFallo = m_fallo->value();
+    d.puntuar(puntuacion, total);
+    m_acierto->setValue(d.puntosAcierto);
+    m_fallo->setValue(d.puntosFallo);
 }
 
 QListWidgetItem *VentanaPrincipal::anadirExamen(const QString &nombre, bool marcado)
@@ -1540,6 +1613,9 @@ void VentanaPrincipal::actualizarMaqueta()
     if (m_letraGrande->isChecked()) {
         //: Se añade a la línea de información del examen (con el separador delante)
         info += tr("  ·  Letra grande (versión adaptada, sin límite de páginas)");
+    } else if (!m_limitarPaginas->isChecked()) {
+        //: Se añade a la línea de información del examen (con el separador delante): no se ajusta a una página por cada 10 preguntas
+        info += tr("  ·  Sin límite de páginas");
     } else {
         bool caben = true;
         const int nivel = hayExamen() ? Maquetador::nivelParaCaber(m_resultado.modelos, datosConvocatoria(), &caben) : 0;
@@ -1560,9 +1636,9 @@ void VentanaPrincipal::actualizarMaqueta()
     m_infoGeneracion->setToolTip(tr("Escriba esta semilla en Opciones para volver a obtener los mismos exámenes.\n"
                                     "Si se han cambiado preguntas a mano, ya no los reproduce: regístrelos para "
                                     "conservarlos.\n"
-                                    "La maqueta se compacta (opciones en dos columnas, menos separación, letra menor) "
-                                    "hasta que cada examen cabe en una página por cada 10 preguntas; con «Letra grande» "
-                                    "no se compacta."));
+                                    "Con «Ajustar a una página por cada 10 preguntas» (en Opciones), la maqueta se "
+                                    "compacta (opciones en dos columnas, menos separación, letra menor) hasta que cada "
+                                    "examen cabe en sus páginas; con «Letra grande» no se compacta."));
     mostrarModelo();
 }
 
@@ -1613,6 +1689,8 @@ int VentanaPrincipal::nivelMaqueta() const
 {
     if (m_letraGrande->isChecked())
         return Maquetador::kLetraGrande;
+    if (!m_limitarPaginas->isChecked())
+        return 0;
     return hayExamen() ? Maquetador::nivelParaCaber(m_resultado.modelos, datosConvocatoria()) : 0;
 }
 
@@ -1820,7 +1898,7 @@ void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)
     m_anio->setValue(d.anio);
     m_instrucciones->setPlainText(d.instrucciones);
     if (qAbs(m_acierto->value() - d.puntosAcierto) > 0.001 || qAbs(m_fallo->value() - d.puntosFallo) > 0.001) {
-        m_puntuacionAuto->setChecked(false);
+        m_formasPuntuacion->button(DatosConvocatoria::Personalizada)->setChecked(true);
         m_acierto->setValue(d.puntosAcierto);
         m_fallo->setValue(d.puntosFallo);
     }

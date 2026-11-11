@@ -5,6 +5,10 @@
 #include "enunciado.h"
 #include "maquetador.h"
 
+#include <QTextBlock>
+#include <QTextCursor>
+#include <QTextDocument>
+#include <QTextTable>
 #include <QtTest>
 
 namespace {
@@ -73,8 +77,35 @@ private slots:
     void prefijoSoloSiEmpiezaPorCodigo()
     {
         const QString html = Maquetador::enunciadoHtml(QStringLiteral("```\nx < 1\n```"), QStringLiteral("1.- "));
-        QVERIFY(html.startsWith(QStringLiteral("<p style=\"margin-top:0px; margin-bottom:2px\">1.- </p><pre")));
+        QVERIFY(html.startsWith(QStringLiteral("<p style=\"margin-top:0px; margin-bottom:2px\">1.- </p><table")));
         QVERIFY(html.contains(QStringLiteral("x &lt; 1")));
+    }
+
+    void codigoEnUnRecuadro()
+    {
+        // El código va en un recuadro con fondo gris, en letra de ancho fijo, para que se distinga del texto: en la
+        // vista y el PDF (QTextDocument) y en LaTeX.
+        const QString texto = QStringLiteral("Texto:\n```\nint x = 1;\n```");
+        QTextDocument doc;
+        doc.setHtml(Maquetador::enunciadoHtml(texto));
+        QTextTable *recuadro = nullptr;
+        for (QTextBlock b = doc.begin(); b.isValid(); b = b.next())
+            if (b.text() == QLatin1String("int x = 1;")) {
+                recuadro = QTextCursor(b).currentTable();
+                QVERIFY(b.charFormat().fontFixedPitch() || b.charFormat().fontFamilies().toStringList().join(QLatin1Char(' ')).contains(QLatin1String("Mono")));
+            }
+        QVERIFY(recuadro);
+        QCOMPARE(recuadro->cellAt(0, 0).format().background().color(), QColor(QStringLiteral("#eeeeee")));
+        QVERIFY(recuadro->format().border() > 0);
+
+        Modelo m;
+        PreguntaExamen pe;
+        pe.pregunta = bancoInventado(1, 1).first();
+        pe.pregunta.enunciado = texto;
+        m.preguntas << pe;
+        const QString tex = Maquetador::examenesLatex({m}, DatosConvocatoria(), false, QStringLiteral("img"), 0);
+        QVERIFY(tex.contains(QStringLiteral("\\begin{codigo}\nint x = 1;\n\\end{codigo}")));
+        QVERIFY(tex.contains(QStringLiteral("\\fcolorbox{bordecodigo}{fondocodigo}")));
     }
 
     void tablaEnHtml()

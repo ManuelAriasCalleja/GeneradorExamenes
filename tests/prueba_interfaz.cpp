@@ -23,15 +23,19 @@
 #include <QComboBox>
 #include <QDate>
 #include <QDir>
+#include <QDoubleSpinBox>
 #include <QGroupBox>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
+#include <QMenuBar>
 #include <QMessageBox>
 #include <QPointer>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
 #include <QSpinBox>
@@ -604,6 +608,180 @@ private slots:
         QCOMPARE(recientesW->value(), 9);
         QCOMPARE(carpeta(), nativa(dir.filePath(QStringLiteral("a/exportados"))));
         w.close();
+        QSettings().clear();
+    }
+
+    void listaDeExamenesConAtajos()
+    {
+        QTemporaryDir dir;
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(QTest::qWaitForWindowActive(&v));
+        QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        QListWidget *lista = nullptr;
+        QList<QPushButton *> botones;
+        for (QGroupBox *g : v.findChildren<QGroupBox *>())
+            if (g->title() == QStringLiteral("Exámenes")) {
+                lista = g->findChild<QListWidget *>();
+                botones = g->findChildren<QPushButton *>();
+            }
+        QVERIFY(lista);
+        QCOMPARE(botones.size(), 4);
+
+        // Cada botón tiene su atajo (Alt y una letra), distinto del de los otros y de los de los menús, y lo dice su
+        // descripción emergente.
+        QSet<QString> atajos;
+        for (QAction *menu : v.menuBar()->actions())
+            atajos << QKeySequence::mnemonic(menu->text()).toString();
+        for (QPushButton *b : botones) {
+            const QString atajo = b->shortcut().toString();
+            QVERIFY2(atajo.startsWith(QStringLiteral("Alt+")), qPrintable(b->text()));
+            QVERIFY2(!atajos.contains(atajo), qPrintable(atajo));
+            atajos << atajo;
+            QVERIFY2(b->toolTip().contains(b->shortcut().toString(QKeySequence::NativeText)), qPrintable(b->toolTip()));
+        }
+
+        // Y funcionan: Ninguno, Todos, Añadir y Quitar (el botón se pulsa un momento después de la tecla).
+        auto marcados = [lista]() {
+            int n = 0;
+            for (int i = 0; i < lista->count(); ++i)
+                n += lista->item(i)->checkState() == Qt::Checked ? 1 : 0;
+            return n;
+        };
+        const int examenes = lista->count();
+        QVERIFY(examenes > 0 && marcados() > 0);
+        QTest::keyClick(&v, Qt::Key_N, Qt::AltModifier);
+        QTRY_COMPARE(marcados(), 0);
+        QTest::keyClick(&v, Qt::Key_T, Qt::AltModifier);
+        QTRY_COMPARE(marcados(), examenes);
+        QTest::keyClick(&v, Qt::Key_D, Qt::AltModifier);
+        QTRY_COMPARE(lista->count(), examenes + 1);
+        QTest::keyClick(QApplication::focusWidget(), Qt::Key_Escape);   // deja el nombre que se propone
+        QCOMPARE(lista->currentRow(), examenes);
+        // La confirmación sale al pulsarse el botón, un momento después de la tecla: se responde cuando aparece.
+        QTimer espera;
+        QObject::connect(&espera, &QTimer::timeout, [&espera] {
+            if (QApplication::activeModalWidget()) {
+                espera.stop();
+                responder(QStringLiteral("Sí"));
+            }
+        });
+        espera.start(20);
+        QTest::keyClick(&v, Qt::Key_Q, Qt::AltModifier);
+        QTRY_COMPARE(lista->count(), examenes);
+        v.close();
+        QSettings().clear();
+    }
+
+    void cuatroFormasDePuntuar()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));   // diez preguntas
+        // La configuración de una versión anterior, con la casilla «Automática» sin marcar: es la personalizada.
+        QSettings().clear();
+        QSettings().setValue(QStringLiteral("examen/puntuacionAuto"), false);
+        QSettings().setValue(QStringLiteral("examen/acierto"), 0.4);
+        QSettings().setValue(QStringLiteral("examen/fallo"), 0.1);
+        auto ventana = std::make_unique<VentanaPrincipal>();
+        ventana->show();
+        QVERIFY(ventana->abrirBancoInicial(ruta));
+        auto controles = [](VentanaPrincipal &v, QMap<QString, QRadioButton *> &formas, QDoubleSpinBox *&acierto, QDoubleSpinBox *&fallo) {
+            for (QGroupBox *g : v.findChildren<QGroupBox *>())
+                if (g->title() == QStringLiteral("Puntuación")) {
+                    for (QRadioButton *r : g->findChildren<QRadioButton *>())
+                        formas.insert(r->text(), r);
+                    const QList<QDoubleSpinBox *> puntos = g->findChildren<QDoubleSpinBox *>();
+                    acierto = puntos.value(0);
+                    fallo = puntos.value(1);
+                }
+        };
+        QMap<QString, QRadioButton *> formas;
+        QDoubleSpinBox *acierto = nullptr, *fallo = nullptr;
+        controles(*ventana, formas, acierto, fallo);
+        QCOMPARE(formas.keys(), (QStringList{QStringLiteral("Cada fallo resta el 30 %"), QStringLiteral("Cada fallo resta el 33,3 %"),
+                                             QStringLiteral("Los fallos no restan"), QStringLiteral("Personalizada")}));
+        QVERIFY(acierto && fallo);
+        QVERIFY(formas.value(QStringLiteral("Personalizada"))->isChecked());
+        QVERIFY(acierto->isEnabled() && fallo->isEnabled());
+        QCOMPARE(acierto->value(), 0.4);
+        QCOMPARE(fallo->value(), 0.1);
+
+        // Las otras tres, sobre 10 puntos (10 preguntas: un punto por acierto), sin poder cambiar los puntos.
+        formas.value(QStringLiteral("Cada fallo resta el 30 %"))->click();
+        QCOMPARE(acierto->value(), 1.0);
+        QCOMPARE(fallo->value(), 0.3);
+        QVERIFY(!acierto->isEnabled() && !fallo->isEnabled());
+        formas.value(QStringLiteral("Cada fallo resta el 33,3 %"))->click();
+        QCOMPARE(fallo->value(), 0.33);
+        formas.value(QStringLiteral("Los fallos no restan"))->click();
+        QCOMPARE(acierto->value(), 1.0);
+        QCOMPARE(fallo->value(), 0.0);
+
+        // Se guarda en el banco (y en la configuración), ya sin la casilla antigua.
+        formas.value(QStringLiteral("Cada fallo resta el 33,3 %"))->click();
+        ventana->close();
+        ventana.reset();
+        QVERIFY(!QSettings().contains(QStringLiteral("examen/puntuacionAuto")));
+        QCOMPARE(QSettings().value(QStringLiteral("examen/puntuacion")).toString(), QStringLiteral("restaAlAzar"));
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(ruta));
+            QCOMPARE(bd.opciones().value(QStringLiteral("examen/puntuacion")).toString(), QStringLiteral("restaAlAzar"));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        formas.clear();
+        controles(v, formas, acierto, fallo);
+        QVERIFY(formas.value(QStringLiteral("Cada fallo resta el 33,3 %"))->isChecked());
+        QCOMPARE(fallo->value(), 0.33);
+        v.close();
+        QSettings().clear();
+    }
+
+    void sinLimiteDePaginas()
+    {
+        // Preguntas tan largas que un examen de diez no cabe en una página ni con la maqueta más compacta.
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        {
+            QVector<Pregunta> banco = bancoInventado();
+            for (Pregunta &p : banco)
+                p.enunciado = QStringLiteral("Una línea inventada.\n").repeated(12) + QStringLiteral("Pregunta:");
+            BaseDatos bd;
+            QVERIFY(bd.abrir(ruta) && llenarBaseDatos(bd, 8, banco) && bd.guardarUltimoReparto({{1, 3}, {2, 2}, {3, 3}, {4, 2}}));
+        }
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QCheckBox *ajustar = nullptr;
+        for (QCheckBox *c : v.findChildren<QCheckBox *>())
+            if (c->text() == QStringLiteral("Ajustar a una página por cada 10 preguntas"))
+                ajustar = c;
+        QVERIFY(ajustar && ajustar->isChecked());
+        QMetaObject::invokeMethod(&v, "generar");
+        auto texto = [&v](const QString &parte) {
+            for (QLabel *l : v.findChildren<QLabel *>())
+                if (l->text().contains(parte) && l->isVisible())
+                    return l->text();
+            return QString();
+        };
+        QVERIFY(!texto(QStringLiteral("Algún examen no cabe en una página")).isEmpty());
+        QVERIFY2(texto(QStringLiteral("Semilla:")).contains(QStringLiteral("Maqueta compacta")), qPrintable(texto(QStringLiteral("Semilla:"))));
+
+        // Sin ajustar, la maqueta normal, ocupe lo que ocupe, y sin avisos.
+        ajustar->setChecked(false);
+        QVERIFY(texto(QStringLiteral("Algún examen no cabe")).isEmpty());
+        QVERIFY(!texto(QStringLiteral("Semilla:")).contains(QStringLiteral("Maqueta compacta")));
+        QVERIFY(texto(QStringLiteral("Semilla:")).contains(QStringLiteral("Sin límite de páginas")));
+        v.close();
+        BaseDatos bd;
+        QVERIFY(bd.abrir(ruta));
+        QCOMPARE(bd.opciones().value(QStringLiteral("examen/limitarPaginas")), QVariant(false));
         QSettings().clear();
     }
 
