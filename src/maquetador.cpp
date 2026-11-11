@@ -209,6 +209,43 @@ QString opcionesHtml(const PreguntaExamen &pe, bool soluciones, int n = 0)
     return html + QStringLiteral("</table>");
 }
 
+// En los exámenes con soluciones, debajo de las opciones: por qué es correcta la correcta (la explicación de la
+// pregunta) y dónde lo dice el texto (su referencia), si las tiene.
+QString explicacionHtml(const Pregunta &p, const DatosConvocatoria &d, int n)
+{
+    QStringList partes;
+    auto parte = [&](const char *etiqueta, const QString &texto) {
+        if (texto.trimmed().isEmpty())
+            return;
+        partes << QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2</span> %3")
+                      .arg(QLatin1String(Maquetador::kColorCorrecta), Maquetador::escapar(tx(d, etiqueta)),
+                           Maquetador::escapar(texto.trimmed()).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
+    };
+    parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion);
+    parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia);
+    if (partes.isEmpty())
+        return QString();
+    return QStringLiteral("<p style=\"margin-left:26px; margin-top:3px; margin-bottom:0px; font-size:%1\">%2</p>")
+        .arg(pt(nivel(n).fuentePt - 1), partes.join(QStringLiteral("<br>")));
+}
+
+// «Plantilla de corrección» de un modelo: «1 C», «2 A»… en filas de 10, y cuántas veces es correcta cada letra.
+QString plantillaHtml(const Modelo &m, const DatosConvocatoria &d)
+{
+    QString html = QStringLiteral("<h3>%1</h3>")
+                       .arg(Maquetador::escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Plantilla de corrección: %1")).arg(m.nombre)));
+    html += QStringLiteral("<table cellspacing=\"0\" cellpadding=\"3\" style=\"border-collapse:collapse; border:1px solid #000\">");
+    for (int inicio = 0; inicio < m.preguntas.size(); inicio += 10) {
+        html += QStringLiteral("<tr>");
+        for (int i = inicio; i < qMin(inicio + 10, int(m.preguntas.size())); ++i)
+            html += QStringLiteral("<td width=\"44\" align=\"center\" style=\"border:1px solid #000\">%1&nbsp;<b>%2</b></td>")
+                        .arg(QString::number(i + 1), QString(Pregunta::letraMayuscula(m.preguntas.at(i).correcta())));
+        html += QStringLiteral("</tr>");
+    }
+    return html + QStringLiteral("</table><p style=\"margin-top:2px; margin-bottom:0\">%1</p>")
+                      .arg(Maquetador::escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Respuestas correctas: %1")).arg(Maquetador::textoCorrectasPorLetra(m))));
+}
+
 QString cabeceraHtml(const DatosConvocatoria &d, const QString &derecha, int n = 0)
 {
     return QStringLiteral(
@@ -451,25 +488,28 @@ int Maquetador::numNiveles()
     return kNumNiveles;
 }
 
-QString Maquetador::examenHtml(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int n)
+QString Maquetador::examenHtml(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int n, bool conPlantilla)
 {
     return QStringLiteral("<html><body style=\"font-family:%1; font-size:%2pt\">%3</body></html>")
-        .arg(QLatin1String(kFuente), QString::number(nivel(n).fuentePt), cuerpoExamen(modelo, d, soluciones, n));
+        .arg(QLatin1String(kFuente), QString::number(nivel(n).fuentePt), cuerpoExamen(modelo, d, soluciones, n, conPlantilla));
 }
 
 QString Maquetador::examenesHtml(const QVector<Modelo> &modelos, const DatosConvocatoria &d, bool soluciones, int n)
 {
     QString html = QStringLiteral("<html><body style=\"font-family:%1; font-size:%2pt\">")
                        .arg(QLatin1String(kFuente), QString::number(nivel(n).fuentePt));
+    // Con soluciones, primero la hoja de soluciones, como en el PDF.
+    if (soluciones)
+        html += QStringLiteral("<div style=\"font-size:10pt\">%1</div>").arg(cuerpoSoluciones(modelos, d));
     for (int i = 0; i < modelos.size(); ++i) {
-        if (i > 0)
+        if (i > 0 || soluciones)
             html += QStringLiteral("<p style=\"page-break-before:always; margin:0\"></p>");
-        html += cuerpoExamen(modelos.at(i), d, soluciones, n);
+        html += cuerpoExamen(modelos.at(i), d, soluciones, n, false);
     }
     return html + QStringLiteral("</body></html>");
 }
 
-QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int n)
+QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int n, bool conPlantilla)
 {
     QString html;
     QString derecha;
@@ -494,6 +534,8 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
                      escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "- %1 puntos")).arg(formatoPuntos(d.puntosFallo, d.idioma))),
                      escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Pregunta no contestada:"))),
                      escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "0 puntos"))));
+    if (soluciones && conPlantilla)
+        html += plantillaHtml(modelo, d);
 
     const int separacion = nivel(n).separacionPx;
     for (int i = 0; i < modelo.preguntas.size(); ++i) {
@@ -509,6 +551,8 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
                          n == Maquetador::kLetraGrande ? QString() : QStringLiteral("; font-style:italic"));
         html += imagenHtml(pe.pregunta, n);
         html += opcionesHtml(pe, soluciones, n);
+        if (soluciones)
+            html += explicacionHtml(pe.pregunta, d, n);
     }
     html += QStringLiteral("<p style=\"margin:0\"><a name=\"fin\">&nbsp;</a></p>");
     return html;
@@ -516,8 +560,13 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
 
 QString Maquetador::solucionesHtml(const QVector<Modelo> &modelos, const DatosConvocatoria &d)
 {
-    QString html = QStringLiteral("<html><body style=\"font-family:%1; font-size:10pt\">").arg(QLatin1String(kFuente));
-    html += cabeceraHtml(d, QStringLiteral("<span style=\"font-size:16pt; font-weight:bold\">%1</span>")
+    return QStringLiteral("<html><body style=\"font-family:%1; font-size:10pt\">%2</body></html>")
+        .arg(QLatin1String(kFuente), cuerpoSoluciones(modelos, d));
+}
+
+QString Maquetador::cuerpoSoluciones(const QVector<Modelo> &modelos, const DatosConvocatoria &d)
+{
+    QString html = cabeceraHtml(d, QStringLiteral("<span style=\"font-size:16pt; font-weight:bold\">%1</span>")
                                 .arg(escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones")))));
 
     // Estructura: qué preguntas de cada tema entran en cada modelo (como la tabla que se prepara a mano).
@@ -537,20 +586,9 @@ QString Maquetador::solucionesHtml(const QVector<Modelo> &modelos, const DatosCo
     }
     html += QStringLiteral("</table>");
 
-    // Plantilla de respuestas de cada modelo.
+    // Plantilla de corrección de cada modelo y, debajo, código, respuesta y referencia de cada pregunta.
     for (const Modelo &m : modelos) {
-        html += QStringLiteral("<h3>%1</h3>").arg(escapar(m.nombre));
-        html += QStringLiteral("<table cellspacing=\"0\" cellpadding=\"3\" style=\"border-collapse:collapse; border:1px solid #000\">");
-        for (int inicio = 0; inicio < m.preguntas.size(); inicio += 10) {
-            QString filaNum = QStringLiteral("<tr>"), filaResp = QStringLiteral("<tr>");
-            for (int i = inicio; i < qMin(inicio + 10, int(m.preguntas.size())); ++i) {
-                filaNum += QStringLiteral("<td align=\"center\" width=\"34\" bgcolor=\"#eeeeee\" style=\"border:1px solid #000\">%1</td>").arg(i + 1);
-                filaResp += QStringLiteral("<td align=\"center\" style=\"border:1px solid #000\"><b>%1</b></td>").arg(Pregunta::letraMayuscula(m.preguntas.at(i).correcta()));
-            }
-            html += filaNum + QStringLiteral("</tr>") + filaResp + QStringLiteral("</tr>");
-        }
-        html += QStringLiteral("</table><p style=\"margin-top:2px; margin-bottom:0\">%1</p>")
-                    .arg(escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Respuestas correctas: %1")).arg(textoCorrectasPorLetra(m))));
+        html += plantillaHtml(m, d);
         html += QStringLiteral("<table cellspacing=\"0\" cellpadding=\"2\" width=\"100%\" style=\"font-size:9pt\">");
         for (int i = 0; i < m.preguntas.size(); ++i) {
             const PreguntaExamen &pe = m.preguntas.at(i);
@@ -562,7 +600,7 @@ QString Maquetador::solucionesHtml(const QVector<Modelo> &modelos, const DatosCo
         }
         html += QStringLiteral("</table>");
     }
-    return html + QStringLiteral("</body></html>");
+    return html;
 }
 
 QVector<Pregunta> Maquetador::preguntasDe(const QVector<Modelo> &modelos)
@@ -866,6 +904,29 @@ QString opcionesLatex(const PreguntaExamen &pe, bool soluciones, int n)
         .arg(columnas, cuerpo);
 }
 
+// Equivalente a explicacionHtml: la explicación y la referencia de la pregunta, debajo de las opciones.
+QString explicacionLatex(const Pregunta &p, const DatosConvocatoria &d, int n)
+{
+    QStringList partes;
+    auto parte = [&](const char *etiqueta, const QString &texto) {
+        if (texto.trimmed().isEmpty())
+            return;
+        QStringList lineas;
+        for (const QString &linea : texto.trimmed().split(QLatin1Char('\n')))
+            lineas << Maquetador::escaparLatex(linea);
+        partes << QStringLiteral("\\textcolor{verde}{\\textbf{%1}} %2")
+                      .arg(Maquetador::escaparLatex(tx(d, etiqueta)), lineas.join(QStringLiteral("\\newline ")));
+    };
+    parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion);
+    parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia);
+    if (partes.isEmpty())
+        return QString();
+    // Con letra grande, del mismo tamaño que el resto; si no, algo menor.
+    return QStringLiteral("\\par\\vspace{2pt}{%1\\leftskip=8mm\\noindent %2\\par}\n")
+        .arg(n == Maquetador::kLetraGrande ? QString() : QStringLiteral("\\small"),
+             partes.join(QStringLiteral("\\par\n\\noindent ")));
+}
+
 // Equivalente a Maquetador::enunciadoHtml: párrafos en negrita cursiva, bloques ``` y tablas | a | b |.
 QString enunciadoLatex(const QString &texto, const QString &prefijo)
 {
@@ -1040,6 +1101,8 @@ QString Maquetador::cuerpoExamenLatex(const Modelo &modelo, const DatosConvocato
         tex += enunciadoLatex(pe.pregunta.enunciado, prefijo);
         tex += imagenLatex(pe.pregunta, carpetaImagenes, n);
         tex += opcionesLatex(pe, soluciones, n);
+        if (soluciones)
+            tex += explicacionLatex(pe.pregunta, d, n);
         tex += QStringLiteral("\\end{pregunta}\n");
     }
     tex += QStringLiteral("\\par}\n");
@@ -1067,23 +1130,22 @@ QString Maquetador::solucionesLatex(const QVector<Modelo> &modelos, const DatosC
     }
     tex += QStringLiteral("\\end{tabular}\n");
 
-    // Plantilla de respuestas de cada modelo (filas de 10) y, debajo, código y referencia de cada pregunta.
+    // Plantilla de corrección de cada modelo («1 C», «2 A»…, en filas de 10) y, debajo, código, respuesta y referencia de
+    // cada pregunta.
     for (const Modelo &m : modelos) {
         const int n = m.preguntas.size();
-        tex += QStringLiteral("\\subsection*{%1}\n").arg(escaparLatex(m.nombre));
+        tex += QStringLiteral("\\subsection*{%1}\n")
+                   .arg(escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Plantilla de corrección: %1")).arg(m.nombre)));
         if (n == 0)
             continue;
-        tex += QStringLiteral("\\begin{tabular}{|*{%1}{>{\\centering\\arraybackslash}p{6mm}|}}\n").arg(qMin(10, n));
+        tex += QStringLiteral("\\begin{tabular}{|*{%1}{>{\\centering\\arraybackslash}p{9mm}|}}\n").arg(qMin(10, n));
+        tex += QStringLiteral("\\cline{1-%1}\n").arg(qMin(10, n));
         for (int inicio = 0; inicio < n; inicio += 10) {
             const int fin = qMin(inicio + 10, n);
-            QStringList numeros, letras;
-            for (int i = inicio; i < fin; ++i) {
-                numeros << QStringLiteral("\\cellcolor{gray!15}%1").arg(i + 1);
-                letras << QStringLiteral("\\textbf{%1}").arg(Pregunta::letraMayuscula(m.preguntas.at(i).correcta()));
-            }
-            const QString linea = QStringLiteral("\\cline{1-%1}\n").arg(fin - inicio);
-            tex += linea + numeros.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\\n")
-                   + linea + letras.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\\n") + linea;
+            QStringList celdas;
+            for (int i = inicio; i < fin; ++i)
+                celdas << QStringLiteral("%1~\\textbf{%2}").arg(QString::number(i + 1), QString(Pregunta::letraMayuscula(m.preguntas.at(i).correcta())));
+            tex += celdas.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\ \\cline{1-%1}\n").arg(fin - inicio);
         }
         tex += QStringLiteral("\\end{tabular}\n\\par\\smallskip\n")
                + escaparLatex(tx(d, QT_TRANSLATE_NOOP("Examen", "Respuestas correctas: %1")).arg(textoCorrectasPorLetra(m)))

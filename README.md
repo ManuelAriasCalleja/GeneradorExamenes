@@ -131,11 +131,12 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
 - Exportar a PDF, a HTML editable en Word/LibreOffice o a LaTeX: se abre un diálogo donde se elige la
   carpeta y el nombre del fichero de cada examen (por defecto `2026_Junio_Nacional_Original.pdf`…) y se
   exportan todos de una vez; también se puede marcar «Todos los exámenes en un fichero». Las soluciones en PDF
-  (tabla de estructura por temas como la de las instrucciones, plantilla de respuestas y exámenes con la
-  solución marcada) se exportan igual, por examen (`2026_Junio_soluciones_Nacional_Original.pdf`…) o todas
-  juntas. Al terminar, el botón «Abrir la carpeta» de la barra de estado abre la carpeta de los ficheros. En HTML y
+  se exportan igual, por examen (`2026_Junio_soluciones_Nacional_Original.pdf`…) o todas juntas: primero la hoja
+  de soluciones (tabla de estructura por temas como la de las instrucciones y, de cada examen, la plantilla de
+  corrección, «1 C», «2 A»…, con el código y la referencia de cada pregunta) y después los exámenes con la
+  respuesta correcta en verde y, debajo de cada pregunta, su explicación y su referencia, si las tiene. Al terminar, el botón «Abrir la carpeta» de la barra de estado abre la carpeta de los ficheros. En HTML y
   LaTeX, la casilla «Con soluciones» del diálogo (propuesta como esté «Mostrar soluciones») decide
-  si van con ellas, y entonces los nombres llevan también «_soluciones».
+  si van con ellas (las mismas que en el PDF), y entonces los nombres llevan también «_soluciones».
   También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar este examen…»): se elige la
   duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar «Empezar».
 - Una pregunta que no convenza se cambia por otra sin volver a generar: botón derecho sobre ella en la vista («Cambiar
@@ -157,8 +158,8 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   vista, la impresión y las tres exportaciones, y los ficheros llevan `_letra_grande` en el nombre
   (`2026_Junio_letra_grande_Nacional_Original.pdf`) para no pisar los normales.
 - *Exportar LaTeX…* guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>_imagenes` al
-  lado). Con la casilla «Con soluciones» del diálogo marcada incluye también la estructura, la plantilla de
-  respuestas y las soluciones marcadas. Hay que compilarlo dos veces para que salga el «página / total» del pie:
+  lado). Con la casilla «Con soluciones» del diálogo marcada incluye también la hoja de soluciones y las
+  soluciones marcadas, con la explicación y la referencia de cada pregunta. Hay que compilarlo dos veces para que salga el «página / total» del pie:
   `pdflatex examen.tex && pdflatex examen.tex`.
 - La semilla permite volver a generar exactamente los mismos exámenes, siempre que no hayan cambiado ni el banco
   ni el historial. Mientras esté escrita, salen siempre los mismos: el campo se ve en amarillo, la línea gris dice

@@ -1962,59 +1962,77 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="+255"/>
+        <location filename="../src/maquetador.cpp" line="+224"/>
+        <location line="+696"/>
+        <source>Explicación:</source>
+        <translation>Explanation:</translation>
+    </message>
+    <message>
+        <location line="-695"/>
+        <location line="+696"/>
+        <source>Referencia:</source>
+        <translation>Reference:</translation>
+    </message>
+    <message>
+        <location line="-685"/>
+        <location line="+902"/>
+        <source>Plantilla de corrección: %1</source>
+        <translation>Answer key: %1</translation>
+    </message>
+    <message>
+        <location line="-846"/>
         <source>Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.
 No entregue el enunciado.</source>
         <translation>Mark the correct answer on the answer sheet only.
 Do not hand in the question paper.</translation>
     </message>
     <message>
-        <location line="+223"/>
-        <location line="+528"/>
+        <location line="+226"/>
+        <location line="+549"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
     <message>
-        <location line="-515"/>
-        <location line="+534"/>
+        <location line="-536"/>
+        <location line="+555"/>
         <source>Pregunta contestada correctamente:</source>
         <translation>Question answered correctly:</translation>
     </message>
     <message>
-        <location line="-533"/>
-        <location line="+534"/>
+        <location line="-554"/>
+        <location line="+555"/>
         <source>+ %1 puntos</source>
         <translation>+ %1 points</translation>
     </message>
     <message>
-        <location line="-533"/>
-        <location line="+534"/>
+        <location line="-554"/>
+        <location line="+555"/>
         <source>Pregunta contestada incorrectamente:</source>
         <translation>Question answered incorrectly:</translation>
     </message>
     <message>
-        <location line="-533"/>
-        <location line="+534"/>
+        <location line="-554"/>
+        <location line="+555"/>
         <source>- %1 puntos</source>
         <translation>- %1 points</translation>
     </message>
     <message>
-        <location line="-533"/>
-        <location line="+534"/>
+        <location line="-554"/>
+        <location line="+555"/>
         <source>Pregunta no contestada:</source>
         <translation>Question not answered:</translation>
     </message>
     <message>
-        <location line="-533"/>
-        <location line="+534"/>
+        <location line="-554"/>
+        <location line="+555"/>
         <source>0 puntos</source>
         <translation>0 points</translation>
     </message>
     <message>
-        <location line="-509"/>
-        <location line="+190"/>
-        <location line="+275"/>
-        <location line="+65"/>
+        <location line="-521"/>
+        <location line="+179"/>
+        <location line="+298"/>
+        <location line="+67"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
         <location line="+1"/>
         <location line="+2"/>
@@ -2023,20 +2041,20 @@ Do not hand in the question paper.</translation>
         <translation>Solutions</translation>
     </message>
     <message>
-        <location line="-524"/>
-        <location line="+530"/>
+        <location line="-538"/>
+        <location line="+544"/>
         <source>Estructura de la convocatoria</source>
         <translation>Session structure</translation>
     </message>
     <message>
-        <location line="-529"/>
-        <location line="+530"/>
+        <location line="-543"/>
+        <location line="+544"/>
         <source>Examen</source>
         <translation>Exam</translation>
     </message>
     <message>
-        <location line="-505"/>
-        <location line="+536"/>
+        <location line="-875"/>
+        <location line="+905"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
@@ -2141,7 +2159,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-671"/>
+        <location filename="../src/maquetador.cpp" line="-696"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>
@@ -2993,12 +3011,12 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+931"/>
+        <location line="+932"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-923"/>
+        <location line="-924"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3408,7 +3426,7 @@ With “Fit on one page per 10 questions” (in Options), the layout is compacte
         <translation>Correct: %1</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+45"/>
         <source>No se pudieron escribir estos ficheros:
 %1</source>
         <translation>Could not write these files:

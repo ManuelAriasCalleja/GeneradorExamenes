@@ -211,6 +211,56 @@ private slots:
         QVERIFY(html.contains(m.preguntas.first().pregunta.codigoCompleto()));
     }
 
+    void solucionesConExplicacionYReferencia()
+    {
+        // Debajo de cada pregunta, su explicación y su referencia, si las tiene; solo con soluciones.
+        Modelo m = examenes(bancoInventado(), 3, 1).first();
+        const QString explicacion = QStringLiteral("Porque así lo dice una explicación inventada & breve.");
+        m.preguntas[0].pregunta.explicacion = explicacion;
+        m.preguntas[1].pregunta.referencia.clear();
+        const QString referencia = m.preguntas[0].pregunta.referencia;
+        const QString sin = Maquetador::examenHtml(m, convocatoria(), false);
+        QVERIFY(!sin.contains(QStringLiteral("Explicación:")) && !sin.contains(QStringLiteral("Referencia:")));
+        QVERIFY(!sin.contains(referencia));
+        const QString con = Maquetador::examenHtml(m, convocatoria(), true);
+        QVERIFY(con.contains(QStringLiteral("Explicación:</span> ") + Maquetador::escapar(explicacion)));
+        QVERIFY(con.contains(QStringLiteral("Referencia:</span> ") + Maquetador::escapar(referencia)));
+        QCOMPARE(con.count(QStringLiteral("Explicación:")), 1);
+        QCOMPARE(con.count(QStringLiteral("Referencia:")), m.preguntas.size() - 1);
+        // La explicación va con su pregunta: después de sus opciones y antes de la siguiente.
+        const qsizetype donde = con.indexOf(QStringLiteral("Explicación:"));
+        QVERIFY(donde > con.indexOf(QStringLiteral("name=\"q1\"")) && donde < con.indexOf(QStringLiteral("name=\"q2\"")));
+
+        const QString tex = Maquetador::examenesLatex({m}, convocatoria(), true, QStringLiteral("img"));
+        QVERIFY(tex.contains(QStringLiteral("\\textcolor{verde}{\\textbf{Explicación:}} ") + Maquetador::escaparLatex(explicacion)));
+        QCOMPARE(tex.count(QStringLiteral("\\textbf{Explicación:}")), 1);
+        QCOMPARE(tex.count(QStringLiteral("\\textbf{Referencia:}")), m.preguntas.size() - 1);
+        QVERIFY(!Maquetador::examenesLatex({m}, convocatoria(), false, QStringLiteral("img")).contains(QStringLiteral("Explicación:")));
+    }
+
+    void plantillaDeCorreccion()
+    {
+        // «1 C», «2 A»…: en la hoja de soluciones (PDF, LaTeX y, ahora también, HTML) y en la vista con soluciones.
+        const Modelo m = examenes(bancoInventado(), 3, 1).first();
+        const QString titulo = QStringLiteral("Plantilla de corrección: Examen 1");
+        const QString hoja = Maquetador::solucionesHtml({m}, convocatoria());
+        QVERIFY(hoja.contains(titulo));
+        const QString tex = Maquetador::examenesLatex({m}, convocatoria(), true, QStringLiteral("img"));
+        QVERIFY(tex.contains(titulo));
+        for (int i = 0; i < m.preguntas.size(); ++i) {
+            const QString letra(Pregunta::letraMayuscula(m.preguntas.at(i).correcta()));
+            QVERIFY(hoja.contains(QStringLiteral(">%1&nbsp;<b>%2</b><").arg(QString::number(i + 1), letra)));
+            QVERIFY(tex.contains(QStringLiteral("%1~\\textbf{%2}").arg(QString::number(i + 1), letra)));
+        }
+        const QString vista = Maquetador::examenHtml(m, convocatoria(), true, 0, true);
+        QVERIFY(vista.contains(titulo));
+        QVERIFY(vista.indexOf(titulo) < vista.indexOf(QStringLiteral("name=\"q1\"")));
+        QVERIFY(!Maquetador::examenHtml(m, convocatoria(), true).contains(titulo));        // en el PDF va en la hoja
+        QVERIFY(!Maquetador::examenHtml(m, convocatoria(), false, 0, true).contains(titulo));
+        QVERIFY(Maquetador::examenesHtml({m}, convocatoria(), true).contains(titulo));
+        QVERIFY(!Maquetador::examenesHtml({m}, convocatoria(), false).contains(titulo));
+    }
+
     void textosDeLaHojaDeSoluciones()
     {
         Modelo m = examenes(bancoInventado(), 3, 1).first();

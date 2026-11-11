@@ -254,8 +254,10 @@ de lo que le toca (5 de 10, por ejemplo), se avisa.</p>
 <p>La parte derecha de la pestaña muestra los exámenes generados tal como se imprimirán.</p>
 <ul>
 <li><b>Examen</b>: cuál de los exámenes de la convocatoria se ve.</li>
-<li><b>Mostrar soluciones</b>: marca en verde la respuesta correcta y el código de cada pregunta en la vista. Al
-exportar a HTML o LaTeX, es lo que se propone en la casilla «Con soluciones» del diálogo.</li>
+<li><b>Mostrar soluciones</b>: en la vista, pone arriba la plantilla de corrección del examen, marca en verde la
+respuesta correcta y el código de cada pregunta y pone debajo de cada una su explicación y su referencia (ver
+<a href="#exportar">Imprimir y exportar</a>). Al exportar a HTML o LaTeX, es lo que se propone en la casilla «Con
+soluciones» del diálogo.</li>
 <li><b>Letra grande</b>: la versión adaptada (ver <a href="#letra-grande">Letra grande</a>).</li>
 <li>La línea gris de debajo dice la semilla, el nivel de la maqueta compacta, si se ha usado, y la fecha de registro,
 si los exámenes se han cargado del historial. Su texto se puede seleccionar y copiar.</li>
@@ -334,16 +336,22 @@ soluciones.</td><td></td></tr>
 <td><tt>2026_Junio_Nacional_Original.pdf</tt></td></tr>
 <tr><td><b>Soluciones PDF…</b></td>
 <td>Guarda la hoja de soluciones (la estructura por temas, como la de las instrucciones, y la plantilla de
-respuestas) seguida de los exámenes con la respuesta correcta marcada.</td>
+corrección) seguida de los exámenes con la respuesta correcta marcada, la explicación y la referencia.</td>
 <td><tt>2026_Junio_soluciones_Nacional_Original.pdf</tt></td></tr>
 <tr><td><b>Exportar HTML…</b></td>
 <td>Guarda los exámenes en HTML, que se puede abrir y modificar con Word o LibreOffice. Con la casilla «Con
-soluciones» del diálogo, con la correcta marcada.</td>
+soluciones» del diálogo, con las soluciones, como el PDF de soluciones.</td>
 <td><tt>2026_Junio_Nacional_Original.html</tt></td></tr>
 <tr><td><b>Exportar LaTeX…</b></td>
 <td>Guarda los exámenes en LaTeX (ver <a href="#latex">LaTeX</a>).</td>
 <td><tt>2026_Junio_Nacional_Original.tex</tt></td></tr>
 </table>
+<p>Las soluciones (<b>Soluciones PDF…</b>, y HTML o LaTeX con la casilla «Con soluciones») empiezan por la hoja de
+soluciones: la estructura de la convocatoria (qué preguntas de cada tema lleva cada examen) y, de cada examen, su
+<b>plantilla de corrección</b> («1 C», «2 A»…, en filas de 10), cuántas veces es correcta cada letra y el código, la
+respuesta y la referencia de cada pregunta. Siguen los exámenes con la respuesta correcta en verde y, debajo de cada
+pregunta, su <b>explicación</b> (por qué es la correcta) y su <b>referencia</b> al texto, si las tiene en el
+banco.</p>
 <p>Para imprimir las soluciones, expórtelas con <b>Soluciones PDF…</b> e imprima el PDF.</p>
 
 <h3><a name="exportar-ficheros"></a>Carpeta y nombre de los ficheros</h3>
@@ -369,8 +377,8 @@ exámenes).</p>
 
 <h3><a name="latex"></a>LaTeX</h3>
 <p><b>Exportar LaTeX…</b> guarda ficheros <tt>.tex</tt> para compilarlos con <tt>pdflatex</tt>. Con la casilla
-«Con soluciones» del diálogo, incluyen también la estructura, la plantilla de respuestas y los exámenes con la
-solución marcada. Hay que compilarlos dos veces para que salga bien el «página / total» del pie:</p>
+«Con soluciones» del diálogo, incluyen también la hoja de soluciones y los exámenes con la solución marcada, la
+explicación y la referencia. Hay que compilarlos dos veces para que salga bien el «página / total» del pie:</p>
 <pre>pdflatex examen.tex
 pdflatex examen.tex</pre>
 

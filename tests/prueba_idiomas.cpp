@@ -136,6 +136,8 @@ private slots:
         const QString soluciones = Maquetador::solucionesHtml({m}, en);
         QVERIFY(soluciones.contains(QStringLiteral("Solutions")));
         QVERIFY(soluciones.contains(QStringLiteral("Session structure")));
+        QVERIFY(soluciones.contains(QStringLiteral("Answer key: Modelo inventado")));
+        QVERIFY(html.contains(QStringLiteral("Reference:</span>")));
         const QString tex = Maquetador::examenesLatex({m}, en, true, QStringLiteral("imagenes"));
         QVERIFY(tex.contains(QStringLiteral("\\usepackage[english]{babel}")));
         QVERIFY(tex.contains(QStringLiteral("Question not answered:")));

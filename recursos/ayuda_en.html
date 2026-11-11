@@ -260,8 +260,10 @@ considerably more often than its share (5 out of 10, for example), a warning is 
 <p>The right-hand part of the tab shows the generated exams exactly as they will be printed.</p>
 <ul>
 <li><b>Exam</b>: which of the exams of the exam session is shown.</li>
-<li><b>Show solutions</b>: marks the correct answer in green and shows the code of each question in the preview.
-When exporting to HTML or LaTeX, it decides what is suggested for the “With solutions” box of the dialog.</li>
+<li><b>Show solutions</b>: in the preview, puts the exam’s answer key at the top, marks the correct answer in green,
+shows the code of each question and puts its explanation and reference below it (see
+<a href="#exportar">Printing and exporting</a>). When exporting to HTML or LaTeX, it decides what is suggested for
+the “With solutions” box of the dialog.</li>
 <li><b>Large print</b>: the adapted version (see <a href="#letra-grande">Large print</a>).</li>
 <li>The grey line below shows the seed, the level of the compact layout, if it has been used, and the recording date,
 if the exams have been loaded from the history. Its text can be selected and copied.</li>
@@ -343,16 +345,22 @@ solutions.</td><td></td></tr>
 <td><tt>2026_Junio_Nacional_Original.pdf</tt></td></tr>
 <tr><td><b>Solutions PDF…</b></td>
 <td>Saves the solutions sheet (the structure by topic, like the one in the instructions, and the answer key)
-followed by the exams with the correct answer marked.</td>
+followed by the exams with the correct answer marked, the explanation and the reference.</td>
 <td><tt>2026_Junio_soluciones_Nacional_Original.pdf</tt></td></tr>
 <tr><td><b>Export HTML…</b></td>
 <td>Saves the exams as HTML, which can be opened and edited in Word or LibreOffice. With the “With
-solutions” box of the dialog ticked, the correct answer is marked.</td>
+solutions” box of the dialog ticked, with the solutions, like the solutions PDF.</td>
 <td><tt>2026_Junio_Nacional_Original.html</tt></td></tr>
 <tr><td><b>Export LaTeX…</b></td>
 <td>Saves the exams as LaTeX (see <a href="#latex">LaTeX</a>).</td>
 <td><tt>2026_Junio_Nacional_Original.tex</tt></td></tr>
 </table>
+<p>The solutions (<b>Solutions PDF…</b>, and HTML or LaTeX with the “With solutions” box ticked) start with the
+solutions sheet: the structure of the exam session (which questions from each topic each exam has) and, for each
+exam, its <b>answer key</b> (“1 C”, “2 A”…, in rows of 10), how many times each letter is correct and the code,
+answer and reference of each question. Then come the exams with the correct answer in green and, below each
+question, its <b>explanation</b> (why it is the correct one) and its <b>reference</b> to the text, if the bank has
+them.</p>
 <p>To print the solutions, export them with <b>Solutions PDF…</b> and print the PDF.</p>
 
 <h3><a name="exportar-ficheros"></a>Folder and file names</h3>
@@ -377,8 +385,8 @@ stays there until other exams are generated).</p>
 
 <h3><a name="latex"></a>LaTeX</h3>
 <p><b>Export LaTeX…</b> saves <tt>.tex</tt> files to be compiled with <tt>pdflatex</tt>. With the
-“With solutions” box of the dialog ticked, they also include the structure, the answer key and the exams with the
-solution marked. They must be compiled twice for the “page / total” in the footer to come out right:</p>
+“With solutions” box of the dialog ticked, they also include the solutions sheet and the exams with the solution
+marked, the explanation and the reference. They must be compiled twice for the “page / total” in the footer to come out right:</p>
 <pre>pdflatex examen.tex
 pdflatex examen.tex</pre>
 

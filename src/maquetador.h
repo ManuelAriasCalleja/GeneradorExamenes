@@ -78,12 +78,17 @@ public:
     // Ficha de una pregunta (vista del banco de preguntas).
     static QString fichaPreguntaHtml(const Pregunta &p, const QString &nombreTema);
 
-    // Un modelo de examen. Con 'soluciones' marca la respuesta correcta y el código de cada pregunta.
-    static QString examenHtml(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones, int nivel = 0);
-    // Todos los modelos en un único documento, cada uno en página nueva (para exportar a HTML).
+    // Un modelo de examen. Con 'soluciones' marca la respuesta correcta y el código de cada pregunta, y pone debajo de
+    // cada una su explicación y su referencia (si las tiene); con 'conPlantilla', además, su plantilla de corrección
+    // antes de las preguntas (para la vista: en los ficheros va en la hoja de soluciones).
+    static QString examenHtml(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones, int nivel = 0,
+                              bool conPlantilla = false);
+    // Todos los modelos en un único documento, cada uno en página nueva (para exportar a HTML). Con 'soluciones',
+    // precedidos de la hoja de soluciones.
     static QString examenesHtml(const QVector<Modelo> &modelos, const DatosConvocatoria &datos, bool soluciones, int nivel = 0);
 
-    // Plantilla de soluciones y estructura (códigos de pregunta por tema) de todos los modelos.
+    // Hoja de soluciones: estructura (códigos de pregunta por tema) de todos los modelos y, de cada uno, su plantilla
+    // de corrección («1 C», «2 A»…) y el código, la respuesta y la referencia de cada pregunta.
     static QString solucionesHtml(const QVector<Modelo> &modelos, const DatosConvocatoria &datos);
 
     // Documento LaTeX (para pdflatex) con todos los modelos, cada uno en página nueva con su pie «…: página / total»
@@ -124,7 +129,9 @@ public:
     static QString textoCorrectasPorLetra(const Modelo &modelo);
 
 private:
-    static QString cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones, int nivel);
+    static QString cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones, int nivel,
+                                bool conPlantilla);
+    static QString cuerpoSoluciones(const QVector<Modelo> &modelos, const DatosConvocatoria &datos);
     static QString cuerpoExamenLatex(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones,
                                      const QString &carpetaImagenes, int nivel);
     static QString solucionesLatex(const QVector<Modelo> &modelos, const DatosConvocatoria &datos);

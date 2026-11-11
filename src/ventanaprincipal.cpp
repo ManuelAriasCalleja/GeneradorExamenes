@@ -1655,8 +1655,9 @@ void VentanaPrincipal::mostrarModelo()
     //: Cuántas veces es correcta cada letra en el examen; %1 es la lista: «A 3 · B 2 · C 3 · D 2»
     m_correctasPorLetra->setText(tr("Correctas: %1").arg(Maquetador::textoCorrectasPorLetra(m_resultado.modelos.at(i))));
     m_preguntaACambiar->setRange(1, qMax(1, int(m_resultado.modelos.at(i).preguntas.size())));
+    // Con soluciones, también la plantilla de corrección, que en los ficheros va en la hoja de soluciones.
     const QString html = Maquetador::examenHtml(m_resultado.modelos.at(i), datosConvocatoria(), m_verSoluciones->isChecked(),
-                                                nivelMaqueta());
+                                                nivelMaqueta(), true);
     ponerDocumento(m_visorExamen, Maquetador::crearDocumento(html, Maquetador::preguntasDe(m_resultado.modelos), m_visorExamen));
 }
 
