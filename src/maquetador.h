@@ -92,8 +92,9 @@ public:
     static QString solucionesHtml(const QVector<Modelo> &modelos, const DatosConvocatoria &datos);
 
     // Documento LaTeX (para pdflatex) con todos los modelos, cada uno en página nueva con su pie «…: página / total»
-    // (hay que compilar dos veces). Con 'soluciones' empieza por la estructura y la plantilla de respuestas y
-    // marca las correctas. Las imágenes se enlazan como «carpetaImagenes/<código>.png»: las guarda quien llama.
+    // (hay que compilar dos veces). Con 'soluciones', como el PDF de soluciones: empieza por la hoja de soluciones
+    // (estructura y plantilla de corrección de cada modelo), marca las correctas y pone debajo de cada pregunta su
+    // explicación y su referencia. Las imágenes se enlazan como «carpetaImagenes/<código>.png»: las guarda quien llama.
     static QString examenesLatex(const QVector<Modelo> &modelos, const DatosConvocatoria &datos, bool soluciones,
                                  const QString &carpetaImagenes, int nivel = 0);
     static QString escaparLatex(const QString &texto);

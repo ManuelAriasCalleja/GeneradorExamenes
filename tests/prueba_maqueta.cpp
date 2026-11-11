@@ -173,9 +173,12 @@ private slots:
         const Modelo m = examenes(banco, 3, 1).first();
         const int n = m.preguntas.size();
 
-        // Letra de 16 pt (la cabecera, a escala), una opción por línea e imágenes más grandes.
-        const QString normal = Maquetador::examenHtml(m, convocatoria(), false, 0);
-        const QString grande = Maquetador::examenHtml(m, convocatoria(), false, Maquetador::kLetraGrande);
+        // Letra de 16 pt (la cabecera, a escala: la asignatura, de 14 pt, pasa a 21,3), una opción por línea e imágenes
+        // más grandes.
+        DatosConvocatoria d = convocatoria();
+        d.asignatura = QStringLiteral("Asignatura inventada");
+        const QString normal = Maquetador::examenHtml(m, d, false, 0);
+        const QString grande = Maquetador::examenHtml(m, d, false, Maquetador::kLetraGrande);
         QVERIFY(normal.contains(QStringLiteral("font-size:10.5pt")) && normal.contains(QStringLiteral("font-size:14.0pt")));
         QVERIFY(grande.contains(QStringLiteral("font-size:16pt")) && grande.contains(QStringLiteral("font-size:21.3pt")));
         QVERIFY(normal.contains(QStringLiteral("width=\"48%\"")));     // opciones cortas: en dos columnas
@@ -187,7 +190,7 @@ private slots:
         QVERIFY(!grande.contains(QStringLiteral("font-style:italic")));
 
         // En LaTeX: \LARGE para todo el modelo, más separación y una opción por línea.
-        const QString tex = Maquetador::examenesLatex({m}, convocatoria(), false, QStringLiteral("img"), Maquetador::kLetraGrande);
+        const QString tex = Maquetador::examenesLatex({m}, d, false, QStringLiteral("img"), Maquetador::kLetraGrande);
         QVERIFY(tex.contains(QStringLiteral("\\renewcommand{\\letraexamen}{\\LARGE}")));
         QVERIFY(tex.contains(QStringLiteral("\\setlength{\\seppregunta}{14pt}")));
         QVERIFY(tex.contains(QStringLiteral("{\\huge\\bfseries ")));
@@ -236,6 +239,24 @@ private slots:
         QCOMPARE(tex.count(QStringLiteral("\\textbf{Explicación:}")), 1);
         QCOMPARE(tex.count(QStringLiteral("\\textbf{Referencia:}")), m.preguntas.size() - 1);
         QVERIFY(!Maquetador::examenesLatex({m}, convocatoria(), false, QStringLiteral("img")).contains(QStringLiteral("Explicación:")));
+
+        // Algo menor que el examen (un punto; en LaTeX, un tamaño), salvo con letra grande: igual en el PDF y en LaTeX.
+        auto letra = [&m](int nivel) {
+            const QString html = Maquetador::examenHtml(m, convocatoria(), true, nivel);
+            const qsizetype donde = html.lastIndexOf(QStringLiteral("font-size:"), html.indexOf(QStringLiteral("Explicación:")));
+            return html.mid(donde, html.indexOf(QLatin1Char('"'), donde) - donde);
+        };
+        auto letraLatex = [&m](int nivel) {
+            const QString tex = Maquetador::examenesLatex({m}, convocatoria(), true, QStringLiteral("img"), nivel);
+            const qsizetype donde = tex.lastIndexOf(QStringLiteral("\\vspace{2pt}{"), tex.indexOf(QStringLiteral("\\textbf{Explicación:}")));
+            return tex.mid(donde + 13, tex.indexOf(QStringLiteral("\\leftskip"), donde) - donde - 13);
+        };
+        QCOMPARE(letra(0), QStringLiteral("font-size:9.5pt"));
+        QCOMPARE(letra(Maquetador::numNiveles() - 1), QStringLiteral("font-size:8.0pt"));
+        QCOMPARE(letra(Maquetador::kLetraGrande), QStringLiteral("font-size:16.0pt"));
+        QCOMPARE(letraLatex(0), QStringLiteral("\\small"));
+        QCOMPARE(letraLatex(Maquetador::numNiveles() - 1), QStringLiteral("\\footnotesize"));
+        QCOMPARE(letraLatex(Maquetador::kLetraGrande), QString());
     }
 
     void plantillaDeCorreccion()
@@ -259,6 +280,25 @@ private slots:
         QVERIFY(!Maquetador::examenHtml(m, convocatoria(), false, 0, true).contains(titulo));
         QVERIFY(Maquetador::examenesHtml({m}, convocatoria(), true).contains(titulo));
         QVERIFY(!Maquetador::examenesHtml({m}, convocatoria(), false).contains(titulo));
+        // El fin de la hoja de soluciones, en un párrafo propio: detrás de la tabla de las referencias, que ocupa todo el
+        // ancho, podía pasar a una página más, vacía salvo el pie.
+        QVERIFY(tex.contains(QStringLiteral("\\end{tabularx}}\n\\par\\label{fin:soluciones}")));
+    }
+
+    void cabeceraSinAsignatura()
+    {
+        // Un banco sin asignatura: la cabecera empieza por la convocatoria, sin una línea vacía delante (en LaTeX, un
+        // «\\» sin nada delante es un error de pdflatex).
+        const Modelo m = examenes(bancoInventado(), 3, 1).first();
+        DatosConvocatoria d = convocatoria();
+        d.asignatura.clear();
+        const QString tex = Maquetador::examenesLatex({m}, d, true, QStringLiteral("img"));
+        QVERIFY(!tex.contains(QStringLiteral("\\bfseries }")));
+        QCOMPARE(tex.count(QStringLiteral("\\begin{minipage}[t]{0.58\\linewidth}\nJunio 2026\n\\end{minipage}")), 2);   // hoja y examen
+        QVERIFY(Maquetador::examenHtml(m, d, false).contains(QStringLiteral("<td>Junio 2026</td>")));
+        d.asignatura = QStringLiteral("Asignatura inventada");
+        QVERIFY(Maquetador::examenesLatex({m}, d, false, QStringLiteral("img")).contains(QStringLiteral("{\\Large\\bfseries Asignatura inventada}\\\\\nJunio 2026\n")));
+        QVERIFY(Maquetador::examenHtml(m, d, false).contains(QStringLiteral("Asignatura inventada</span><br>Junio 2026</td>")));
     }
 
     void textosDeLaHojaDeSoluciones()

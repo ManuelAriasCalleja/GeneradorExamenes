@@ -1804,18 +1804,22 @@ void VentanaPrincipal::exportarSolucionesPdf()
              QStringLiteral("pdf"), &Exportacion::pdf, true);
 }
 
+// La casilla del diálogo de exportar a HTML y a LaTeX: con ella llevan lo mismo que el PDF de soluciones.
+QString VentanaPrincipal::textoConSoluciones()
+{
+    return tr("Con soluciones (plantilla de corrección y, en cada pregunta, la correcta, la explicación y la referencia)");
+}
+
 void VentanaPrincipal::exportarHtml()
 {
     exportar(tr("Exportar a HTML (editable en Word / LibreOffice)"), nombreBaseFichero(), QStringLiteral("html"),
-             &Exportacion::html, m_verSoluciones->isChecked(), QString(),
-             tr("Con soluciones (la respuesta correcta y el código de cada pregunta, marcados)"));
+             &Exportacion::html, m_verSoluciones->isChecked(), QString(), textoConSoluciones());
 }
 
 void VentanaPrincipal::exportarLatex()
 {
     exportar(tr("Exportar a LaTeX"), nombreBaseFichero(), QStringLiteral("tex"), &Exportacion::latex,
-             m_verSoluciones->isChecked(), tr("compílelos dos veces con pdflatex"),
-             tr("Con soluciones (estructura, plantilla de respuestas y la correcta marcada)"));
+             m_verSoluciones->isChecked(), tr("compílelos dos veces con pdflatex"), textoConSoluciones());
 }
 
 void VentanaPrincipal::registrarConvocatoria()

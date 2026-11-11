@@ -125,6 +125,21 @@ QString pt(qreal puntos)
     return QString::number(puntos, 'f', 1) + QStringLiteral("pt");
 }
 
+// Letra de la explicación y la referencia de las soluciones: algo menor que la del examen (un punto menos; en LaTeX,
+// un tamaño menos), salvo con letra grande, que se queda en la misma.
+qreal puntosExplicacion(int n)
+{
+    return n == Maquetador::kLetraGrande ? nivel(n).fuentePt : nivel(n).fuentePt - 1;
+}
+
+QString letraExplicacionLatex(int n)
+{
+    if (n == Maquetador::kLetraGrande)
+        return QString();
+    return QLatin1String(nivel(n).letraLatex) == QLatin1String("\\small") ? QStringLiteral("\\footnotesize")
+                                                                          : QStringLiteral("\\small");
+}
+
 // Ancho con el que se muestra la imagen de la pregunta, en píxeles a 96 ppp (0 si no tiene).
 int anchoImagen(const Pregunta &p, int n = 0)
 {
@@ -226,7 +241,7 @@ QString explicacionHtml(const Pregunta &p, const DatosConvocatoria &d, int n)
     if (partes.isEmpty())
         return QString();
     return QStringLiteral("<p style=\"margin-left:26px; margin-top:3px; margin-bottom:0px; font-size:%1\">%2</p>")
-        .arg(pt(nivel(n).fuentePt - 1), partes.join(QStringLiteral("<br>")));
+        .arg(pt(puntosExplicacion(n)), partes.join(QStringLiteral("<br>")));
 }
 
 // «Plantilla de corrección» de un modelo: «1 C», «2 A»… en filas de 10, y cuántas veces es correcta cada letra.
@@ -246,13 +261,20 @@ QString plantillaHtml(const Modelo &m, const DatosConvocatoria &d)
                       .arg(Maquetador::escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Respuestas correctas: %1")).arg(Maquetador::textoCorrectasPorLetra(m))));
 }
 
+// Cabecera: la asignatura (en grande) y, debajo, la convocatoria; lo que esté vacío no se pone. A la derecha, 'derecha'.
 QString cabeceraHtml(const DatosConvocatoria &d, const QString &derecha, int n = 0)
 {
+    QStringList izquierda;
+    if (!d.asignatura.trimmed().isEmpty())
+        izquierda << QStringLiteral("<span style=\"font-size:%1; font-weight:bold\">%2</span>")
+                         .arg(pt(14 * escala(n)), Maquetador::escapar(d.asignatura));
+    if (!d.convocatoriaYAnio().isEmpty())
+        izquierda << Maquetador::escapar(d.convocatoriaYAnio());
     return QStringLiteral(
                "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr>"
-               "<td><span style=\"font-size:%4; font-weight:bold\">%1</span><br>%2</td>"
-               "<td align=\"right\" valign=\"top\">%3</td></tr></table>")
-        .arg(Maquetador::escapar(d.asignatura), Maquetador::escapar(d.convocatoriaYAnio()), derecha, pt(14 * escala(n)));
+               "<td>%1</td>"
+               "<td align=\"right\" valign=\"top\">%2</td></tr></table>")
+        .arg(izquierda.join(QStringLiteral("<br>")), derecha);
 }
 
 // Pie de página de un examen o de la hoja de soluciones: «Nacional Original · Junio 2026».
@@ -816,7 +838,7 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \usepackage{helvet}
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage[a4paper,left=18mm,right=18mm,top=15mm,bottom=12mm,includefoot,footskip=8mm]{geometry}
-\usepackage[table]{xcolor}
+\usepackage{xcolor}
 \usepackage{graphicx,array,tabularx,fancyvrb,fancyhdr,amssymb}
 \definecolor{verde}{HTML}{0A7D32}
 % Símbolos que pdflatex no reconoce por sí solo (válidos también dentro de los bloques de código).
@@ -921,10 +943,8 @@ QString explicacionLatex(const Pregunta &p, const DatosConvocatoria &d, int n)
     parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia);
     if (partes.isEmpty())
         return QString();
-    // Con letra grande, del mismo tamaño que el resto; si no, algo menor.
     return QStringLiteral("\\par\\vspace{2pt}{%1\\leftskip=8mm\\noindent %2\\par}\n")
-        .arg(n == Maquetador::kLetraGrande ? QString() : QStringLiteral("\\small"),
-             partes.join(QStringLiteral("\\par\n\\noindent ")));
+        .arg(letraExplicacionLatex(n), partes.join(QStringLiteral("\\par\n\\noindent ")));
 }
 
 // Equivalente a Maquetador::enunciadoHtml: párrafos en negrita cursiva, bloques ``` y tablas | a | b |.
@@ -986,14 +1006,18 @@ QString enunciadoLatex(const QString &texto, const QString &prefijo)
 // Con letra grande, la cabecera y las instrucciones van en \LARGE y el título en \huge.
 QString cabeceraLatex(const DatosConvocatoria &d, const QString &derecha, int n = 0)
 {
+    // Como en cabeceraHtml, sin las líneas vacías: un \\ sin nada delante es un error de LaTeX («There's no line here
+    // to end»), que pasaba con un banco sin asignatura.
     const bool grande = n == Maquetador::kLetraGrande;
-    QString izquierda = QStringLiteral("{%1\\bfseries %2}").arg(grande ? QStringLiteral("\\huge") : QStringLiteral("\\Large"),
-                                                               Maquetador::escaparLatex(d.asignatura));
+    QStringList izquierda;
+    if (!d.asignatura.trimmed().isEmpty())
+        izquierda << QStringLiteral("{%1\\bfseries %2}").arg(grande ? QStringLiteral("\\huge") : QStringLiteral("\\Large"),
+                                                          Maquetador::escaparLatex(d.asignatura));
     if (!d.convocatoriaYAnio().isEmpty())
-        izquierda += QStringLiteral("\\\\\n") + Maquetador::escaparLatex(d.convocatoriaYAnio());
+        izquierda << Maquetador::escaparLatex(d.convocatoriaYAnio());
     return QStringLiteral("\\noindent\\begin{minipage}[t]{0.58\\linewidth}\n%1\n\\end{minipage}\\hfill\n"
                           "\\begin{minipage}[t]{0.4\\linewidth}\\raggedleft\n%2\n\\end{minipage}\\par\n")
-        .arg(izquierda, derecha);
+        .arg(izquierda.join(QStringLiteral("\\\\\n")), derecha);
 }
 
 } // namespace
@@ -1047,7 +1071,9 @@ QString Maquetador::examenesLatex(const QVector<Modelo> &modelos, const DatosCon
         tex += QStringLiteral("\n\\empezarmodelo{") + escaparLatex(textoPie(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones")), d))
                + QStringLiteral("}{fin:soluciones}\n");
         tex += solucionesLatex(modelos, d);
-        tex += QStringLiteral("\\label{fin:soluciones}\n");
+        // En un párrafo propio: detrás de la tabla, que ocupa todo el ancho, pasaría a otra línea, y con la página
+        // llena, a una página más, vacía salvo el pie.
+        tex += QStringLiteral("\\par\\label{fin:soluciones}\n");
     }
     for (int i = 0; i < modelos.size(); ++i) {
         const QString etiqueta = QStringLiteral("fin:modelo%1").arg(i + 1);

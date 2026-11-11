@@ -186,6 +186,7 @@ private:
     // Nivel de la maqueta: el de letra grande si está marcada la casilla; si no, el de compactación con el que los
     // modelos generados caben en sus páginas (ver Maquetador), o el normal si no hay que ajustarlos a ellas.
     int nivelMaqueta() const;
+    static QString textoConSoluciones();
     // Exporta los exámenes que se elijan en el diálogo, cada fichero con 'escribir' (ver exportacion.h); 'nota' se
     // añade al mensaje del final. Con 'casillaSoluciones', el diálogo tiene la casilla «Con soluciones» con ese texto,
     // marcada si lo está 'soluciones', y es ella la que decide.

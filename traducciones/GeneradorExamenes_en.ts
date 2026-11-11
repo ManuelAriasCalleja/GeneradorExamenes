@@ -1962,7 +1962,7 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="+224"/>
+        <location filename="../src/maquetador.cpp" line="+239"/>
         <location line="+696"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
@@ -2031,8 +2031,8 @@ Do not hand in the question paper.</translation>
     <message>
         <location line="-521"/>
         <location line="+179"/>
-        <location line="+298"/>
-        <location line="+67"/>
+        <location line="+296"/>
+        <location line="+69"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
         <location line="+1"/>
         <location line="+2"/>
@@ -3488,17 +3488,17 @@ If they are the final ones, record them first.</translation>
         <translation>Export solutions to PDF</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
+        <source>Con soluciones (plantilla de corrección y, en cada pregunta, la correcta, la explicación y la referencia)</source>
+        <translation>With solutions (answer key and, for each question, the correct answer, the explanation and the reference)</translation>
+    </message>
+    <message>
+        <location line="+5"/>
         <source>Exportar a HTML (editable en Word / LibreOffice)</source>
         <translation>Export to HTML (editable in Word / LibreOffice)</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Con soluciones (la respuesta correcta y el código de cada pregunta, marcados)</source>
-        <translation>With solutions (the correct answer and the code of each question marked)</translation>
-    </message>
-    <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Exportar a LaTeX</source>
         <translation>Export to LaTeX</translation>
     </message>
@@ -3506,11 +3506,6 @@ If they are the final ones, record them first.</translation>
         <location line="+1"/>
         <source>compílelos dos veces con pdflatex</source>
         <translation>compile them twice with pdflatex</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Con soluciones (estructura, plantilla de respuestas y la correcta marcada)</source>
-        <translation>With solutions (structure, answer key and the correct answer marked)</translation>
     </message>
     <message>
         <location line="+9"/>
