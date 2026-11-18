@@ -321,6 +321,57 @@ private slots:
         QVERIFY(!Generador::cambiarPregunta(banco, c, r, 0, 3, {}));   // no hay pregunta 4
     }
 
+    void corregirUnaPreguntaDeLosExamenes()
+    {
+        ConfigExamen c = configuracion(4);
+        c.barajarOpciones = true;
+        ResultadoGeneracion r = Generador::generar(bancoInventado(), c);
+        // Una pregunta con las opciones barajadas, que se pone también en otro examen.
+        int i = 0;
+        while (r.modelos[0].preguntas[i].orden == std::array<int, 4>{{0, 1, 2, 3}})
+            ++i;
+        const PreguntaExamen antes = r.modelos[0].preguntas[i];
+        r.modelos[1].preguntas[0] = antes;
+        ResultadoGeneracion sinCambios = r;
+
+        // Otro texto: cambia en los dos sitios, con las opciones en el mismo orden; lo demás no cambia.
+        Pregunta corregida = antes.pregunta;
+        corregida.enunciado = QStringLiteral("Enunciado inventado y corregido:");
+        corregida.opciones[0] = QStringLiteral("Opción inventada y corregida.");
+        QCOMPARE(Generador::ponerCorregida(r, c, antes.pregunta, corregida), 2);
+        for (const PreguntaExamen &pe : {r.modelos[0].preguntas[i], r.modelos[1].preguntas[0]}) {
+            QCOMPARE(pe.pregunta.enunciado, corregida.enunciado);
+            QVERIFY(pe.orden == antes.orden);
+        }
+        sinCambios.modelos[0].preguntas[i].pregunta = corregida;
+        sinCambios.modelos[1].preguntas[0].pregunta = corregida;
+        QCOMPARE(firma(r), firma(sinCambios));
+        QCOMPARE(r.modelos[0].preguntas[i].correcta(), antes.correcta());
+
+        // Otra correcta: va a la letra de la anterior.
+        Pregunta otraCorrecta = corregida;
+        otraCorrecta.correcta = (corregida.correcta + 1) % 4;
+        QCOMPARE(Generador::ponerCorregida(r, c, corregida, otraCorrecta), 2);
+        QCOMPARE(r.modelos[0].preguntas[i].correcta(), antes.correcta());
+        QCOMPARE(r.modelos[0].preguntas[i].opcion(antes.correcta()), otraCorrecta.opciones[otraCorrecta.correcta]);
+
+        // Con una opción que remite a las demás, sin barajar.
+        Pregunta dependiente = otraCorrecta;
+        dependiente.opciones[3] = QStringLiteral("Todas las anteriores.");
+        QCOMPARE(Generador::ponerCorregida(r, c, otraCorrecta, dependiente), 2);
+        QVERIFY(r.modelos[0].preguntas[i].orden == (std::array<int, 4>{{0, 1, 2, 3}}));
+
+        // Otra pregunta (con otro código o con otro id) no está en ningún sitio: no cambia nada.
+        const QString hasta = firma(r);
+        Pregunta otroCodigo = dependiente;
+        otroCodigo.numero += 100;
+        Pregunta otroId = dependiente;
+        otroId.id += 10000;
+        QCOMPARE(Generador::ponerCorregida(r, c, otroCodigo, corregida), 0);
+        QCOMPARE(Generador::ponerCorregida(r, c, otroId, corregida), 0);
+        QCOMPARE(firma(r), hasta);
+    }
+
     void gruposDisponibles()
     {
         QVector<Pregunta> banco = bancoInventado(2, 20);

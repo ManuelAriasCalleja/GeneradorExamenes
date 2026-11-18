@@ -83,6 +83,14 @@ public:
     static bool cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExamen &config, ResultadoGeneracion &resultado,
                                 int modelo, int indice, const QSet<QString> &descartados);
 
+    // Pone en los exámenes 'corregida', la pregunta 'antes' después de editarla en el banco: en cada sitio en que esté
+    // 'antes' (la misma pregunta: el mismo id y el mismo código). Las opciones se quedan en el orden en que salieron,
+    // salvo que la correcta sea otra y estuvieran barajadas (entonces la nueva correcta va a la letra de la anterior,
+    // como al cambiar una pregunta) o que ahora haya alguna que remita a las demás (entonces van sin barajar, como al
+    // generar). Pone al día los avisos del reparto de la correcta. Devuelve en cuántos sitios estaba.
+    static int ponerCorregida(ResultadoGeneracion &resultado, const ConfigExamen &config, const Pregunta &antes,
+                              const Pregunta &corregida);
+
     // Número de preguntas distintas (sin contar variantes) disponibles por tema.
     static QMap<int, int> gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar);
 };

@@ -984,7 +984,7 @@ private slots:
         const QString antes = visor->toPlainText();
         QSpinBox *numero = nullptr;
         for (QSpinBox *s : v.findChildren<QSpinBox *>())
-            if (s->toolTip().startsWith(QStringLiteral("Número de la pregunta que se quiere cambiar")))
+            if (s->toolTip().startsWith(QStringLiteral("Número de la pregunta que se quiere editar o cambiar")))
                 numero = s;
         QPushButton *cambiar = nullptr, *deshacer = nullptr;
         for (QPushButton *b : v.findChildren<QPushButton *>()) {
@@ -1022,11 +1022,14 @@ private slots:
         visor->ensureCursorVisible();
         const QPoint punto = visor->cursorRect(cursor).center() + QPoint(4, 0);
         QString opcion;
-        QTimer::singleShot(100, [&opcion] {
+        bool editarla = false;
+        QTimer::singleShot(100, [&opcion, &editarla] {
             for (QWidget *w : QApplication::topLevelWidgets()) {
                 auto *menu = qobject_cast<QMenu *>(w);
                 if (!menu || !menu->isVisible())
                     continue;
+                for (QAction *a : menu->actions())
+                    editarla = editarla || a->text().startsWith(QStringLiteral("Editar la pregunta 5 (T"));
                 for (QAction *a : menu->actions())
                     if (a->text().startsWith(QStringLiteral("Cambiar la pregunta"))) {
                         opcion = a->text();
@@ -1038,8 +1041,86 @@ private slots:
         QContextMenuEvent evento(QContextMenuEvent::Mouse, punto, visor->viewport()->mapToGlobal(punto));
         QApplication::sendEvent(visor->viewport(), &evento);
         QVERIFY2(opcion.startsWith(QStringLiteral("Cambiar la pregunta 5 por otra del tema")), qPrintable(opcion));
+        QVERIFY(editarla);
         QVERIFY(visor->toPlainText() != antes);
         QCOMPARE(numero->value(), 5);
+    }
+
+    void ventanaEditaUnaPreguntaDelExamen()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QMetaObject::invokeMethod(&v, "generar");
+        auto *visor = v.findChild<VisorAmpliable *>();
+        QSpinBox *numero = nullptr;
+        for (QSpinBox *s : v.findChildren<QSpinBox *>())
+            if (s->toolTip().startsWith(QStringLiteral("Número de la pregunta que se quiere editar o cambiar")))
+                numero = s;
+        QPushButton *editar = nullptr, *cambiar = nullptr, *deshacer = nullptr;
+        for (QPushButton *b : v.findChildren<QPushButton *>()) {
+            if (b->text() == QStringLiteral("Editar…"))
+                editar = b;
+            else if (b->text() == QStringLiteral("Cambiar por otra"))
+                cambiar = b;
+            else if (b->text() == QStringLiteral("Deshacer el cambio"))
+                deshacer = b;
+        }
+        QVERIFY(visor && numero && editar && cambiar && deshacer);
+        QVERIFY(editar->isEnabled());
+
+        // Se cambia la pregunta 3 por otra, para ver después que al deshacerlo no vuelve la 2 sin corregir.
+        numero->setValue(3);
+        cambiar->click();
+        QVERIFY(deshacer->isEnabled());
+
+        // Se edita la 2: se guarda en el banco y se ve en el examen.
+        numero->setValue(2);
+        const QString enunciado = QStringLiteral("Enunciado inventado y corregido desde el examen:");
+        QString codigo;
+        QTimer::singleShot(100, [&] {
+            auto *d = qobject_cast<DialogoPregunta *>(QApplication::activeModalWidget());
+            if (!d)
+                return;
+            codigo = d->pregunta().codigoCompleto();
+            d->findChild<QPlainTextEdit *>()->setPlainText(enunciado);
+            responder(QStringLiteral("Guardar así"));   // por si avisa de alguna pauta
+            for (QPushButton *b : d->findChildren<QPushButton *>())
+                if (b->text() == QStringLiteral("Guardar")) {
+                    b->click();
+                    break;
+                }
+        });
+        editar->click();
+        QVERIFY(!codigo.isEmpty());
+        QVERIFY(visor->toPlainText().contains(enunciado));
+        QCOMPARE(numero->value(), 2);
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(ruta));
+            QString enBanco;
+            for (const Pregunta &p : bd.preguntas())
+                if (p.codigoCompleto() == codigo)
+                    enBanco = p.enunciado;
+            QCOMPARE(enBanco, enunciado);
+        }
+        deshacer->click();
+        QVERIFY(!deshacer->isEnabled());
+        QVERIFY(visor->toPlainText().contains(enunciado));
+
+        // Si se cancela, no cambia nada.
+        const QString antes = visor->toPlainText();
+        QTimer::singleShot(100, [] {
+            if (auto *d = qobject_cast<DialogoPregunta *>(QApplication::activeModalWidget()))
+                d->reject();
+        });
+        editar->click();
+        QCOMPARE(visor->toPlainText(), antes);
+        QSettings().clear();
     }
 
     void visorEscalaLaLetraYLasImagenes()

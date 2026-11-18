@@ -522,11 +522,15 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     exportar->addStretch();
     m_preguntaACambiar = new QSpinBox;
     m_preguntaACambiar->setEnabled(false);
-    m_preguntaACambiar->setToolTip(tr("Número de la pregunta que se quiere cambiar, en el examen que se ve.\n"
+    m_preguntaACambiar->setToolTip(tr("Número de la pregunta que se quiere editar o cambiar, en el examen que se ve.\n"
                                       "También se puede pulsar con el botón derecho sobre la pregunta."));
-    //: Delante del número de la pregunta del examen que se quiere cambiar
+    //: Delante del número de la pregunta del examen que se quiere editar o cambiar
     otras->addWidget(new QLabel(tr("Pregunta:")));
     otras->addWidget(m_preguntaACambiar);
+    //: Botón: abre en el editor esa pregunta del examen
+    boton(otras, tr("Editar…"), &VentanaPrincipal::editarPreguntaExamen)
+        ->setToolTip(tr("Abre la pregunta en el editor. Lo que se guarde queda en el banco y se ve ya en el examen, "
+                        "con las opciones en el mismo orden."));
     //: Botón: cambia esa pregunta del examen por otra del mismo tema
     boton(otras, tr("Cambiar por otra"), &VentanaPrincipal::cambiarPregunta)
         ->setToolTip(tr("Sustituye la pregunta por otra del mismo tema, en el mismo sitio y con la correcta en la "
@@ -1963,6 +1967,64 @@ void VentanaPrincipal::cambiar(int indice)
                              10000);
 }
 
+void VentanaPrincipal::editarPreguntaExamen()
+{
+    editarDelExamen(m_preguntaACambiar->value() - 1);
+}
+
+void VentanaPrincipal::editarDelExamen(int indice)
+{
+    const int modelo = m_selectorModelo->currentIndex();
+    if (modelo < 0 || modelo >= m_resultado.modelos.size() || indice < 0 || indice >= m_resultado.modelos.at(modelo).preguntas.size())
+        return;
+    const Pregunta copia = m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta;
+    // Se edita la del banco, que puede ser más nueva que la copia del examen (si se ha corregido después, o si el
+    // examen viene del historial). Se busca por su id y su código; si no está, por el código, que no cambia al
+    // reimportar el JSON, y si tampoco, por el id, por si se le ha cambiado el número.
+    Pregunta enBanco;
+    for (const Pregunta &p : std::as_const(m_preguntas))
+        if (p.id == copia.id && p.codigoCompleto() == copia.codigoCompleto())
+            enBanco = p;
+    for (const Pregunta &p : std::as_const(m_preguntas))
+        if (enBanco.id == 0 && p.codigoCompleto() == copia.codigoCompleto())
+            enBanco = p;
+    for (const Pregunta &p : std::as_const(m_preguntas))
+        if (enBanco.id == 0 && p.id == copia.id)
+            enBanco = p;
+    if (enBanco.id == 0) {
+        QMessageBox::information(this, windowTitle(), tr("La pregunta %1 ya no está en el banco: no se puede editar.")
+                                                          .arg(copia.codigoCompleto()));
+        return;
+    }
+    Pregunta guardada;
+    editar(enBanco, DialogoPregunta::Cerrar, QString(), &guardada);
+    if (guardada.id == 0)
+        return;
+
+    // Si cambia lo que se ve en el examen, ya no es como el registrado.
+    const bool igual = guardada.codigoCompleto() == copia.codigoCompleto() && guardada.enunciado == copia.enunciado
+                       && guardada.opciones == copia.opciones && guardada.correcta == copia.correcta
+                       && guardada.referencia == copia.referencia && guardada.explicacion == copia.explicacion
+                       && guardada.imagen == copia.imagen;
+    const int sitios = Generador::ponerCorregida(m_resultado, m_configResultado, copia, guardada);
+    // También en los exámenes de antes de cada cambio de pregunta: al deshacerlo, la pregunta vuelve corregida.
+    for (CambioPregunta &cambio : m_cambios)
+        Generador::ponerCorregida(cambio.antes, m_configResultado, copia, guardada);
+    if (!igual)
+        m_registrados = false;
+    actualizarMaqueta();
+    m_preguntaACambiar->setValue(indice + 1);
+    m_visorExamen->scrollToAnchor(QStringLiteral("q%1").arg(indice + 1));
+    //: %1 es el código de la pregunta (T2-15b)
+    QString mensaje = sitios > 1 ? tr("Pregunta %1 guardada en el banco y corregida en los %2 exámenes en que está.")
+                                       .arg(guardada.codigoCompleto()).arg(sitios)
+                                 : tr("Pregunta %1 guardada en el banco y corregida en el examen.").arg(guardada.codigoCompleto());
+    if (!guardada.activa())
+        //: Se añade al mensaje de pregunta guardada (con el espacio delante) si se ha marcado como anulada u obsoleta
+        mensaje += tr(" Ya no está activa: si no debe salir, cámbiela por otra.");
+    statusBar()->showMessage(mensaje, 10000);
+}
+
 void VentanaPrincipal::deshacerCambio()
 {
     if (m_cambios.isEmpty())
@@ -2003,11 +2065,17 @@ void VentanaPrincipal::menuVista(const QPoint &enVista)
 {
     std::unique_ptr<QMenu> menu(m_visorExamen->createStandardContextMenu());
     QAction *primera = menu->actions().value(0);
+    QAction *editar = nullptr;
     QAction *cambiar = nullptr;
     QAction *deshacer = nullptr;
     const int modelo = m_selectorModelo->currentIndex();
     const int indice = hayExamen() && modelo >= 0 && modelo < m_resultado.modelos.size() ? preguntaEn(enVista) : -1;
     if (indice >= 0 && indice < m_resultado.modelos.at(modelo).preguntas.size()) {
+        //: %1 es el número de la pregunta en el examen y %2 su código (T2-15b)
+        editar = new QAction(tr("Editar la pregunta %1 (%2)…")
+                                 .arg(indice + 1).arg(m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta.codigoCompleto()),
+                             menu.get());
+        menu->insertAction(primera, editar);
         cambiar = new QAction(tr("Cambiar la pregunta %1 por otra del tema %2")
                                   .arg(indice + 1).arg(m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta.temaNumero),
                               menu.get());
@@ -2017,12 +2085,14 @@ void VentanaPrincipal::menuVista(const QPoint &enVista)
         deshacer = new QAction(tr("Deshacer el último cambio de pregunta"), menu.get());
         menu->insertAction(primera, deshacer);
     }
-    if (cambiar || deshacer)
+    if (editar || cambiar || deshacer)
         menu->insertSeparator(primera);
     menu->addSeparator();
     menu->addActions(m_visorExamen->accionesEscala());
     QAction *elegida = menu->exec(m_visorExamen->viewport()->mapToGlobal(enVista));
-    if (elegida && elegida == cambiar)
+    if (elegida && elegida == editar)
+        editarDelExamen(indice);
+    else if (elegida && elegida == cambiar)
         this->cambiar(indice);
     else if (elegida && elegida == deshacer)
         deshacerCambio();
@@ -2078,8 +2148,11 @@ void VentanaPrincipal::seleccionCambiada()
     ponerDocumento(m_ficha, Maquetador::crearDocumento(html, {p}, m_ficha));
 }
 
-DialogoPregunta::Despues VentanaPrincipal::editar(Pregunta p, DialogoPregunta::Despues boton, const QString &texto)
+DialogoPregunta::Despues VentanaPrincipal::editar(Pregunta p, DialogoPregunta::Despues boton, const QString &texto,
+                                                  Pregunta *guardada)
 {
+    if (guardada)
+        *guardada = Pregunta();
     if (m_temas.isEmpty()) {
         QMessageBox::information(this, windowTitle(), tr("Primero cree algún tema (Editar → Temas)."));
         return DialogoPregunta::Cerrar;
@@ -2091,6 +2164,8 @@ DialogoPregunta::Despues VentanaPrincipal::editar(Pregunta p, DialogoPregunta::D
         Pregunta nueva = d.pregunta();
         if (m_bd.guardarPregunta(nueva)) {
             m_idGuardada = nueva.id;
+            if (guardada)
+                *guardada = nueva;
             bancoEditado(nueva.id);
             return d.despues();
         }

@@ -84,6 +84,7 @@ private slots:
     void historialConvocatorias();
     void registrarAnteriores();
     void practicar();
+    void editarPreguntaExamen();   // la del número elegido bajo la vista
     void cambiarPregunta();   // la del número elegido bajo la vista
     void deshacerCambio();
 
@@ -149,9 +150,10 @@ private:
     bool hayExamen() const;
     Pregunta preguntaSeleccionada(bool *ok);
     // Abre la pregunta en el editor y la guarda. Con 'boton', el editor tiene además ese botón («Guardar y
-    // siguiente»…). Devuelve lo que se ha pedido al guardar (Cerrar si no se ha guardado).
+    // siguiente»…). Devuelve lo que se ha pedido al guardar (Cerrar si no se ha guardado). En 'guardada' deja la
+    // pregunta guardada (con id 0 si no se ha guardado).
     DialogoPregunta::Despues editar(Pregunta p, DialogoPregunta::Despues boton = DialogoPregunta::Cerrar,
-                                    const QString &texto = QString());
+                                    const QString &texto = QString(), Pregunta *guardada = nullptr);
     // Muestra m_resultado (recién generado o cargado del historial); 'origen' va delante de la semilla.
     void presentarResultado(const QString &origen = QString());
     // Avisos, nivel de la maqueta y examen mostrado, según el resultado y la casilla «Letra grande».
@@ -165,8 +167,12 @@ private:
     void cargarRegistrados(const QVector<int> &examenes);
     // Cambia la pregunta 'indice' del examen que se ve por otra (ver Generador::cambiarPregunta).
     void cambiar(int indice);
-    // Menú del botón derecho en la vista del examen: el normal, con «Cambiar la pregunta N por otra» si se pulsa
-    // sobre una pregunta, «Deshacer» si hay algún cambio y los de ampliar y reducir la vista.
+    // Abre en el editor la pregunta 'indice' del examen que se ve y, si se guarda, la corrige también en los exámenes
+    // (ver Generador::ponerCorregida). Solo así cambian las preguntas de los exámenes generados al editarlas: los
+    // cambios hechos en la pestaña del banco no les llegan, como a los registrados en el historial.
+    void editarDelExamen(int indice);
+    // Menú del botón derecho en la vista del examen: el normal, con «Editar la pregunta N» y «Cambiar la pregunta N
+    // por otra» si se pulsa sobre una pregunta, «Deshacer» si hay algún cambio y los de ampliar y reducir la vista.
     void menuVista(const QPoint &enVista);
     // Pregunta (desde 0) del examen que está en el punto 'enVista' de la vista, o -1 (cabecera, instrucciones).
     int preguntaEn(const QPoint &enVista) const;

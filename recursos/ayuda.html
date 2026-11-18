@@ -104,8 +104,9 @@ convocatoria.</li>
 <b>T1–T4</b>) para poner un reparto habitual.</li>
 <li>Pulse <b>Generar exámenes</b>. Revise cada examen en la parte derecha (se cambia de uno a otro en
 <b>Examen</b>) y lea los avisos del recuadro amarillo, si los hay.</li>
-<li>Si una pregunta no le convence, cámbiela por otra con el botón derecho (ver
-<a href="#cambiar-pregunta">Cambiar una pregunta</a>). Si no le convence el conjunto, vuelva a pulsar
+<li>Si una pregunta no le convence, cámbiela por otra o corríjala con el botón derecho (ver
+<a href="#cambiar-pregunta">Cambiar una pregunta</a> y <a href="#editar-pregunta">Editar una pregunta del
+examen</a>). Si no le convence el conjunto, vuelva a pulsar
 <b>Generar exámenes</b>: cada vez salen otros.</li>
 <li>Pulse <b>Exportar PDF…</b> para guardar los exámenes y <b>Soluciones PDF…</b> para guardar las soluciones.</li>
 <li>Cuando sean los definitivos, pulse <b>Registrar convocatoria…</b>: quedan guardados en el historial y sus
@@ -263,7 +264,8 @@ soluciones» del diálogo.</li>
 si los exámenes se han cargado del historial. Su texto se puede seleccionar y copiar.</li>
 <li>El recuadro amarillo reúne los avisos: temas sin bastantes preguntas, preguntas repetidas, una letra correcta
 demasiadas veces, un examen que no cabe en su página… Conviene leerlos antes de exportar.</li>
-<li><b>Pregunta</b> y <b>Cambiar por otra</b>, bajo la vista: cambian una pregunta del examen que se ve (ver
+<li><b>Pregunta</b>, <b>Editar…</b> y <b>Cambiar por otra</b>, bajo la vista: corrigen o cambian una pregunta del
+examen que se ve (ver <a href="#editar-pregunta">Editar una pregunta del examen</a> y
 <a href="#cambiar-pregunta">Cambiar una pregunta</a>).</li>
 <li>Para ver el examen más grande o más pequeño: <b>Ctrl</b> + rueda del ratón sobre él, o <b>Ctrl++</b> y
 <b>Ctrl+-</b> desde cualquier sitio de la pestaña (del 50 % al 300 %); <b>Ctrl+0</b> lo deja a su tamaño normal. Están
@@ -297,6 +299,28 @@ eligen con las opciones que haya en la ventana. Si después se registran otra ve
 Después de cambiar preguntas a mano, la semilla ya no reproduce los exámenes (la línea gris lo indica). Para
 conservarlos, regístrelos.
 </td></tr></table>
+
+<h3><a name="editar-pregunta"></a>Editar una pregunta del examen</h3>
+<p>Si a una pregunta solo le falta un retoque (una errata, una opción mal escrita, la referencia…), se puede corregir
+sin salir del examen: pulse sobre ella con el botón derecho y elija «Editar la pregunta N (código)…», o escriba su
+número en <b>Pregunta</b>, bajo la vista, y pulse <b>Editar…</b>. Se abre el <a href="#editor">editor de
+preguntas</a> con la pregunta tal como está en el banco y, al pulsar <b>Guardar</b>, el cambio queda en el banco (y en
+su <a href="#json-enlazado">JSON</a>, si se mantiene al día) y se ve ya en el examen.</p>
+<ul>
+<li>Se corrige en todos los exámenes de la convocatoria en que esté, en el mismo sitio y con las opciones en el mismo
+orden. Si se cambia la respuesta correcta y las opciones estaban barajadas, la nueva correcta pasa a la letra de la
+anterior, así que la plantilla de corrección no cambia. Si alguna opción pasa a remitir a las demás («Todas las
+anteriores»), las opciones van en su orden, sin barajar.</li>
+<li>Si se marca como anulada u obsoleta, sigue en el examen (la barra de estado lo recuerda): cámbiela por otra si no
+debe salir.</li>
+<li>Lo guardado no se deshace con <b>Deshacer el cambio</b>, que es para los cambios de pregunta: para volver atrás,
+edítela otra vez.</li>
+<li>Las preguntas que se editan en la pestaña <a href="#banco">Banco de preguntas</a> no cambian en los exámenes ya
+generados, igual que no cambian en los registrados en el historial: solo cambian las que se editan desde el
+examen.</li>
+</ul>
+<p>Si los exámenes estaban registrados (o se han cargado del <a href="#historial">historial</a>), al corregir una
+pregunta dejan de ser como los registrados: si son los definitivos, regístrelos otra vez.</p>
 
 <h3><a name="maqueta"></a>Una página por cada 10 preguntas</h3>
 <p>Con la opción <b>Ajustar a una página por cada 10 preguntas</b> marcada (lo está salvo que se desmarque), cada
@@ -536,7 +560,8 @@ conserva, con su historia, y se puede recuperar.
 <!-- ======================================================================================================= -->
 <h2><a name="editor"></a>El editor de preguntas</h2>
 
-<p>El editor se abre al crear, modificar o duplicar una pregunta. A la izquierda están los datos; a la derecha, una
+<p>El editor se abre al crear, modificar o duplicar una pregunta, en el banco o desde el examen (ver
+<a href="#editar-pregunta">Editar una pregunta del examen</a>). A la izquierda están los datos; a la derecha, una
 vista previa de la pregunta, que se actualiza mientras se escribe, con los avisos de estilo y las preguntas
 parecidas debajo.</p>
 <ul>
@@ -891,7 +916,7 @@ examen.</td></tr>
 <tr><td><b>Ctrl+0</b></td><td>Poner la vista del examen a su tamaño normal.</td></tr>
 <tr><td>Doble clic en un examen de la lista</td><td>Cambiar su nombre.</td></tr>
 <tr><td>Arrastrar un examen de la lista</td><td>Cambiar el orden de los exámenes.</td></tr>
-<tr><td>Clic derecho en una pregunta del examen</td><td>Cambiarla por otra del mismo tema.</td></tr>
+<tr><td>Clic derecho en una pregunta del examen</td><td>Editarla, o cambiarla por otra del mismo tema.</td></tr>
 <tr><td>Doble clic en una pregunta del banco</td><td>Abrirla en el editor.</td></tr>
 <tr><td>Clic en el título de una columna</td><td>Ordenar la tabla del banco por esa columna.</td></tr>
 <tr><td>Doble clic en un examen del historial</td><td>Cargarlo.</td></tr>

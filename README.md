@@ -144,6 +144,11 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   en el mismo sitio y, si se barajan las opciones, con la correcta en la misma letra, así que el resto de los exámenes
   no cambia; se elige con las reglas de la generación, y las ya quitadas de ese examen no vuelven mientras queden
   otras. «Deshacer el cambio» los deshace del último al primero. Después, la semilla ya no reproduce los exámenes.
+- Una pregunta del examen se corrige sin salir de él: botón derecho sobre ella («Editar la pregunta N (código)…») o
+  su número en «Pregunta» y «Editar…». Se abre el editor con la pregunta del banco; lo guardado queda en el banco y se
+  ve en todos los exámenes en que está, en el mismo sitio y con las opciones en el mismo orden (si cambia la correcta
+  y estaban barajadas, la nueva va a la letra de la anterior). Lo que se edita en la pestaña del banco no llega a los
+  exámenes ya generados, como no llega a los registrados en el historial.
 - Una pregunta con imagen lleva las opciones una debajo de otra y la imagen a su derecha si, al lado de la imagen,
   cada opción cabe en una línea y así no ocupa más; si no, la imagen va bajo el enunciado y las opciones debajo. Igual
   en la vista, el PDF, el HTML y el LaTeX; con letra grande, la imagen siempre debajo.

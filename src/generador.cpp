@@ -383,6 +383,39 @@ bool Generador::cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExam
     return true;
 }
 
+int Generador::ponerCorregida(ResultadoGeneracion &resultado, const ConfigExamen &config, const Pregunta &antes,
+                              const Pregunta &corregida)
+{
+    QRandomGenerator rng(QRandomGenerator::global()->generate());
+    const bool dependientes = Estilo::tieneOpcionesDependientes(corregida);
+    int sitios = 0;
+    for (Modelo &m : resultado.modelos) {
+        bool enEste = false;
+        for (PreguntaExamen &pe : m.preguntas) {
+            if (pe.pregunta.id != antes.id || pe.pregunta.codigoCompleto() != antes.codigoCompleto())
+                continue;
+            const int letra = pe.correcta();
+            const bool barajadas = config.barajarOpciones || pe.orden != std::array<int, 4>{{0, 1, 2, 3}};
+            const bool otraCorrecta = corregida.correcta != pe.pregunta.correcta;
+            pe.pregunta = corregida;
+            if (dependientes)
+                pe.orden = {{0, 1, 2, 3}};
+            else if (otraCorrecta && barajadas)
+                ponerCorrectaEn(pe, letra, rng);
+            enEste = true;
+            ++sitios;
+        }
+        if (!enEste)
+            continue;
+        const QString delReparto = inicioAvisoExamen(m.nombre);
+        resultado.avisos.removeIf([&](const QString &a) { return a.startsWith(delReparto); });
+        const QString reparto = avisoReparto(m, config.barajarOpciones);
+        if (!reparto.isEmpty())
+            resultado.avisos << reparto;
+    }
+    return sitios;
+}
+
 QMap<int, int> Generador::gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar)
 {
     QMap<int, QSet<int>> grupos;

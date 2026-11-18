@@ -2166,7 +2166,7 @@ Do not hand in the question paper.</translation>
         <translation>“%1”, question %2: </translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+79"/>
         <source>Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas disponibles.</source>
         <translation>Topic %1: %2 questions were requested but only %3 different ones are available.</translation>
     </message>
@@ -2679,20 +2679,13 @@ Applies to the preview, printing and exports; the files have “_letra_grande”
         <translation>Export LaTeX…</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Número de la pregunta que se quiere cambiar, en el examen que se ve.
-También se puede pulsar con el botón derecho sobre la pregunta.</source>
-        <translation>Number of the question to replace, in the exam being shown.
-You can also right-click the question.</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+7"/>
         <source>Pregunta:</source>
-        <extracomment>Delante del número de la pregunta del examen que se quiere cambiar</extracomment>
+        <extracomment>Delante del número de la pregunta del examen que se quiere editar o cambiar</extracomment>
         <translation>Question:</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+7"/>
         <source>Cambiar por otra</source>
         <extracomment>Botón: cambia esa pregunta del examen por otra del mismo tema</extracomment>
         <translation>Replace with another</translation>
@@ -2776,13 +2769,28 @@ You can also right-click the question.</translation>
         <translation>New…</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-89"/>
+        <location line="+91"/>
         <source>Editar…</source>
-        <extracomment>Botón: editar la pregunta seleccionada</extracomment>
+        <extracomment>Botón: abre en el editor esa pregunta del examen
+----------
+Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-97"/>
+        <source>Número de la pregunta que se quiere editar o cambiar, en el examen que se ve.
+También se puede pulsar con el botón derecho sobre la pregunta.</source>
+        <translation>Number of the question to edit or replace, in the exam being shown.
+You can also right-click the question.</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Abre la pregunta en el editor. Lo que se guarde queda en el banco y se ve ya en el examen, con las opciones en el mismo orden.</source>
+        <translation>Opens the question in the editor. Whatever you save stays in the bank and shows up in the exam straight away, with the options in the same order.</translation>
+    </message>
+    <message>
+        <location line="+91"/>
         <source>Duplicar como variante…</source>
         <translation>Duplicate as variant…</translation>
     </message>
@@ -3592,12 +3600,40 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>“%1”, question %2: %3 instead of %4</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+32"/>
+        <source>La pregunta %1 ya no está en el banco: no se puede editar.</source>
+        <translation>Question %1 is no longer in the bank: it cannot be edited.</translation>
+    </message>
+    <message>
+        <location line="+24"/>
+        <source>Pregunta %1 guardada en el banco y corregida en los %2 exámenes en que está.</source>
+        <extracomment>%1 es el código de la pregunta (T2-15b)</extracomment>
+        <translation>Question %1 saved in the bank and corrected in the %2 exams that contain it.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Pregunta %1 guardada en el banco y corregida en el examen.</source>
+        <translation>Question %1 saved in the bank and corrected in the exam.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source> Ya no está activa: si no debe salir, cámbiela por otra.</source>
+        <extracomment>Se añade al mensaje de pregunta guardada (con el espacio delante) si se ha marcado como anulada u obsoleta</extracomment>
+        <translation> It is no longer active: if it should not be used, replace it with another.</translation>
+    </message>
+    <message>
+        <location line="+19"/>
         <source>Deshecho el cambio de la pregunta %1 de «%2»</source>
         <translation>Change to question %1 of “%2” undone</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+32"/>
+        <source>Editar la pregunta %1 (%2)…</source>
+        <extracomment>%1 es el número de la pregunta en el examen y %2 su código (T2-15b)</extracomment>
+        <translation>Edit question %1 (%2)…</translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>Cambiar la pregunta %1 por otra del tema %2</source>
         <translation>Replace question %1 with another from topic %2</translation>
     </message>
@@ -3607,7 +3643,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>Undo the last question change</translation>
     </message>
     <message>
-        <location line="+37"/>
+        <location line="+39"/>
         <source>1 pregunta</source>
         <translation>1 question</translation>
     </message>
@@ -3622,12 +3658,12 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>&lt;p&gt;&lt;b&gt;Appeared in:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+11"/>
         <source>Primero cree algún tema (Editar → Temas).</source>
         <translation>First create a topic (Edit → Topics).</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+15"/>
         <source>No se pudo guardar la pregunta:
 %1</source>
         <translation>Could not save the question:

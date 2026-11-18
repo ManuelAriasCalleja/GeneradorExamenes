@@ -106,8 +106,9 @@ session.</li>
 <b>T1–T4</b>) to apply a usual distribution.</li>
 <li>Click <b>Generate exams</b>. Check each exam on the right (switch from one to another in <b>Exam</b>) and read
 the warnings in the yellow box, if there are any.</li>
-<li>If you are not happy with a question, replace it with another by right-clicking it (see
-<a href="#cambiar-pregunta">Replacing a question</a>). If you are not happy with the whole set, click
+<li>If you are not happy with a question, replace it with another or correct it by right-clicking it (see
+<a href="#cambiar-pregunta">Replacing a question</a> and <a href="#editar-pregunta">Editing a question of the
+exam</a>). If you are not happy with the whole set, click
 <b>Generate exams</b> again: different ones come out each time.</li>
 <li>Click <b>Export PDF…</b> to save the exams and <b>Solutions PDF…</b> to save the solutions.</li>
 <li>When they are final, click <b>Record exam session…</b>: they are saved in the history and their questions will
@@ -269,8 +270,9 @@ the “With solutions” box of the dialog.</li>
 if the exams have been loaded from the history. Its text can be selected and copied.</li>
 <li>The yellow box gathers the warnings: topics without enough questions, repeated questions, a letter that is
 correct too many times, an exam that does not fit on its page… It is worth reading them before exporting.</li>
-<li><b>Question</b> and <b>Replace with another</b>, below the preview: replace a question of the exam being shown
-(see <a href="#cambiar-pregunta">Replacing a question</a>).</li>
+<li><b>Question</b>, <b>Edit…</b> and <b>Replace with another</b>, below the preview: correct or replace a question
+of the exam being shown (see <a href="#editar-pregunta">Editing a question of the exam</a> and
+<a href="#cambiar-pregunta">Replacing a question</a>).</li>
 <li>To see the exam larger or smaller: <b>Ctrl</b> + mouse wheel over it, or <b>Ctrl++</b> and <b>Ctrl+-</b> from
 anywhere in the tab (from 50% to 300%); <b>Ctrl+0</b> sets it back to its normal size. They are also in the
 right-click menu (“Zoom in”, “Zoom out” and “Normal size”). Only what is shown on screen changes, not what is printed
@@ -305,6 +307,27 @@ that were there.</p>
 After replacing questions by hand, the seed no longer reproduces the exams (the grey line says so). To keep them,
 record them.
 </td></tr></table>
+
+<h3><a name="editar-pregunta"></a>Editing a question of the exam</h3>
+<p>If a question only needs a small fix (a typo, a badly written option, the reference…), you can correct it without
+leaving the exam: right-click it and choose “Edit question N (code)…”, or enter its number in <b>Question</b>, below
+the preview, and click <b>Edit…</b>. The <a href="#editor">question editor</a> opens with the question as it is in
+the bank and, when you click <b>Save</b>, the change stays in the bank (and in its <a href="#json-enlazado">JSON</a>,
+if it is kept up to date) and shows up in the exam straight away.</p>
+<ul>
+<li>It is corrected in every exam of the exam session that contains it, in the same place and with the options in
+the same order. If you change the correct answer and the options were shuffled, the new correct answer moves to the
+letter of the previous one, so the answer key does not change. If an option now refers to the others (“All of the
+above”), the options go in their own order, unshuffled.</li>
+<li>If you mark it as voided or obsolete, it stays in the exam (the status bar reminds you): replace it with another
+if it should not be used.</li>
+<li>What has been saved is not undone with <b>Undo the change</b>, which is for question replacements: to go back,
+edit it again.</li>
+<li>Questions edited in the <a href="#banco">Question bank</a> tab do not change in the exams already generated, just
+as they do not change in those recorded in the history: only the ones edited from the exam do.</li>
+</ul>
+<p>If the exams had been recorded (or were loaded from the <a href="#historial">history</a>), after correcting a
+question they are no longer the same as the recorded ones: if they are the final ones, record them again.</p>
 
 <h3><a name="maqueta"></a>One page per 10 questions</h3>
 <p>With the <b>Fit on one page per 10 questions</b> option ticked (it is, unless you untick it), each exam must fit
@@ -547,7 +570,8 @@ is kept, with its history, and can be recovered.
 <!-- ======================================================================================================= -->
 <h2><a name="editor"></a>The question editor</h2>
 
-<p>The editor opens when a question is created, edited or duplicated. The details are on the left; on the right
+<p>The editor opens when a question is created, edited or duplicated, in the bank or from the exam (see
+<a href="#editar-pregunta">Editing a question of the exam</a>). The details are on the left; on the right
 there is a preview of the question, which is updated as you type, with the style warnings and the similar questions
 below it.</p>
 <ul>
@@ -906,7 +930,7 @@ the search text.</td></tr>
 <tr><td><b>Ctrl+0</b></td><td>Set the exam preview back to its normal size.</td></tr>
 <tr><td>Double-click an exam in the list</td><td>Change its name.</td></tr>
 <tr><td>Drag an exam in the list</td><td>Change the order of the exams.</td></tr>
-<tr><td>Right-click a question in the exam</td><td>Replace it with another from the same topic.</td></tr>
+<tr><td>Right-click a question in the exam</td><td>Edit it, or replace it with another from the same topic.</td></tr>
 <tr><td>Double-click a question in the bank</td><td>Open it in the editor.</td></tr>
 <tr><td>Click a column heading</td><td>Sort the bank table by that column.</td></tr>
 <tr><td>Double-click an exam in the history</td><td>Load it.</td></tr>
