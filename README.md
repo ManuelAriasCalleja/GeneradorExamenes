@@ -99,6 +99,17 @@ en el idioma del banco, las pautas de estilo de cada idioma y que la traducción
 trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`. Para no compilarlas:
 `cmake -S . -B build -DPRUEBAS=OFF`.
 
+Para buscar errores de memoria y comportamiento indefinido, se compilan en otra carpeta con los detectores de GCC y
+Clang (AddressSanitizer y UndefinedBehaviorSanitizer) y se pasan igual:
+
+```sh
+cmake -S . -B build-sanitizadores -DSANITIZADORES=ON -DCMAKE_BUILD_TYPE=Debug
+cmake --build build-sanitizadores -j
+ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-sanitizadores --output-on-failure
+```
+
+Ver `docs/revision_errores.md` (lo que se ha buscado y encontrado).
+
 ## Uso
 
 *Ayuda → Manual de uso* (o **F1**) abre el manual del programa por el apartado de la ventana en la que se está; los

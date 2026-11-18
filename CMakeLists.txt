@@ -11,6 +11,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Tipo de compilación" FORCE)
 endif()
 
+# Detectores de errores de GCC y Clang (AddressSanitizer y UndefinedBehaviorSanitizer): al pasar las pruebas, avisan
+# de accesos a memoria liberada o fuera de rango, fugas y comportamiento indefinido. Para buscar errores en local, en
+# otra carpeta: cmake -S . -B build-sanitizadores -DSANITIZADORES=ON -DCMAKE_BUILD_TYPE=Debug
+option(SANITIZADORES "Compilar con AddressSanitizer y UndefinedBehaviorSanitizer" OFF)
+if(SANITIZADORES)
+    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=undefined)
+    add_link_options(-fsanitize=address,undefined)
+endif()
+
 find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Sql PrintSupport)
 find_package(Qt6 6.2 COMPONENTS Test)   # solo para las pruebas automáticas
 find_package(Qt6 6.2 COMPONENTS Pdf)    # opcional: leer los PDF de los exámenes anteriores

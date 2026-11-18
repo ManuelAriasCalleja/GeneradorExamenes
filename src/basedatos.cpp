@@ -1032,10 +1032,10 @@ QStringList BaseDatos::diferenciasConJson(const QString &ruta)
             temasSoloBd << codigo;
             continue;
         }
-        Tema delJson = temasDelJson.take(t.numero);
+        Tema temaJson = temasDelJson.take(t.numero);
         if (json.temasSinFormato.contains(t.numero))
-            delJson.formatoReferencia = t.formatoReferencia;
-        if (huella(delJson) != huella(t))
+            temaJson.formatoReferencia = t.formatoReferencia;
+        if (huella(temaJson) != huella(t))
             temasDistintos << codigo;
     }
     QList<int> numerosSoloJson = temasDelJson.keys();

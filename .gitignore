@@ -1,5 +1,6 @@
-# Compilación y cachés del editor
+# Compilación (también las de otras carpetas, como build-sanitizadores) y cachés del editor
 build/
+build-*/
 .cache/
 
 # Preguntas: el repositorio se publica y no puede contener ninguna pregunta de ningún banco. Los bancos están
@@ -18,6 +19,7 @@ preguntas*.json
 !/recursos/ayuda_en.html
 *.tex
 *_imagenes/
+*-imagenes/
 
 # Presentación del programa para el equipo docente: se queda fuera de git
 /presentacion/

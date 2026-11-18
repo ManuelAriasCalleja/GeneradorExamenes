@@ -106,8 +106,9 @@ void revisarEnunciado(const Pregunta &p, bool castellano, QVector<Aviso> &avisos
     static const QRegularExpression noEnPregunta(QStringLiteral("¿[^?]*\\b(?i:cuál|cuáles|qué)\\b[^?]*\\bno\\b"), kUnicode);
     static const QRegularExpression noAlPrincipio(QStringLiteral("^No es\\b"), kUnicode);
     static const QRegularExpression noMayusculas(QStringLiteral("\\bNO\\b"), kUnicode);
-    if (castellano && (falso.match(texto).hasMatch() || noAlPrincipio.match(texto).hasMatch())
-        || (castellano && noEnPregunta.match(texto).hasMatch() && !noMayusculas.match(texto).hasMatch()))
+    if (castellano
+        && (falso.match(texto).hasMatch() || noAlPrincipio.match(texto).hasMatch()
+            || (noEnPregunta.match(texto).hasMatch() && !noMayusculas.match(texto).hasMatch())))
         //: «NO» y «FALSO» son las palabras de los enunciados en castellano que la regla quiere en mayúsculas.
         avisar(QCoreApplication::translate("Estilo", "La negación va en mayúsculas: «NO», «FALSO»."));
 
