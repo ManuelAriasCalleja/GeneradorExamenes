@@ -108,6 +108,26 @@ private slots:
         QCOMPARE(despues.at(5).estado, QStringLiteral("anulada"));
     }
 
+    // Los U+FEFF (la marca de orden de bytes, invisible) del principio de un texto no se guardan: SQLite los quitaría de
+    // uno en uno cada vez, y el texto cambiaría al pasar por el JSON (lo encontró una sonda, ver docs/revision_errores.md).
+    void marcaDeOrdenAlPrincipio()
+    {
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd, 1, 2), qPrintable(bd.ultimoError()));
+        const QString marca(QChar(0xFEFF));
+        Pregunta p = bd.preguntas().first();
+        p.opciones[1] = marca + marca + QStringLiteral("Opción inventada con dos marcas delante.");
+        p.enunciado = marca + QStringLiteral("Enunciado inventado") + marca + QStringLiteral(":");   // la de dentro se queda
+        QVERIFY(bd.guardarPregunta(p));
+        QCOMPARE(bd.preguntas().first().opciones.at(1), QStringLiteral("Opción inventada con dos marcas delante."));
+        QCOMPARE(bd.preguntas().first().enunciado, QStringLiteral("Enunciado inventado") + marca + QStringLiteral(":"));
+        const QString json = m_dir.filePath(QStringLiteral("marca.json"));
+        QVERIFY(bd.exportarJson(json));
+        QVERIFY(bd.importarJson(json, false) > 0);
+        QVERIFY(bd.diferenciasConJson(json).isEmpty());
+        QCOMPARE(bd.preguntas().first().opciones.at(1), QStringLiteral("Opción inventada con dos marcas delante."));
+    }
+
     void codigoRepetido()
     {
         BaseDatos bd;

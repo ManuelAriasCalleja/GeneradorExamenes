@@ -9,7 +9,7 @@ cualquier ordenador.
 | Paso | Estado |
 |---|---|
 | 1. Herramientas automáticas | Hecho: ningún fallo en el código; un descuido en `.gitignore` (arreglado) |
-| 2. Sondas dirigidas | En curso: hechas las primeras sondas (`tests/prueba_sondas.cpp`); tres fallos arreglados. Falta: compilar con pdflatex los LaTeX raros, pasar las sondas a fondo y con los detectores |
+| 2. Sondas dirigidas | Casi hecho: sondas en `tests/prueba_sondas.cpp`, pasadas a fondo (×20) y con los detectores; seis fallos arreglados. Falta: volver a pasar la de pdflatex a fondo (`SONDAS=5 SONDAS_PDFLATEX=1`) tras el último arreglo, y cerrar el paso |
 | 3. Revisión del código por partes | Sugerencia, para cuando acaben 1 y 2 |
 
 ## 1. Herramientas automáticas
@@ -76,6 +76,11 @@ Se pasan con las demás pruebas (unos 2 segundos). Para buscar más a fondo, con
   misma semilla los mismos, las opciones barajadas son una permutación con la correcta en su sitio y repartida; y lo
   mismo tras cambiar preguntas.
 - `bloquesDeLosEnunciados`: el reparto en bloques de enunciados raros.
+- `latexCompilaConTextosRaros` (solo con `SONDAS_PDFLATEX=1` y pdflatex instalado, porque tarda): el LaTeX de
+  preguntas con textos raros compila con pdflatex.
+
+Pasadas hechas el 18 de noviembre: todas con `SONDAS=20` y con los detectores (ASan + UBSan + fugas), sin nada; la de
+pdflatex con `SONDAS=5` (60 documentos) compila tras los arreglos 6 y 7.
 
 ## 3. Revisión del código por partes (sugerencia)
 
@@ -109,6 +114,21 @@ Cada uno con lo que pasaba, cómo se encontró y si está arreglado (con su prue
    Arreglado: va a la letra de la quitada si es de las que menos salen en el resto del examen (lo es siempre que
    estaba bien repartido, así que lo normal no cambia) y, si no, a una de ellas. Prueba:
    `cambiarUnaFijaReparteLaCorrecta` (generador). Manual y README al día.
+5. **Un texto que empezaba por varias U+FEFF cambiaba al pasar por el JSON** (arreglado). SQLite quita una de esas
+   marcas invisibles del principio cada vez que guarda, así que la ida y vuelta base de datos → JSON → base de datos no
+   lo dejaba igual. Encontrado por `idaYVueltaDelJson` con `SONDAS=20`. Arreglado: se quitan todas antes de guardar
+   (`texto()` en `src/basedatos.cpp`). Prueba: `marcaDeOrdenAlPrincipio` (base de datos).
+6. **El LaTeX no compilaba con muchos caracteres** (arreglado). Con un solo carácter que pdflatex no conoce, el
+   documento entero falla: letras griegas no declaradas (Ε, λ, σ…), el ✔ (U+2714), símbolos de lógica y conjuntos
+   (∧ ∨ ⊕ ≡ ∀ ∈…), emojis, y los caracteres de control que llegan al copiar de Word (U+000B…). Encontrado por
+   `latexCompilaConTextosRaros`. Arreglado: el programa quita los caracteres de control; el preámbulo declara el
+   alfabeto griego, los símbolos de lógica, conjuntos y flechas, ✔/✗ y los caracteres invisibles de formato; y
+   cualquier otro carácter desconocido sale como «?» en un recuadro en vez de parar la compilación.
+7. **El LaTeX no compilaba si una línea del enunciado empezaba por «[»** (arreglado). LaTeX tomaba el `\\` de la línea
+   anterior por `\\[espacio]` (pasa con una lista de Python, `[1, 2, 3]`); y una línea con solo caracteres invisibles
+   dejaba un `\\` sin línea que terminar. Encontrado por `latexCompilaConTextosRaros` con `SONDAS=5`. Arreglado: las
+   líneas se separan con `\\\relax` y se saltan las que no tienen nada visible. Prueba: `latexSinLineasVacias`
+   (enunciado) al día.
 
 ### Vistos y no arreglados
 

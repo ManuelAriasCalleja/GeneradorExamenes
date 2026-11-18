@@ -1003,6 +1003,37 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \DeclareUnicodeCharacter{03A9}{\ensuremath{\Omega}}
 \DeclareUnicodeCharacter{2022}{\textbullet}
 \DeclareUnicodeCharacter{2713}{\checkmark}
+% Las letras griegas, los símbolos de lógica, de conjuntos y de flechas, y los caracteres invisibles de formato (que no
+% se escriben).
+\DeclareUnicodeCharacter{03B1}{\ensuremath{\alpha}}\DeclareUnicodeCharacter{03B2}{\ensuremath{\beta}}\DeclareUnicodeCharacter{03B3}{\ensuremath{\gamma}}\DeclareUnicodeCharacter{03B4}{\ensuremath{\delta}}
+\DeclareUnicodeCharacter{03B5}{\ensuremath{\varepsilon}}\DeclareUnicodeCharacter{03B6}{\ensuremath{\zeta}}\DeclareUnicodeCharacter{03B7}{\ensuremath{\eta}}\DeclareUnicodeCharacter{03B8}{\ensuremath{\theta}}
+\DeclareUnicodeCharacter{03B9}{\ensuremath{\iota}}\DeclareUnicodeCharacter{03BA}{\ensuremath{\kappa}}\DeclareUnicodeCharacter{03BB}{\ensuremath{\lambda}}\DeclareUnicodeCharacter{03BC}{\ensuremath{\mu}}
+\DeclareUnicodeCharacter{03BD}{\ensuremath{\nu}}\DeclareUnicodeCharacter{03BE}{\ensuremath{\xi}}\DeclareUnicodeCharacter{03BF}{\ensuremath{o}}\DeclareUnicodeCharacter{03C0}{\ensuremath{\pi}}
+\DeclareUnicodeCharacter{03C1}{\ensuremath{\rho}}\DeclareUnicodeCharacter{03C2}{\ensuremath{\varsigma}}\DeclareUnicodeCharacter{03C3}{\ensuremath{\sigma}}\DeclareUnicodeCharacter{03C4}{\ensuremath{\tau}}
+\DeclareUnicodeCharacter{03C5}{\ensuremath{\upsilon}}\DeclareUnicodeCharacter{03C6}{\ensuremath{\varphi}}\DeclareUnicodeCharacter{03C7}{\ensuremath{\chi}}\DeclareUnicodeCharacter{03C8}{\ensuremath{\psi}}
+\DeclareUnicodeCharacter{03C9}{\ensuremath{\omega}}\DeclareUnicodeCharacter{0391}{\ensuremath{\mathrm{A}}}\DeclareUnicodeCharacter{0392}{\ensuremath{\mathrm{B}}}\DeclareUnicodeCharacter{0393}{\ensuremath{\Gamma}}
+\DeclareUnicodeCharacter{0394}{\ensuremath{\Delta}}\DeclareUnicodeCharacter{0395}{\ensuremath{\mathrm{E}}}\DeclareUnicodeCharacter{0396}{\ensuremath{\mathrm{Z}}}\DeclareUnicodeCharacter{0397}{\ensuremath{\mathrm{H}}}
+\DeclareUnicodeCharacter{0398}{\ensuremath{\Theta}}\DeclareUnicodeCharacter{0399}{\ensuremath{\mathrm{I}}}\DeclareUnicodeCharacter{039A}{\ensuremath{\mathrm{K}}}\DeclareUnicodeCharacter{039B}{\ensuremath{\Lambda}}
+\DeclareUnicodeCharacter{039C}{\ensuremath{\mathrm{M}}}\DeclareUnicodeCharacter{039D}{\ensuremath{\mathrm{N}}}\DeclareUnicodeCharacter{039E}{\ensuremath{\Xi}}\DeclareUnicodeCharacter{039F}{\ensuremath{\mathrm{O}}}
+\DeclareUnicodeCharacter{03A0}{\ensuremath{\Pi}}\DeclareUnicodeCharacter{03A1}{\ensuremath{\mathrm{P}}}\DeclareUnicodeCharacter{03A3}{\ensuremath{\Sigma}}\DeclareUnicodeCharacter{03A4}{\ensuremath{\mathrm{T}}}
+\DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}\DeclareUnicodeCharacter{03A6}{\ensuremath{\Phi}}\DeclareUnicodeCharacter{03A7}{\ensuremath{\mathrm{X}}}\DeclareUnicodeCharacter{03A8}{\ensuremath{\Psi}}
+\DeclareUnicodeCharacter{03A9}{\ensuremath{\Omega}}
+\DeclareUnicodeCharacter{2227}{\ensuremath{\land}}\DeclareUnicodeCharacter{2228}{\ensuremath{\lor}}\DeclareUnicodeCharacter{2295}{\ensuremath{\oplus}}\DeclareUnicodeCharacter{2297}{\ensuremath{\otimes}}
+\DeclareUnicodeCharacter{2261}{\ensuremath{\equiv}}\DeclareUnicodeCharacter{2200}{\ensuremath{\forall}}\DeclareUnicodeCharacter{2203}{\ensuremath{\exists}}\DeclareUnicodeCharacter{2208}{\ensuremath{\in}}
+\DeclareUnicodeCharacter{2209}{\ensuremath{\notin}}\DeclareUnicodeCharacter{2282}{\ensuremath{\subset}}\DeclareUnicodeCharacter{2286}{\ensuremath{\subseteq}}\DeclareUnicodeCharacter{2283}{\ensuremath{\supset}}
+\DeclareUnicodeCharacter{2287}{\ensuremath{\supseteq}}\DeclareUnicodeCharacter{2229}{\ensuremath{\cap}}\DeclareUnicodeCharacter{222A}{\ensuremath{\cup}}\DeclareUnicodeCharacter{2205}{\ensuremath{\emptyset}}
+\DeclareUnicodeCharacter{2211}{\ensuremath{\sum}}\DeclareUnicodeCharacter{220F}{\ensuremath{\prod}}\DeclareUnicodeCharacter{222B}{\ensuremath{\int}}\DeclareUnicodeCharacter{2202}{\ensuremath{\partial}}
+\DeclareUnicodeCharacter{226A}{\ensuremath{\ll}}\DeclareUnicodeCharacter{226B}{\ensuremath{\gg}}\DeclareUnicodeCharacter{223C}{\ensuremath{\sim}}\DeclareUnicodeCharacter{2245}{\ensuremath{\cong}}
+\DeclareUnicodeCharacter{22A5}{\ensuremath{\perp}}\DeclareUnicodeCharacter{221D}{\ensuremath{\propto}}\DeclareUnicodeCharacter{230A}{\ensuremath{\lfloor}}\DeclareUnicodeCharacter{230B}{\ensuremath{\rfloor}}
+\DeclareUnicodeCharacter{2308}{\ensuremath{\lceil}}\DeclareUnicodeCharacter{2309}{\ensuremath{\rceil}}\DeclareUnicodeCharacter{2194}{\ensuremath{\leftrightarrow}}\DeclareUnicodeCharacter{21D2}{\ensuremath{\Rightarrow}}
+\DeclareUnicodeCharacter{21D0}{\ensuremath{\Leftarrow}}\DeclareUnicodeCharacter{21D4}{\ensuremath{\Leftrightarrow}}\DeclareUnicodeCharacter{2191}{\ensuremath{\uparrow}}\DeclareUnicodeCharacter{2193}{\ensuremath{\downarrow}}
+\DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}\DeclareUnicodeCharacter{2218}{\ensuremath{\circ}}\DeclareUnicodeCharacter{221A}{\ensuremath{\surd}}\DeclareUnicodeCharacter{2714}{\checkmark}
+\DeclareUnicodeCharacter{2717}{\ensuremath{\times}}\DeclareUnicodeCharacter{2718}{\ensuremath{\times}}\DeclareUnicodeCharacter{2605}{\ensuremath{\bigstar}}\DeclareUnicodeCharacter{2610}{\ensuremath{\square}}
+\DeclareUnicodeCharacter{200B}{}\DeclareUnicodeCharacter{200C}{}\DeclareUnicodeCharacter{200D}{}\DeclareUnicodeCharacter{200E}{}\DeclareUnicodeCharacter{200F}{}\DeclareUnicodeCharacter{202A}{}\DeclareUnicodeCharacter{202B}{}
+\DeclareUnicodeCharacter{202C}{}\DeclareUnicodeCharacter{202D}{}\DeclareUnicodeCharacter{202E}{}\DeclareUnicodeCharacter{2060}{}\DeclareUnicodeCharacter{FEFF}{}\DeclareUnicodeCharacter{00AD}{}
+% Cualquier otro carácter que no conozca (un emoji, un alfabeto que no es el latino…) sale como «?» en un recuadro, en
+% lugar de parar la compilación.
+\makeatletter\def\UTFviii@undefined@err#1{\fbox{?}}\makeatother
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \setlength{\parindent}{0pt}
 \pagestyle{fancy}
@@ -1057,6 +1088,25 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
   \lstset{framexleftmargin=\anchonumeros, xleftmargin=\dimexpr8mm+4.4pt+\anchonumeros\relax,
     linewidth=\dimexpr8mm+8.8pt+\anchonumeros+\anchocodigo\relax, #1}}{}
 )tex";
+
+// Sin los caracteres de control (invisibles, salvo el tabulador y los saltos de línea), que pdflatex no admite: con uno
+// solo, el documento no compila. Llegan, por ejemplo, al copiar de Word (U+000B, su salto de línea manual).
+bool esDeControl(QChar c)
+{
+    const char16_t u = c.unicode();
+    return (u < 0x20 && u != '\t' && u != '\n' && u != '\r') || (u >= 0x7F && u <= 0x9F);
+}
+
+// Si el texto tiene algo que se ve: no solo espacios, caracteres de control, de formato (invisibles, como U+200B) o
+// marcas que se combinan con la letra anterior.
+bool tieneAlgoVisible(const QString &texto)
+{
+    for (const QChar c : texto)
+        if (!c.isSpace() && !esDeControl(c) && c.category() != QChar::Other_Format && c.category() != QChar::Mark_NonSpacing
+            && c.category() != QChar::Mark_Enclosing)
+            return true;
+    return false;
+}
 
 QString imagenLatex(const Pregunta &p, const QString &carpeta, int n)
 {
@@ -1122,6 +1172,7 @@ QString codigoLatex(const Enunciado::Bloque &b)
     int maximo = 1;
     for (QString linea : b.lineas) {
         linea.replace(QLatin1Char('\t'), QStringLiteral("    "));
+        linea.removeIf(esDeControl);
         // Los caracteres que van como texto LaTeX («→») pueden ser más anchos que los demás: cuentan por dos.
         int ancho = 0;
         QString escrita;
@@ -1186,13 +1237,16 @@ QString enunciadoLatex(const QString &texto, const QString &prefijo)
     for (const Enunciado::Bloque &b : Enunciado::bloques(texto)) {
         switch (b.tipo) {
         case Enunciado::Bloque::Parrafo: {
+            // Sin las líneas que no tienen nada que se vea: un \\ sin nada delante («There's no line here to end») es un
+            // error de LaTeX. Y tras cada \\, \relax: si la línea siguiente empezara por «[» (una lista de Python) o «*»,
+            // LaTeX los tomaría por un argumento del \\ («\\[1cm]», «\\*»).
             QStringList lineas;
             for (const QString &linea : b.lineas)
-                if (!linea.trimmed().isEmpty())   // una línea vacía con \\ daría error en LaTeX
+                if (tieneAlgoVisible(linea))
                     lineas << Maquetador::escaparLatex(linea);
             if (lineas.isEmpty())
                 break;
-            QString contenido = lineas.join(QStringLiteral("\\\\\n"));
+            QString contenido = lineas.join(QStringLiteral("\\\\\\relax\n"));
             if (!prefijoPuesto) {
                 contenido = prefijo + contenido;
                 prefijoPuesto = true;
@@ -1253,6 +1307,8 @@ QString Maquetador::escaparLatex(const QString &texto)
     QString r;
     r.reserve(texto.size() + texto.size() / 8);
     for (const QChar c : texto) {
+        if (esDeControl(c))
+            continue;
         switch (c.unicode()) {
         case '\\': r += QStringLiteral("\\textbackslash{}"); break;
         case '{': case '}': case '$': case '&': case '#': case '_': case '%':

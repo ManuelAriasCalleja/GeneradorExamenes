@@ -25,10 +25,15 @@ QString nombreConexion(const BaseDatos *bd)
     return QStringLiteral("preguntas_%1").arg(quintptr(bd), 0, 16);
 }
 
-// Un QString nulo se guardaría como NULL; las columnas de texto son NOT NULL.
+// Un texto como se guarda: sin los U+FEFF del principio (la marca de orden de bytes del UTF-16, invisible), que SQLite
+// quita de uno en uno cada vez que guarda (el controlador de Qt le pasa los textos en UTF-16), con lo que un texto no se
+// quedaría igual al pasar por el JSON y volver; y nunca nulo, que se guardaría como NULL (las columnas son NOT NULL).
 QString texto(const QString &s)
 {
-    return s.isNull() ? QStringLiteral("") : s;
+    qsizetype inicio = 0;
+    while (inicio < s.size() && s.at(inicio) == QChar(0xFEFF))
+        ++inicio;
+    return s.isNull() ? QStringLiteral("") : s.mid(inicio);
 }
 
 // Pregunta <-> JSON con el formato de herramientas/importar_docx.py (sin el tema, que va aparte).
@@ -626,9 +631,9 @@ bool BaseDatos::ponerVerificadores(int preguntaId, const QStringList &nombres)
     if (!ejecutar(QStringLiteral("DELETE FROM verificaciones WHERE pregunta_id = ?"), {preguntaId}))
         return false;
     for (const QString &nombre : nombres) {
-        if (nombre.trimmed().isEmpty())
+        if (texto(nombre).trimmed().isEmpty())
             continue;
-        const int id = idVerificador(nombre.trimmed());
+        const int id = idVerificador(texto(nombre).trimmed());
         if (id == 0 || !ejecutar(QStringLiteral("INSERT OR IGNORE INTO verificaciones (pregunta_id, verificador_id) VALUES (?, ?)"),
                                  {preguntaId, id}))
             return false;

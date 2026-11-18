@@ -224,7 +224,7 @@ private slots:
         pe.pregunta.enunciado = QStringLiteral("A:\n\nB:");
         m.preguntas << pe;
         const QString tex = Maquetador::examenesLatex({m}, DatosConvocatoria(), false, QStringLiteral("img"), 0);
-        QVERIFY(tex.contains(QStringLiteral("\\enunciado{1.- A:\\\\\nB:}")));
+        QVERIFY(tex.contains(QStringLiteral("\\enunciado{1.- A:\\\\\\relax\nB:}")));
     }
 };
 

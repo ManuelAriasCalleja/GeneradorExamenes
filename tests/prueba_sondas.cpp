@@ -17,7 +17,10 @@
 #include "moodle.h"
 #include "parecidas.h"
 
+#include <QDir>
 #include <QJsonArray>
+#include <QProcess>
+#include <QStandardPaths>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRandomGenerator>
@@ -168,10 +171,12 @@ QVector<Pregunta> bancoRaro(QRandomGenerator &rng, int temas, int numeros)
     return banco;
 }
 
-// Lo que guarda SQLite de un texto: si empieza por U+FEFF, la marca de orden de bytes del UTF-16, la quita (no se ve).
-QString comoLoGuarda(const QString &texto)
+// Cómo se guarda un texto: sin los U+FEFF del principio (la marca de orden de bytes del UTF-16, que no se ve).
+QString comoLoGuarda(QString texto)
 {
-    return texto.startsWith(QChar(0xFEFF)) ? texto.mid(1) : texto;
+    while (texto.startsWith(QChar(0xFEFF)))
+        texto.remove(0, 1);
+    return texto;
 }
 
 Pregunta comoLaGuarda(Pregunta p)
@@ -323,6 +328,44 @@ private slots:
                 QVERIFY(!Maquetador::fichaPreguntaHtml(p, QStringLiteral("Tema <1>")).isEmpty());
             }
         }
+    }
+
+    // El LaTeX con textos raros compila con pdflatex. Tarda y necesita pdflatex: solo con SONDAS_PDFLATEX=1.
+    void latexCompilaConTextosRaros()
+    {
+        const QString pdflatex = QStandardPaths::findExecutable(QStringLiteral("pdflatex"));
+        if (pdflatex.isEmpty() || !qEnvironmentVariableIsSet("SONDAS_PDFLATEX"))
+            QSKIP("Solo con pdflatex y SONDAS_PDFLATEX=1");
+        QRandomGenerator rng(18);
+        QTemporaryDir dir;
+        QStringList fallos;
+        for (int vuelta = 0; vuelta < vueltas(12); ++vuelta) {
+            QVector<Pregunta> preguntas;
+            for (int i = 0; i < 6; ++i) {
+                Pregunta p = preguntaRara(rng, 1 + rng.bounded(3), i + 1, QString());
+                p.id = i + 1;
+                p.estado = QStringLiteral("activa");
+                preguntas << p;
+            }
+            const Modelo m = modeloCon(preguntas, rng);
+            const QString nombre = QStringLiteral("raro%1").arg(vuelta);
+            const int nivel = QVector<int>{0, 3, Maquetador::kLetraGrande}.at(vuelta % 3);
+            QVERIFY(Exportacion::latex(dir.filePath(nombre + QStringLiteral(".tex")), {m}, convocatoria(), vuelta % 2, nivel));
+            QProcess proceso;
+            proceso.setWorkingDirectory(dir.path());
+            proceso.start(pdflatex, {QStringLiteral("-interaction=nonstopmode"), QStringLiteral("-halt-on-error"), nombre + QStringLiteral(".tex")});
+            QVERIFY(proceso.waitForFinished(60000));
+            if (proceso.exitCode() != 0) {
+                QFile log(dir.filePath(nombre + QStringLiteral(".log")));
+                QStringList errores;
+                if (log.open(QIODevice::ReadOnly))
+                    for (const QByteArray &linea : log.readAll().split('\n'))
+                        if (linea.startsWith('!') || linea.startsWith("l."))
+                            errores << QString::fromUtf8(linea);
+                fallos << QStringLiteral("vuelta %1: %2").arg(vuelta).arg(errores.join(QStringLiteral(" | ")));
+            }
+        }
+        QVERIFY2(fallos.isEmpty(), qPrintable(fallos.join(QLatin1Char('\n'))));
     }
 
     // Las parecidas y la lectura de los exámenes anteriores, con textos raros.
