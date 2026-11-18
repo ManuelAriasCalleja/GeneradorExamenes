@@ -68,6 +68,26 @@ inline QString limpiarNombreFichero(QString s)
     return s.isEmpty() ? QStringLiteral("examen") : s;
 }
 
+// El texto sin los caracteres que no admite el XML: los de control (salvo el tabulador y los saltos de línea), U+FFFE,
+// U+FFFF y las mitades sueltas de los pares sustitutos. Pueden llegar en un texto copiado de otro programa (Word pone
+// U+000B en los saltos de línea manuales), y con ellos el fichero no se podría leer.
+inline QString sinCaracteresNoXml(const QString &texto)
+{
+    QString r;
+    r.reserve(texto.size());
+    for (qsizetype i = 0; i < texto.size(); ++i) {
+        const QChar c = texto.at(i);
+        const char16_t u = c.unicode();
+        if (c.isHighSurrogate() && i + 1 < texto.size() && texto.at(i + 1).isLowSurrogate()) {
+            r += c;
+            r += texto.at(++i);
+        } else if (!c.isSurrogate() && (u >= 0x20 || u == '\t' || u == '\n' || u == '\r') && u != 0xFFFE && u != 0xFFFF) {
+            r += c;
+        }
+    }
+    return r;
+}
+
 // El texto en minúsculas y sin tildes, para buscar sin distinguirlas: «Exámenes» → «examenes». Cada letra se cambia
 // por otra sola, así que lo encontrado está en las mismas posiciones que en el original.
 inline QString paraBuscar(QString texto)

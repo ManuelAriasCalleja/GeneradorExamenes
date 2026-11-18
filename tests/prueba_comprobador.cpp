@@ -113,6 +113,10 @@ private slots:
         QTest::newRow("texto sin cerrar") << QByteArray("{\"temas\": [{\"titulo\": \"Uno}]}") << 1 << 23 << "comilla que cierra";
         QTest::newRow("salto de línea en un texto") << QByteArray("{\"a\": \"uno\ndos\"}") << 1 << 11 << "\\n";
         QTest::newRow("escape no válido") << QByteArray("{\"a\": \"C:\\carpeta\"}") << 1 << 10 << "barra invertida";
+        // Lo que toUInt() admitiría como número, pero no es un \u de JSON (la importación lo rechaza).
+        QTest::newRow("\\u con un espacio") << QByteArray("{\"a\": \"x\\u000 y\"}") << 1 << 9 << "cuatro cifras hexadecimales";
+        QTest::newRow("\\u con signo") << QByteArray("{\"a\": \"x\\u+041\"}") << 1 << 9 << "cuatro cifras hexadecimales";
+        QTest::newRow("\\u con 0x") << QByteArray("{\"a\": \"x\\u0x41\"}") << 1 << 9 << "cuatro cifras hexadecimales";
         QTest::newRow("comentario") << QByteArray("{\n// nota\n\"temas\": []}") << 2 << 1 << "comentarios";
         QTest::newRow("palabra suelta") << QByteArray("{\"temas\": hola}") << 1 << 11 << "«hola» no es un valor válido";
         QTest::newRow("True en mayúsculas") << QByteArray("{\"old\": True}") << 1 << 9 << "minúsculas";

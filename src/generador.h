@@ -79,7 +79,8 @@ public:
     // como al generar: nunca una variante o pseudorrepetida de las demás del examen; si no se quieren repetir,
     // mejor una que no esté en los otros exámenes; y mejor las que no han salido antes o hace más tiempo. Las de
     // los grupos 'descartados' («T2-5», ya quitados de ese examen) solo vuelven si no queda otra. La nueva va en el
-    // mismo sitio y, si se barajan las opciones, con la correcta en la misma letra, así que el resto no cambia.
+    // mismo sitio y, si se barajan las opciones, con la correcta en la misma letra (o en una de las que menos salen en
+    // el examen, si la quitada no se barajaba y su letra no es de esas), así que el resto no cambia.
     // Pone al día los avisos de ese examen. Devuelve false, sin cambiar nada, si no hay ninguna que pueda ir.
     static bool cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExamen &config, ResultadoGeneracion &resultado,
                                 int modelo, int indice, const QSet<QString> &descartados);

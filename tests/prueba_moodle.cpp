@@ -117,6 +117,24 @@ private slots:
         QVERIFY(Moodle::xml(temasInventados(3), banco(), o).contains(QStringLiteral("<text>$course$/top/Tema 1: Tema inventado 1</text>")));
     }
 
+    // Un texto copiado de Word puede llevar U+000B (el salto de línea manual) u otros caracteres de control, que el XML no
+    // admite: se quitan, y el resto se queda (lo encontró una sonda, ver docs/revision_errores.md).
+    void sinCaracteresQueElXmlNoAdmite()
+    {
+        QVector<Pregunta> preguntas = bancoInventado(1, 2);
+        preguntas[0].enunciado = QStringLiteral("Primera línea\vsegunda línea\u0001 inventadas:");
+        preguntas[0].opciones[1] = QStringLiteral("Opción\u0007 inventada.");
+        preguntas[0].explicacion = QStringLiteral("Explicación\u001F inventada.");
+        const QString xml = Moodle::xml(temasInventados(1), preguntas, Moodle::Opciones());
+        QXmlStreamReader r(xml);
+        while (!r.atEnd())
+            r.readNext();
+        QVERIFY2(!r.hasError(), qPrintable(r.errorString()));
+        QVERIFY(xml.contains(QStringLiteral("Primera líneasegunda línea inventadas:")));
+        QVERIFY(xml.contains(QStringLiteral("Opción inventada.")));
+        QVERIFY(xml.contains(QStringLiteral("Explicación inventada.")));
+    }
+
     void escribeFichero()
     {
         QTemporaryDir dir;

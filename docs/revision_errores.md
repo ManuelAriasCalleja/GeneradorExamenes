@@ -9,7 +9,7 @@ cualquier ordenador.
 | Paso | Estado |
 |---|---|
 | 1. Herramientas automáticas | Hecho: ningún fallo en el código; un descuido en `.gitignore` (arreglado) |
-| 2. Sondas dirigidas | En curso |
+| 2. Sondas dirigidas | En curso: hechas las primeras sondas (`tests/prueba_sondas.cpp`); tres fallos arreglados. Falta: compilar con pdflatex los LaTeX raros, pasar las sondas a fondo y con los detectores |
 | 3. Revisión del código por partes | Sugerencia, para cuando acaben 1 y 2 |
 
 ## 1. Herramientas automáticas
@@ -54,6 +54,29 @@ falla y cumple sus reglas. Se quedan como pruebas automáticas, con datos invent
   pseudorrepetidas juntas, el reparto de la correcta y el número de preguntas.
 - Ida y vuelta base de datos → JSON → base de datos con preguntas al azar.
 
+### Las sondas (`tests/prueba_sondas.cpp`)
+
+Se pasan con las demás pruebas (unos 2 segundos). Para buscar más a fondo, con las mismas semillas y más vueltas:
+`SONDAS=20 ./build/prueba_sondas`. Cada una:
+
+- `escapeLatex`: textos raros escapados para LaTeX no dejan ningún carácter especial suelto ni «--».
+- `maquetaYExportacionesConTextosRaros`: preguntas con textos raros (símbolos de HTML, XML, LaTeX y JSON, Unicode con
+  pares sustitutos, marcas combinadas, espacios raros y caracteres de control, código y tablas mal cerrados) en la
+  vista (con su paginación), el LaTeX, el Word (todo su XML bien formado), el PDF, Moodle (XML bien formado), las pautas
+  de estilo y la ficha, con la maqueta normal, la compacta y la de letra grande, con y sin soluciones.
+- `parecidasYExamenesAnteriores`: el índice de parecidas y la lectura de exámenes anteriores con textos raros.
+- `jsonEstropeados`: JSON estropeados al azar (bytes quitados, añadidos o cambiados, cortes, trozos repetidos): el
+  comprobador no falla, sus problemas dicen líneas del fichero y, si no da errores, la importación trae todas las
+  preguntas que ha contado.
+- `idaYVueltaDelJson`: bancos al azar guardados en la base de datos se leen igual, su JSON lo acepta el comprobador, y
+  al importarlo en otro banco quedan igual y sin diferencias con el JSON.
+- `generadorConBancosAlAzar`: bancos y opciones al azar (variantes, pseudorrepetidas, anuladas, para revisar,
+  verificadas, «old», usadas en convocatorias, opciones que remiten a otras): solo salen las que pueden, sin variantes
+  ni pseudorrepetidas juntas, las pedidas de cada tema (o un aviso), sin repetir entre exámenes (o un aviso), con la
+  misma semilla los mismos, las opciones barajadas son una permutación con la correcta en su sitio y repartida; y lo
+  mismo tras cambiar preguntas.
+- `bloquesDeLosEnunciados`: el reparto en bloques de enunciados raros.
+
 ## 3. Revisión del código por partes (sugerencia)
 
 Cuando acaben 1 y 2: revisar el código a mano por partes (base de datos, generador, maqueta y exportaciones,
@@ -71,3 +94,29 @@ Cada uno con lo que pasaba, cómo se encontró y si está arreglado (con su prue
    `<nombre>-imagenes`, pero `.gitignore` solo ignoraba la forma antigua: si se exportaba dentro del proyecto, git
    las habría propuesto para subir. Encontrado al revisar `.gitignore` para la carpeta de los detectores.
    Arreglado: `.gitignore` ignora las dos.
+2. **El XML de Moodle podía no ser válido** (arreglado). Un texto con caracteres de control (por ejemplo U+000B, el
+   salto de línea manual de Word, que se cuela al copiar de un documento) pasaba tal cual al XML, que no los admite:
+   Moodle no habría podido importar el fichero. Encontrado por `maquetaYExportacionesConTextosRaros`. Arreglado: se
+   quitan (`sinCaracteresNoXml()` en `src/utilidades.h`). Prueba: `sinCaracteresQueElXmlNoAdmite` (Moodle).
+3. **El comprobador daba por bueno un `\u` mal escrito que la importación rechazaba** (arreglado). Leía las cuatro
+   cifras de `\u` con `toUInt()`, que admite espacios, signo y «0x»: `"\u000 "` pasaba la comprobación y al importar
+   salía «JSON no válido: invalid escape sequence», sin la línea. Encontrado por `jsonEstropeados`. Arreglado: exige
+   cuatro cifras hexadecimales. Pruebas: tres casos nuevos en `erroresDeEscritura` (comprobador).
+4. **Al cambiar una pregunta, la correcta podía quedar mal repartida** (arreglado). La nueva iba siempre a la letra de
+   la quitada; si la quitada tenía la correcta fija (sus opciones remiten a otras, como «Todas las anteriores», y no se
+   barajan), esa letra no la había elegido el reparto, y la nueva podía dejar el examen con la correcta varias veces
+   en la misma letra. Encontrado por `generadorConBancosAlAzar` (un examen de dos preguntas con las dos en la c).
+   Arreglado: va a la letra de la quitada si es de las que menos salen en el resto del examen (lo es siempre que
+   estaba bien repartido, así que lo normal no cambia) y, si no, a una de ellas. Prueba:
+   `cambiarUnaFijaReparteLaCorrecta` (generador). Manual y README al día.
+
+### Vistos y no arreglados
+
+- **SQLite quita un U+FEFF al principio de un texto.** Es la marca de orden de bytes del UTF-16, invisible; el
+  controlador de Qt pasa los textos a SQLite en UTF-16 y SQLite la toma por una marca y la quita. No se ve, así que da
+  igual, salvo en un caso extremo: un texto que sea solo esa marca (una opción, por ejemplo) se queda vacío, y el JSON
+  que se exporta después no lo aceptaría el comprobador. No se arregla: nadie escribe una opción que sea solo un
+  carácter invisible. Las sondas lo tienen en cuenta.
+- **Al cambiar una pregunta por otra que se repite en otro examen, el aviso dice «está también en otro examen de la
+  convocatoria»**, no el de la generación («para no repetir entre exámenes»): no es un fallo; la sonda acepta los
+  dos.

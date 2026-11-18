@@ -363,7 +363,24 @@ bool Generador::cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExam
 
     Modelo &m = resultado.modelos[modelo];
     PreguntaExamen &pe = m.preguntas[indice];
-    const int letra = pe.correcta();
+    int letra = pe.correcta();
+    // Barajadas, la correcta va a la letra de la quitada, que deja el reparto como estaba (si estaba bien repartida,
+    // es una de las que menos salen en el resto del examen). Si no lo es (la quitada tenía la correcta fija, porque sus
+    // opciones remiten a otras), a una de las que menos salen: la letra de la nueva no cambia nada más del examen.
+    if (config.barajarOpciones && !Estilo::tieneOpcionesDependientes(nueva)) {
+        std::array<int, 4> cuenta{};
+        for (int i = 0; i < m.preguntas.size(); ++i)
+            if (i != indice)
+                ++cuenta[m.preguntas.at(i).correcta()];
+        const int minimo = *std::min_element(cuenta.begin(), cuenta.end());
+        if (cuenta[letra] != minimo) {
+            QVector<int> menos;
+            for (int l = 0; l < 4; ++l)
+                if (cuenta[l] == minimo)
+                    menos << l;
+            letra = menos.at(rng.bounded(int(menos.size())));
+        }
+    }
     pe = PreguntaExamen();
     pe.pregunta = nueva;
     if (config.barajarOpciones && !Estilo::tieneOpcionesDependientes(nueva))

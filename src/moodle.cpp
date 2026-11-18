@@ -1,4 +1,5 @@
 #include "moodle.h"
+#include "utilidades.h"
 #include "enunciado.h"
 #include "resaltado.h"
 #include "estilo.h"
@@ -206,7 +207,8 @@ QString xml(const QVector<Tema> &temas, const QVector<Pregunta> &preguntas, cons
     }
     x.writeEndElement();
     x.writeEndDocument();
-    return QString::fromUtf8(salida);
+    // Los caracteres que el XML no admite, fuera (QXmlStreamWriter los escribe tal cual).
+    return sinCaracteresNoXml(QString::fromUtf8(salida));
 }
 
 bool exportar(const QString &ruta, const QVector<Tema> &temas, const QVector<Pregunta> &preguntas, const Opciones &opciones,

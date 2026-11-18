@@ -264,6 +264,38 @@ private slots:
         }
     }
 
+    // Si la quitada tenía la correcta fija (sus opciones remiten a otras), la nueva no hereda su letra si con ella quedaría
+    // peor repartida: va a una de las que menos salen (lo encontró una sonda, ver docs/revision_errores.md).
+    void cambiarUnaFijaReparteLaCorrecta()
+    {
+        QVector<Pregunta> banco = bancoInventado(1, 3);
+        banco[0].opciones[3] = QStringLiteral("Todas las anteriores.");
+        banco[0].correcta = 3;
+        QVERIFY(Estilo::tieneOpcionesDependientes(banco[0]));
+        ConfigExamen c;
+        c.preguntasPorTema = {{1, 2}};
+        c.nombresModelos = {QStringLiteral("Uno")};
+        c.barajarOpciones = true;
+        ResultadoGeneracion r;
+        Modelo m;
+        m.nombre = QStringLiteral("Uno");
+        PreguntaExamen fija;
+        fija.pregunta = banco[0];                    // la correcta, en la d)
+        PreguntaExamen otra;
+        otra.pregunta = banco[1];
+        otra.pregunta.correcta = 0;
+        otra.orden = {{1, 2, 3, 0}};                 // también en la d)
+        m.preguntas = {fija, otra};
+        r.modelos = {m};
+        for (int vez = 0; vez < 20; ++vez) {
+            ResultadoGeneracion cambiado = r;
+            QVERIFY(Generador::cambiarPregunta(banco, c, cambiado, 0, 0, {}));
+            const PreguntaExamen &nueva = cambiado.modelos.at(0).preguntas.at(0);
+            QCOMPARE(nueva.pregunta.id, banco[2].id);
+            QVERIFY2(nueva.correcta() != 3, "la nueva se queda en la d), como la otra");
+        }
+    }
+
     void cambiarNoVuelveALasQuitadas()
     {
         // Un examen con 3 de los 6 números del tema 1: para cada sitio quedan otros 3.

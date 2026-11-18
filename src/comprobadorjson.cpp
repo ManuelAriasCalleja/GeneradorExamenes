@@ -304,9 +304,12 @@ private:
                 avanzar();
             } else if (e == QLatin1Char('u')) {
                 avanzar();
+                // Cuatro cifras exactamente: toUInt() admitiría también espacios, un signo o «0x» («\u000 »), que no
+                // valen en JSON (y la importación los rechazaría).
                 const QString hex = m_s.mid(m_i, 4);
-                bool ok = hex.size() == 4;
-                const uint codigo = ok ? hex.toUInt(&ok, 16) : 0;
+                static const QRegularExpression cuatroCifras(QStringLiteral("^[0-9A-Fa-f]{4}$"));
+                const bool ok = cuatroCifras.match(hex).hasMatch();
+                const uint codigo = ok ? hex.toUInt(nullptr, 16) : 0;
                 if (!ok)
                     return fallarEn(lineaBarra, columnaBarra, tr("Después de \\u van cuatro cifras hexadecimales (\\u00e1)."));
                 texto += QChar(char16_t(codigo));

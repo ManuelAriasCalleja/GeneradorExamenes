@@ -159,8 +159,8 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar «Empezar».
 - Una pregunta que no convenza se cambia por otra sin volver a generar: botón derecho sobre ella en la vista («Cambiar
   la pregunta N por otra del tema T») o su número en «Pregunta» y «Cambiar por otra». La nueva es del mismo tema, va
-  en el mismo sitio y, si se barajan las opciones, con la correcta en la misma letra, así que el resto de los exámenes
-  no cambia; se elige con las reglas de la generación, y las ya quitadas de ese examen no vuelven mientras queden
+  en el mismo sitio y, si se barajan las opciones, con la correcta en la misma letra (o en una de las que menos salen
+  si la quitada no se barajaba y su letra es de las que más), así que el resto de los exámenes no cambia; se elige con las reglas de la generación, y las ya quitadas de ese examen no vuelven mientras queden
   otras. «Deshacer el cambio» los deshace del último al primero. Después, la semilla ya no reproduce los exámenes.
 - Una pregunta del examen se corrige sin salir de él: botón derecho sobre ella («Editar la pregunta N (código)…») o
   su número en «Pregunta» y «Editar…». Se abre el editor con la pregunta del banco; lo guardado queda en el banco y se
