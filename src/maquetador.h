@@ -20,6 +20,16 @@ struct DatosConvocatoria
     QString instrucciones = instruccionesPorDefecto(QStringLiteral("es"));
     double puntosAcierto = 1.0;
     double puntosFallo = 0.3;        // se resta
+    // Si van la asignatura y la convocatoria («Junio 2026») en la cabecera (arriba de cada examen y de la hoja de
+    // soluciones) y en el pie de página (en el PDF, el LaTeX y el Word). Lo que esté vacío no se pone nunca.
+    bool asignaturaEnCabecera = true;
+    bool convocatoriaEnCabecera = true;
+    bool asignaturaEnPie = true;
+    bool convocatoriaEnPie = true;
+    // Semilla con la que se generaron los exámenes (0: no se sabe) y si después se han cambiado preguntas a mano, con
+    // lo que ya no los reproduce. Va en la hoja de soluciones y en las propiedades de los ficheros, no en los exámenes.
+    quint32 semilla = 0;
+    bool cambiadosAMano = false;
 
     // Formas de puntuar que se eligen en la ventana. Con las tres primeras el examen vale 10 puntos (cada acierto, 10
     // entre el número de preguntas) y cada fallo resta el 30 % de un acierto, lo justo para que contestar al azar dé

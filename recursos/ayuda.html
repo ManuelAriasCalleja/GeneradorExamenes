@@ -83,8 +83,8 @@ historial o hacerlos en pantalla.</li>
 </ul>
 <p>Los menús reúnen lo demás: <i>Archivo</i> (abrir y crear bancos, importar y exportar, historial de
 convocatorias), <i>Editar</i> (temas, nueva pregunta, revisión del estilo) y <i>Ayuda</i>.</p>
-<p>Las instrucciones, la lista de exámenes, las opciones, la puntuación y el último reparto de preguntas se guardan
-en el banco, como el nombre de la asignatura, así que cada banco tiene los suyos y, al volver a abrirlo, aparecen
+<p>Las instrucciones, lo que va en la cabecera y en el pie de página, la lista de exámenes, las opciones, la puntuación
+y el último reparto de preguntas se guardan en el banco, como el nombre de la asignatura, así que cada banco tiene los suyos y, al volver a abrirlo, aparecen
 como se dejaron (ver <a href="#asignaturas">Varias asignaturas</a>). La convocatoria y el año, en cambio, son al abrir
 los de la próxima convocatoria (ver <a href="#convocatoria">Convocatoria</a>).</p>
 
@@ -122,8 +122,8 @@ lista) y aparecen a la derecha. Si se vuelve a generar, se sustituyen por otros.
 
 <h3><a name="convocatoria"></a>Convocatoria</h3>
 <ul>
-<li><b>Asignatura</b>: el nombre que va en la cabecera del examen. Es el del banco abierto: si se cambia aquí, se
-guarda en el banco (y sale en el título de la ventana).</li>
+<li><b>Asignatura</b>: el nombre que va en la cabecera del examen y en el pie de sus páginas. Es el del banco
+abierto: si se cambia aquí, se guarda en el banco (y sale en el título de la ventana).</li>
 <li><b>Idioma de los exámenes</b>: el de lo que pone el programa en los exámenes (las instrucciones que propone, la
 puntuación, «CON SOLUCIONES», la hoja de soluciones y los meses de las convocatorias) y en
 <a href="#moodle">Moodle</a>. Las preguntas salen como estén escritas. Se guarda en el banco, como la asignatura: un
@@ -138,7 +138,12 @@ va en la cabecera, en el pie de cada página y en el nombre de los ficheros que 
 febrero, junio y septiembre cuyo mes aún no ha llegado: de septiembre a enero, la de febrero; de febrero a mayo, la
 de junio; y de junio a agosto, la de septiembre. Si prepara otra, cámbielas.</li>
 <li><b>Instrucciones</b>: el texto del recuadro de instrucciones que hay bajo la cabecera. Debajo de él se añade la
-puntuación. Si un examen no cabe en su página, acortar las instrucciones ayuda.</li>
+puntuación, en una línea. Si un examen no cabe en su página, acortar las instrucciones ayuda.</li>
+<li><b>Cabecera</b> y <b>Pie de página</b>: si van la asignatura y la convocatoria con el año arriba, en la cabecera de
+cada examen (y de la hoja de soluciones), y abajo, en el pie de cada página, junto al nombre del examen y el número de
+página (en el PDF, el LaTeX y el Word): «Asignatura · Nacional Original · Junio 2026: 1 / 2». Están marcadas
+salvo que se desmarquen, y se guardan en el banco. Sin nada arriba, el examen empieza por el recuadro de las
+instrucciones; abajo, el nombre del examen y la página van siempre.</li>
 </ul>
 
 <h3><a name="lista-examenes"></a>Lista de exámenes</h3>
@@ -192,7 +197,8 @@ opciones se acierta una vez de cada cuatro, y ese acierto compensa los otros tre
 <p>Con <b>Personalizada</b>, los puntos de cada acierto y de cada fallo los escribe quien hace el examen en
 <b>Acierto</b> y <b>Fallo</b>. Los puntos van con dos decimales, como se imprimen. Las preguntas en blanco no suman ni
 restan.</p>
-<p>La puntuación se imprime bajo las instrucciones del examen y se usa para calificar al
+<p>La puntuación se imprime en una línea, dentro del recuadro, bajo las instrucciones del examen («Respuesta correcta:
++0,50 puntos · incorrecta: −0,15 puntos · en blanco: 0 puntos»), y se usa para calificar al
 <a href="#practicar">practicar un examen</a>.</p>
 
 <h3><a name="opciones"></a>Opciones</h3>
@@ -328,7 +334,7 @@ examen debe caber en una página por cada 10 preguntas: un examen de 10 pregunta
 maqueta normal no cabe, el programa la compacta por niveles: pone las opciones en dos columnas (a c / b d) cuando así
 ocupan menos líneas, reduce la separación entre preguntas y, por último, la letra (hasta 9 puntos). El nivel usado
 aparece en la línea gris («Maqueta compacta (nivel 2 de 4)») y es el mismo para todos los exámenes de la
-convocatoria, en la vista, al imprimir y en las tres exportaciones.</p>
+convocatoria, en la vista, al imprimir y en las exportaciones.</p>
 <p>Si ni así cabe, se avisa: acorte las instrucciones o quite alguna pregunta (las que llevan imagen o un enunciado
 largo son las que más ocupan).</p>
 <p>Si la asignatura no tiene ese límite, desmarque la opción: los exámenes irán con la maqueta normal y ocuparán las
@@ -338,8 +344,8 @@ páginas que necesiten, y la línea gris dirá «Sin límite de páginas». Como
 <p>La casilla <b>Letra grande</b> hace la versión adaptada para estudiantes con discapacidad visual, lo contrario de
 la maqueta compacta: letra de 16 puntos (también en la cabecera y las instrucciones), los enunciados en negrita sin
 cursiva, una opción por línea, más separación entre preguntas e imágenes más grandes, sin límite de páginas.</p>
-<p>Vale para la vista, la impresión y todas las exportaciones. Los ficheros llevan «_letra_grande» en el nombre
-(<tt>2026_Junio_letra_grande_Nacional_Original.pdf</tt>), para no pisar los normales. Son los mismos exámenes, con
+<p>Vale para la vista, la impresión y todas las exportaciones. Los ficheros llevan «-letra-grande» en el nombre
+(<tt>2026-Junio-letra-grande-Nacional-Original.pdf</tt>), para no pisar los normales. Son los mismos exámenes, con
 las mismas preguntas en el mismo orden: basta con exportar los normales, marcar la casilla y exportar otra vez.</p>
 
 <h3><a name="semilla"></a>La semilla</h3>
@@ -351,6 +357,11 @@ gris dice «fija». Para que vuelvan a salir otros, bórrela (con la cruz del ca
 <p>Si se han cambiado preguntas a mano, la semilla ya no reproduce los exámenes. Para recuperar los exámenes de una
 convocatoria pasada es mejor el <a href="#historial">historial</a>, que los guarda tal como salieron aunque después se
 corrijan sus preguntas.</p>
+<p>La semilla no va en los exámenes que leen los estudiantes, pero queda en lo que se exporta: en la hoja de
+soluciones (arriba a la derecha, bajo «Soluciones») y en las propiedades de los ficheros (en el PDF y en el Word, en
+las del documento: en el PDF, como programa que lo creó, y en el Word, en los comentarios; en el HTML, en la etiqueta
+<tt>generator</tt>; y en el LaTeX, en un comentario de la primera línea y, al compilarlo, en el asunto del PDF). Si se
+han cambiado preguntas a mano, se añade «(con preguntas cambiadas a mano)».</p>
 
 <!-- ======================================================================================================= -->
 <h2><a name="exportar"></a>Imprimir y exportar</h2>
@@ -362,20 +373,24 @@ corrijan sus preguntas.</p>
 <td>Abre la vista previa de impresión de todos los exámenes, desde la que se imprimen. Se imprimen sin
 soluciones.</td><td></td></tr>
 <tr><td><b>Exportar PDF…</b></td><td>Guarda los exámenes en PDF.</td>
-<td><tt>2026_Junio_Nacional_Original.pdf</tt></td></tr>
+<td><tt>2026-Junio-Nacional-Original.pdf</tt></td></tr>
 <tr><td><b>Soluciones PDF…</b></td>
 <td>Guarda la hoja de soluciones (la estructura por temas, como la de las instrucciones, y la plantilla de
 corrección) seguida de los exámenes con la respuesta correcta marcada, la explicación y la referencia.</td>
-<td><tt>2026_Junio_soluciones_Nacional_Original.pdf</tt></td></tr>
+<td><tt>2026-Junio-Nacional-Original-soluciones.pdf</tt></td></tr>
 <tr><td><b>Exportar HTML…</b></td>
 <td>Guarda los exámenes en HTML, que se puede abrir y modificar con Word o LibreOffice. Con la casilla «Con
 soluciones» del diálogo, con las soluciones, como el PDF de soluciones.</td>
-<td><tt>2026_Junio_Nacional_Original.html</tt></td></tr>
+<td><tt>2026-Junio-Nacional-Original.html</tt></td></tr>
 <tr><td><b>Exportar LaTeX…</b></td>
 <td>Guarda los exámenes en LaTeX (ver <a href="#latex">LaTeX</a>).</td>
-<td><tt>2026_Junio_Nacional_Original.tex</tt></td></tr>
+<td><tt>2026-Junio-Nacional-Original.tex</tt></td></tr>
+<tr><td><b>Exportar Word…</b></td>
+<td>Guarda los exámenes en un documento de Word (<tt>.docx</tt>), que se puede abrir y modificar con Word o
+LibreOffice (ver <a href="#word">Word</a>). Con la casilla «Con soluciones» del diálogo, con las soluciones.</td>
+<td><tt>2026-Junio-Nacional-Original.docx</tt></td></tr>
 </table>
-<p>Las soluciones (<b>Soluciones PDF…</b>, y HTML o LaTeX con la casilla «Con soluciones») empiezan por la hoja de
+<p>Las soluciones (<b>Soluciones PDF…</b>, y HTML, LaTeX o Word con la casilla «Con soluciones») empiezan por la hoja de
 soluciones: la estructura de la convocatoria (qué preguntas de cada tema lleva cada examen) y, de cada examen, su
 <b>plantilla de corrección</b> («1 C», «2 A»…, en filas de 10), cuántas veces es correcta cada letra y el código, la
 respuesta y la referencia de cada pregunta. Siguen los exámenes con la respuesta correcta en verde y, debajo de cada
@@ -392,17 +407,21 @@ Si no existe, se crea.</li>
 <li>La tabla tiene una fila por examen: se exportan los marcados, cada uno en su fichero. Pulsando sobre el nombre
 del fichero se puede cambiar.</li>
 <li>Si hay más de un examen, la última fila, «Todos los exámenes en un fichero», guarda además todos juntos en un
-solo fichero, cada uno empezando en página nueva.</li>
-<li>Al exportar a HTML o LaTeX, la casilla <b>Con soluciones</b> decide si van con las soluciones. Se propone
-marcada si lo está «Mostrar soluciones». Al marcarla, los nombres propuestos llevan «_soluciones»
-(<tt>2026_Junio_soluciones_Nacional_Original.html</tt>), como los de <b>Soluciones PDF…</b>, para no pisar los
-otros.</li>
+solo fichero, cada uno empezando en página nueva (<tt>2026-Junio.pdf</tt>).</li>
+<li>Al exportar a HTML, LaTeX o Word, la casilla <b>Con soluciones</b> decide si van con las soluciones. Se propone
+marcada si lo está «Mostrar soluciones». Al marcarla, los nombres propuestos que no se hayan cambiado llevan
+«-soluciones» al final (<tt>2026-Junio-Nacional-Original-soluciones.html</tt>), como los de <b>Soluciones
+PDF…</b>.</li>
 </ul>
+<p>Los nombres propuestos llevan las palabras separadas por guiones, sin espacios ni tildes, y el de las soluciones
+es el del examen con «-soluciones» al final: así, los exámenes y sus soluciones se pueden guardar en la misma carpeta
+sin que un fichero pise al otro, y cada examen queda junto a sus soluciones.</p>
 <p>Si algún fichero ya existe, se pide permiso para sobrescribirlo. Al terminar, la barra de estado dice dónde se han
 guardado y, a la derecha, el botón <b>Abrir la carpeta</b> la abre (sigue ahí hasta que se generan otros
 exámenes).</p>
 <p>Las exportaciones a HTML y LaTeX guardan las imágenes de las preguntas en una carpeta junto al fichero,
-<tt>&lt;nombre&gt;_imagenes</tt>. Si se mueve el fichero, hay que llevar esa carpeta con él.</p>
+<tt>&lt;nombre&gt;-imagenes</tt>. Si se mueve el fichero, hay que llevar esa carpeta con él. El Word las lleva
+dentro.</p>
 
 <h3><a name="latex"></a>LaTeX</h3>
 <p><b>Exportar LaTeX…</b> guarda ficheros <tt>.tex</tt> para compilarlos con <tt>pdflatex</tt>. Con la casilla
@@ -410,6 +429,15 @@ exámenes).</p>
 explicación y la referencia. Hay que compilarlos dos veces para que salga bien el «página / total» del pie:</p>
 <pre>pdflatex examen.tex
 pdflatex examen.tex</pre>
+
+<h3><a name="word"></a>Word</h3>
+<p><b>Exportar Word…</b> guarda documentos <tt>.docx</tt> con la misma maqueta que el PDF (la compacta, si se ha
+usado, o la de letra grande): la cabecera, el recuadro de instrucciones, las preguntas con sus imágenes y el código
+de los enunciados en su recuadro gris. Cada examen empieza en página nueva, en su propia sección, con su pie
+«…: página / total», y las preguntas no se parten entre dos páginas. Como cada programa compone el texto a su
+manera, puede que algún examen ocupe un poco más o un poco menos que en el PDF.</p>
+<p>El total de páginas del pie es un campo que se calcula al abrir el documento; si alguna vez no está al día, se
+actualiza al imprimir o con la vista previa de impresión.</p>
 
 <!-- ======================================================================================================= -->
 <h2><a name="practicar"></a>Practicar un examen</h2>
@@ -866,8 +894,8 @@ como realimentación, y las imágenes, dentro del propio fichero.</li>
 <li>Lo que pone el programa (los nombres de los temas, «Respuesta correcta.») va en el idioma de los exámenes del
 banco (ver <a href="#convocatoria">Convocatoria</a>).</li>
 </ul>
-<p>El diálogo propone el fichero (el nombre de la asignatura sin tildes ni espacios y <tt>_moodle.xml</tt>, por ejemplo
-<tt>Historia_del_arte_moodle.xml</tt>, en la carpeta de las exportaciones)
+<p>El diálogo propone el fichero (el nombre de la asignatura sin tildes ni espacios y <tt>-moodle.xml</tt>, por ejemplo
+<tt>Historia-del-arte-moodle.xml</tt>, en la carpeta de las exportaciones)
 y dice cuántas preguntas de cuántos temas se van a exportar.</p>
 <p>En Moodle, el fichero se importa desde <i>Banco de preguntas → Importar</i>, eligiendo el formato «Moodle XML».</p>
 
@@ -877,8 +905,8 @@ y dice cuántas preguntas de cuántos temas se van a exportar.</p>
 <p>El programa guarda en un fichero de configuración la ruta del último banco abierto, la duración de los exámenes
 de práctica, el tamaño de la ventana y el idioma de la interfaz. Lo que depende de la asignatura va con cada banco (ver
 <a href="#asignaturas">Varias asignaturas</a>): el nombre de la asignatura, el idioma de los exámenes, los repartos de
-preguntas por tema, las instrucciones, la lista de exámenes, las opciones, la puntuación y la carpeta de las
-exportaciones; la configuración guarda solo una copia de los del último banco abierto. Está en:</p>
+preguntas por tema, las instrucciones, lo que va en la cabecera y en el pie, la lista de exámenes, las opciones, la
+puntuación y la carpeta de las exportaciones; la configuración guarda solo una copia de los del último banco abierto. Está en:</p>
 <ul>
 <li>Linux: <tt>~/.config/UNED/GeneradorExamenes.conf</tt></li>
 <li>Windows: <tt>%APPDATA%\UNED\GeneradorExamenes.ini</tt></li>

@@ -888,7 +888,7 @@ private slots:
 
         const QString carpeta = dir.filePath(QStringLiteral("exportados"));
         QDir().mkpath(carpeta);
-        for (const char *slot : {"exportarPdf", "exportarSolucionesPdf", "exportarHtml", "exportarLatex"}) {
+        for (const char *slot : {"exportarPdf", "exportarSolucionesPdf", "exportarHtml", "exportarLatex", "exportarDocx"}) {
             QTimer::singleShot(100, [&carpeta] {
                 QWidget *d = QApplication::activeModalWidget();
                 if (!d)
@@ -900,7 +900,7 @@ private slots:
             });
             QVERIFY(QMetaObject::invokeMethod(&v, slot));
         }
-        // HTML con soluciones: con la casilla del diálogo (sin «Mostrar soluciones»), y «_soluciones» en el nombre.
+        // HTML con soluciones: con la casilla del diálogo (sin «Mostrar soluciones»), y «-soluciones» en el nombre.
         QTimer::singleShot(100, [&carpeta] {
             QWidget *d = QApplication::activeModalWidget();
             if (!d)
@@ -920,10 +920,10 @@ private slots:
         QVERIFY(abrir);
         QVERIFY(abrir->isVisible());
         QCOMPARE(abrir->toolTip(), QDir::toNativeSeparators(carpeta));
-        QFile conSoluciones(carpeta + QStringLiteral("/") + QDir(carpeta).entryList({QStringLiteral("*_soluciones_*.html")}).value(0));
+        QFile conSoluciones(carpeta + QStringLiteral("/") + QDir(carpeta).entryList({QStringLiteral("*-soluciones.html")}).value(0));
         QVERIFY(conSoluciones.open(QIODevice::ReadOnly));
         QVERIFY(QString::fromUtf8(conSoluciones.readAll()).contains(QStringLiteral("CON SOLUCIONES")));
-        // Con «Letra grande», los ficheros llevan «_letra_grande» en el nombre.
+        // Con «Letra grande», los ficheros llevan «-letra-grande» en el nombre.
         auto *letraGrande = v.findChild<QCheckBox *>(QString(), Qt::FindChildrenRecursively);
         for (QCheckBox *c : v.findChildren<QCheckBox *>())
             if (c->text() == QStringLiteral("Letra grande"))
@@ -943,10 +943,16 @@ private slots:
         // Por omisión, un fichero por examen (Nacional Original y Nacional Reserva) de cada tipo.
         const QStringList ficheros = QDir(carpeta).entryList(QDir::Files);
         QCOMPARE(ficheros.filter(QStringLiteral(".pdf")).size(), 6);
-        QCOMPARE(ficheros.filter(QStringLiteral("_letra_grande")).size(), 2);
-        QCOMPARE(ficheros.filter(QStringLiteral("_soluciones")).size(), 4);
+        QCOMPARE(ficheros.filter(QStringLiteral("-letra-grande-")).size(), 2);
+        QCOMPARE(ficheros.filter(QStringLiteral("-soluciones.")).size(), 4);
+        // El de con soluciones se llama como el de sin ellas con «-soluciones» al final, para que estén juntos en la
+        // carpeta sin pisarse, y las palabras van separadas por guiones.
+        for (const QString &f : ficheros.filter(QStringLiteral("-soluciones.")))
+            QVERIFY2(ficheros.contains(QString(f).remove(QStringLiteral("-soluciones"))), qPrintable(f));
+        QVERIFY2(ficheros.filter(QStringLiteral("_")).isEmpty(), qPrintable(ficheros.join(QStringLiteral(", "))));
         QCOMPARE(ficheros.filter(QStringLiteral(".html")).size(), 4);
         QCOMPARE(ficheros.filter(QStringLiteral(".tex")).size(), 2);
+        QCOMPARE(ficheros.filter(QStringLiteral(".docx")).size(), 2);
         for (const QString &f : ficheros)
             QVERIFY2(QFileInfo(carpeta + QLatin1Char('/') + f).size() > 1000, qPrintable(f));
         QCOMPARE(QSettings().value(QStringLiteral("bd/ruta")).toString(), dir.filePath(QStringLiteral("banco.db")));
@@ -980,7 +986,7 @@ private slots:
         QMetaObject::invokeMethod(&v, "generar");
         QTextBrowser *visor = nullptr;
         for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
-            if (t->toPlainText().contains(QStringLiteral("Pregunta contestada correctamente")))
+            if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
                 visor = t;
         QVERIFY(visor);
         const QString antes = visor->toPlainText();
@@ -1210,7 +1216,7 @@ private slots:
         QCOMPARE(visor->escala(), 1.0);
         const QVector<qreal> normal = tamanos(visor->document());
         const QString texto = visor->toPlainText();
-        QVERIFY(texto.contains(QStringLiteral("Pregunta contestada correctamente")));
+        QVERIFY(texto.contains(QStringLiteral("Respuesta correcta: +")));
 
         // Ctrl + rueda sobre el examen: un paso de la rueda, o dos medios pasos de una rueda fina o de un panel táctil.
         auto rueda = [visor](int giro) {
@@ -1345,7 +1351,7 @@ private slots:
         QMetaObject::invokeMethod(&v, "generar");
         QTextBrowser *visor = nullptr;
         for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
-            if (t->toPlainText().contains(QStringLiteral("Pregunta contestada correctamente")))
+            if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
                 visor = t;
         QVERIFY(visor);
         QPushButton *registrar = nullptr;
@@ -1410,7 +1416,7 @@ private slots:
         QVERIFY(!semilla->styleSheet().isEmpty());
         QMetaObject::invokeMethod(&v, "generar");
         for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
-            if (t->toPlainText().contains(QStringLiteral("Pregunta contestada correctamente")))
+            if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
                 visor = t;
         QVERIFY(visor);
         const QString primera = visor->toPlainText();
@@ -1422,6 +1428,52 @@ private slots:
         QVERIFY(semilla->styleSheet().isEmpty());
         QMetaObject::invokeMethod(&v, "generar");
         QVERIFY(!infoDiceFija());
+        QSettings().clear();
+    }
+
+    void ventanaEligeCabeceraYPie()
+    {
+        // Las casillas de la cabecera y del pie, marcadas por omisión y guardadas en el banco; la vista sigue a las de
+        // la cabecera. La semilla no va en el examen.
+        QTemporaryDir dir;
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
+        QSettings().clear();
+        const QString asignatura = QStringLiteral("Asignatura de la cabecera");
+        {
+            VentanaPrincipal v;
+            v.show();
+            QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+            QLineEdit *campo = nullptr;
+            for (QLineEdit *l : v.findChildren<QLineEdit *>())
+                if (l->placeholderText() == QStringLiteral("Nombre de la asignatura"))
+                    campo = l;
+            QVERIFY(campo);
+            campo->setText(asignatura);
+            QMap<QString, QCheckBox *> casillas;
+            for (QCheckBox *c : v.findChildren<QCheckBox *>())
+                if (c->toolTip().startsWith(QStringLiteral("Pone ")))
+                    casillas.insert(c->toolTip().section(QLatin1Char(','), 0, 0), c);
+            QCOMPARE(casillas.size(), 4);
+            for (QCheckBox *c : std::as_const(casillas))
+                QVERIFY(c->isChecked());
+            QMetaObject::invokeMethod(&v, "generar");
+            QTextBrowser *visor = nullptr;
+            for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
+                if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
+                    visor = t;
+            QVERIFY(visor);
+            QVERIFY(visor->toPlainText().contains(asignatura));
+            QVERIFY(!visor->toPlainText().contains(QStringLiteral("Semilla")));
+            casillas.value(QStringLiteral("Pone el nombre de la asignatura arriba"))->setChecked(false);
+            QVERIFY(!visor->toPlainText().contains(asignatura));
+            QVERIFY(v.close());   // guarda la configuración
+        }
+        // Al volver a abrir el banco, la casilla sigue sin marcar.
+        VentanaPrincipal otra;
+        QVERIFY(otra.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        for (QCheckBox *c : otra.findChildren<QCheckBox *>())
+            if (c->toolTip().startsWith(QStringLiteral("Pone ")))
+                QCOMPARE(c->isChecked(), !c->toolTip().startsWith(QStringLiteral("Pone el nombre de la asignatura arriba")));
         QSettings().clear();
     }
 

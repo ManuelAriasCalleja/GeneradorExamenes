@@ -129,8 +129,9 @@ private slots:
         const Modelo m = modelo();
         const DatosConvocatoria en = convocatoria(QStringLiteral("en"));
         const QString html = Maquetador::examenHtml(m, en, true);
-        for (const QString &texto : {QStringLiteral("WITH SOLUTIONS"), QStringLiteral("Question answered correctly:"),
-                                     QStringLiteral("+ 1.00 points"), QStringLiteral("- 0.30 points"), QStringLiteral("February 2027")})
+        for (const QString &texto : {QStringLiteral("WITH SOLUTIONS"),
+                                     QStringLiteral("Correct answer: +1.00 points · incorrect: −0.30 points · blank: 0 points"),
+                                     QStringLiteral("February 2027")})
             QVERIFY2(html.contains(texto), qPrintable(texto));
         QVERIFY(!html.contains(QStringLiteral("puntos")));
         const QString soluciones = Maquetador::solucionesHtml({m}, en);
@@ -140,10 +141,10 @@ private slots:
         QVERIFY(html.contains(QStringLiteral("Reference:</span>")));
         const QString tex = Maquetador::examenesLatex({m}, en, true, QStringLiteral("imagenes"));
         QVERIFY(tex.contains(QStringLiteral("\\usepackage[english]{babel}")));
-        QVERIFY(tex.contains(QStringLiteral("Question not answered:")));
+        QVERIFY(tex.contains(QStringLiteral("blank: 0 points")));
         // El mismo examen en castellano, como siempre.
         const DatosConvocatoria es = convocatoria(QStringLiteral("es"));
-        QVERIFY(Maquetador::examenHtml(m, es, true).contains(QStringLiteral("Pregunta contestada correctamente:")));
+        QVERIFY(Maquetador::examenHtml(m, es, true).contains(QStringLiteral("Respuesta correcta: +1,00 puntos")));
         QVERIFY(Maquetador::examenesLatex({m}, es, true, QStringLiteral("imagenes")).contains(QStringLiteral("[spanish,es-noshorthands]{babel}")));
     }
 

@@ -57,13 +57,14 @@ inline bool traerConfiguracionAntigua(const QSettings &antigua, QSettings &nueva
     return !claves.isEmpty();
 }
 
-// Nombre de fichero sin tildes, espacios ni símbolos: «2026 Junio», «Unión Europea» → «2026_Junio», «Union_Europea».
+// Nombre de fichero sin tildes, espacios ni símbolos, con las palabras separadas por guiones: «2026 Junio»,
+// «Unión Europea», «UE-Original y Guinea» → «2026-Junio», «Union-Europea», «UE-Original-y-Guinea».
 inline QString limpiarNombreFichero(QString s)
 {
     s = s.normalized(QString::NormalizationForm_D);
     s.remove(QRegularExpression(QStringLiteral("\\p{Mn}")));
-    s.replace(QRegularExpression(QStringLiteral("[^A-Za-z0-9_\\-]+")), QStringLiteral("_"));
-    s.remove(QRegularExpression(QStringLiteral("^_+|_+$")));
+    s.replace(QRegularExpression(QStringLiteral("[^A-Za-z0-9]+")), QStringLiteral("-"));
+    s.remove(QRegularExpression(QStringLiteral("^-+|-+$")));
     return s.isEmpty() ? QStringLiteral("examen") : s;
 }
 

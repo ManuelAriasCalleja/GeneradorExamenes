@@ -49,9 +49,10 @@ QVector<Reconocida> reconocer(const QVector<Leida> &leidas, const QVector<Pregun
 std::array<int, 4> ordenDeOpciones(const Leida &leida, const Pregunta &p);
 
 // Convocatoria, año y nombre del examen que dice el nombre de su fichero: «2026_02_01_nacional_original_ex_fi.pdf»
-// es Febrero de 2026, «Nacional Original»; «2026_Junio_UE_Reserva.pdf», Junio de 2026, «UE Reserva». El nombre se
-// cambia por el de 'conocidos' (los de la lista de exámenes) que le corresponde, si hay uno solo: «ae_original»
-// es «América Este Original» y «ue_original», «UE-Original y Guinea». Lo que no diga se queda vacío (el año, 0).
+// es Febrero de 2026, «Nacional Original»; «2026-Junio-UE-Reserva.pdf» (como los exporta el programa, también con
+// «-soluciones» o «-letra-grande»), Junio de 2026, «UE Reserva». El nombre se cambia por el de 'conocidos' (los de
+// la lista de exámenes) que le corresponde, si hay uno solo: «ae_original» es «América Este Original» y
+// «ue_original», «UE-Original y Guinea». Lo que no diga se queda vacío (el año, 0).
 struct DatosFichero
 {
     QString convocatoria;

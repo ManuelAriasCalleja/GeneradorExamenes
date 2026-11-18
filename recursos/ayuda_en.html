@@ -84,8 +84,8 @@ take them on screen.</li>
 </ul>
 <p>The menus hold everything else: <i>File</i> (opening and creating banks, importing and exporting, exam session
 history), <i>Edit</i> (topics, new question, style check) and <i>Help</i>.</p>
-<p>The instructions, the list of exams, the options, the scoring and the last distribution of questions are saved in
-the bank, like the subject name, so each bank has its own and, when you open it again, they appear as you left them
+<p>The instructions, what goes in the header and in the footer, the list of exams, the options, the scoring and the
+last distribution of questions are saved in the bank, like the subject name, so each bank has its own and, when you open it again, they appear as you left them
 (see <a href="#asignaturas">Several subjects</a>). The exam session and the year, on the other hand, are set on
 start-up to those of the next exam session (see <a href="#convocatoria">Exam session</a>).</p>
 
@@ -124,8 +124,8 @@ list) and appear on the right. If you generate again, they are replaced by new o
 
 <h3><a name="convocatoria"></a>Exam session</h3>
 <ul>
-<li><b>Subject</b>: the name printed in the exam header. It is the name of the open bank’s subject: if you change it
-here, it is saved in the bank (and appears in the window title).</li>
+<li><b>Subject</b>: the name printed in the exam header and in the footer of its pages. It is the name of the open
+bank’s subject: if you change it here, it is saved in the bank (and appears in the window title).</li>
 <li><b>Exam language</b>: the language of the text that the program writes in the exams (the instructions it
 suggests, the scoring, “WITH SOLUTIONS”, the solutions sheet and the exam session months) and in
 <a href="#moodle">Moodle</a>. The questions appear as they are written. It is saved in the bank, like the subject: a
@@ -142,8 +142,13 @@ header, in the footer of each page and in the names of the exported files.</li>
 date: the first of February, June and September whose month has not yet arrived. From September to January, it is
 February; from February to May, June; and from June to August, September. If you are preparing another one, change
 them.</li>
-<li><b>Instructions</b>: the text of the instructions box below the header. The scoring is added below it. If an
-exam does not fit on its page, shortening the instructions helps.</li>
+<li><b>Instructions</b>: the text of the instructions box below the header. The scoring is added below it, on one
+line. If an exam does not fit on its page, shortening the instructions helps.</li>
+<li><b>Header</b> and <b>Footer</b>: whether the subject and the exam session with the year go at the top, in the
+header of each exam (and of the solutions sheet), and at the bottom, in the footer of each page, next to the exam name
+and the page number (in the PDF, LaTeX and Word files): “Subject · Nacional Original · June 2026: 1 / 2”. They are
+ticked unless you untick them, and they are saved in the bank. With nothing at the top, the exam starts with the
+instructions box; at the bottom, the exam name and the page are always there.</li>
 </ul>
 
 <h3><a name="lista-examenes"></a>List of exams</h3>
@@ -197,7 +202,8 @@ four options, one guess in four is right, and that correct answer makes up for t
 <p>With <b>Custom</b>, whoever sets the exam enters the points for each correct and each wrong answer in
 <b>Correct</b> and <b>Wrong</b>. Points have two decimal places, as they are printed. Unanswered questions neither add
 nor deduct anything.</p>
-<p>The scoring is printed below the exam instructions and is used to mark the exam when you
+<p>The scoring is printed on one line, inside the box, below the exam instructions (“Correct answer: +0.50 points ·
+incorrect: −0.15 points · blank: 0 points”), and is used to mark the exam when you
 <a href="#practicar">practise an exam</a>.</p>
 
 <h3><a name="opciones"></a>Options</h3>
@@ -335,7 +341,7 @@ on one page per 10 questions: a 10-question exam, on a single sheet. If it does 
 the normal layout, the program compacts it in levels: it puts the options in two columns (a c / b d) when they take
 up fewer lines that way, reduces the spacing between questions and, finally, reduces the font size (down to 9
 points). The level used appears in the grey line (“Compact layout (level 2 of 4)”) and is the same for all the exams
-of the exam session, in the preview, when printing and in the three exports.</p>
+of the exam session, in the preview, when printing and in the exports.</p>
 <p>If it still does not fit, a warning is shown: shorten the instructions or remove a question (those with an image
 or a long question text take up the most space).</p>
 <p>If the subject has no such limit, untick the option: the exams will use the normal layout and take as many pages
@@ -345,8 +351,8 @@ as they need, and the grey line will say “No page limit”. Like the other opt
 <p>The <b>Large print</b> box produces the adapted version for visually impaired students, the opposite of the
 compact layout: 16-point font (also in the header and the instructions), question texts in bold without italics,
 one option per line, more spacing between questions and larger images, with no page limit.</p>
-<p>It applies to the preview, printing and all exports. The files have “_letra_grande” in their name
-(<tt>2026_Junio_letra_grande_Nacional_Original.pdf</tt>), so as not to overwrite the normal ones. They are the same
+<p>It applies to the preview, printing and all exports. The files have “-letra-grande” in their name
+(<tt>2026-Junio-letra-grande-Nacional-Original.pdf</tt>), so as not to overwrite the normal ones. They are the same
 exams, with the same questions in the same order: just export the normal ones, tick the box and export again.</p>
 
 <h3><a name="semilla"></a>The seed</h3>
@@ -358,6 +364,11 @@ neither the bank nor the history has changed.</p>
 <p>If questions have been replaced by hand, the seed no longer reproduces the exams. To recover the exams of a past
 exam session, the <a href="#historial">history</a> is a better option: it keeps them exactly as they were set, even
 if their questions are corrected later.</p>
+<p>The seed does not appear in the exams the students read, but it is kept in what is exported: in the solutions sheet
+(top right, below “Solutions”) and in the file properties (in the PDF and Word files, in the document properties: in
+the PDF, as the program that created it, and in Word, in the comments; in the HTML, in the <tt>generator</tt> tag; and
+in LaTeX, in a comment on the first line and, once compiled, in the PDF subject). If questions have been replaced by
+hand, “(with questions changed by hand)” is added.</p>
 
 <!-- ======================================================================================================= -->
 <h2><a name="exportar"></a>Printing and exporting</h2>
@@ -369,20 +380,24 @@ if their questions are corrected later.</p>
 <td>Opens the print preview of all the exams, from which they are printed. They are printed without
 solutions.</td><td></td></tr>
 <tr><td><b>Export PDF…</b></td><td>Saves the exams as PDF.</td>
-<td><tt>2026_Junio_Nacional_Original.pdf</tt></td></tr>
+<td><tt>2026-Junio-Nacional-Original.pdf</tt></td></tr>
 <tr><td><b>Solutions PDF…</b></td>
 <td>Saves the solutions sheet (the structure by topic, like the one in the instructions, and the answer key)
 followed by the exams with the correct answer marked, the explanation and the reference.</td>
-<td><tt>2026_Junio_soluciones_Nacional_Original.pdf</tt></td></tr>
+<td><tt>2026-Junio-Nacional-Original-soluciones.pdf</tt></td></tr>
 <tr><td><b>Export HTML…</b></td>
 <td>Saves the exams as HTML, which can be opened and edited in Word or LibreOffice. With the “With
 solutions” box of the dialog ticked, with the solutions, like the solutions PDF.</td>
-<td><tt>2026_Junio_Nacional_Original.html</tt></td></tr>
+<td><tt>2026-Junio-Nacional-Original.html</tt></td></tr>
 <tr><td><b>Export LaTeX…</b></td>
 <td>Saves the exams as LaTeX (see <a href="#latex">LaTeX</a>).</td>
-<td><tt>2026_Junio_Nacional_Original.tex</tt></td></tr>
+<td><tt>2026-Junio-Nacional-Original.tex</tt></td></tr>
+<tr><td><b>Export Word…</b></td>
+<td>Saves the exams as a Word document (<tt>.docx</tt>), which can be opened and edited in Word or LibreOffice (see
+<a href="#word">Word</a>). With the “With solutions” box of the dialog ticked, with the solutions.</td>
+<td><tt>2026-Junio-Nacional-Original.docx</tt></td></tr>
 </table>
-<p>The solutions (<b>Solutions PDF…</b>, and HTML or LaTeX with the “With solutions” box ticked) start with the
+<p>The solutions (<b>Solutions PDF…</b>, and HTML, LaTeX or Word with the “With solutions” box ticked) start with the
 solutions sheet: the structure of the exam session (which questions from each topic each exam has) and, for each
 exam, its <b>answer key</b> (“1 C”, “2 A”…, in rows of 10), how many times each letter is correct and the code,
 answer and reference of each question. Then come the exams with the correct answer in green and, below each
@@ -398,17 +413,21 @@ has its own); <b>Choose…</b> lets you pick another one. If it does not exist, 
 <li>The table has one row per exam: the ticked ones are exported, each to its own file. Click a file name to change
 it.</li>
 <li>If there is more than one exam, the last row, “All the exams in one file”, also saves them all together in a
-single file, each starting on a new page.</li>
-<li>When exporting to HTML or LaTeX, the <b>With solutions</b> box decides whether the solutions are included. It is
-suggested ticked if “Show solutions” is ticked. When it is ticked, the suggested names include “_soluciones”
-(<tt>2026_Junio_soluciones_Nacional_Original.html</tt>), like those of <b>Solutions PDF…</b>, so as not to
-overwrite the others.</li>
+single file, each starting on a new page (<tt>2026-Junio.pdf</tt>).</li>
+<li>When exporting to HTML, LaTeX or Word, the <b>With solutions</b> box decides whether the solutions are included. It is
+suggested ticked if “Show solutions” is ticked. When it is ticked, the suggested names that have not been changed
+end in “-soluciones” (<tt>2026-Junio-Nacional-Original-soluciones.html</tt>), like those of <b>Solutions
+PDF…</b>.</li>
 </ul>
+<p>The suggested names have their words separated by hyphens, with no spaces or accents, and the name of the solutions
+is that of the exam ending in “-soluciones”: so the exams and their solutions can be saved in the same folder without
+one file overwriting the other, and each exam sits next to its solutions.</p>
 <p>If any of the files already exists, you are asked for permission to overwrite it. When the export is finished, the
 status bar says where the files have been saved and, on the right, the <b>Open the folder</b> button opens it (it
 stays there until other exams are generated).</p>
 <p>HTML and LaTeX exports save the images of the questions in a folder next to the file,
-<tt>&lt;name&gt;_imagenes</tt>. If you move the file, you must take that folder with it.</p>
+<tt>&lt;name&gt;-imagenes</tt>. If you move the file, you must take that folder with it. Word documents contain
+them.</p>
 
 <h3><a name="latex"></a>LaTeX</h3>
 <p><b>Export LaTeX…</b> saves <tt>.tex</tt> files to be compiled with <tt>pdflatex</tt>. With the
@@ -416,6 +435,15 @@ stays there until other exams are generated).</p>
 marked, the explanation and the reference. They must be compiled twice for the “page / total” in the footer to come out right:</p>
 <pre>pdflatex examen.tex
 pdflatex examen.tex</pre>
+
+<h3><a name="word"></a>Word</h3>
+<p><b>Export Word…</b> saves <tt>.docx</tt> documents with the same layout as the PDF (the compact one, if it has been
+used, or the large print one): the header, the instructions box, the questions with their images and the code in the
+questions in its grey box. Each exam starts on a new page, in its own section, with its footer “…: page / total”, and
+questions are not split across two pages. Since each program lays out text in its own way, an exam may take up a
+little more or a little less than in the PDF.</p>
+<p>The page total in the footer is a field that is calculated when the document is opened; if it is ever out of date,
+it is updated when printing or in the print preview.</p>
 
 <!-- ======================================================================================================= -->
 <h2><a name="practicar"></a>Practising an exam</h2>
@@ -881,8 +909,8 @@ go as feedback, and the images go inside the file itself.</li>
 <li>What the program writes (the topic names, “Correct answer.”) is in the bank’s exam language (see
 <a href="#convocatoria">Exam session</a>).</li>
 </ul>
-<p>The dialog suggests the file (the subject name without accents or spaces followed by <tt>_moodle.xml</tt>, for
-example <tt>Historia_del_arte_moodle.xml</tt>, in the exports folder)
+<p>The dialog suggests the file (the subject name without accents or spaces followed by <tt>-moodle.xml</tt>, for
+example <tt>Historia-del-arte-moodle.xml</tt>, in the exports folder)
 and says how many questions from how many topics will be exported.</p>
 <p>In Moodle, the file is imported from <i>Question bank → Import</i>, choosing the “Moodle XML” format.</p>
 
@@ -892,7 +920,8 @@ and says how many questions from how many topics will be exported.</p>
 <p>The program saves in a settings file the path of the last bank opened, the duration of practice exams, the window
 size and the interface language. What depends on the subject goes with each bank (see
 <a href="#asignaturas">Several subjects</a>): the subject name, the exam language, the distributions of questions per
-topic, the instructions, the list of exams, the options, the scoring and the exports folder; the settings file only
+topic, the instructions, what goes in the header and in the footer, the list of exams, the options, the scoring and
+the exports folder; the settings file only
 keeps a copy of those of the last bank opened. The file is located at:</p>
 <ul>
 <li>Linux: <tt>~/.config/UNED/GeneradorExamenes.conf</tt></li>

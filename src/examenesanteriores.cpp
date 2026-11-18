@@ -203,7 +203,7 @@ QVector<Reconocida> reconocer(const QVector<Leida> &leidas, const QVector<Pregun
 DatosFichero datosDeFichero(const QString &ruta, const QStringList &conocidos)
 {
     DatosFichero d;
-    static const QRegularExpression separadores(QStringLiteral("[_\\s]+"));
+    static const QRegularExpression separadores(QStringLiteral("[-_\\s]+"));
     QStringList partes = QFileInfo(ruta).completeBaseName().split(separadores, Qt::SkipEmptyParts);
     static const QRegularExpression anio(QStringLiteral("^(19|20)\\d\\d$"));
     static const QRegularExpression numero(QStringLiteral("^\\d{1,2}$"));

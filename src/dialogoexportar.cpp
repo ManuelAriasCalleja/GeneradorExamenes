@@ -27,8 +27,9 @@ enum Columna { ColExamen = 0, ColFichero = 1 };
 } // namespace
 
 DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombres, const QString &nombreBase,
-                                 const QString &extension, QWidget *parent)
-    : QDialog(parent), m_nombres(nombres), m_nombreBase(nombreBase), m_extension(extension), m_numModelos(nombres.size())
+                                 const QString &extension, bool soluciones, QWidget *parent)
+    : QDialog(parent), m_nombres(nombres), m_nombreBase(nombreBase), m_extension(extension),
+      m_solucionesPropuestas(soluciones), m_numModelos(nombres.size())
 {
     setWindowTitle(titulo);
     resize(640, 320);
@@ -59,7 +60,7 @@ DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombr
         marca->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
         marca->setCheckState(marcado ? Qt::Checked : Qt::Unchecked);
         m_tabla->setItem(f, ColExamen, marca);
-        auto *fichero = new QTableWidgetItem(nombrePropuesto(f, false));
+        auto *fichero = new QTableWidgetItem(nombrePropuesto(f, soluciones));
         fichero->setToolTip(tr("Pulse sobre el nombre para cambiarlo"));
         m_tabla->setItem(f, ColFichero, fichero);
     };
@@ -79,23 +80,23 @@ DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombr
     l->addWidget(botones);
 }
 
-// «<base>_<examen>.<extensión>» y, el de todos juntos, «<base>.<extensión>».
+// «<base>-<examen>.<extensión>» y, el de todos juntos, «<base>.<extensión>»; con soluciones, «-soluciones» delante
+// de la extensión: «2026-Junio-Nacional-Original-soluciones.pdf».
 QString DialogoExportar::nombrePropuesto(int fila, bool soluciones) const
 {
-    const QString base = soluciones ? m_nombreBaseSoluciones : m_nombreBase;
-    const QString nombre = fila < m_numModelos ? QStringLiteral("%1_%2").arg(base, limpiarNombreFichero(m_nombres.at(fila))) : base;
+    QString nombre = fila < m_numModelos ? m_nombreBase + QLatin1Char('-') + limpiarNombreFichero(m_nombres.at(fila)) : m_nombreBase;
+    if (soluciones)
+        nombre += QStringLiteral("-soluciones");
     return nombre + QLatin1Char('.') + m_extension;
 }
 
-void DialogoExportar::ofrecerSoluciones(const QString &texto, bool marcada, const QString &nombreBaseSoluciones)
+void DialogoExportar::ofrecerSoluciones(const QString &texto)
 {
-    m_nombreBaseSoluciones = nombreBaseSoluciones;
     m_soluciones = new QCheckBox(texto);
     // Bajo la carpeta.
     if (auto *l = qobject_cast<QVBoxLayout *>(layout()))
         l->insertWidget(1, m_soluciones);
-    m_soluciones->setChecked(marcada);
-    cambiarNombres(marcada);
+    m_soluciones->setChecked(m_solucionesPropuestas);
     connect(m_soluciones, &QCheckBox::toggled, this, &DialogoExportar::cambiarNombres);
 }
 

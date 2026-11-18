@@ -1090,7 +1090,7 @@ Record them?</translation>
 <context>
     <name>DialogoExportar</name>
     <message>
-        <location filename="../src/dialogoexportar.cpp" line="+40"/>
+        <location filename="../src/dialogoexportar.cpp" line="+41"/>
         <source>Elegir…</source>
         <translation>Choose…</translation>
     </message>
@@ -1982,77 +1982,65 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="+290"/>
-        <location line="+809"/>
+        <location filename="../src/docx.cpp" line="+742"/>
+        <location filename="../src/maquetador.cpp" line="+361"/>
+        <location line="+780"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
     <message>
-        <location line="-808"/>
-        <location line="+809"/>
+        <location line="+1"/>
+        <location filename="../src/maquetador.cpp" line="-779"/>
+        <location line="+780"/>
         <source>Referencia:</source>
         <translation>Reference:</translation>
     </message>
     <message>
-        <location line="-798"/>
-        <location line="+1026"/>
+        <location line="+134"/>
+        <location filename="../src/maquetador.cpp" line="-769"/>
+        <location line="+1001"/>
         <source>Plantilla de corrección: %1</source>
         <translation>Answer key: %1</translation>
     </message>
     <message>
-        <location line="-963"/>
+        <location filename="../src/maquetador.cpp" line="-1213"/>
+        <source>Respuesta correcta: +%1 puntos · incorrecta: −%2 puntos · en blanco: 0 puntos</source>
+        <extracomment>Puntuación del examen, en una línea bajo las instrucciones. %1 son los puntos de un acierto (1,00) y %2 los que resta un fallo (0,30); el signo menos es «−» (U+2212)</extracomment>
+        <translation>Correct answer: +%1 points · incorrect: −%2 points · blank: 0 points</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Semilla: %1</source>
+        <extracomment>En la hoja de soluciones y en las propiedades de los ficheros: la semilla con que se generaron los exámenes</extracomment>
+        <translation>Seed: %1</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source> (con preguntas cambiadas a mano)</source>
+        <extracomment>Se añade tras «Semilla: %1» (con el espacio delante): con preguntas cambiadas, la semilla ya no da estos exámenes</extracomment>
+        <translation> (with questions changed by hand)</translation>
+    </message>
+    <message>
+        <location line="+236"/>
         <source>Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.
 No entregue el enunciado.</source>
         <translation>Mark the correct answer on the answer sheet only.
 Do not hand in the question paper.</translation>
     </message>
     <message>
-        <location line="+248"/>
-        <location line="+636"/>
+        <location filename="../src/docx.cpp" line="-61"/>
+        <location filename="../src/maquetador.cpp" line="+248"/>
+        <location line="+643"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
     <message>
-        <location line="-623"/>
-        <location line="+642"/>
-        <source>Pregunta contestada correctamente:</source>
-        <translation>Question answered correctly:</translation>
-    </message>
-    <message>
-        <location line="-641"/>
-        <location line="+642"/>
-        <source>+ %1 puntos</source>
-        <translation>+ %1 points</translation>
-    </message>
-    <message>
-        <location line="-641"/>
-        <location line="+642"/>
-        <source>Pregunta contestada incorrectamente:</source>
-        <translation>Question answered incorrectly:</translation>
-    </message>
-    <message>
-        <location line="-641"/>
-        <location line="+642"/>
-        <source>- %1 puntos</source>
-        <translation>- %1 points</translation>
-    </message>
-    <message>
-        <location line="-641"/>
-        <location line="+642"/>
-        <source>Pregunta no contestada:</source>
-        <translation>Question not answered:</translation>
-    </message>
-    <message>
-        <location line="-641"/>
-        <location line="+642"/>
-        <source>0 puntos</source>
-        <translation>0 points</translation>
-    </message>
-    <message>
-        <location line="-604"/>
-        <location line="+179"/>
-        <location line="+379"/>
-        <location line="+73"/>
+        <location line="+18"/>
+        <location line="+88"/>
+        <location filename="../src/maquetador.cpp" line="-592"/>
+        <location line="+182"/>
+        <location line="+388"/>
+        <location line="+65"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
         <location line="+1"/>
         <location line="+2"/>
@@ -2061,20 +2049,24 @@ Do not hand in the question paper.</translation>
         <translation>Solutions</translation>
     </message>
     <message>
-        <location line="-625"/>
-        <location line="+641"/>
+        <location line="-71"/>
+        <location filename="../src/maquetador.cpp" line="-626"/>
+        <location line="+645"/>
         <source>Estructura de la convocatoria</source>
         <translation>Session structure</translation>
     </message>
     <message>
-        <location line="-640"/>
-        <location line="+630"/>
+        <location line="+2"/>
+        <location line="+6"/>
+        <location filename="../src/maquetador.cpp" line="-644"/>
+        <location line="+634"/>
         <source>Examen</source>
         <translation>Exam</translation>
     </message>
     <message>
-        <location line="-994"/>
-        <location line="+1029"/>
+        <location line="+34"/>
+        <location filename="../src/maquetador.cpp" line="-969"/>
+        <location line="+1004"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
@@ -2179,7 +2171,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-791"/>
+        <location filename="../src/maquetador.cpp" line="-793"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>
@@ -2299,7 +2291,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Utilidades</name>
     <message>
-        <location filename="../src/utilidades.h" line="+87"/>
+        <location filename="../src/utilidades.h" line="+88"/>
         <source>Sí</source>
         <extracomment>Botón para responder que sí a una pregunta.</extracomment>
         <translation>Yes</translation>
@@ -2326,7 +2318,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+86"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+113"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
@@ -2347,7 +2339,7 @@ Do not hand in the question paper.</translation>
         <translation>Open the folder</translation>
     </message>
     <message>
-        <location line="+36"/>
+        <location line="+35"/>
         <source>Generar exámenes</source>
         <translation>Generate exams</translation>
     </message>
@@ -2373,7 +2365,7 @@ Do not hand in the question paper.</translation>
         <translation>Language of the text that the program writes in the exams (suggested instructions, scoring, solutions, exam session months) and in Moodle, and of the style guidelines that are checked. It is saved in the question bank, so each bank keeps the language of its own subject.</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+44"/>
         <source>Asignatura:</source>
         <translation>Subject:</translation>
     </message>
@@ -2398,7 +2390,7 @@ Do not hand in the question paper.</translation>
         <translation>Instructions:</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+10"/>
         <source>Exámenes</source>
         <translation>Exams</translation>
     </message>
@@ -2625,14 +2617,7 @@ If empty, different exams come out each time.</translation>
         <translation>Large print</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.
-Vale para la vista, la impresión y las exportaciones; los ficheros llevan «_letra_grande» en el nombre.</source>
-        <translation>Adapted version for visually impaired students: 16 pt font, one option per line (question text not in italics), more spacing and larger images, with no page limit.
-Applies to the preview, printing and exports; the files have “_letra_grande” in their name.</translation>
-    </message>
-    <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>Examen:</source>
         <extracomment>Delante de la lista para elegir cuál de los exámenes generados se ve</extracomment>
         <translation>Exam:</translation>
@@ -2679,7 +2664,7 @@ Applies to the preview, printing and exports; the files have “_letra_grande”
         <translation>Export LaTeX…</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+9"/>
         <source>Pregunta:</source>
         <extracomment>Delante del número de la pregunta del examen que se quiere editar o cambiar</extracomment>
         <translation>Question:</translation>
@@ -2778,7 +2763,66 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-97"/>
+        <location line="-378"/>
+        <location line="+5"/>
+        <source>Asignatura</source>
+        <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
+        <translation>Subject</translation>
+    </message>
+    <message>
+        <location line="-5"/>
+        <source>Pone el nombre de la asignatura arriba, en la cabecera de los exámenes y de la hoja de soluciones.</source>
+        <translation>Puts the subject name at the top, in the header of the exams and of the solutions sheet.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <location line="+4"/>
+        <source>Convocatoria y año</source>
+        <extracomment>Casilla: la convocatoria y el año («Junio 2026») van en la cabecera (o en el pie) de los exámenes</extracomment>
+        <translation>Exam session and year</translation>
+    </message>
+    <message>
+        <location line="-4"/>
+        <source>Pone la convocatoria y el año arriba, en la cabecera de los exámenes y de la hoja de soluciones.</source>
+        <translation>Puts the exam session and the year at the top, in the header of the exams and of the solutions sheet.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Pone el nombre de la asignatura abajo, en el pie de cada página (en el PDF, el LaTeX y el Word).</source>
+        <translation>Puts the subject name at the bottom, in the footer of each page (in the PDF, LaTeX and Word files).</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Pone la convocatoria y el año abajo, en el pie de cada página (en el PDF, el LaTeX y el Word).</source>
+        <translation>Puts the exam session and the year at the bottom, in the footer of each page (in the PDF, LaTeX and Word files).</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>Cabecera:</source>
+        <extracomment>Delante de las casillas de lo que va en la cabecera de los exámenes (arriba de la primera página)</extracomment>
+        <translation>Header:</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Pie de página:</source>
+        <extracomment>Delante de las casillas de lo que va en el pie de cada página de los exámenes</extracomment>
+        <translation>Footer:</translation>
+    </message>
+    <message>
+        <location line="+195"/>
+        <source>Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.
+Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-letra-grande» en el nombre.</source>
+        <translation>Adapted version for visually impaired students: 16 pt font, one option per line (question text not in italics), more spacing and larger images, with no page limit.
+Applies to the preview, printing and exports; the files have “-letra-grande” in their name.</translation>
+    </message>
+    <message>
+        <location line="+58"/>
+        <source>Exportar Word…</source>
+        <extracomment>Botón: guarda los exámenes en un documento de Word (.docx)</extracomment>
+        <translation>Export Word…</translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>Número de la pregunta que se quiere editar o cambiar, en el examen que se ve.
 También se puede pulsar con el botón derecho sobre la pregunta.</source>
         <translation>Number of the question to edit or replace, in the exam being shown.
@@ -3045,12 +3089,12 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+932"/>
+        <location line="+945"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-924"/>
+        <location line="-937"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3226,7 +3270,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Distinct questions available (variants a, b, c... count as one)</translation>
     </message>
     <message>
-        <location line="+156"/>
+        <location line="+160"/>
         <source>Generador de exámenes</source>
         <translation>Exam Generator</translation>
     </message>
@@ -3358,7 +3402,7 @@ Replace it with this one?</translation>
         <translation>Remove “%1” from the list of exams?</translation>
     </message>
     <message>
-        <location line="+37"/>
+        <location line="+46"/>
         <source>Indique cuántas preguntas quiere de cada tema.</source>
         <translation>Specify how many questions you want from each topic.</translation>
     </message>
@@ -3522,7 +3566,7 @@ If they are the final ones, record them first.</translation>
         <translation>Export solutions to PDF</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+6"/>
         <source>Con soluciones (plantilla de corrección y, en cada pregunta, la correcta, la explicación y la referencia)</source>
         <translation>With solutions (answer key and, for each question, the correct answer, the explanation and the reference)</translation>
     </message>
@@ -3542,7 +3586,12 @@ If they are the final ones, record them first.</translation>
         <translation>compile them twice with pdflatex</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+5"/>
+        <source>Exportar a Word (.docx)</source>
+        <translation>Export to Word (.docx)</translation>
+    </message>
+    <message>
+        <location line="+10"/>
         <source>Indique la convocatoria (Febrero, Junio…).</source>
         <translation>Enter the exam session (February, June…).</translation>
     </message>

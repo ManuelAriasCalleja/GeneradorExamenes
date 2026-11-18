@@ -80,6 +80,7 @@ private slots:
     void exportarSolucionesPdf();
     void exportarHtml();
     void exportarLatex();
+    void exportarDocx();
     void registrarConvocatoria();
     void historialConvocatorias();
     void registrarAnteriores();
@@ -194,13 +195,13 @@ private:
     // modelos generados caben en sus páginas (ver Maquetador), o el normal si no hay que ajustarlos a ellas.
     int nivelMaqueta() const;
     static QString textoConSoluciones();
-    // Exporta los exámenes que se elijan en el diálogo, cada fichero con 'escribir' (ver exportacion.h); 'nota' se
-    // añade al mensaje del final. Con 'casillaSoluciones', el diálogo tiene la casilla «Con soluciones» con ese texto,
-    // marcada si lo está 'soluciones', y es ella la que decide.
+    // Exporta los exámenes que se elijan en el diálogo, cada fichero con 'escribir' (ver exportacion.h), con los nombres
+    // que empiezan por nombreBaseFichero(); 'nota' se añade al mensaje del final. Con 'casillaSoluciones', el diálogo
+    // tiene la casilla «Con soluciones» con ese texto, marcada si lo está 'soluciones', y es ella la que decide.
     using Escritor = bool (*)(const QString &ruta, const QVector<Modelo> &modelos, const DatosConvocatoria &datos,
                               bool soluciones, int nivel);
-    void exportar(const QString &titulo, const QString &nombreBase, const QString &extension, Escritor escribir,
-                  bool soluciones, const QString &nota = QString(), const QString &casillaSoluciones = QString());
+    void exportar(const QString &titulo, const QString &extension, Escritor escribir, bool soluciones,
+                  const QString &nota = QString(), const QString &casillaSoluciones = QString());
     void informarExportacion(const QStringList &escritos, const QStringList &fallidos, const QString &nota = QString());
     // Enseña en la barra de estado el botón que abre la carpeta donde se acaba de exportar (vacía: lo quita).
     void ofrecerCarpeta(const QString &carpeta);
@@ -241,6 +242,11 @@ private:
     QSpinBox *m_anio;
     QListWidget *m_listaExamenes;           // nombres de los exámenes; se generan los marcados
     QPlainTextEdit *m_instrucciones;
+    // Si van la asignatura y la convocatoria en la cabecera y en el pie de página de los exámenes.
+    QCheckBox *m_asignaturaEnCabecera;
+    QCheckBox *m_convocatoriaEnCabecera;
+    QCheckBox *m_asignaturaEnPie;
+    QCheckBox *m_convocatoriaEnPie;
     QGridLayout *m_rejillaTemas;
     QWidget *m_contenedorTemas;
     QMap<int, QSpinBox *> m_cantidades;     // número de tema -> preguntas

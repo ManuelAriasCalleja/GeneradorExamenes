@@ -289,11 +289,43 @@ QWidget *VentanaPrincipal::crearGrupoConvocatoria()
     m_instrucciones = new QPlainTextEdit(DatosConvocatoria().instrucciones);
     m_instrucciones->setMaximumHeight(52);
     m_instrucciones->setTabChangesFocus(true);
+    // Qué va arriba (en la cabecera de cada examen y de la hoja de soluciones) y abajo (en el pie de cada página).
+    auto casilla = [this](const QString &texto, const QString &descripcion) {
+        auto *c = new QCheckBox(texto);
+        c->setToolTip(descripcion);
+        c->setChecked(true);
+        connect(c, &QCheckBox::toggled, this, [this]() {
+            if (hayExamen())
+                actualizarMaqueta();
+        });
+        return c;
+    };
+    //: Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes
+    m_asignaturaEnCabecera = casilla(tr("Asignatura"), tr("Pone el nombre de la asignatura arriba, en la cabecera de los "
+                                                          "exámenes y de la hoja de soluciones."));
+    //: Casilla: la convocatoria y el año («Junio 2026») van en la cabecera (o en el pie) de los exámenes
+    m_convocatoriaEnCabecera = casilla(tr("Convocatoria y año"), tr("Pone la convocatoria y el año arriba, en la cabecera "
+                                                                    "de los exámenes y de la hoja de soluciones."));
+    m_asignaturaEnPie = casilla(tr("Asignatura"), tr("Pone el nombre de la asignatura abajo, en el pie de cada página "
+                                                     "(en el PDF, el LaTeX y el Word)."));
+    m_convocatoriaEnPie = casilla(tr("Convocatoria y año"), tr("Pone la convocatoria y el año abajo, en el pie de cada "
+                                                               "página (en el PDF, el LaTeX y el Word)."));
+    auto fila = [](QCheckBox *a, QCheckBox *b) {
+        auto *l = new QHBoxLayout;
+        l->addWidget(a);
+        l->addWidget(b);
+        l->addStretch();
+        return l;
+    };
     fConv->addRow(tr("Asignatura:"), m_asignatura);
     fConv->addRow(tr("Idioma de los exámenes:"), m_idiomaExamen);
     fConv->addRow(tr("Convocatoria:"), m_convocatoria);
     fConv->addRow(tr("Año:"), m_anio);
     fConv->addRow(tr("Instrucciones:"), m_instrucciones);
+    //: Delante de las casillas de lo que va en la cabecera de los exámenes (arriba de la primera página)
+    fConv->addRow(tr("Cabecera:"), fila(m_asignaturaEnCabecera, m_convocatoriaEnCabecera));
+    //: Delante de las casillas de lo que va en el pie de cada página de los exámenes
+    fConv->addRow(tr("Pie de página:"), fila(m_asignaturaEnPie, m_convocatoriaEnPie));
     return gConv;
 }
 
@@ -491,7 +523,7 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     m_letraGrande->setToolTip(tr("Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una "
                                  "opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.\n"
                                  "Vale para la vista, la impresión y las exportaciones; los ficheros llevan "
-                                 "«_letra_grande» en el nombre."));
+                                 "«-letra-grande» en el nombre."));
     m_infoGeneracion = new QLabel;
     m_infoGeneracion->setStyleSheet(QStringLiteral("color: gray"));
     m_infoGeneracion->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -545,6 +577,8 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     boton(exportar, tr("Soluciones PDF…"), &VentanaPrincipal::exportarSolucionesPdf);
     boton(exportar, tr("Exportar HTML…"), &VentanaPrincipal::exportarHtml);
     boton(exportar, tr("Exportar LaTeX…"), &VentanaPrincipal::exportarLatex);
+    //: Botón: guarda los exámenes en un documento de Word (.docx)
+    boton(exportar, tr("Exportar Word…"), &VentanaPrincipal::exportarDocx);
     exportar->addStretch();
     m_preguntaACambiar = new QSpinBox;
     m_preguntaACambiar->setEnabled(false);
@@ -1289,6 +1323,10 @@ QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
     // En este orden se leen: la forma de puntuar antes que los puntos, para que se queden los guardados.
     return {
         {QStringLiteral("examen/instrucciones"), m_instrucciones},
+        {QStringLiteral("examen/asignaturaEnCabecera"), m_asignaturaEnCabecera},
+        {QStringLiteral("examen/convocatoriaEnCabecera"), m_convocatoriaEnCabecera},
+        {QStringLiteral("examen/asignaturaEnPie"), m_asignaturaEnPie},
+        {QStringLiteral("examen/convocatoriaEnPie"), m_convocatoriaEnPie},
         {QStringLiteral("examen/noRepetir"), m_noRepetir},
         {QStringLiteral("examen/evitarRecientes"), m_evitarRecientes},
         {QStringLiteral("examen/numRecientes"), m_numRecientes},
@@ -1555,6 +1593,15 @@ DatosConvocatoria VentanaPrincipal::datosConvocatoria() const
     d.instrucciones = m_instrucciones->toPlainText().trimmed();
     d.puntosAcierto = m_acierto->value();
     d.puntosFallo = m_fallo->value();
+    d.asignaturaEnCabecera = m_asignaturaEnCabecera->isChecked();
+    d.convocatoriaEnCabecera = m_convocatoriaEnCabecera->isChecked();
+    d.asignaturaEnPie = m_asignaturaEnPie->isChecked();
+    d.convocatoriaEnPie = m_convocatoriaEnPie->isChecked();
+    // La de los exámenes que se ven, para las soluciones y las propiedades de los ficheros.
+    if (hayExamen()) {
+        d.semilla = m_resultado.semilla;
+        d.cambiadosAMano = !m_cambios.isEmpty();
+    }
     return d;
 }
 
@@ -1703,10 +1750,10 @@ void VentanaPrincipal::mostrarModelo()
 
 QString VentanaPrincipal::nombreBaseFichero() const
 {
-    // «2026_Junio»: el año delante, para que los ficheros de varios años queden ordenados; la versión adaptada,
-    // «2026_Junio_letra_grande», para no pisar la normal.
+    // «2026-Junio»: el año delante, para que los ficheros de varios años queden ordenados; la versión adaptada,
+    // «2026-Junio-letra-grande», para no pisar la normal.
     const QString base = limpiarNombreFichero(QStringLiteral("%1 %2").arg(m_anio->value()).arg(m_convocatoria->currentText().trimmed()));
-    return m_letraGrande->isChecked() ? base + QStringLiteral("_letra_grande") : base;
+    return m_letraGrande->isChecked() ? base + QStringLiteral("-letra-grande") : base;
 }
 
 QStringList VentanaPrincipal::nombresModelos() const
@@ -1810,14 +1857,14 @@ bool VentanaPrincipal::puedenDescartarse()
     return caja.clickedButton() == descartar;
 }
 
-void VentanaPrincipal::exportar(const QString &titulo, const QString &nombreBase, const QString &extension,
-                                Escritor escribir, bool soluciones, const QString &nota, const QString &casillaSoluciones)
+void VentanaPrincipal::exportar(const QString &titulo, const QString &extension, Escritor escribir, bool soluciones,
+                                const QString &nota, const QString &casillaSoluciones)
 {
     if (!hayExamen())
         return;
-    DialogoExportar dialogo(titulo, nombresModelos(), nombreBase, extension, this);
+    DialogoExportar dialogo(titulo, nombresModelos(), nombreBaseFichero(), extension, soluciones, this);
     if (!casillaSoluciones.isEmpty())
-        dialogo.ofrecerSoluciones(casillaSoluciones, soluciones, nombreBaseFichero() + QStringLiteral("_soluciones"));
+        dialogo.ofrecerSoluciones(casillaSoluciones);
     if (dialogo.exec() != QDialog::Accepted)
         return;
     guardarConfiguracion();   // la carpeta, en el banco
@@ -1834,14 +1881,13 @@ void VentanaPrincipal::exportar(const QString &titulo, const QString &nombreBase
 // Cada examen marcado en el diálogo se guarda en su propio fichero (y, si se marca, otro con todos juntos).
 void VentanaPrincipal::exportarPdf()
 {
-    exportar(tr("Exportar exámenes a PDF"), nombreBaseFichero(), QStringLiteral("pdf"), &Exportacion::pdf, false);
+    exportar(tr("Exportar exámenes a PDF"), QStringLiteral("pdf"), &Exportacion::pdf, false);
 }
 
 // Igual que exportarPdf(), pero cada fichero lleva delante la hoja de soluciones de sus exámenes.
 void VentanaPrincipal::exportarSolucionesPdf()
 {
-    exportar(tr("Exportar soluciones a PDF"), nombreBaseFichero() + QStringLiteral("_soluciones"),
-             QStringLiteral("pdf"), &Exportacion::pdf, true);
+    exportar(tr("Exportar soluciones a PDF"), QStringLiteral("pdf"), &Exportacion::pdf, true);
 }
 
 // La casilla del diálogo de exportar a HTML y a LaTeX: con ella llevan lo mismo que el PDF de soluciones.
@@ -1852,14 +1898,20 @@ QString VentanaPrincipal::textoConSoluciones()
 
 void VentanaPrincipal::exportarHtml()
 {
-    exportar(tr("Exportar a HTML (editable en Word / LibreOffice)"), nombreBaseFichero(), QStringLiteral("html"),
-             &Exportacion::html, m_verSoluciones->isChecked(), QString(), textoConSoluciones());
+    exportar(tr("Exportar a HTML (editable en Word / LibreOffice)"), QStringLiteral("html"), &Exportacion::html,
+             m_verSoluciones->isChecked(), QString(), textoConSoluciones());
 }
 
 void VentanaPrincipal::exportarLatex()
 {
-    exportar(tr("Exportar a LaTeX"), nombreBaseFichero(), QStringLiteral("tex"), &Exportacion::latex,
+    exportar(tr("Exportar a LaTeX"), QStringLiteral("tex"), &Exportacion::latex,
              m_verSoluciones->isChecked(), tr("compílelos dos veces con pdflatex"), textoConSoluciones());
+}
+
+void VentanaPrincipal::exportarDocx()
+{
+    exportar(tr("Exportar a Word (.docx)"), QStringLiteral("docx"), &Exportacion::docx, m_verSoluciones->isChecked(),
+             QString(), textoConSoluciones());
 }
 
 void VentanaPrincipal::registrarConvocatoria()

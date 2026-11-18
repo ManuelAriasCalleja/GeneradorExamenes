@@ -152,6 +152,10 @@ private slots:
         QCOMPARE(datos(QStringLiteral("2026_Junio_soluciones_Nacional_Reserva.pdf")), QStringLiteral("Junio 2026 · Nacional Reserva"));
         QCOMPARE(datos(QStringLiteral("2026_Junio_letra_grande_America_Este_Original.pdf"), {"América Este Original"}),
                  QStringLiteral("Junio 2026 · América Este Original"));
+        // Los que exporta ahora el programa, con guiones.
+        QCOMPARE(datos(QStringLiteral("2027-Febrero-Nacional-Reserva-soluciones.pdf")), QStringLiteral("Febrero 2027 · Nacional Reserva"));
+        QCOMPARE(datos(QStringLiteral("2027-Febrero-letra-grande-UE-Original-y-Guinea-soluciones.pdf"), {"UE-Original y Guinea", "UE-Reserva y Guinea"}),
+                 QStringLiteral("Febrero 2027 · UE-Original y Guinea"));
         QCOMPARE(datos(QStringLiteral("examen.pdf")), QStringLiteral(" 0 · Examen"));
     }
 };

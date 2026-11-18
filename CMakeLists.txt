@@ -30,8 +30,10 @@ qt_add_library(nucleo STATIC
     src/resaltado.h src/resaltado.cpp
     src/estilo.h src/estilo.cpp
     src/exportacion.h src/exportacion.cpp
+    src/docx.h src/docx.cpp
+    src/zip.h src/zip.cpp
     src/parecidas.h src/parecidas.cpp
-    src/maquetador.h src/maquetador.cpp
+    src/maquetador.h src/maquetador.cpp src/maqueta.h
     src/modelopreguntas.h src/modelopreguntas.cpp
     src/dialogopregunta.h src/dialogopregunta.cpp
     src/dialogotemas.h src/dialogotemas.cpp
@@ -226,7 +228,7 @@ if(PRUEBAS AND Qt6Test_FOUND)
         file(TO_CMAKE_PATH "${fuentes_windows}" fuentes_windows)
         list(APPEND entorno_pruebas "QT_QPA_FONTDIR=${fuentes_windows}")
     endif()
-    foreach(prueba generador estilo enunciado basedatos maqueta parecidas moodle anteriores interfaz comprobador idiomas bancos_reales)
+    foreach(prueba generador estilo enunciado basedatos maqueta docx parecidas moodle anteriores interfaz comprobador idiomas bancos_reales)
         qt_add_executable(prueba_${prueba} tests/prueba_${prueba}.cpp tests/datos_prueba.h)
         target_link_libraries(prueba_${prueba} PRIVATE nucleo Qt6::Test)
         add_test(NAME ${prueba} COMMAND prueba_${prueba})

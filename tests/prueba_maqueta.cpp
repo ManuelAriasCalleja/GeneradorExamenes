@@ -8,8 +8,14 @@
 #include <QDate>
 #include <QDir>
 #include <QFile>
+#include <QGuiApplication>
+#include <QScreen>
 #include <QTemporaryDir>
+#include <QTextBlock>
+#include <QTextDocument>
+#include <QTextLayout>
 #include <QtTest>
+#include <memory>
 
 namespace {
 
@@ -356,6 +362,99 @@ private slots:
         QVERIFY(Maquetador::examenHtml(m, d, false).contains(QStringLiteral("Asignatura inventada</span><br>Junio 2026</td>")));
     }
 
+    void cabeceraYPieSeEligen()
+    {
+        // Por omisión, la asignatura y la convocatoria van arriba (en la cabecera) y abajo (en el pie, con el examen).
+        const Modelo m = examenes(bancoInventado(), 3, 1).first();
+        DatosConvocatoria d = convocatoria();
+        d.asignatura = QStringLiteral("Asignatura inventada");
+        QString html = Maquetador::examenHtml(m, d, false);
+        QVERIFY(html.contains(QStringLiteral("Asignatura inventada</span><br>Junio 2026</td>")));
+        QString tex = Maquetador::examenesLatex({m}, d, true, QStringLiteral("img"));
+        QVERIFY(tex.contains(QStringLiteral("\\empezarmodelo{Asignatura inventada · Examen 1 · Junio 2026}")));
+        QVERIFY(tex.contains(QStringLiteral("\\empezarmodelo{Asignatura inventada · Soluciones · Junio 2026}")));
+        // Solo la convocatoria arriba y solo la asignatura abajo.
+        d.asignaturaEnCabecera = false;
+        d.convocatoriaEnPie = false;
+        html = Maquetador::examenHtml(m, d, false);
+        QVERIFY(!html.contains(QStringLiteral("Asignatura inventada")));
+        QVERIFY(html.contains(QStringLiteral("<td>Junio 2026</td>")));
+        tex = Maquetador::examenesLatex({m}, d, false, QStringLiteral("img"));
+        QVERIFY(tex.contains(QStringLiteral("\\empezarmodelo{Asignatura inventada · Examen 1}")));
+        QVERIFY(tex.contains(QStringLiteral("\\begin{minipage}[t]{0.58\\linewidth}\nJunio 2026\n\\end{minipage}")));
+        // Nada arriba: sin cabecera, y el recuadro de las instrucciones, sin espacio encima; abajo, solo el examen.
+        d.convocatoriaEnCabecera = false;
+        d.asignaturaEnPie = false;
+        html = Maquetador::examenHtml(m, d, false);
+        QVERIFY(!html.contains(QStringLiteral("Junio 2026")));
+        QVERIFY(html.contains(QStringLiteral("style=\"margin-top:0px; border-collapse")));
+        tex = Maquetador::examenesLatex({m}, d, false, QStringLiteral("img"));
+        QVERIFY(!tex.contains(QStringLiteral("{0.58\\linewidth}")));
+        QVERIFY(tex.contains(QStringLiteral("\\empezarmodelo{Examen 1}")));
+        // La hoja de soluciones conserva su título a la derecha.
+        QVERIFY(Maquetador::solucionesHtml({m}, d).contains(QStringLiteral("font-size:16pt; font-weight:bold\">Soluciones")));
+        QTemporaryDir dir;
+        QVERIFY(Exportacion::pdf(dir.filePath(QStringLiteral("sin.pdf")), {m}, d, true, 0));
+    }
+
+    void puntuacionEnUnaLinea()
+    {
+        const Modelo m = examenes(bancoInventado(), 3, 1).first();
+        DatosConvocatoria d = convocatoria();
+        d.puntosAcierto = 0.5;
+        d.puntosFallo = 0.15;
+        const QString linea = QStringLiteral("Respuesta correcta: +0,50 puntos · incorrecta: −0,15 puntos · en blanco: 0 puntos");
+        const QString html = Maquetador::examenHtml(m, d, false);
+        QVERIFY(html.contains(linea));
+        QVERIFY(Maquetador::examenesLatex({m}, d, false, QStringLiteral("img")).contains(linea));
+        // En la maqueta normal, el recuadro tiene tres líneas: las dos de las instrucciones y la de la puntuación.
+        const std::unique_ptr<QTextDocument> doc(Maquetador::crearDocumento(html, {}, nullptr));
+        doc->setTextWidth(174 / 25.4 * QGuiApplication::primaryScreen()->logicalDotsPerInchY());
+        doc->size();
+        int lineas = 0;
+        for (QTextBlock b = doc->begin(); b.isValid(); b = b.next())
+            if (b.text().contains(QStringLiteral("Respuesta correcta")))
+                lineas = b.layout()->lineCount();
+        QCOMPARE(lineas, 3);
+    }
+
+    void semillaSoloEnLasSolucionesYLasPropiedades()
+    {
+        const Modelo m = examenes(bancoInventado(), 3, 1).first();
+        DatosConvocatoria d = convocatoria();
+        d.semilla = 987654;
+        const QString semilla = QStringLiteral("Semilla: 987654");
+        // En la hoja de soluciones, no en los exámenes (ni con soluciones).
+        QVERIFY(Maquetador::solucionesHtml({m}, d).contains(semilla));
+        QVERIFY(Maquetador::examenesHtml({m}, d, true).contains(semilla));
+        QVERIFY(!Maquetador::examenesHtml({m}, d, false).contains(QStringLiteral("987654")));
+        QVERIFY(!Maquetador::examenHtml(m, d, true, 0, true).contains(QStringLiteral("987654")));
+        // En LaTeX, en un comentario del principio y en las propiedades del PDF; con soluciones, también en la hoja.
+        QString tex = Maquetador::examenesLatex({m}, d, false, QStringLiteral("img"));
+        QVERIFY(tex.section(QLatin1Char('\n'), 0, 0).endsWith(semilla));
+        QVERIFY(tex.contains(QStringLiteral("\\ifdefined\\pdfinfo\\pdfinfo{/Subject (Semilla: 987654)}\\fi")));
+        QVERIFY(!tex.section(QStringLiteral("\n\\begin{document}\n"), 1).contains(QStringLiteral("987654")));
+        tex = Maquetador::examenesLatex({m}, d, true, QStringLiteral("img"));
+        QVERIFY(tex.section(QStringLiteral("\n\\begin{document}\n"), 1).contains(semilla));
+        // Con preguntas cambiadas a mano, la semilla ya no los reproduce, y se dice.
+        d.cambiadosAMano = true;
+        QVERIFY(Maquetador::solucionesHtml({m}, d).contains(semilla + QStringLiteral(" (con preguntas cambiadas a mano)")));
+        // Sin semilla, nada.
+        d.semilla = 0;
+        QVERIFY(!Maquetador::solucionesHtml({m}, d).contains(QStringLiteral("Semilla")));
+        QVERIFY(!Maquetador::examenesLatex({m}, d, true, QStringLiteral("img")).contains(QStringLiteral("Semilla")));
+        // El HTML y el PDF, en sus propiedades.
+        d.semilla = 987654;
+        d.cambiadosAMano = false;
+        QTemporaryDir dir;
+        QVERIFY(Exportacion::html(dir.filePath(QStringLiteral("e.html")), {m}, d, false, 0));
+        const QString html = QString::fromUtf8(leer(dir.filePath(QStringLiteral("e.html"))));
+        QVERIFY(html.contains(QStringLiteral("<meta name=\"generator\" content=\"GeneradorExamenes ")));
+        QCOMPARE(html.count(QStringLiteral("987654")), 1);
+        QVERIFY(Exportacion::pdf(dir.filePath(QStringLiteral("e.pdf")), {m}, d, false, 0));
+        QVERIFY(leer(dir.filePath(QStringLiteral("e.pdf"))).contains("Semilla: 987654"));
+    }
+
     void textosDeLaHojaDeSoluciones()
     {
         Modelo m = examenes(bancoInventado(), 3, 1).first();
@@ -384,7 +483,7 @@ private slots:
         QVERIFY(Exportacion::html(ruta, modelos, convocatoria(), false, 0));
         const QString html = QString::fromUtf8(leer(ruta));
         const Pregunta &p = modelos.first().preguntas.first().pregunta;
-        const QString imagen = QStringLiteral("Examenes_de_junio_imagenes/") + Maquetador::nombreImagen(p);
+        const QString imagen = QStringLiteral("Examenes-de-junio-imagenes/") + Maquetador::nombreImagen(p);
         QVERIFY(html.contains(QStringLiteral("src=\"%1\"").arg(imagen)));
         QVERIFY(!html.contains(QStringLiteral("img:")));
         QCOMPARE(leer(dir.filePath(imagen)), p.imagen);
@@ -400,9 +499,11 @@ private slots:
         const QString ruta = dir.filePath(QStringLiteral("junio.tex"));
         QVERIFY(Exportacion::latex(ruta, modelos, convocatoria(), true, 0));
         const QString tex = QString::fromUtf8(leer(ruta));
-        QVERIFY(tex.startsWith(QStringLiteral("\\documentclass")));
+        // Una línea de comentario con el programa (y la semilla, si se sabe) y el documento.
+        QVERIFY(tex.startsWith(QStringLiteral("% GeneradorExamenes ")));
+        QVERIFY(tex.section(QLatin1Char('\n'), 1).startsWith(QStringLiteral("\\documentclass")));
         QVERIFY(tex.trimmed().endsWith(QStringLiteral("\\end{document}")));
-        const QString imagen = QStringLiteral("junio_imagenes/") + Maquetador::nombreImagen(modelos.first().preguntas.first().pregunta);
+        const QString imagen = QStringLiteral("junio-imagenes/") + Maquetador::nombreImagen(modelos.first().preguntas.first().pregunta);
         QVERIFY(tex.contains(imagen));
         QVERIFY(QFile::exists(dir.filePath(imagen)));
     }

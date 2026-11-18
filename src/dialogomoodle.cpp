@@ -41,7 +41,7 @@ DialogoMoodle::DialogoMoodle(const QVector<Pregunta> &preguntas, const QString &
     const QString carpeta = QSettings().value(QLatin1String(kClaveCarpeta),
                                               QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
     m_ruta = new QLineEdit(carpeta + QLatin1Char('/') + (asignatura.isEmpty() ? QStringLiteral("banco") : limpiarNombreFichero(asignatura))
-                           + QStringLiteral("_moodle.xml"));
+                           + QStringLiteral("-moodle.xml"));
     auto *elegir = new QPushButton(tr("Elegir…"));
     connect(elegir, &QPushButton::clicked, this, &DialogoMoodle::elegirFichero);
     fila->addWidget(new QLabel(tr("Fichero:")));

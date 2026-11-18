@@ -106,18 +106,22 @@ diálogos tienen además un botón «Ayuda». El manual es `recursos/ayuda.html`
 va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay que actualizar los dos.
 
 **Generar examen**
-- Asignatura: va en la cabecera y en el título de la ventana. Es la del banco abierto; si se cambia en la ventana, se
+- Asignatura: va en la cabecera, en el pie de cada página y en el título de la ventana. Es la del banco abierto; si se cambia en la ventana, se
   guarda en el banco. Al crear un banco nuevo se pide.
 - Idioma de los exámenes (castellano o inglés): el de lo que pone el programa en los exámenes y en Moodle. Va con el
   banco, como la asignatura (ver «Idiomas»).
 - Convocatoria (Febrero, Junio, Septiembre…) y año: van en la cabecera («Junio 2026»), en el pie de cada página
   y en el nombre de los ficheros. Al abrir el programa se propone la próxima convocatoria según la fecha: la primera
   de febrero, junio y septiembre cuyo mes aún no ha llegado (el 27 de octubre de 2026, Febrero 2027).
+- Cabecera y pie de página: dos casillas para cada uno, «Asignatura» y «Convocatoria y año», marcadas salvo que se
+  desmarquen y guardadas en cada banco, deciden si la asignatura y la convocatoria van arriba (en la cabecera de cada
+  examen y de la hoja de soluciones) y abajo (en el pie de cada página, en el PDF, el LaTeX y el Word). Sin nada
+  arriba, el examen empieza por el recuadro de las instrucciones.
 - Lista de exámenes de la convocatoria (Nacional Original, Nacional Reserva…) con casillas: se genera un examen
   por cada nombre marcado, en el orden de la lista. La lista se mantiene de un año a otro; los nombres se
   añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando); cada banco tiene la suya. Los botones
-  tienen atajo: Añadir (Alt+D), Quitar (Alt+Q), Todos (Alt+T) y Ninguno (Alt+N). El pie de cada página lleva el nombre
-  del examen, la convocatoria y el año: «Nacional Original · Junio 2026: 1 / 2».
+  tienen atajo: Añadir (Alt+D), Quitar (Alt+Q), Todos (Alt+T) y Ninguno (Alt+N). El pie de cada página lleva la
+  asignatura, el nombre del examen, la convocatoria y el año: «Asignatura · Nacional Original · Junio 2026: 1 / 2».
 - Número de preguntas de cada tema. Junto a cada tema se ve cuántas preguntas distintas hay. Los botones de reparto
   son los del banco (por ejemplo, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3) más «Ninguna»;
   «Guardar reparto…» guarda los números de ese momento como un reparto nuevo, con nombre, y con el botón derecho
@@ -127,16 +131,19 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
 - Puntuación: sobre 10 puntos, cada fallo resta el 30 % de un acierto (+1/−0,30 con 10 preguntas, +0,50/−0,15
   con 20), el 33,3 % (lo justo para que contestar al azar dé 0 de media: +1/−0,33 y +0,50/−0,17) o nada; o
   personalizada, con los puntos que se escriban. (Las versiones anteriores tenían la casilla «Automática»: marcada,
-  es la del 30 %; sin marcar, la personalizada.)
-- Exportar a PDF, a HTML editable en Word/LibreOffice o a LaTeX: se abre un diálogo donde se elige la
-  carpeta y el nombre del fichero de cada examen (por defecto `2026_Junio_Nacional_Original.pdf`…) y se
+  es la del 30 %; sin marcar, la personalizada.) Va en una línea dentro del recuadro de las instrucciones:
+  «Respuesta correcta: +0,50 puntos · incorrecta: −0,15 puntos · en blanco: 0 puntos».
+- Exportar a PDF, a HTML editable en Word/LibreOffice, a LaTeX o a Word (.docx): se abre un diálogo donde se elige la
+  carpeta y el nombre del fichero de cada examen (por defecto `2026-Junio-Nacional-Original.pdf`…) y se
   exportan todos de una vez; también se puede marcar «Todos los exámenes en un fichero». Las soluciones en PDF
-  se exportan igual, por examen (`2026_Junio_soluciones_Nacional_Original.pdf`…) o todas juntas: primero la hoja
+  se exportan igual, por examen (`2026-Junio-Nacional-Original-soluciones.pdf`…) o todas juntas: primero la hoja
   de soluciones (tabla de estructura por temas como la de las instrucciones y, de cada examen, la plantilla de
   corrección, «1 C», «2 A»…, con el código y la referencia de cada pregunta) y después los exámenes con la
-  respuesta correcta en verde y, debajo de cada pregunta, su explicación y su referencia, si las tiene. Al terminar, el botón «Abrir la carpeta» de la barra de estado abre la carpeta de los ficheros. En HTML y
-  LaTeX, la casilla «Con soluciones» del diálogo (propuesta como esté «Mostrar soluciones») decide
-  si van con ellas (las mismas que en el PDF), y entonces los nombres llevan también «_soluciones».
+  respuesta correcta en verde y, debajo de cada pregunta, su explicación y su referencia, si las tiene. Al terminar, el botón «Abrir la carpeta» de la barra de estado abre la carpeta de los ficheros. En HTML,
+  LaTeX y Word, la casilla «Con soluciones» del diálogo (propuesta como esté «Mostrar soluciones») decide
+  si van con ellas (las mismas que en el PDF), y entonces los nombres llevan también «-soluciones» al final. Las
+  palabras de los nombres van separadas por guiones y el de las soluciones es el del examen con «-soluciones» al
+  final, así que exámenes y soluciones caben en la misma carpeta sin pisarse y cada uno queda junto al otro.
   También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar este examen…»): se elige la
   duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar «Empezar».
 - Una pregunta que no convenza se cambia por otra sin volver a generar: botón derecho sobre ella en la vista («Cambiar
@@ -151,30 +158,39 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   exámenes ya generados, como no llega a los registrados en el historial.
 - Una pregunta con imagen lleva las opciones una debajo de otra y la imagen a su derecha si, al lado de la imagen,
   cada opción cabe en una línea y así no ocupa más; si no, la imagen va bajo el enunciado y las opciones debajo. Igual
-  en la vista, el PDF, el HTML y el LaTeX; con letra grande, la imagen siempre debajo.
+  en la vista, el PDF, el HTML, el LaTeX y el Word; con letra grande, la imagen siempre debajo.
 - Con la opción «Ajustar a una página por cada 10 preguntas» (marcada salvo que se desmarque, y guardada en cada
   banco), cada examen cabe en una página por cada 10 preguntas (un examen de 10 preguntas, en un folio). Si con la
   maqueta normal no cabe, el programa la compacta por niveles: opciones en dos columnas (a c / b d) cuando
   así ocupan menos líneas, menos separación entre preguntas y letra algo menor (hasta 9 pt). El nivel usado
-  se indica junto a la semilla y vale para todos los exámenes de la convocatoria, la vista previa y las tres
+  se indica junto a la semilla y vale para todos los exámenes de la convocatoria, la vista previa y las
   exportaciones; si ni así cabe, se avisa. Sin marcar, los exámenes van con la maqueta normal y ocupan las
   páginas que necesiten.
 - «Letra grande», junto a «Mostrar soluciones», es la versión adaptada para estudiantes con discapacidad
   visual, lo contrario de la maqueta compacta: letra de 16 pt (también la cabecera y las instrucciones), los
   enunciados en negrita sin cursiva, una opción por línea, más separación entre preguntas e imágenes más
   grandes, sin límite de páginas. Vale para la
-  vista, la impresión y las tres exportaciones, y los ficheros llevan `_letra_grande` en el nombre
-  (`2026_Junio_letra_grande_Nacional_Original.pdf`) para no pisar los normales.
+  vista, la impresión y las exportaciones, y los ficheros llevan `-letra-grande` en el nombre
+  (`2026-Junio-letra-grande-Nacional-Original.pdf`) para no pisar los normales.
 - La vista del examen se amplía y se reduce como un navegador: Ctrl + rueda del ratón, Ctrl++ y Ctrl+-, y Ctrl+0
   para el tamaño normal (también en el menú del botón derecho). Solo cambia la pantalla, no la impresión ni las
   exportaciones, y el tamaño se recuerda de una vez a otra.
-- *Exportar LaTeX…* guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>_imagenes` al
+- *Exportar LaTeX…* guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>-imagenes` al
   lado). Con la casilla «Con soluciones» del diálogo marcada incluye también la hoja de soluciones y las
   soluciones marcadas, con la explicación y la referencia de cada pregunta. Hay que compilarlo dos veces para que salga el «página / total» del pie:
   `pdflatex examen.tex && pdflatex examen.tex`.
+- *Exportar Word…* guarda `.docx` (Office Open XML, para Word o LibreOffice) con la misma maqueta que el PDF y las
+  imágenes dentro: cada examen en su sección, que empieza en página nueva y tiene su pie «…: página / total» (el total
+  es la página de un marcador al final de la sección, que entienden Word y LibreOffice), y las preguntas sin partirse
+  entre dos páginas. Lo escribe `src/docx.cpp`, sin bibliotecas externas: el ZIP lo hace `src/zip.cpp` con la zlib
+  de Qt.
 - La semilla permite volver a generar exactamente los mismos exámenes, siempre que no hayan cambiado ni el banco
   ni el historial. Mientras esté escrita, salen siempre los mismos: el campo se ve en amarillo, la línea gris dice
   «fija» y al generar se avisa; se borra con la cruz del campo. Para recuperar los de una convocatoria pasada, mejor el historial.
+  No va en los exámenes que leen los estudiantes, pero sí en la hoja de soluciones (bajo «Soluciones») y en las
+  propiedades de los ficheros exportados: en el PDF, como programa que lo creó; en el Word, en los comentarios; en el
+  HTML, en la etiqueta `generator`; y en el LaTeX, en un comentario de la primera línea y en el asunto del PDF al
+  compilarlo. Con preguntas cambiadas a mano, se añade «(con preguntas cambiadas a mano)».
 - *Registrar convocatoria…* guarda en el historial (dentro de la base de datos) los exámenes generados, con una
   copia de sus preguntas tal como salieron y el orden de las opciones. Si ya había exámenes registrados con el
   mismo nombre, convocatoria y año, se sustituyen. Mientras los exámenes estén exportados (o impresos) y sin

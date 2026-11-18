@@ -21,17 +21,19 @@ public:
     };
 
     // 'nombres' son los de los exámenes (Nacional Original...) y 'nombreBase' el principio propuesto para el nombre de
-    // los ficheros (sin extensión): «<nombreBase>_<examen>», y el de todos juntos, «<nombreBase>». 'extension' va sin punto.
+    // los ficheros (sin extensión): «<nombreBase>-<examen>», y el de todos juntos, «<nombreBase>». Con 'soluciones',
+    // se propone el mismo nombre con «-soluciones» al final, para que cada fichero quede junto al de sin soluciones
+    // en la misma carpeta sin pisarlo. 'extension' va sin punto.
     DialogoExportar(const QString &titulo, const QStringList &nombres, const QString &nombreBase,
-                    const QString &extension, QWidget *parent = nullptr);
+                    const QString &extension, bool soluciones, QWidget *parent = nullptr);
 
     QString carpeta() const;
     // Ficheros marcados, en el orden de la tabla.
     QVector<Fichero> ficheros() const;
 
-    // Pone la casilla «Con soluciones» (con el texto 'texto' y marcada o no). Al marcarla, los nombres propuestos que
-    // no se hayan cambiado empiezan por 'nombreBaseSoluciones' en lugar de por el 'nombreBase' de los otros.
-    void ofrecerSoluciones(const QString &texto, bool marcada, const QString &nombreBaseSoluciones);
+    // Pone la casilla «Con soluciones» (con el texto 'texto'), marcada si se han propuesto los nombres con soluciones.
+    // Al marcarla o desmarcarla, los nombres propuestos que no se hayan cambiado pasan a llevar «-soluciones» o no.
+    void ofrecerSoluciones(const QString &texto);
     bool conSoluciones() const;
 
 public slots:
@@ -48,7 +50,7 @@ private:
     QCheckBox *m_soluciones = nullptr;
     QStringList m_nombres;   // de los exámenes
     QString m_nombreBase;
-    QString m_nombreBaseSoluciones;
     QString m_extension;
+    bool m_solucionesPropuestas;   // si los nombres que se propusieron al abrir son los de con soluciones
     int m_numModelos;
 };
