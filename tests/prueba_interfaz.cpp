@@ -12,8 +12,10 @@
 #include "dialogotemas.h"
 #include "generador.h"
 #include "idioma.h"
+#include "modelopreguntas.h"
 #include "utilidades.h"
 #include "ventanaprincipal.h"
+#include "verificacion.h"
 #include "visorampliable.h"
 
 #include <QAbstractButton>
@@ -30,6 +32,7 @@
 #include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
+#include <QInputDialog>
 #include <QListWidget>
 #include <QMenu>
 #include <QMenuBar>
@@ -1162,6 +1165,224 @@ private slots:
         QSettings().clear();
     }
 
+    void panelDeVerificacion()
+    {
+        // Pocos clics: al marcar «Verificada por humanos» se marcan los de la última; al marcar a alguien, también la
+        // casilla; al desmarcarla, nadie, y si se vuelve a marcar, los que había.
+        QTemporaryDir dir;
+        BaseDatos bd;
+        QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+        for (const char *nombre : {"Persona Uno", "Persona Dos", "Persona Tres"})
+            QVERIFY(bd.anadirVerificador(QString::fromUtf8(nombre)));
+        QVERIFY(bd.guardarUltimosVerificadores({QStringLiteral("Persona Dos"), QStringLiteral("Persona Tres")}));
+        PanelVerificacion panel(&bd);
+        QMap<QString, QCheckBox *> casillas;
+        for (QCheckBox *c : panel.findChildren<QCheckBox *>())
+            casillas.insert(c->text(), c);
+        QCOMPARE(casillas.size(), 4);
+        QCheckBox *verificada = casillas.value(QStringLiteral("Verificada por humanos"));
+        QVERIFY(verificada);
+        Pregunta p;
+        panel.ponerPregunta(p);
+        QVERIFY(panel.sinCambios());
+        verificada->setChecked(true);
+        QCOMPARE(panel.verificadores(), (QStringList{QStringLiteral("Persona Dos"), QStringLiteral("Persona Tres")}));
+        QVERIFY(!panel.sinCambios());
+        casillas.value(QStringLiteral("Persona Tres"))->setChecked(false);
+        verificada->setChecked(false);
+        QVERIFY(panel.verificadores().isEmpty());
+        verificada->setChecked(true);
+        QCOMPARE(panel.verificadores(), QStringList{QStringLiteral("Persona Dos")});   // los de antes de desmarcarla
+        // Al marcar a alguien en una sin verificar, queda verificada (solo por esa persona).
+        panel.ponerPregunta(p);
+        casillas.value(QStringLiteral("Persona Uno"))->setChecked(true);
+        QVERIFY(verificada->isChecked());
+        QCOMPARE(panel.verificadores(), QStringList{QStringLiteral("Persona Uno")});
+        panel.recordar();
+        QCOMPARE(bd.ultimosVerificadores(), QStringList{QStringLiteral("Persona Uno")});
+        // Una verificada muestra quién la verificó, y sin cambios no hay nada que guardar.
+        p.verificada = true;
+        p.verificadores = {QStringLiteral("Persona Tres")};
+        panel.ponerPregunta(p);
+        QVERIFY(panel.sinCambios());
+        QCOMPARE(panel.verificadores(), QStringList{QStringLiteral("Persona Tres")});
+        panel.marcarVerificada();   // ya lo está: no cambia
+        QVERIFY(panel.sinCambios());
+    }
+
+    void dialogoDeVerificadores()
+    {
+        QTemporaryDir dir;
+        BaseDatos bd;
+        QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+        DialogoVerificadores d(&bd);
+        d.show();
+        auto boton = [&d](const QString &texto) {
+            for (QPushButton *b : d.findChildren<QPushButton *>())
+                if (b->text() == texto)
+                    return b;
+            return static_cast<QPushButton *>(nullptr);
+        };
+        auto escribir = [](const QString &texto) {
+            QTimer::singleShot(100, [texto] {
+                if (auto *e = qobject_cast<QInputDialog *>(QApplication::activeModalWidget())) {
+                    e->setTextValue(texto);
+                    e->accept();
+                }
+            });
+        };
+        auto *lista = d.findChild<QListWidget *>();
+        escribir(QStringLiteral("Persona Nueva"));
+        boton(QStringLiteral("Añadir…"))->click();
+        QCOMPARE(bd.verificadores(), QStringList{QStringLiteral("Persona Nueva")});
+        QCOMPARE(lista->count(), 1);
+        QVERIFY(d.hayCambios());
+        escribir(QStringLiteral("Persona Renombrada"));
+        boton(QStringLiteral("Cambiar el nombre…"))->click();
+        QCOMPARE(bd.verificadores(), QStringList{QStringLiteral("Persona Renombrada")});
+        QCOMPARE(d.renombrados().value(QStringLiteral("Persona Nueva")), QStringLiteral("Persona Renombrada"));
+        responder(QStringLiteral("Sí"));
+        boton(QStringLiteral("Quitar"))->click();
+        QVERIFY(bd.verificadores().isEmpty());
+        QCOMPARE(lista->count(), 0);
+        QVERIFY(!boton(QStringLiteral("Quitar"))->isEnabled());
+    }
+
+    void ventanaVerificaPreguntas()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(ruta));
+            QVERIFY(bd.anadirVerificador(QStringLiteral("Persona Uno")));
+            QVERIFY(bd.anadirVerificador(QStringLiteral("Otra Persona")));
+        }
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        auto verificadas = [&ruta]() {
+            BaseDatos bd;
+            QStringList res;
+            if (bd.abrir(ruta))
+                for (const Pregunta &p : bd.preguntas())
+                    if (p.verificada)
+                        res << p.codigoCompleto() + QLatin1Char(':') + p.verificadores.join(QLatin1Char(','));
+            return res;
+        };
+        auto pulsar = [](QWidget *w, const QString &texto) {
+            for (QPushButton *b : w->findChildren<QPushButton *>())
+                if (b->text() == texto && b->isEnabled() && b->isVisible()) {
+                    b->click();
+                    return true;
+                }
+            return false;
+        };
+        auto *tabla = v.findChild<QTableView *>();
+        tabla->setCurrentIndex(tabla->model()->index(0, 0));
+
+        // Desde la lista: la primera vez hay que decir quién; después, «Verificada, siguiente» basta (Intro).
+        QString aviso, posicion;
+        QTimer::singleShot(100, [&] {
+            auto *d = qobject_cast<DialogoVerificar *>(QApplication::activeModalWidget());
+            if (!d)
+                return;
+            pulsar(d, QStringLiteral("&Verificada, siguiente"));
+            for (QLabel *l : d->findChildren<QLabel *>())
+                if (l->isVisible() && l->text().startsWith(QStringLiteral("Marque")))
+                    aviso = l->text();
+            for (QCheckBox *c : d->findChildren<QCheckBox *>())
+                if (c->text() == QStringLiteral("Persona Uno"))
+                    c->setChecked(true);
+            pulsar(d, QStringLiteral("&Verificada, siguiente"));
+            QTest::keyClick(d, Qt::Key_Return);
+            for (QLabel *l : d->findChildren<QLabel *>())
+                if (l->text().startsWith(QStringLiteral("Pregunta ")))
+                    posicion = l->text();
+            d->reject();
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "verificarPregunta"));
+        QCOMPARE(aviso, QStringLiteral("Marque quién la ha verificado."));
+        QVERIFY2(posicion.startsWith(QStringLiteral("Pregunta 3 de ")), qPrintable(posicion));
+        QCOMPARE(verificadas(), (QStringList{QStringLiteral("T1-1:Persona Uno"), QStringLiteral("T1-2:Persona Uno")}));
+        // En la lista se ve, y la selección se queda en la última que se veía.
+        QCOMPARE(tabla->model()->index(0, ModeloPreguntas::ColVerificada).data().toString(), QStringLiteral("✓ Persona Uno"));
+        QCOMPARE(tabla->currentIndex().row(), 2);
+
+        // En el editor: al marcar «Verificada por humanos», los de la última.
+        QTimer::singleShot(100, [&] {
+            auto *d = qobject_cast<DialogoPregunta *>(QApplication::activeModalWidget());
+            if (!d)
+                return;
+            for (QCheckBox *c : d->findChildren<QCheckBox *>())
+                if (c->text() == QStringLiteral("Verificada por humanos"))
+                    c->setChecked(true);
+            responder(QStringLiteral("Guardar así"));
+            pulsar(d, QStringLiteral("Guardar"));
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "editarPregunta"));
+        QCOMPARE(verificadas().size(), 3);
+        QVERIFY(verificadas().contains(QStringLiteral("T1-3:Persona Uno")));
+
+        // Todas las del tema 1, de una vez (las de la lista con su filtro), por las dos personas.
+        QComboBox *filtroTema = nullptr;
+        for (QComboBox *c : v.findChildren<QComboBox *>())
+            if (c->itemText(0) == QStringLiteral("Todos los temas"))
+                filtroTema = c;
+        QVERIFY(filtroTema);
+        filtroTema->setCurrentIndex(1);
+        const int delTema1 = tabla->model()->rowCount();
+        QTimer::singleShot(100, [&] {
+            QWidget *d = QApplication::activeModalWidget();
+            if (!d)
+                return;
+            for (QCheckBox *c : d->findChildren<QCheckBox *>())
+                c->setChecked(true);
+            pulsar(d, QStringLiteral("Marcar como verificadas"));
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "verificarLista"));
+        QCOMPARE(verificadas().size(), delTema1);
+        QVERIFY(verificadas().contains(QStringLiteral("T1-1:Otra Persona,Persona Uno")));
+        filtroTema->setCurrentIndex(0);
+
+        // Al generar solo con las verificadas, solo salen las del tema 1, y la vista lo marca (no los ficheros).
+        QCheckBox *soloVerificadas = nullptr;
+        for (QCheckBox *c : v.findChildren<QCheckBox *>())
+            if (c->text() == QStringLiteral("Solo preguntas verificadas por humanos"))
+                soloVerificadas = c;
+        QVERIFY(soloVerificadas);
+        QVERIFY(!soloVerificadas->isChecked());
+        soloVerificadas->setChecked(true);
+        QMetaObject::invokeMethod(&v, "generar");
+        QTextBrowser *visor = nullptr;
+        for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
+            if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
+                visor = t;
+        QVERIFY(visor);
+        QVERIFY(visor->toPlainText().contains(QStringLiteral("verificada: Otra Persona, Persona Uno")));
+        QVERIFY(!visor->toPlainText().contains(QStringLiteral("sin verificar")));
+        QCOMPARE(visor->toPlainText().count(QStringLiteral("verificada: ")), 3);   // las 3 del tema 1
+        soloVerificadas->setChecked(false);
+        QMetaObject::invokeMethod(&v, "generar");
+        QVERIFY(visor->toPlainText().contains(QStringLiteral("sin verificar")));
+
+        // Desde el examen: se recorren sus preguntas y la vista se pone al día.
+        QTimer::singleShot(100, [&] {
+            auto *d = qobject_cast<DialogoVerificar *>(QApplication::activeModalWidget());
+            if (!d)
+                return;
+            for (int i = 0; i < 20 && pulsar(d, QStringLiteral("&Verificada, siguiente")); ++i) {
+            }
+            pulsar(d, QStringLiteral("&Verificada"));
+            d->reject();
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "verificarPreguntaExamen"));
+        QVERIFY2(!visor->toPlainText().contains(QStringLiteral("sin verificar")), qPrintable(visor->toPlainText()));
+        QSettings().clear();
+    }
+
     void visorEscalaLaLetraYLasImagenes()
     {
         QTextDocument doc;
@@ -1486,7 +1707,8 @@ private slots:
         QVERIFY2(!secciones.contains(QString()), "hay un título sin ancla: el índice no puede llevar a él");
         // Los apartados a los que llevan F1 y el botón «Ayuda» de cada parte del programa.
         for (const char *s : {"generar", "banco", "editor", "parecidas", "temas", "practicar", "estilo", "exportar",
-                              "historial", "anteriores", "moodle", "comprobarjson", "formatojson", "idioma"})
+                              "historial", "anteriores", "moodle", "comprobarjson", "formatojson", "idioma", "verificar",
+                              "verificadores"})
             QVERIFY2(secciones.contains(QLatin1String(s)), s);
 
         // Los enlaces del manual llevan a anclas que existen.

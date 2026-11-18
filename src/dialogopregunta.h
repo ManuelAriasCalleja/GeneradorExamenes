@@ -6,8 +6,11 @@
 #include <QDialog>
 #include <QVector>
 
+class BaseDatos;
+class PanelVerificacion;
 class QCheckBox;
 class QComboBox;
+class QVBoxLayout;
 class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
@@ -35,6 +38,10 @@ public:
     // Añade un botón («Guardar y siguiente», «Guardar y nueva») que guarda y pide eso.
     void anadirBoton(Despues despues, const QString &texto);
     Despues despues() const { return m_despues; }
+
+    // Añade al formulario la verificación por personas (Pregunta::verificada), con los verificadores de 'bd'. Sin
+    // ella, la pregunta guardada conserva la verificación que tenía.
+    void ponerVerificacion(BaseDatos *bd);
 
 public slots:
     void accept() override;
@@ -85,5 +92,7 @@ private:
     QLabel *m_parecidas;
     QTimer *m_temporizadorParecidas;   // para no buscar en todo el banco con cada tecla
     QDialogButtonBox *m_botones;
+    QVBoxLayout *m_formulario;
+    PanelVerificacion *m_verificacion = nullptr;
     Despues m_despues = Cerrar;
 };

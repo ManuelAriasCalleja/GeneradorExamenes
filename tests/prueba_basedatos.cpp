@@ -24,7 +24,8 @@ QString describir(const Pregunta &p)
 {
     return QStringList{p.codigoCompleto(), p.enunciado, p.opciones.join(QLatin1Char('|')), QString::number(p.correcta),
                        p.referencia, p.estado, QString::number(p.old), QString::number(p.revisar), p.pseudoCon, p.explicacion,
-                       p.notas, QString::fromLatin1(p.imagen.toBase64())}
+                       p.notas, QString::fromLatin1(p.imagen.toBase64()), QString::number(p.verificada),
+                       p.verificadores.join(QLatin1Char('|'))}
         .join(QLatin1Char('#'));
 }
 
@@ -258,6 +259,170 @@ private slots:
         QVERIFY2(bd.abrir(vacio), qPrintable(bd.ultimoError()));
         QVERIFY(bd.asignatura().isEmpty());
         QVERIFY(bd.repartos().isEmpty());
+    }
+
+    void verificadoresYVerificacion()
+    {
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd, 2, 3), qPrintable(bd.ultimoError()));
+        QVERIFY(bd.verificadores().isEmpty());
+        QVERIFY(bd.anadirVerificador(QStringLiteral("Persona Uno")));
+        QVERIFY(bd.anadirVerificador(QStringLiteral("  Otra Persona ")));
+        QVERIFY(!bd.anadirVerificador(QStringLiteral("persona uno")));   // sin distinguir mayúsculas
+        QVERIFY(!bd.anadirVerificador(QStringLiteral(" ")));
+        QCOMPARE(bd.verificadores(), (QStringList{QStringLiteral("Otra Persona"), QStringLiteral("Persona Uno")}));
+
+        // Al guardar una pregunta verificada, sus verificadores (los que no estaban, se añaden), por orden alfabético.
+        Pregunta p = bd.preguntas().first();
+        QVERIFY(!p.verificada);
+        p.verificada = true;
+        p.verificadores = {QStringLiteral("Persona Uno"), QStringLiteral("Alguien Nuevo")};
+        QVERIFY2(bd.guardarPregunta(p), qPrintable(bd.ultimoError()));
+        QCOMPARE(bd.preguntas().first().verificadores, (QStringList{QStringLiteral("Alguien Nuevo"), QStringLiteral("Persona Uno")}));
+        QVERIFY(bd.preguntas().first().verificada);
+        QCOMPARE(bd.verificadores().size(), 3);
+        QCOMPARE(bd.preguntasVerificadasPor(QStringLiteral("Persona Uno")), 1);
+        // Sin verificar, sin verificadores.
+        p.verificada = false;
+        QVERIFY(bd.guardarPregunta(p));
+        QVERIFY(bd.preguntas().first().verificadores.isEmpty());
+        QCOMPARE(bd.preguntasVerificadasPor(QStringLiteral("Persona Uno")), 0);
+
+        // Solo la verificación, sin tocar lo demás; de una o de varias.
+        const int id = bd.preguntas().at(1).id;
+        QVERIFY(bd.guardarVerificacion(id, true, {QStringLiteral("Otra Persona")}));
+        QCOMPARE(bd.preguntas().at(1).verificadores, QStringList{QStringLiteral("Otra Persona")});
+        QCOMPARE(bd.preguntas().at(1).enunciado, bancoInventado(2, 3).at(1).enunciado);
+        QVector<Pregunta> varias = bd.preguntas().mid(2, 2);
+        for (Pregunta &v : varias) {
+            v.verificada = true;
+            v.verificadores = {QStringLiteral("Persona Uno"), QStringLiteral("Otra Persona")};
+        }
+        QVERIFY(bd.guardarVerificaciones(varias));
+        QCOMPARE(bd.preguntasVerificadasPor(QStringLiteral("Persona Uno")), 2);
+
+        // Los últimos que han verificado, para proponerlos en la siguiente; con los nombres cambiados y sin los quitados.
+        QVERIFY(bd.guardarUltimosVerificadores({QStringLiteral("Persona Uno"), QStringLiteral("Otra Persona")}));
+        QVERIFY(!bd.cambiarNombreVerificador(QStringLiteral("Persona Uno"), QStringLiteral("otra persona")));
+        QVERIFY(bd.cambiarNombreVerificador(QStringLiteral("Persona Uno"), QStringLiteral("Persona Primera")));
+        QCOMPARE(bd.preguntas().at(2).verificadores, (QStringList{QStringLiteral("Otra Persona"), QStringLiteral("Persona Primera")}));
+        QCOMPARE(bd.ultimosVerificadores(), (QStringList{QStringLiteral("Persona Primera"), QStringLiteral("Otra Persona")}));
+        // Quitar a alguien no quita la verificación de sus preguntas.
+        QVERIFY(bd.borrarVerificador(QStringLiteral("Otra Persona")));
+        QCOMPARE(bd.ultimosVerificadores(), QStringList{QStringLiteral("Persona Primera")});
+        QVERIFY(bd.preguntas().at(1).verificada);
+        QVERIFY(bd.preguntas().at(1).verificadores.isEmpty());
+        QCOMPARE(bd.preguntas().at(2).verificadores, QStringList{QStringLiteral("Persona Primera")});
+        // Al borrar una pregunta, su verificación se va con ella.
+        QVERIFY(bd.borrarPregunta(bd.preguntas().at(2).id));
+        QCOMPARE(bd.preguntasVerificadasPor(QStringLiteral("Persona Primera")), 1);
+    }
+
+    void verificacionEnElJson()
+    {
+        BaseDatos origen;
+        QVERIFY2(abrirConBanco(origen, 2, 3), qPrintable(origen.ultimoError()));
+        QVERIFY(origen.anadirVerificador(QStringLiteral("Sin Preguntas")));
+        QVERIFY(origen.guardarVerificacion(origen.preguntas().first().id, true, {QStringLiteral("Persona Uno")}));
+        const QString json = m_dir.filePath(QStringLiteral("verificacion.json"));
+        QVERIFY(origen.exportarJson(json));
+        {
+            QFile f(json);
+            QVERIFY(f.open(QIODevice::ReadOnly));
+            const QJsonObject raiz = QJsonDocument::fromJson(f.readAll()).object();
+            QCOMPARE(raiz.value(QStringLiteral("verificadores")).toArray().size(), 2);
+            const QJsonArray preguntas = raiz.value(QStringLiteral("temas")).toArray().first().toObject().value(QStringLiteral("preguntas")).toArray();
+            QCOMPARE(preguntas.at(0).toObject().value(QStringLiteral("verificada")), QJsonValue(true));
+            QCOMPARE(preguntas.at(0).toObject().value(QStringLiteral("verificadores")).toArray().first().toString(), QStringLiteral("Persona Uno"));
+            QCOMPARE(preguntas.at(1).toObject().value(QStringLiteral("verificada")), QJsonValue(false));   // dicho siempre
+            QVERIFY(!preguntas.at(1).toObject().contains(QStringLiteral("verificadores")));
+        }
+        // Ida y vuelta: la verificación y los verificadores (también los que aún no han verificado nada).
+        BaseDatos destino;
+        QVERIFY(destino.abrir(m_dir.filePath(QStringLiteral("verificacion.db"))));
+        QVERIFY(destino.importarJson(json, false) > 0);
+        QCOMPARE(describir(destino.preguntas()), describir(origen.preguntas()));
+        QCOMPARE(destino.verificadores(), origen.verificadores());
+        QVERIFY(destino.diferenciasConJson(json).isEmpty());
+
+        // Un JSON que no dice la verificación (escrito a mano o por una IA): las que no cambian la conservan, y las que
+        // cambian quedan sin verificar; tampoco es una diferencia con el banco.
+        QVERIFY(destino.guardarVerificacion(destino.preguntas().at(1).id, true, {QStringLiteral("Persona Uno")}));
+        QVERIFY(cambiarJson(json, [](QJsonObject &raiz) {
+            raiz.remove(QStringLiteral("verificadores"));
+            QJsonArray temas = raiz.value(QStringLiteral("temas")).toArray();
+            QJsonObject tema = temas.at(0).toObject();
+            QJsonArray preguntas = tema.value(QStringLiteral("preguntas")).toArray();
+            for (QJsonValueRef v : preguntas) {
+                QJsonObject p = v.toObject();
+                p.remove(QStringLiteral("verificada"));
+                p.remove(QStringLiteral("verificadores"));
+                v = p;
+            }
+            QJsonObject segunda = preguntas.at(1).toObject();
+            segunda[QStringLiteral("enunciado")] = QStringLiteral("Enunciado inventado cambiado por otro:");
+            preguntas[1] = segunda;
+            tema[QStringLiteral("preguntas")] = preguntas;
+            temas[0] = tema;
+            raiz[QStringLiteral("temas")] = temas;
+        }));
+        QCOMPARE(destino.diferenciasConJson(json), QStringList{QStringLiteral("1 pregunta distinta: T1-2")});
+        for (bool reemplazar : {false, true}) {
+            QVERIFY(destino.guardarVerificacion(destino.preguntas().at(1).id, true, {QStringLiteral("Persona Uno")}));
+            QVERIFY(destino.importarJson(json, reemplazar) > 0);
+            const QVector<Pregunta> despues = destino.preguntas();
+            QVERIFY2(despues.at(0).verificada, reemplazar ? "reemplazando" : "actualizando");
+            QCOMPARE(despues.at(0).verificadores, QStringList{QStringLiteral("Persona Uno")});
+            // La T1-2 la primera vez ha cambiado; la segunda, ya no (el banco tiene el texto del JSON).
+            QCOMPARE(despues.at(1).verificada, reemplazar);
+            QVERIFY(!despues.at(2).verificada);
+        }
+        // Si el JSON dice que no está verificada, no lo está.
+        QVERIFY(destino.guardarVerificacion(destino.preguntas().at(1).id, true, {}));
+        QVERIFY(destino.exportarJson(json));
+        QVERIFY(destino.guardarVerificacion(destino.preguntas().at(2).id, true, {QStringLiteral("Persona Uno")}));
+        QCOMPARE(destino.diferenciasConJson(json), QStringList{QStringLiteral("1 pregunta distinta: T1-3")});
+        QVERIFY(destino.importarJson(json, false) > 0);
+        QVERIFY(!destino.preguntas().at(2).verificada);
+    }
+
+    void bancoSinVerificacionSePoneAlDia()
+    {
+        // Un banco de la versión 1 del esquema: las preguntas no dicen si están verificadas.
+        const QString ruta = m_dir.filePath(QStringLiteral("version1.db"));
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("version1"));
+            db.setDatabaseName(ruta);
+            QVERIFY(db.open());
+            QSqlQuery q(db);
+            QVERIFY(q.exec(QStringLiteral("CREATE TABLE temas (id INTEGER PRIMARY KEY AUTOINCREMENT, numero INTEGER NOT NULL UNIQUE,"
+                                          " titulo TEXT NOT NULL, autor TEXT NOT NULL DEFAULT '',"
+                                          " formato_referencia TEXT NOT NULL DEFAULT '')")));
+            QVERIFY(q.exec(QStringLiteral(
+                "CREATE TABLE preguntas (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                " tema_id INTEGER NOT NULL REFERENCES temas(id) ON DELETE CASCADE, numero INTEGER NOT NULL,"
+                " variante TEXT NOT NULL DEFAULT '', old INTEGER NOT NULL DEFAULT 0, estado TEXT NOT NULL DEFAULT 'activa',"
+                " revisar INTEGER NOT NULL DEFAULT 0, enunciado TEXT NOT NULL, opcion_a TEXT NOT NULL, opcion_b TEXT NOT NULL,"
+                " opcion_c TEXT NOT NULL, opcion_d TEXT NOT NULL, correcta TEXT NOT NULL, referencia TEXT NOT NULL DEFAULT '',"
+                " explicacion TEXT NOT NULL DEFAULT '', notas TEXT NOT NULL DEFAULT '', pseudo_con TEXT NOT NULL DEFAULT '',"
+                " imagen BLOB, UNIQUE (tema_id, numero, variante))")));
+            QVERIFY(q.exec(QStringLiteral("INSERT INTO temas (numero, titulo) VALUES (1, 'Tema inventado')")));
+            QVERIFY(q.exec(QStringLiteral("INSERT INTO preguntas (tema_id, numero, enunciado, opcion_a, opcion_b, opcion_c, opcion_d,"
+                                          " correcta) VALUES (1, 1, 'Enunciado inventado:', 'Una.', 'Dos.', 'Tres.', 'Cuatro.', 'A')")));
+            QVERIFY(q.exec(QStringLiteral("PRAGMA user_version = 1")));
+        }
+        QSqlDatabase::removeDatabase(QStringLiteral("version1"));
+        BaseDatos bd;
+        QVERIFY2(bd.abrir(ruta), qPrintable(bd.ultimoError()));
+        Pregunta p = bd.preguntas().first();
+        QVERIFY(!p.verificada);
+        p.verificada = true;
+        p.verificadores = {QStringLiteral("Persona Uno")};
+        QVERIFY2(bd.guardarPregunta(p), qPrintable(bd.ultimoError()));
+        bd.cerrar();
+        QVERIFY(bd.abrir(ruta));
+        QCOMPARE(bd.preguntas().first().verificadores, QStringList{QStringLiteral("Persona Uno")});
+        QCOMPARE(bd.ajuste(QStringLiteral("asignatura")), QString());   // la versión 1 ya estaba: no se toca
     }
 
     void importarConservaLoQueElJsonNoDice()

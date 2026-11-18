@@ -455,6 +455,25 @@ private slots:
         QVERIFY(leer(dir.filePath(QStringLiteral("e.pdf"))).contains("Semilla: 987654"));
     }
 
+    void marcaDeVerificacionSoloEnLaVista()
+    {
+        Modelo m = examenes(bancoInventado(), 3, 1).first();
+        m.preguntas[0].pregunta.verificada = true;
+        m.preguntas[0].pregunta.verificadores = {QStringLiteral("Persona Uno"), QStringLiteral("Otra Persona")};
+        m.preguntas[1].pregunta.verificada = true;
+        const QString vista = Maquetador::examenHtml(m, convocatoria(), false, 0, true, true);
+        QCOMPARE(vista.count(QStringLiteral("verificada: Persona Uno, Otra Persona")), 1);
+        QCOMPARE(vista.count(QStringLiteral("&#10003; verificada</span>")), 1);
+        QCOMPARE(vista.count(QStringLiteral("sin verificar")), int(m.preguntas.size()) - 2);
+        // En los ficheros (y en la vista si no se pide), nada.
+        for (const QString &texto : {Maquetador::examenHtml(m, convocatoria(), true), Maquetador::examenesHtml({m}, convocatoria(), true),
+                                     Maquetador::examenesLatex({m}, convocatoria(), true, QStringLiteral("img"))})
+            QVERIFY(!texto.contains(QStringLiteral("verificad")));
+        // La ficha de la pregunta lo dice.
+        QVERIFY(Maquetador::fichaPreguntaHtml(m.preguntas[0].pregunta, QString()).contains(QStringLiteral("verificada por Persona Uno, Otra Persona")));
+        QVERIFY(Maquetador::fichaPreguntaHtml(m.preguntas[2].pregunta, QString()).contains(QStringLiteral("sin verificar")));
+    }
+
     void textosDeLaHojaDeSoluciones()
     {
         Modelo m = examenes(bancoInventado(), 3, 1).first();

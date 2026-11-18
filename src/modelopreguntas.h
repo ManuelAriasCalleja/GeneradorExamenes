@@ -11,7 +11,7 @@ class ModeloPreguntas : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    enum Columna { ColTema, ColCodigo, ColEstado, ColEnunciado, ColCorrecta, NumColumnas };
+    enum Columna { ColTema, ColCodigo, ColEstado, ColVerificada, ColEnunciado, ColCorrecta, NumColumnas };
 
     using QAbstractTableModel::QAbstractTableModel;
 
@@ -35,7 +35,7 @@ class FiltroPreguntas : public QSortFilterProxyModel
 {
     Q_OBJECT
 public:
-    enum FiltroEstado { Todas, Activas, Anuladas, Obsoletas, ParaRevisar, ConImagen };
+    enum FiltroEstado { Todas, Activas, Anuladas, Obsoletas, ParaRevisar, ConImagen, Verificadas, SinVerificar };
 
     using QSortFilterProxyModel::QSortFilterProxyModel;
 

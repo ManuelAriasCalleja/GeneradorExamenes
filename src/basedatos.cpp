@@ -18,7 +18,7 @@
 
 namespace {
 // Versión del esquema de la base de datos (PRAGMA user_version): ver BaseDatos::actualizarEsquema().
-constexpr int kVersionEsquema = 1;
+constexpr int kVersionEsquema = 2;
 
 QString nombreConexion(const BaseDatos *bd)
 {
@@ -49,6 +49,11 @@ QJsonObject preguntaAJson(const Pregunta &p)
     jp[QStringLiteral("notas")] = p.notas;
     jp[QStringLiteral("pseudo_con")] = p.pseudoCon.isEmpty() ? QJsonValue() : QJsonValue(p.pseudoCon);
     jp[QStringLiteral("imagen")] = p.imagen.isEmpty() ? QJsonValue() : QJsonValue(QString::fromLatin1(p.imagen.toBase64()));
+    // La verificación, siempre: un JSON que no la dice (uno escrito a mano o por una IA) no cambia la del banco (ver
+    // importarJson()), pero uno del programa sí.
+    jp[QStringLiteral("verificada")] = p.verificada;
+    if (p.verificada)
+        jp[QStringLiteral("verificadores")] = QJsonArray::fromStringList(p.verificadores);
     return jp;
 }
 
@@ -56,9 +61,12 @@ QJsonObject preguntaAJson(const Pregunta &p)
 // otra).
 QString huella(const Pregunta &p)
 {
+    QStringList verificadores = p.verificadores;
+    verificadores.sort(Qt::CaseInsensitive);
     return QStringList{p.enunciado, p.opciones.join(QLatin1Char('|')), QString::number(p.correcta), p.referencia, p.estado,
                        QString::number(p.old), QString::number(p.revisar), p.pseudoCon, p.explicacion, p.notas,
-                       QString::fromLatin1(p.imagen.toBase64())}
+                       QString::fromLatin1(p.imagen.toBase64()), QString::number(p.verificada),
+                       verificadores.join(QLatin1Char('|'))}
         .join(QLatin1Char('#'));
 }
 
@@ -78,6 +86,8 @@ struct ContenidoJson
     QSet<int> temasSinTitulo;         // … su título
     QSet<int> temasSinAutor;          // … su autor
     QVector<Pregunta> preguntas;      // con el número de su tema, sin id
+    QSet<QString> sinVerificacion;    // códigos (T1-7a) de las preguntas que no dicen si están verificadas
+    QStringList verificadores;        // la lista del banco, si el JSON la dice
 };
 
 // Si falla, deja el motivo en 'error'.
@@ -102,6 +112,11 @@ Pregunta preguntaDeJson(const QJsonObject &jp)
     p.notas = jp.value(QStringLiteral("notas")).toString();
     p.pseudoCon = jp.value(QStringLiteral("pseudo_con")).toString();
     p.imagen = QByteArray::fromBase64(jp.value(QStringLiteral("imagen")).toString().toLatin1());
+    p.verificada = jp.value(QStringLiteral("verificada")).toBool();
+    if (p.verificada)
+        for (const QJsonValue &v : jp.value(QStringLiteral("verificadores")).toArray())
+            if (!v.toString().trimmed().isEmpty())
+                p.verificadores << v.toString().trimmed();
     return p;
 }
 
@@ -121,6 +136,9 @@ bool leerJson(const QString &ruta, ContenidoJson *contenido, QString *error)
     contenido->diceAsignatura = doc.object().contains(QStringLiteral("asignatura"));
     contenido->asignatura = doc.object().value(QStringLiteral("asignatura")).toString().trimmed();
     contenido->idioma = doc.object().value(QStringLiteral("idioma")).toString().trimmed();
+    for (const QJsonValue &v : doc.object().value(QStringLiteral("verificadores")).toArray())
+        if (!v.toString().trimmed().isEmpty())
+            contenido->verificadores << v.toString().trimmed();
     const QJsonArray jtemas = doc.object().value(QStringLiteral("temas")).toArray();
     for (const QJsonValue &vt : jtemas) {
         const QJsonObject jt = vt.toObject();
@@ -140,6 +158,8 @@ bool leerJson(const QString &ruta, ContenidoJson *contenido, QString *error)
         for (const QJsonValue &vp : jt.value(QStringLiteral("preguntas")).toArray()) {
             Pregunta p = preguntaDeJson(vp.toObject());
             p.temaNumero = t.numero;
+            if (!vp.toObject().contains(QStringLiteral("verificada")))
+                contenido->sinVerificacion.insert(p.codigoCompleto());
             contenido->preguntas.append(p);
         }
     }
@@ -303,8 +323,18 @@ bool BaseDatos::crearEsquema()
                " notas TEXT NOT NULL DEFAULT '',"
                " pseudo_con TEXT NOT NULL DEFAULT '',"
                " imagen BLOB,"
+               " verificada INTEGER NOT NULL DEFAULT 0,"
                " UNIQUE (tema_id, numero, variante))"))
         && ejecutar(QStringLiteral("CREATE INDEX IF NOT EXISTS idx_preguntas_tema ON preguntas(tema_id, numero)"))
+        // Las personas que verifican las preguntas y quién ha verificado cada una.
+        && ejecutar(QStringLiteral("CREATE TABLE IF NOT EXISTS verificadores ("
+                                   " id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                                   " nombre TEXT NOT NULL UNIQUE)"))
+        && ejecutar(QStringLiteral(
+               "CREATE TABLE IF NOT EXISTS verificaciones ("
+               " pregunta_id INTEGER NOT NULL REFERENCES preguntas(id) ON DELETE CASCADE,"
+               " verificador_id INTEGER NOT NULL REFERENCES verificadores(id) ON DELETE CASCADE,"
+               " PRIMARY KEY (pregunta_id, verificador_id))"))
         // Ajustes que van con el banco (asignatura, repartos, json_enlazado...).
         && ejecutar(QStringLiteral("CREATE TABLE IF NOT EXISTS ajustes (clave TEXT PRIMARY KEY, valor TEXT NOT NULL)"))
         // Historial de convocatorias ('registrado' es la fecha y hora en ISO 8601; 'orden', el de las opciones
@@ -338,6 +368,7 @@ bool BaseDatos::actualizarEsquema()
 {
     int version = 0;
     bool tieneFormato = false;
+    bool tieneVerificada = false;
     {   // Las consultas se cierran antes de la transacción.
         QSqlQuery q = consultar(QStringLiteral("PRAGMA user_version"));
         if (q.next())
@@ -345,11 +376,16 @@ bool BaseDatos::actualizarEsquema()
         q = consultar(QStringLiteral("PRAGMA table_info(temas)"));
         while (q.next())
             tieneFormato = tieneFormato || q.value(1).toString() == QLatin1String("formato_referencia");
+        q = consultar(QStringLiteral("PRAGMA table_info(preguntas)"));
+        while (q.next())
+            tieneVerificada = tieneVerificada || q.value(1).toString() == QLatin1String("verificada");
     }
     if (version >= kVersionEsquema)
         return true;
     Transaccion transaccion(m_db);
     if (!tieneFormato && !ejecutar(QStringLiteral("ALTER TABLE temas ADD COLUMN formato_referencia TEXT NOT NULL DEFAULT ''")))
+        return false;
+    if (!tieneVerificada && !ejecutar(QStringLiteral("ALTER TABLE preguntas ADD COLUMN verificada INTEGER NOT NULL DEFAULT 0")))
         return false;
     // Lo que el programa daba por hecho cuando solo era para Fundamentos de la informática: el nombre, los repartos
     // de sus exámenes (la primera parte, la segunda y las dos juntas) y la forma de la referencia según el autor de
@@ -510,7 +546,7 @@ QVector<Pregunta> BaseDatos::preguntas()
     QSqlQuery q = consultar(QStringLiteral(
         "SELECT p.id, p.tema_id, t.numero, p.numero, p.variante, p.old, p.estado, p.revisar,"
         " p.enunciado, p.opcion_a, p.opcion_b, p.opcion_c, p.opcion_d, p.correcta,"
-        " p.referencia, p.explicacion, p.notas, p.pseudo_con, p.imagen"
+        " p.referencia, p.explicacion, p.notas, p.pseudo_con, p.imagen, p.verificada"
         " FROM preguntas p JOIN temas t ON t.id = p.tema_id"
         " ORDER BY t.numero, p.numero, p.variante"));
     while (q.next()) {
@@ -532,8 +568,17 @@ QVector<Pregunta> BaseDatos::preguntas()
         p.notas = q.value(16).toString();
         p.pseudoCon = q.value(17).toString();
         p.imagen = q.value(18).toByteArray();
+        p.verificada = q.value(19).toBool();
         res.append(p);
     }
+    // Quiénes ha verificado cada una, por orden alfabético.
+    QHash<int, QStringList> verificadoresDe;
+    q = consultar(QStringLiteral("SELECT c.pregunta_id, v.nombre FROM verificaciones c JOIN verificadores v ON v.id = c.verificador_id"
+                                 " ORDER BY v.nombre COLLATE NOCASE"));
+    while (q.next())
+        verificadoresDe[q.value(0).toInt()] << q.value(1).toString();
+    for (Pregunta &p : res)
+        p.verificadores = verificadoresDe.value(p.id);
     return res;
 }
 
@@ -543,19 +588,152 @@ bool BaseDatos::guardarPregunta(Pregunta &p)
     for (int i = 0; i < 4; ++i)
         valores << texto(p.opciones.value(i));
     valores << QString(Pregunta::letraMayuscula(p.correcta)) << texto(p.referencia) << texto(p.explicacion) << texto(p.notas)
-            << texto(p.pseudoCon) << (p.imagen.isEmpty() ? QVariant(QMetaType(QMetaType::QByteArray)) : QVariant(p.imagen));
+            << texto(p.pseudoCon) << (p.imagen.isEmpty() ? QVariant(QMetaType(QMetaType::QByteArray)) : QVariant(p.imagen))
+            << (p.verificada ? 1 : 0);
     const bool ok = p.id == 0
                         ? ejecutar(QStringLiteral("INSERT INTO preguntas (tema_id, numero, variante, old, estado, revisar, enunciado,"
                                                   " opcion_a, opcion_b, opcion_c, opcion_d, correcta, referencia, explicacion, notas,"
-                                                  " pseudo_con, imagen) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
+                                                  " pseudo_con, imagen, verificada) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
                                    valores, &p.id)
                         : ejecutar(QStringLiteral("UPDATE preguntas SET tema_id=?, numero=?, variante=?, old=?, estado=?, revisar=?,"
                                                   " enunciado=?, opcion_a=?, opcion_b=?, opcion_c=?, opcion_d=?, correcta=?,"
-                                                  " referencia=?, explicacion=?, notas=?, pseudo_con=?, imagen=? WHERE id=?"),
+                                                  " referencia=?, explicacion=?, notas=?, pseudo_con=?, imagen=?, verificada=?"
+                                                  " WHERE id=?"),
                                    valores << p.id);
     if (!ok && m_error.contains(QLatin1String("UNIQUE")))
         m_error = tr("Ya existe una pregunta %1 en ese tema.").arg(p.codigo());
-    return ok;
+    if (!p.verificada)
+        p.verificadores.clear();
+    return ok && ponerVerificadores(p.id, p.verificadores);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Verificación
+
+int BaseDatos::idVerificador(const QString &nombre)
+{
+    {
+        QSqlQuery q = consultar(QStringLiteral("SELECT id FROM verificadores WHERE nombre = ?"), {nombre});
+        if (q.next())
+            return q.value(0).toInt();
+    }
+    int id = 0;
+    return ejecutar(QStringLiteral("INSERT INTO verificadores (nombre) VALUES (?)"), {nombre}, &id) ? id : 0;
+}
+
+bool BaseDatos::ponerVerificadores(int preguntaId, const QStringList &nombres)
+{
+    if (!ejecutar(QStringLiteral("DELETE FROM verificaciones WHERE pregunta_id = ?"), {preguntaId}))
+        return false;
+    for (const QString &nombre : nombres) {
+        if (nombre.trimmed().isEmpty())
+            continue;
+        const int id = idVerificador(nombre.trimmed());
+        if (id == 0 || !ejecutar(QStringLiteral("INSERT OR IGNORE INTO verificaciones (pregunta_id, verificador_id) VALUES (?, ?)"),
+                                 {preguntaId, id}))
+            return false;
+    }
+    return true;
+}
+
+QStringList BaseDatos::verificadores()
+{
+    QStringList res;
+    QSqlQuery q = consultar(QStringLiteral("SELECT nombre FROM verificadores ORDER BY nombre COLLATE NOCASE"));
+    while (q.next())
+        res << q.value(0).toString();
+    return res;
+}
+
+bool BaseDatos::anadirVerificador(const QString &nombre)
+{
+    const QString n = nombre.trimmed();
+    if (n.isEmpty()) {
+        m_error = tr("Falta el nombre.");
+        return false;
+    }
+    if (verificadores().contains(n, Qt::CaseInsensitive)) {
+        m_error = tr("Ya hay alguien que se llama «%1».").arg(n);
+        return false;
+    }
+    return idVerificador(n) != 0;
+}
+
+bool BaseDatos::cambiarNombreVerificador(const QString &antes, const QString &despues)
+{
+    const QString n = despues.trimmed();
+    if (n.isEmpty()) {
+        m_error = tr("Falta el nombre.");
+        return false;
+    }
+    for (const QString &otro : verificadores()) {
+        if (otro != antes && otro.compare(n, Qt::CaseInsensitive) == 0) {
+            m_error = tr("Ya hay alguien que se llama «%1».").arg(n);
+            return false;
+        }
+    }
+    QStringList ultimos = ultimosVerificadores();
+    if (ultimos.contains(antes)) {
+        ultimos.replace(ultimos.indexOf(antes), n);
+        if (!guardarUltimosVerificadores(ultimos))
+            return false;
+    }
+    return ejecutar(QStringLiteral("UPDATE verificadores SET nombre = ? WHERE nombre = ?"), {n, antes});
+}
+
+bool BaseDatos::borrarVerificador(const QString &nombre)
+{
+    QStringList ultimos = ultimosVerificadores();
+    if (ultimos.removeAll(nombre) && !guardarUltimosVerificadores(ultimos))
+        return false;
+    return ejecutar(QStringLiteral("DELETE FROM verificadores WHERE nombre = ?"), {nombre});
+}
+
+int BaseDatos::preguntasVerificadasPor(const QString &nombre)
+{
+    QSqlQuery q = consultar(QStringLiteral("SELECT COUNT(*) FROM verificaciones c JOIN verificadores v ON v.id = c.verificador_id"
+                                           " WHERE v.nombre = ?"),
+                            {nombre});
+    return q.next() ? q.value(0).toInt() : 0;
+}
+
+bool BaseDatos::guardarVerificacion(int preguntaId, bool verificada, const QStringList &verificadores)
+{
+    Pregunta p;
+    p.id = preguntaId;
+    p.verificada = verificada;
+    p.verificadores = verificadores;
+    return guardarVerificaciones({p});
+}
+
+bool BaseDatos::guardarVerificaciones(const QVector<Pregunta> &preguntas)
+{
+    Transaccion transaccion(m_db);
+    for (const Pregunta &p : preguntas)
+        if (!ejecutar(QStringLiteral("UPDATE preguntas SET verificada = ? WHERE id = ?"), {p.verificada ? 1 : 0, p.id})
+            || !ponerVerificadores(p.id, p.verificada ? p.verificadores : QStringList()))
+            return false;
+    if (!transaccion.confirmar()) {
+        m_error = m_db.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+QStringList BaseDatos::ultimosVerificadores()
+{
+    QStringList res;
+    const QStringList existentes = verificadores();
+    for (const QJsonValue &v : QJsonDocument::fromJson(ajuste(QStringLiteral("ultimos_verificadores")).toUtf8()).array())
+        if (existentes.contains(v.toString()))
+            res << v.toString();
+    return res;
+}
+
+bool BaseDatos::guardarUltimosVerificadores(const QStringList &nombres)
+{
+    return guardarAjuste(QStringLiteral("ultimos_verificadores"),
+                         QString::fromUtf8(QJsonDocument(QJsonArray::fromStringList(nombres)).toJson(QJsonDocument::Compact)));
 }
 
 bool BaseDatos::borrarPregunta(int id)
@@ -621,6 +799,19 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
             t.autor = antes.value(t.numero).autor;
     }
 
+    // La verificación de las que no la dicen: la que tenían en el banco, si no ha cambiado lo que se ve de ellas.
+    QHash<QString, Pregunta> enElBanco;   // código (T1-7a) -> pregunta
+    for (const Pregunta &p : preguntas())
+        enElBanco.insert(p.codigoCompleto(), p);
+    for (Pregunta &p : contenido.preguntas) {
+        if (!contenido.sinVerificacion.contains(p.codigoCompleto()))
+            continue;
+        const auto it = enElBanco.constFind(p.codigoCompleto());
+        const bool mantener = it != enElBanco.constEnd() && it->mismoContenido(p);
+        p.verificada = mantener && it->verificada;
+        p.verificadores = mantener ? it->verificadores : QStringList();
+    }
+
     // Antes de borrar el banco, copia de seguridad (si hay algo que borrar: las preguntas van con sus temas). Si
     // la copia falla, no se toca nada.
     QString rutaCopia;
@@ -654,6 +845,10 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
     // El idioma, como la asignatura: solo si el banco aún no lo dice.
     if (ajuste(QStringLiteral("idioma")).isEmpty() && !contenido.idioma.isEmpty() && !guardarIdioma(contenido.idioma))
         return fallo();
+    // Los verificadores del JSON se añaden a los del banco (los de las preguntas, al guardarlas).
+    for (const QString &nombre : std::as_const(contenido.verificadores))
+        if (idVerificador(nombre) == 0)
+            return fallo();
     QHash<int, int> idDelTema;   // número de tema -> id
     for (const Tema &t : std::as_const(contenido.temas)) {
         const int temaId = idTema(t, true);
@@ -798,17 +993,29 @@ QStringList BaseDatos::diferenciasConJson(const QString &ruta)
     };
     QStringList diferencias;
 
-    QHash<QString, QString> huellasJson;   // código completo -> huella
+    // Las preguntas del JSON que no dicen si están verificadas cuentan con la verificación del banco: no es una
+    // diferencia (como al importarlas, que la conservan).
+    QHash<QString, Pregunta> delJson;   // código completo -> pregunta
     for (const Pregunta &p : std::as_const(json.preguntas))
-        huellasJson.insert(p.codigoCompleto(), huella(p));
+        delJson.insert(p.codigoCompleto(), p);
     QStringList distintas, soloBd, soloJson;
     for (const Pregunta &p : preguntas()) {
         const QString codigo = p.codigoCompleto();
-        if (!huellasJson.contains(codigo))
+        if (!delJson.contains(codigo)) {
             soloBd << codigo;
-        else if (huellasJson.take(codigo) != huella(p))
+            continue;
+        }
+        Pregunta enJson = delJson.take(codigo);
+        if (json.sinVerificacion.contains(codigo)) {
+            enJson.verificada = p.verificada;
+            enJson.verificadores = p.verificadores;
+        }
+        if (huella(enJson) != huella(p))
             distintas << codigo;
     }
+    QHash<QString, QString> huellasJson;   // las que quedan, solo en el JSON
+    for (auto it = delJson.cbegin(); it != delJson.cend(); ++it)
+        huellasJson.insert(it.key(), QString());
     soloJson = huellasJson.keys();
     std::sort(soloJson.begin(), soloJson.end());
     diferencias << linea(distintas, tr("pregunta distinta"), tr("preguntas distintas"))
@@ -870,6 +1077,8 @@ bool BaseDatos::exportarJson(const QString &ruta)
     raiz[QStringLiteral("$schema")] = QLatin1String(ComprobadorJson::kEsquema);
     raiz[QStringLiteral("asignatura")] = asignatura();
     raiz[QStringLiteral("idioma")] = idioma();
+    if (!verificadores().isEmpty())
+        raiz[QStringLiteral("verificadores")] = QJsonArray::fromStringList(verificadores());
     raiz[QStringLiteral("temas")] = jtemas;
 
     QFile f(ruta);

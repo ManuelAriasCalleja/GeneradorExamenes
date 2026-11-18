@@ -4,7 +4,7 @@
 <context>
     <name>BaseDatos</name>
     <message>
-        <location filename="../src/basedatos.cpp" line="+112"/>
+        <location filename="../src/basedatos.cpp" line="+127"/>
         <source>No se puede abrir %1: %2</source>
         <translation>Cannot open %1: %2</translation>
     </message>
@@ -14,29 +14,41 @@
         <translation>Invalid JSON: %1</translation>
     </message>
     <message>
-        <location line="+439"/>
+        <location line="+471"/>
         <source>Ya existe una pregunta %1 en ese tema.</source>
         <translation>A question %1 already exists in that topic.</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+48"/>
+        <location line="+14"/>
+        <source>Falta el nombre.</source>
+        <translation>The name is missing.</translation>
+    </message>
+    <message>
+        <location line="-10"/>
+        <location line="+15"/>
+        <source>Ya hay alguien que se llama «%1».</source>
+        <translation>There is already someone called “%1”.</translation>
+    </message>
+    <message>
+        <location line="+94"/>
         <source>No se puede crear la carpeta %1</source>
         <translation>Cannot create the folder %1</translation>
     </message>
     <message>
-        <location line="+49"/>
+        <location line="+62"/>
         <source>No se ha podido guardar la copia de seguridad del banco, así que no se ha borrado nada:
 %1</source>
         <translation>The backup of the bank could not be saved, so nothing has been deleted:
 %1</translation>
     </message>
     <message>
-        <location line="+37"/>
+        <location line="+41"/>
         <source>Tema %1, pregunta %2: %3</source>
         <translation>Topic %1, question %2: %3</translation>
     </message>
     <message>
-        <location line="+141"/>
+        <location line="+153"/>
         <source>pregunta distinta</source>
         <translation>question that differs</translation>
     </message>
@@ -302,7 +314,7 @@
         <translation>The JSON must be an object { … } with the list of topics in “temas”, and it is %1.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>El idioma «%1» no es ninguno de los del programa (%2): los exámenes saldrían en castellano.</source>
         <translation>The language “%1” is not one of the program’s (%2): the exams would come out in Spanish.</translation>
     </message>
@@ -357,7 +369,17 @@
         <translation>“%1” must be true or false (without quotes), and it is %2.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+13"/>
+        <source>«%1» tiene que ser una lista [ … ] de nombres, y es %2.</source>
+        <translation>“%1” must be a list [ … ] of names, and it is %2.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>En «%1» cada nombre tiene que ser un texto no vacío, entre comillas dobles.</source>
+        <translation>In “%1” each name must be a non-empty text, in double quotes.</translation>
+    </message>
+    <message>
+        <location line="+9"/>
         <source>Falta el campo «numero».</source>
         <translation>The field “numero” is missing.</translation>
     </message>
@@ -462,7 +484,12 @@
         <translation>“pseudo_con” must be the code of another question without the variant letter, such as &quot;T1-7&quot; (topic 1, number 7), and it is “%1”.</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
+        <source>Dice quién la ha verificado, pero no que esté verificada («verificada»: true): no se usa.</source>
+        <translation>It says who verified it, but not that it is verified (“verificada”: true): it is not used.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>«imagen» no se puede leer: tiene que ser una imagen PNG o JPG codificada en base64 (o null si no tiene).</source>
         <translation>“imagen” cannot be read: it must be a PNG or JPG image encoded in base64 (or null if there is none).</translation>
     </message>
@@ -517,7 +544,7 @@
         <translation>“correcta” must be the letter of the correct answer, in quotes: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; or &quot;D&quot;, and it is %1.</translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+54"/>
         <source>El fichero no está en UTF-8: guárdelo con esa codificación (en el Bloc de notas de Windows, «Guardar como» → Codificación: UTF-8).</source>
         <translation>The file is not in UTF-8: save it with that encoding (in Windows Notepad, “Save as” → Encoding: UTF-8).</translation>
     </message>
@@ -1450,7 +1477,7 @@ Score: %4 out of %5</translation>
 <context>
     <name>DialogoPregunta</name>
     <message>
-        <location filename="../src/dialogopregunta.cpp" line="+37"/>
+        <location filename="../src/dialogopregunta.cpp" line="+38"/>
         <source>Editar pregunta %1</source>
         <translation>Edit question %1</translation>
     </message>
@@ -1470,7 +1497,12 @@ Score: %4 out of %5</translation>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+38"/>
+        <source>Verificación</source>
+        <translation>Verification</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>La pregunta tiene cambios sin guardar. ¿Descartarlos?</source>
         <translation>The question has unsaved changes. Discard them?</translation>
     </message>
@@ -1481,12 +1513,12 @@ Score: %4 out of %5</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+218"/>
+        <location line="+222"/>
         <source>Seguir editando</source>
         <translation>Continue editing</translation>
     </message>
     <message>
-        <location line="-208"/>
+        <location line="-212"/>
         <source>Identificación</source>
         <translation>Identification</translation>
     </message>
@@ -1638,7 +1670,7 @@ Score: %4 out of %5</translation>
         <translation>If it is the same idea as one of them, save it as its variant (same number, another letter) or, if it belongs to another topic, link it in “Pseudo-duplicate of”.</translation>
     </message>
     <message>
-        <location line="+62"/>
+        <location line="+66"/>
         <source>Elija un tema.</source>
         <translation>Choose a topic.</translation>
     </message>
@@ -1671,7 +1703,7 @@ Do you want to save it anyway?</translation>
         <translation>Save anyway</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+21"/>
         <source>&lt;b&gt;Pautas de estilo&lt;/b&gt;&lt;br&gt;</source>
         <translation>&lt;b&gt;Style guidelines&lt;/b&gt;&lt;br&gt;</translation>
     </message>
@@ -1795,6 +1827,163 @@ Do you want to save it anyway?</translation>
 %1</source>
         <translation>No changes were saved:
 %1</translation>
+    </message>
+</context>
+<context>
+    <name>DialogoVerificadores</name>
+    <message>
+        <location filename="../src/verificacion.cpp" line="+205"/>
+        <source>Verificadores</source>
+        <translation>Verifiers</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Las personas que revisan las preguntas de este banco. En cada pregunta se marca quiénes la han verificado.</source>
+        <translation>The people who review the questions in this bank. Each question records who has verified it.</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Añadir…</source>
+        <extracomment>Botón: añade una persona a la lista de verificadores</extracomment>
+        <translation>Add…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Cambiar el nombre…</source>
+        <translation>Rename…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Quitar</source>
+        <extracomment>Botón: quita a la persona seleccionada de la lista de verificadores</extracomment>
+        <translation>Remove</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Cerrar</source>
+        <translation>Close</translation>
+    </message>
+    <message>
+        <location line="+22"/>
+        <source>%1 (1 pregunta)</source>
+        <extracomment>Un verificador en la lista, con cuántas preguntas ha verificado</extracomment>
+        <translation>%1 (1 question)</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 (%2 preguntas)</source>
+        <translation>%1 (%2 questions)</translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Añadir verificador</source>
+        <extracomment>Etiqueta del campo para escribir el nombre de un verificador</extracomment>
+        <translation>Add verifier</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <location line="+17"/>
+        <source>Nombre:</source>
+        <translation>Name:</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Cambiar el nombre</source>
+        <translation>Rename</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>¿Quitar a %1 de la lista de verificadores?</source>
+        <translation>Remove %1 from the list of verifiers?</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Ha verificado 1 pregunta: seguirá verificada, pero ya no dirá que la verificó.</source>
+        <translation>They have verified 1 question: it will stay verified, but it will no longer say they verified it.</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Ha verificado %1 preguntas: seguirán verificadas, pero ya no dirán que las verificó.</source>
+        <translation>They have verified %1 questions: they will stay verified, but they will no longer say they verified them.</translation>
+    </message>
+</context>
+<context>
+    <name>DialogoVerificar</name>
+    <message>
+        <location line="+18"/>
+        <source>Verificar preguntas</source>
+        <translation>Verify questions</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Verificación</source>
+        <translation>Verification</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>&amp;Anterior</source>
+        <extracomment>Botón: pasa a la pregunta anterior de la lista (guarda lo que se haya marcado)</extracomment>
+        <translation>&amp;Previous</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Siguiente</source>
+        <extracomment>Botón: pasa a la pregunta siguiente de la lista sin marcarla (guarda lo que se haya marcado)</extracomment>
+        <translation>&amp;Next</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>&amp;Editar…</source>
+        <translation>&amp;Edit…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Abre la pregunta en el editor para corregirla</source>
+        <translation>Opens the question in the editor to correct it</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>La marca como verificada (por los mismos que la anterior, si no se marca a nadie) y pasa a la siguiente (Intro)</source>
+        <translation>Marks it as verified (by the same people as the previous one, if nobody is ticked) and moves on to the next one (Enter)</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Cerrar</source>
+        <translation>Close</translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>Pregunta %1 de %2: %3</source>
+        <extracomment>Arriba del diálogo de verificar: «Pregunta 3 de 20: T1-7a»</extracomment>
+        <translation>Question %1 of %2: %3</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>&amp;Verificada, siguiente</source>
+        <extracomment>Botón (Intro): marca la pregunta como verificada y pasa a la siguiente</extracomment>
+        <translation>&amp;Verified, next</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Verificada</source>
+        <translation>&amp;Verified</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>No se pudo guardar la verificación:
+%1</source>
+        <translation>The verification could not be saved:
+%1</translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>Marque quién la ha verificado.</source>
+        <translation>Tick who has verified it.</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Era la última de la lista.</source>
+        <translation>That was the last one in the list.</translation>
     </message>
 </context>
 <context>
@@ -1984,26 +2173,26 @@ Do you want to save it anyway?</translation>
     <message>
         <location filename="../src/docx.cpp" line="+742"/>
         <location filename="../src/maquetador.cpp" line="+361"/>
-        <location line="+780"/>
+        <location line="+806"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location filename="../src/maquetador.cpp" line="-779"/>
-        <location line="+780"/>
+        <location filename="../src/maquetador.cpp" line="-805"/>
+        <location line="+806"/>
         <source>Referencia:</source>
         <translation>Reference:</translation>
     </message>
     <message>
         <location line="+134"/>
-        <location filename="../src/maquetador.cpp" line="-769"/>
-        <location line="+1001"/>
+        <location filename="../src/maquetador.cpp" line="-795"/>
+        <location line="+1027"/>
         <source>Plantilla de corrección: %1</source>
         <translation>Answer key: %1</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="-1213"/>
+        <location filename="../src/maquetador.cpp" line="-1239"/>
         <source>Respuesta correcta: +%1 puntos · incorrecta: −%2 puntos · en blanco: 0 puntos</source>
         <extracomment>Puntuación del examen, en una línea bajo las instrucciones. %1 son los puntos de un acierto (1,00) y %2 los que resta un fallo (0,30); el signo menos es «−» (U+2212)</extracomment>
         <translation>Correct answer: +%1 points · incorrect: −%2 points · blank: 0 points</translation>
@@ -2029,8 +2218,8 @@ Do not hand in the question paper.</translation>
     </message>
     <message>
         <location filename="../src/docx.cpp" line="-61"/>
-        <location filename="../src/maquetador.cpp" line="+248"/>
-        <location line="+643"/>
+        <location filename="../src/maquetador.cpp" line="+271"/>
+        <location line="+646"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
@@ -2065,8 +2254,8 @@ Do not hand in the question paper.</translation>
     </message>
     <message>
         <location line="+34"/>
-        <location filename="../src/maquetador.cpp" line="-969"/>
-        <location line="+1004"/>
+        <location filename="../src/maquetador.cpp" line="-995"/>
+        <location line="+1030"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
@@ -2158,7 +2347,12 @@ Do not hand in the question paper.</translation>
         <translation>“%1”, question %2: </translation>
     </message>
     <message>
-        <location line="+79"/>
+        <location line="+95"/>
+        <source>Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas verificadas disponibles.</source>
+        <translation>Topic %1: %2 questions were requested but there are only %3 different verified ones available.</translation>
+    </message>
+    <message>
+        <location line="+1"/>
         <source>Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas disponibles.</source>
         <translation>Topic %1: %2 questions were requested but only %3 different ones are available.</translation>
     </message>
@@ -2171,7 +2365,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-793"/>
+        <location filename="../src/maquetador.cpp" line="-819"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>
@@ -2196,7 +2390,30 @@ Do not hand in the question paper.</translation>
         <translation>flagged for review</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+3"/>
+        <location line="+45"/>
+        <source>verificada</source>
+        <extracomment>En la ficha de una pregunta: la han revisado personas; %1 son sus nombres
+----------
+Marca de la vista del examen tras el número de una pregunta revisada por personas; %1 son sus nombres</extracomment>
+        <translation>verified</translation>
+    </message>
+    <message>
+        <location line="-45"/>
+        <source>verificada por %1</source>
+        <translation>verified by %1</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <location line="+40"/>
+        <source>sin verificar</source>
+        <extracomment>En la ficha de una pregunta: no la han revisado personas
+----------
+Marca de la vista del examen tras el número de una pregunta que no han revisado personas</extracomment>
+        <translation>not verified</translation>
+    </message>
+    <message>
+        <location line="-30"/>
         <source>&lt;p&gt;&lt;b&gt;Respuesta correcta:&lt;/b&gt; %1. %2&lt;/p&gt;</source>
         <translation>&lt;p&gt;&lt;b&gt;Correct answer:&lt;/b&gt; %1. %2&lt;/p&gt;</translation>
     </message>
@@ -2214,6 +2431,11 @@ Do not hand in the question paper.</translation>
         <location line="+2"/>
         <source>&lt;p&gt;&lt;b&gt;Notas:&lt;/b&gt; %1&lt;/p&gt;</source>
         <translation>&lt;p&gt;&lt;b&gt;Notes:&lt;/b&gt; %1&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>verificada: %1</source>
+        <translation>verified: %1</translation>
     </message>
 </context>
 <context>
@@ -2253,7 +2475,28 @@ Do not hand in the question paper.</translation>
         <translation> · image</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+7"/>
+        <source>sí</source>
+        <extracomment>Columna «Verificada» de la lista de preguntas: la han revisado personas (sin decir quiénes)</extracomment>
+        <translation>yes</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Sin verificar: ninguna persona la ha revisado</source>
+        <translation>Not verified: nobody has reviewed it</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Verificada por personas</source>
+        <translation>Verified by people</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Verificada por %1</source>
+        <translation>Verified by %1</translation>
+    </message>
+    <message>
+        <location line="+25"/>
         <source>Tema</source>
         <translation>Topic</translation>
     </message>
@@ -2268,6 +2511,12 @@ Do not hand in the question paper.</translation>
         <translation>Status</translation>
     </message>
     <message>
+        <location line="+2"/>
+        <source>Verificada</source>
+        <extracomment>Cabecera de la columna que dice si la pregunta la han revisado personas, y quiénes</extracomment>
+        <translation>Verified</translation>
+    </message>
+    <message>
         <location line="+1"/>
         <source>Enunciado</source>
         <translation>Question text</translation>
@@ -2277,6 +2526,41 @@ Do not hand in the question paper.</translation>
         <source>Resp.</source>
         <extracomment>Abreviatura de «Respuesta correcta» (cabecera de una columna estrecha)</extracomment>
         <translation>Ans.</translation>
+    </message>
+</context>
+<context>
+    <name>PanelVerificacion</name>
+    <message>
+        <location filename="../src/verificacion.cpp" line="-408"/>
+        <source>Verificada por humanos</source>
+        <translation>Verified by humans</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Una persona (al menos) ha revisado la pregunta. Al marcarla se marcan también los que verificaron la anterior, que suelen ser los mismos.</source>
+        <translation>At least one person has reviewed the question. Ticking it also ticks the people who verified the previous one, who are usually the same.</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Por:</source>
+        <extracomment>Delante de las casillas de las personas que han verificado la pregunta: «Por: [ ] Ana [ ] Luis»</extracomment>
+        <translation>By:</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Aún no hay verificadores en este banco.</source>
+        <translation>This bank has no verifiers yet.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Añadir o quitar…</source>
+        <extracomment>Botón: abre la lista de verificadores del banco para añadir o quitar personas</extracomment>
+        <translation>Add or remove…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Añade verificadores al banco, les cambia el nombre o los quita</source>
+        <translation>Adds verifiers to the bank, renames them or removes them</translation>
     </message>
 </context>
 <context>
@@ -2318,7 +2602,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+113"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+114"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
@@ -2558,7 +2842,7 @@ Double-click to change the name; drag to change the order.</translation>
         <translation>Include questions flagged for review</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+6"/>
         <source>Orden aleatorio (si no, por tema y número)</source>
         <translation>Random order (otherwise, by topic and number)</translation>
     </message>
@@ -2600,7 +2884,7 @@ Vacía, cada vez salen otros.</source>
 If empty, different exams come out each time.</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+15"/>
         <source>Semilla:</source>
         <extracomment>Semilla del generador de números aleatorios</extracomment>
         <translation>Seed:</translation>
@@ -2670,7 +2954,7 @@ If empty, different exams come out each time.</translation>
         <translation>Question:</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+11"/>
         <source>Cambiar por otra</source>
         <extracomment>Botón: cambia esa pregunta del examen por otra del mismo tema</extracomment>
         <translation>Replace with another</translation>
@@ -2732,7 +3016,7 @@ If empty, different exams come out each time.</translation>
         <translation>With image</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+6"/>
         <source>Buscar texto o código (T1-22b)…</source>
         <translation>Search text or code (T1-22b)…</translation>
     </message>
@@ -2748,14 +3032,15 @@ If empty, different exams come out each time.</translation>
         <translation>Status:</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+42"/>
         <source>Nueva…</source>
         <extracomment>Botón: nueva pregunta</extracomment>
         <translation>New…</translation>
     </message>
     <message>
-        <location line="-89"/>
-        <location line="+91"/>
+        <location line="-100"/>
+        <location line="+102"/>
+        <location line="+1833"/>
         <source>Editar…</source>
         <extracomment>Botón: abre en el editor esa pregunta del examen
 ----------
@@ -2763,7 +3048,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-378"/>
+        <location line="-2227"/>
         <location line="+5"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -2809,7 +3094,17 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Footer:</translation>
     </message>
     <message>
-        <location line="+195"/>
+        <location line="+147"/>
+        <source>Solo preguntas verificadas por humanos</source>
+        <translation>Only questions verified by humans</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Sin marcar, entran todas las preguntas; marcada, solo las que ha revisado alguien («Verificada por humanos»). En la vista del examen, cada pregunta dice si está verificada.</source>
+        <translation>Unticked, all questions are used; ticked, only those someone has reviewed (“Verified by humans”). In the exam preview, each question says whether it is verified.</translation>
+    </message>
+    <message>
+        <location line="+52"/>
         <source>Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.
 Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-letra-grande» en el nombre.</source>
         <translation>Adapted version for visually impaired students: 16 pt font, one option per line (question text not in italics), more spacing and larger images, with no page limit.
@@ -2834,7 +3129,34 @@ You can also right-click the question.</translation>
         <translation>Opens the question in the editor. Whatever you save stays in the bank and shows up in the exam straight away, with the options in the same order.</translation>
     </message>
     <message>
-        <location line="+91"/>
+        <location line="+3"/>
+        <location line="+100"/>
+        <location line="+1832"/>
+        <source>Verificar…</source>
+        <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas
+----------
+Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas como verificadas por personas</extracomment>
+        <translation>%1 (%2 questions)</translation>
+    </message>
+    <message>
+        <location line="-1931"/>
+        <source>Recorre las preguntas del examen, desde esta, para marcarlas como verificadas por personas: «Verificada, siguiente» la marca con los mismos verificadores que la anterior.</source>
+        <translation>Goes through the questions of the exam, from this one, to mark them as verified by people: “Verified, next” marks each with the same verifiers as the previous one.</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Verificadas</source>
+        <extracomment>Filtro por estado de las preguntas: las revisadas por personas</extracomment>
+        <translation>Verify…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Sin verificar</source>
+        <extracomment>Filtro por estado de las preguntas: las que aún no ha revisado nadie</extracomment>
+        <translation>Verified</translation>
+    </message>
+    <message>
+        <location line="+55"/>
         <source>Duplicar como variante…</source>
         <translation>Duplicate as variant…</translation>
     </message>
@@ -2955,6 +3277,12 @@ You can also right-click the question.</translation>
         <location line="+1"/>
         <source>&amp;Revisar el estilo del banco…</source>
         <translation>&amp;Check the bank’s style…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Verificadores…</source>
+        <extracomment>Menú: la lista de personas que verifican las preguntas del banco</extracomment>
+        <translation>Not verified</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -3089,12 +3417,13 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+945"/>
+        <location line="+961"/>
+        <location line="+593"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-937"/>
+        <location line="-1546"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3254,12 +3583,12 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>All topics</translation>
     </message>
     <message>
-        <location line="+22"/>
-        <source>Base de datos: %1  ·  %2 temas, %3 preguntas (%4 activas)</source>
-        <translation>Database: %1  ·  %2 topics, %3 questions (%4 active)</translation>
+        <location line="+18"/>
+        <source>Base de datos: %1  ·  %2 temas, %3 preguntas (%4 activas, %5 verificadas)</source>
+        <translation>Database: %1  ·  %2 topics, %3 questions (%4 active, %5 verified)</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+43"/>
         <source>de %1</source>
         <extracomment>Junto al número de preguntas que se piden de un tema: «[3] de 12» (12 preguntas disponibles)</extracomment>
         <translation>of %1</translation>
@@ -3270,7 +3599,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Distinct questions available (variants a, b, c... count as one)</translation>
     </message>
     <message>
-        <location line="+160"/>
+        <location line="+162"/>
         <source>Generador de exámenes</source>
         <translation>Exam Generator</translation>
     </message>
@@ -3402,7 +3731,7 @@ Replace it with this one?</translation>
         <translation>Remove “%1” from the list of exams?</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+47"/>
         <source>Indique cuántas preguntas quiere de cada tema.</source>
         <translation>Specify how many questions you want from each topic.</translation>
     </message>
@@ -3504,7 +3833,7 @@ With “Fit on one page per 10 questions” (in Options), the layout is compacte
         <translation>Correct: %1</translation>
     </message>
     <message>
-        <location line="+45"/>
+        <location line="+46"/>
         <source>No se pudieron escribir estos ficheros:
 %1</source>
         <translation>Could not write these files:
@@ -3649,12 +3978,12 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>“%1”, question %2: %3 instead of %4</translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+22"/>
         <source>La pregunta %1 ya no está en el banco: no se puede editar.</source>
         <translation>Question %1 is no longer in the bank: it cannot be edited.</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+14"/>
         <source>Pregunta %1 guardada en el banco y corregida en los %2 exámenes en que está.</source>
         <extracomment>%1 es el código de la pregunta (T2-15b)</extracomment>
         <translation>Question %1 saved in the bank and corrected in the %2 exams that contain it.</translation>
@@ -3671,15 +4000,27 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation> It is no longer active: if it should not be used, replace it with another.</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+67"/>
+        <source>Verificar las preguntas de «%1»</source>
+        <extracomment>Título del diálogo de verificar; %1 es el nombre del examen («Nacional Original»)</extracomment>
+        <translation>&amp;Verifiers…</translation>
+    </message>
+    <message>
+        <location line="+50"/>
         <source>Deshecho el cambio de la pregunta %1 de «%2»</source>
         <translation>Change to question %1 of “%2” undone</translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+33"/>
         <source>Editar la pregunta %1 (%2)…</source>
         <extracomment>%1 es el número de la pregunta en el examen y %2 su código (T2-15b)</extracomment>
         <translation>Edit question %1 (%2)…</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Verificar la pregunta %1 (%2)…</source>
+        <extracomment>%1 es el número de la pregunta en el examen y %2 su código (T2-15b)</extracomment>
+        <translation>Verify the questions of “%1”</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -3692,7 +4033,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>Undo the last question change</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+41"/>
         <source>1 pregunta</source>
         <translation>1 question</translation>
     </message>
@@ -3712,7 +4053,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>First create a topic (Edit → Topics).</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+16"/>
         <source>No se pudo guardar la pregunta:
 %1</source>
         <translation>Could not save the question:
@@ -3739,7 +4080,60 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>%1 already has variants from a to z.</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+41"/>
+        <location line="+11"/>
+        <source>Marcar como verificadas</source>
+        <translation>Mark as verified</translation>
+    </message>
+    <message>
+        <location line="-9"/>
+        <source>Se marcará como verificada la pregunta de la lista por:</source>
+        <translation>The question in the list will be marked as verified by:</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Se marcarán como verificadas las %1 preguntas de la lista por:</source>
+        <translation>The %1 questions in the list will be marked as verified by:</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>A las que ya estaban verificadas se les añaden estas personas.</source>
+        <translation>These people are added to those that were already verified.</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Marque quién las ha verificado.</source>
+        <translation>Tick who has verified them.</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>No se pudo guardar la verificación:
+%1</source>
+        <translation>The verification could not be saved:
+%1</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>1 pregunta marcada como verificada.</source>
+        <translation>1 question marked as verified.</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 preguntas marcadas como verificadas.</source>
+        <translation>%1 questions marked as verified.</translation>
+    </message>
+    <message>
+        <location line="+26"/>
+        <source>Marcar como verificada la pregunta de la lista…</source>
+        <translation>Mark the question in the list as verified…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Marcar como verificadas las %1 preguntas de la lista…</source>
+        <translation>Mark the %1 questions in the list as verified…</translation>
+    </message>
+    <message>
+        <location line="+13"/>
         <source>¿Eliminar definitivamente la pregunta %1?
 
 %2

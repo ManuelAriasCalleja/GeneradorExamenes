@@ -197,6 +197,12 @@ private slots:
                                                  << "«imagen» no se puede leer" << "tema 1, pregunta 1" << 5;
         QTest::newRow("imagen que no es base64") << banco(pregunta(1, "\"imagen\": \"imagenes/t1.png\""))
                                                  << "«imagen» no se puede leer" << "tema 1, pregunta 1" << 5;
+        QTest::newRow("verificada en texto") << banco(pregunta(1, "\"verificada\": \"sí\""))
+                                             << "«verificada» tiene que ser true o false" << "tema 1, pregunta 1" << 5;
+        QTest::newRow("verificadores no es lista") << banco(pregunta(1, "\"verificada\": true, \"verificadores\": \"Persona\""))
+                                                   << "«verificadores» tiene que ser una lista" << "tema 1, pregunta 1" << 5;
+        QTest::newRow("verificador vacío") << banco(pregunta(1, "\"verificada\": true, \"verificadores\": [\" \"]"))
+                                           << "cada nombre tiene que ser un texto no vacío" << "tema 1, pregunta 1" << 5;
         QTest::newRow("campo repetido") << QByteArray("{\"temas\": [],\n \"temas\": []}") << "está dos veces en el mismo objeto (la otra, en la línea 1)"
                                         << QString() << 2;
     }
@@ -252,6 +258,15 @@ private slots:
         QVERIFY(buscar(comprobar("{\"temas\": [{\"numero\": 1, \"preguntas\": [" + pregunta(1) + "]}]}"), QStringLiteral("no tiene «titulo»")));
         QVERIFY(buscar(comprobar("{\"temas\": [{\"numero\": 1, \"titulo\": \"X\", \"preguntas\": []}]}"), QStringLiteral("no tiene preguntas")));
         QVERIFY(buscar(comprobar("{\"temas\": []}"), QStringLiteral("La lista de temas está vacía")));
+        // La verificación (la escribe el programa): bien, o quién la ha verificado sin decir que lo está.
+        QCOMPARE(comprobar("{\"verificadores\": [\"Persona Uno\"], \"temas\": [{\"numero\": 1, \"titulo\": \"X\", \"preguntas\": ["
+                           + pregunta(1, "\"verificada\": true, \"verificadores\": [\"Persona Uno\"]") + ",\n"
+                           + pregunta(2, "\"verificada\": false") + "]}]}")
+                     .problemas.size(),
+                 0);
+        const Resultado sinVerificar = comprobar(banco(pregunta(1, "\"verificada\": false, \"verificadores\": [\"Persona Uno\"]")));
+        QVERIFY(sinVerificar.valido());
+        QVERIFY(buscar(sinVerificar, QStringLiteral("Dice quién la ha verificado, pero no que esté verificada")));
         // Un idioma que no es de los del programa.
         const Resultado idioma = comprobar("{\"idioma\": \"fr\", \"temas\": []}");
         QVERIFY(idioma.valido());

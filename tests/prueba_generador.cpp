@@ -380,6 +380,54 @@ private slots:
         banco[1].estado = QStringLiteral("anulada");   // T1-2
         QCOMPARE(Generador::gruposDisponibles(banco, true), (QMap<int, int>{{1, 19}, {2, 20}}));
         QCOMPARE(Generador::gruposDisponibles(banco, false), (QMap<int, int>{{1, 18}, {2, 20}}));
+        // Solo las verificadas: las de los números pares del tema 2 (las variantes, una del grupo basta).
+        for (Pregunta &p : banco)
+            p.verificada = p.temaNumero == 2 && p.numero % 2 == 0 && p.variante != QLatin1String("b");
+        QCOMPARE(Generador::gruposDisponibles(banco, true, true), (QMap<int, int>{{2, 10}}));
+    }
+
+    void soloVerificadas()
+    {
+        QVector<Pregunta> banco = bancoInventado(8, 20);
+        for (Pregunta &p : banco)
+            p.verificada = p.numero % 2 == 0;
+        ConfigExamen c = configuracion(9);
+        c.soloVerificadas = true;
+        const ResultadoGeneracion r = Generador::generar(banco, c);
+        int preguntas = 0;
+        for (const Modelo &m : r.modelos) {
+            for (const PreguntaExamen &pe : m.preguntas) {
+                QVERIFY2(pe.pregunta.verificada, qPrintable(pe.pregunta.codigoCompleto()));
+                ++preguntas;
+            }
+        }
+        QCOMPARE(preguntas, 3 * 20);
+        // Si no hay bastantes, se avisa diciendo que son las verificadas.
+        c.preguntasPorTema = {{1, 12}};
+        c.nombresModelos = {QStringLiteral("Uno")};
+        const ResultadoGeneracion pocas = Generador::generar(banco, c);
+        QCOMPARE(pocas.avisos.value(0), QStringLiteral("Tema 1: se pidieron 12 preguntas pero solo hay 10 distintas verificadas disponibles."));
+        // Sin la opción, entran todas: hay bastantes.
+        c.soloVerificadas = false;
+        QVERIFY(!Generador::generar(banco, c).avisos.join(QLatin1Char('\n')).contains(QStringLiteral("se pidieron")));
+    }
+
+    void ponerVerificacion()
+    {
+        ResultadoGeneracion r = Generador::generar(bancoInventado(), configuracion(4));
+        Pregunta p = r.modelos.at(1).preguntas.at(2).pregunta;
+        p.verificada = true;
+        p.verificadores = {QStringLiteral("Persona Uno")};
+        p.enunciado = QStringLiteral("Esto no se pone: solo la verificación.");
+        const QString antes = firma(r);
+        QCOMPARE(Generador::ponerVerificacion(r, p), 1);
+        QVERIFY(r.modelos.at(1).preguntas.at(2).pregunta.verificada);
+        QCOMPARE(r.modelos.at(1).preguntas.at(2).pregunta.verificadores, QStringList{QStringLiteral("Persona Uno")});
+        QVERIFY(r.modelos.at(1).preguntas.at(2).pregunta.enunciado != p.enunciado);
+        QCOMPARE(firma(r), antes);
+        Pregunta otra = p;
+        otra.id = -1;
+        QCOMPARE(Generador::ponerVerificacion(r, otra), 0);
     }
 };
 

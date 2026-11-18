@@ -391,6 +391,7 @@ public:
         texto(raiz, QStringLiteral("$schema"), QString(), false);
         texto(raiz, QStringLiteral("asignatura"), QString(), false);
         texto(raiz, QStringLiteral("origen"), QString(), false);
+        nombres(raiz, QStringLiteral("verificadores"), QString());
         if (const Valor *idioma = texto(raiz, QStringLiteral("idioma"), QString(), false); idioma && !Idioma::disponible(idioma->texto)) {
             QStringList codigos;
             for (const Idioma::Disponible &d : Idioma::disponibles())
@@ -472,6 +473,22 @@ private:
             error(*v, donde, tr("«%1» tiene que ser true o false (sin comillas), y es %2.").arg(clave, tipoDe(*v)));
             return nullptr;
         }
+        return v;
+    }
+
+    // Una lista de nombres (textos no vacíos), opcional.
+    const Valor *nombres(const Valor &objeto, const QString &clave, const QString &donde)
+    {
+        const Valor *v = objeto.campo(clave);
+        if (!v)
+            return nullptr;
+        if (v->tipo != Valor::Lista) {
+            error(*v, donde, tr("«%1» tiene que ser una lista [ … ] de nombres, y es %2.").arg(clave, tipoDe(*v)));
+            return nullptr;
+        }
+        for (const Valor &n : v->hijos)
+            if (n.tipo != Valor::Texto || n.texto.trimmed().isEmpty())
+                error(n, donde, tr("En «%1» cada nombre tiene que ser un texto no vacío, entre comillas dobles.").arg(clave));
         return v;
     }
 
@@ -592,6 +609,11 @@ private:
             else
                 m_pseudos.append({s, donde});
         }
+        // La verificación por personas (la escribe el programa): quién la ha verificado, solo si lo está.
+        const Valor *verificada = booleano(p, QStringLiteral("verificada"), donde);
+        if (const Valor *quienes = nombres(p, QStringLiteral("verificadores"), donde);
+            quienes && !quienes->hijos.empty() && !(verificada && verificada->booleano))
+            aviso(*quienes, donde, tr("Dice quién la ha verificado, pero no que esté verificada («verificada»: true): no se usa."));
         if (const Valor *img = texto(p, QStringLiteral("imagen"), donde, false); img && !img->texto.isEmpty()) {
             const auto datos = QByteArray::fromBase64Encoding(img->texto.toLatin1(), QByteArray::AbortOnBase64DecodingErrors);
             if (!datos || QImage::fromData(*datos).isNull())
@@ -671,7 +693,7 @@ int Resultado::avisos() const
 QStringList camposRaiz()
 {
     return {QStringLiteral("$schema"), QStringLiteral("asignatura"), QStringLiteral("idioma"), QStringLiteral("origen"),
-            QStringLiteral("temas")};
+            QStringLiteral("verificadores"), QStringLiteral("temas")};
 }
 
 QStringList camposTema()
@@ -686,7 +708,8 @@ QStringList camposPregunta()
             QStringLiteral("etiqueta_original"), QStringLiteral("old"), QStringLiteral("estado"),
             QStringLiteral("revisar"),    QStringLiteral("enunciado"), QStringLiteral("opciones"),
             QStringLiteral("correcta"),   QStringLiteral("referencia"), QStringLiteral("explicacion"),
-            QStringLiteral("notas"),      QStringLiteral("pseudo_con"), QStringLiteral("imagen")};
+            QStringLiteral("notas"),      QStringLiteral("pseudo_con"), QStringLiteral("imagen"),
+            QStringLiteral("verificada"), QStringLiteral("verificadores")};
 }
 
 Resultado comprobar(const QByteArray &json, const QSet<QString> &gruposDelBanco)

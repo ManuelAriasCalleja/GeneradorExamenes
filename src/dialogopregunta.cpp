@@ -1,4 +1,5 @@
 #include "dialogopregunta.h"
+#include "verificacion.h"
 #include "dialogoayuda.h"
 #include "dialogoparecidas.h"
 #include "estilo.h"
@@ -39,7 +40,7 @@ DialogoPregunta::DialogoPregunta(const QVector<Tema> &temas, const QVector<Pregu
     resize(1150, 760);
 
     auto *formulario = new QWidget;
-    auto *lf = new QVBoxLayout(formulario);
+    auto *lf = m_formulario = new QVBoxLayout(formulario);
     lf->setContentsMargins(0, 0, 0, 0);
 
     lf->addWidget(crearIdentificacion(pregunta));
@@ -84,10 +85,25 @@ bool mismosDatos(const Pregunta &a, const Pregunta &b)
     return a.temaId == b.temaId && a.numero == b.numero && a.variante == b.variante && a.estado == b.estado
            && a.old == b.old && a.revisar == b.revisar && a.pseudoCon == b.pseudoCon && a.enunciado == b.enunciado
            && a.opciones == b.opciones && a.correcta == b.correcta && a.referencia == b.referencia
-           && a.explicacion == b.explicacion && a.notas == b.notas && a.imagen == b.imagen;
+           && a.explicacion == b.explicacion && a.notas == b.notas && a.imagen == b.imagen && a.verificada == b.verificada
+           && a.verificadores == b.verificadores;
 }
 
 } // namespace
+
+void DialogoPregunta::ponerVerificacion(BaseDatos *bd)
+{
+    if (m_verificacion)
+        return;
+    auto *grupo = new QGroupBox(tr("Verificación"));
+    auto *l = new QVBoxLayout(grupo);
+    m_verificacion = new PanelVerificacion(bd);
+    m_verificacion->ponerPregunta(m_original);
+    connect(m_verificacion, &PanelVerificacion::cambiado, this, &DialogoPregunta::actualizarVistaPrevia);
+    l->addWidget(m_verificacion);
+    m_formulario->addWidget(grupo);
+    m_inicial = pregunta();
+}
 
 void DialogoPregunta::anadirBoton(Despues despues, const QString &texto)
 {
@@ -291,6 +307,10 @@ Pregunta DialogoPregunta::pregunta() const
     p.explicacion = m_explicacion->toPlainText().trimmed();
     p.notas = m_notas->text().trimmed();
     p.imagen = m_imagen;
+    if (m_verificacion) {
+        p.verificada = m_verificacion->verificada();
+        p.verificadores = p.verificada ? m_verificacion->verificadores() : QStringList();
+    }
     return p;
 }
 
@@ -326,6 +346,8 @@ void DialogoPregunta::accept()
         if (caja.clickedButton() != guardar)
             return;
     }
+    if (m_verificacion)
+        m_verificacion->recordar();
     QDialog::accept();
 }
 

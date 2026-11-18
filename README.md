@@ -223,7 +223,23 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   en el banco, y si en algún examen una letra sale bastante más de lo que le toca (5 de 10, por ejemplo), se
   avisa. La ventana y la hoja de soluciones muestran cuántas veces es correcta cada letra.
 - Las preguntas anuladas u obsoletas no salen nunca. Las marcadas para revisar se pueden excluir.
+- Con «Solo preguntas verificadas por humanos» (desmarcada al principio, y guardada en cada banco), solo salen las que
+  ha revisado alguien. Los números pedidos de cada tema se recortan a los que hay y vuelven al desmarcarla.
 - Por defecto las preguntas se ordenan por tema y número, como en los exámenes oficiales.
+
+**Verificación por personas**: las preguntas pueden estar redactadas por una IA y alguien tiene que revisarlas. Cada
+una tiene la casilla «Verificada por humanos» y una casilla por cada verificador del banco (quiénes la han revisado),
+en el editor y en el diálogo *Verificar…* de la pestaña del banco (las de la lista, desde la elegida) y de la del
+examen (las del examen, desde la de «Pregunta», o con el botón derecho sobre una). Para hacer los menos clics, al
+marcar «Verificada por humanos» se marcan los que verificaron la anterior, y «Verificada, siguiente» (Intro) la marca
+así y pasa a la siguiente; al marcar a una persona, la pregunta queda verificada. Con el botón derecho sobre la lista
+del banco, *Marcar como verificadas las N preguntas de la lista…* las marca todas de una vez. Los verificadores se
+añaden, se renombran y se quitan en *Editar → Verificadores…* (al quitar a alguien, sus preguntas siguen verificadas).
+En la vista del examen, tras el número de cada pregunta, una marca azul («✓ verificada: …») o naranja («● sin
+verificar») que no sale al imprimir ni al exportar. En la lista del banco, la columna «Verificada» y los filtros
+«Verificadas» y «Sin verificar». Va en la base de datos (tablas `verificadores` y `verificaciones` y la columna
+`verificada`, desde la versión 2 del esquema) y en el JSON (`verificada` y `verificadores`, que escribe el programa);
+al importar un JSON que no la dice, cada pregunta conserva la suya si no ha cambiado lo que se ve de ella.
 
 **Banco de preguntas**: buscar (sin distinguir tildes ni mayúsculas), filtrar, crear, editar, duplicar como variante
 y eliminar preguntas. El editor tiene «Guardar y siguiente» (la siguiente de la tabla, con su filtro y su orden) y, al

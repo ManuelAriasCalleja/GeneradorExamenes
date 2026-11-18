@@ -1,4 +1,5 @@
 #include "ventanaprincipal.h"
+#include "verificacion.h"
 #include "dialogoanteriores.h"
 #include "dialogoayuda.h"
 #include "dialogocomprobacion.h"
@@ -472,6 +473,10 @@ QWidget *VentanaPrincipal::crearGrupoOpciones()
     m_noRepetir->setChecked(true);
     m_incluirRevisar = new QCheckBox(tr("Incluir preguntas marcadas para revisar"));
     m_incluirRevisar->setChecked(true);
+    m_soloVerificadas = new QCheckBox(tr("Solo preguntas verificadas por humanos"));
+    m_soloVerificadas->setToolTip(tr("Sin marcar, entran todas las preguntas; marcada, solo las que ha revisado alguien "
+                                     "(«Verificada por humanos»). En la vista del examen, cada pregunta dice si está "
+                                     "verificada."));
     m_ordenAleatorio = new QCheckBox(tr("Orden aleatorio (si no, por tema y número)"));
     m_barajarOpciones = new QCheckBox(tr("Barajar las opciones (la correcta, repartida entre a)–d))"));
     m_barajarOpciones->setToolTip(tr("En cada examen, la correcta sale en a), b), c) y d) por igual y nunca tres veces "
@@ -501,6 +506,7 @@ QWidget *VentanaPrincipal::crearGrupoOpciones()
     fOpc->addRow(filaRecientes);
     fOpc->addRow(m_evitarOld);
     fOpc->addRow(m_incluirRevisar);
+    fOpc->addRow(m_soloVerificadas);
     fOpc->addRow(m_ordenAleatorio);
     fOpc->addRow(m_barajarOpciones);
     fOpc->addRow(m_limitarPaginas);
@@ -591,6 +597,10 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     boton(otras, tr("Editar…"), &VentanaPrincipal::editarPreguntaExamen)
         ->setToolTip(tr("Abre la pregunta en el editor. Lo que se guarde queda en el banco y se ve ya en el examen, "
                         "con las opciones en el mismo orden."));
+    //: Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas
+    boton(otras, tr("Verificar…"), &VentanaPrincipal::verificarPreguntaExamen)
+        ->setToolTip(tr("Recorre las preguntas del examen, desde esta, para marcarlas como verificadas por personas: "
+                        "«Verificada, siguiente» la marca con los mismos verificadores que la anterior."));
     //: Botón: cambia esa pregunta del examen por otra del mismo tema
     boton(otras, tr("Cambiar por otra"), &VentanaPrincipal::cambiarPregunta)
         ->setToolTip(tr("Sustituye la pregunta por otra del mismo tema, en el mismo sitio y con la correcta en la "
@@ -631,6 +641,10 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
     m_filtroEstado->addItem(tr("Para revisar"), FiltroPreguntas::ParaRevisar);
     //: Filtro por estado de las preguntas: las que tienen imagen
     m_filtroEstado->addItem(tr("Con imagen"), FiltroPreguntas::ConImagen);
+    //: Filtro por estado de las preguntas: las revisadas por personas
+    m_filtroEstado->addItem(tr("Verificadas"), FiltroPreguntas::Verificadas);
+    //: Filtro por estado de las preguntas: las que aún no ha revisado nadie
+    m_filtroEstado->addItem(tr("Sin verificar"), FiltroPreguntas::SinVerificar);
     m_filtroTexto = new QLineEdit;
     m_filtroTexto->setPlaceholderText(tr("Buscar texto o código (T1-22b)…"));
     m_filtroTexto->setClearButtonEnabled(true);
@@ -660,6 +674,9 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
     m_tabla->setColumnWidth(ModeloPreguntas::ColTema, 50);
     m_tabla->setColumnWidth(ModeloPreguntas::ColCodigo, 80);
     m_tabla->setColumnWidth(ModeloPreguntas::ColEstado, 130);
+    m_tabla->setColumnWidth(ModeloPreguntas::ColVerificada, 130);
+    m_tabla->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_tabla, &QWidget::customContextMenuRequested, this, &VentanaPrincipal::menuTabla);
     m_tabla->setColumnWidth(ModeloPreguntas::ColCorrecta, 50);
     m_ficha = new QTextBrowser;
 
@@ -680,6 +697,8 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
     boton(tr("Nueva…"), &VentanaPrincipal::nuevaPregunta);
     //: Botón: editar la pregunta seleccionada
     boton(tr("Editar…"), &VentanaPrincipal::editarPregunta);
+    //: Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas como verificadas por personas
+    boton(tr("Verificar…"), &VentanaPrincipal::verificarPregunta);
     boton(tr("Duplicar como variante…"), &VentanaPrincipal::duplicarPregunta);
     //: Botón: eliminar la pregunta seleccionada
     boton(tr("Eliminar"), &VentanaPrincipal::eliminarPregunta);
@@ -730,6 +749,8 @@ void VentanaPrincipal::crearMenus()
     editar->addAction(tr("&Temas…"), this, &VentanaPrincipal::gestionarTemas);
     editar->addAction(tr("&Nueva pregunta…"), QKeySequence::New, this, &VentanaPrincipal::nuevaPregunta);
     editar->addAction(tr("&Revisar el estilo del banco…"), this, &VentanaPrincipal::revisarEstilo);
+    //: Menú: la lista de personas que verifican las preguntas del banco
+    editar->addAction(tr("&Verificadores…"), this, &VentanaPrincipal::gestionarVerificadores);
     editar->addSeparator();
     //: Menú para elegir el idioma de la interfaz del programa (menús, diálogos, ayuda)
     QMenu *menuIdioma = editar->addMenu(tr("&Idioma"));
@@ -1158,28 +1179,39 @@ void VentanaPrincipal::recargarDatos(int seleccionarId)
     reconstruirTemas();
     reconstruirRepartos();
 
-    if (seleccionarId) {
-        const int fila = m_modelo->filaDeId(seleccionarId);
-        const QModelIndex i = m_filtro->mapFromSource(m_modelo->index(fila, 0));
-        if (i.isValid()) {
-            m_tabla->setCurrentIndex(i);
-            m_tabla->scrollTo(i);
-        }
-    }
-    int activas = 0;
-    for (const Pregunta &p : m_preguntas)
+    if (seleccionarId)
+        seleccionarPregunta(seleccionarId);
+    int activas = 0, verificadas = 0;
+    for (const Pregunta &p : m_preguntas) {
         activas += p.activa() ? 1 : 0;
-    statusBar()->showMessage(tr("Base de datos: %1  ·  %2 temas, %3 preguntas (%4 activas)")
+        verificadas += p.verificada ? 1 : 0;
+    }
+    statusBar()->showMessage(tr("Base de datos: %1  ·  %2 temas, %3 preguntas (%4 activas, %5 verificadas)")
                                  .arg(QDir::toNativeSeparators(m_bd.ruta()))
-                                 .arg(m_temas.size()).arg(m_preguntas.size()).arg(activas));
+                                 .arg(m_temas.size()).arg(m_preguntas.size()).arg(activas).arg(verificadas));
     comprobarJson();
+}
+
+void VentanaPrincipal::seleccionarPregunta(int id)
+{
+    const int fila = m_modelo->filaDeId(id);
+    const QModelIndex i = m_filtro->mapFromSource(m_modelo->index(fila, 0));
+    if (i.isValid()) {
+        m_tabla->setCurrentIndex(i);
+        m_tabla->scrollTo(i);
+    }
 }
 
 // Rejilla de "preguntas por tema" de la pestaña de examen.
 void VentanaPrincipal::reconstruirTemas()
 {
-    for (auto it = m_cantidades.cbegin(); it != m_cantidades.cend(); ++it)
-        m_cantidadesGuardadas[it.key()] = it.value()->value();
+    // Lo pedido de cada tema, salvo si está en el máximo porque no había más (al pedir solo las verificadas, o sin las
+    // de revisar): se queda lo que se había pedido, que vuelve cuando vuelve a haberlas.
+    for (auto it = m_cantidades.cbegin(); it != m_cantidades.cend(); ++it) {
+        const QSpinBox *s = it.value();
+        if (!(s->value() == s->maximum() && m_cantidadesGuardadas.value(it.key()) > s->value()))
+            m_cantidadesGuardadas[it.key()] = s->value();
+    }
     QLayoutItem *item;
     while ((item = m_rejillaTemas->takeAt(0)) != nullptr) {
         delete item->widget();
@@ -1187,7 +1219,8 @@ void VentanaPrincipal::reconstruirTemas()
     }
     m_cantidades.clear();
 
-    const QMap<int, int> disponibles = Generador::gruposDisponibles(m_preguntas, m_incluirRevisar->isChecked());
+    const QMap<int, int> disponibles = Generador::gruposDisponibles(m_preguntas, m_incluirRevisar->isChecked(),
+                                                                    m_soloVerificadas->isChecked());
     int fila = 0;
     for (const Tema &t : m_temas) {
         auto *nombre = new QLabel(QStringLiteral("T%1  %2").arg(t.numero).arg(t.titulo));
@@ -1229,6 +1262,7 @@ void VentanaPrincipal::leerConfiguracion()
     for (const QString &nombre : examenes)
         anadirExamen(nombre, marcados.contains(nombre));
     connect(m_incluirRevisar, &QCheckBox::toggled, this, &VentanaPrincipal::reconstruirTemas);
+    connect(m_soloVerificadas, &QCheckBox::toggled, this, &VentanaPrincipal::reconstruirTemas);
     actualizarPuntuacion();
 }
 
@@ -1332,6 +1366,7 @@ QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
         {QStringLiteral("examen/numRecientes"), m_numRecientes},
         {QStringLiteral("examen/evitarOld"), m_evitarOld},
         {QStringLiteral("examen/incluirRevisar"), m_incluirRevisar},
+        {QStringLiteral("examen/soloVerificadas"), m_soloVerificadas},
         {QStringLiteral("examen/ordenAleatorio"), m_ordenAleatorio},
         {QStringLiteral("examen/barajarOpciones"), m_barajarOpciones},
         {QStringLiteral("examen/limitarPaginas"), m_limitarPaginas},
@@ -1614,6 +1649,7 @@ ConfigExamen VentanaPrincipal::configuracionExamen() const
             c.nombresModelos << m_listaExamenes->item(i)->text().trimmed();
     c.noRepetirEntreModelos = m_noRepetir->isChecked();
     c.incluirParaRevisar = m_incluirRevisar->isChecked();
+    c.soloVerificadas = m_soloVerificadas->isChecked();
     c.ordenAleatorio = m_ordenAleatorio->isChecked();
     c.barajarOpciones = m_barajarOpciones->isChecked();
     c.evitarOld = m_evitarOld->isChecked();
@@ -1742,9 +1778,10 @@ void VentanaPrincipal::mostrarModelo()
     //: Cuántas veces es correcta cada letra en el examen; %1 es la lista: «A 3 · B 2 · C 3 · D 2»
     m_correctasPorLetra->setText(tr("Correctas: %1").arg(Maquetador::textoCorrectasPorLetra(m_resultado.modelos.at(i))));
     m_preguntaACambiar->setRange(1, qMax(1, int(m_resultado.modelos.at(i).preguntas.size())));
-    // Con soluciones, también la plantilla de corrección, que en los ficheros va en la hoja de soluciones.
+    // Con soluciones, también la plantilla de corrección, que en los ficheros va en la hoja de soluciones. Y la marca de
+    // las verificadas y las que no, que solo va en la vista.
     const QString html = Maquetador::examenHtml(m_resultado.modelos.at(i), datosConvocatoria(), m_verSoluciones->isChecked(),
-                                                nivelMaqueta(), true);
+                                                nivelMaqueta(), true, true);
     m_visorExamen->ponerDocumento(Maquetador::crearDocumento(html, Maquetador::preguntasDe(m_resultado.modelos), m_visorExamen));
 }
 
@@ -2057,18 +2094,8 @@ void VentanaPrincipal::editarDelExamen(int indice)
         return;
     const Pregunta copia = m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta;
     // Se edita la del banco, que puede ser más nueva que la copia del examen (si se ha corregido después, o si el
-    // examen viene del historial). Se busca por su id y su código; si no está, por el código, que no cambia al
-    // reimportar el JSON, y si tampoco, por el id, por si se le ha cambiado el número.
-    Pregunta enBanco;
-    for (const Pregunta &p : std::as_const(m_preguntas))
-        if (p.id == copia.id && p.codigoCompleto() == copia.codigoCompleto())
-            enBanco = p;
-    for (const Pregunta &p : std::as_const(m_preguntas))
-        if (enBanco.id == 0 && p.codigoCompleto() == copia.codigoCompleto())
-            enBanco = p;
-    for (const Pregunta &p : std::as_const(m_preguntas))
-        if (enBanco.id == 0 && p.id == copia.id)
-            enBanco = p;
+    // examen viene del historial).
+    const Pregunta enBanco = preguntaDelBanco(copia);
     if (enBanco.id == 0) {
         QMessageBox::information(this, windowTitle(), tr("La pregunta %1 ya no está en el banco: no se puede editar.")
                                                           .arg(copia.codigoCompleto()));
@@ -2079,17 +2106,7 @@ void VentanaPrincipal::editarDelExamen(int indice)
     if (guardada.id == 0)
         return;
 
-    // Si cambia lo que se ve en el examen, ya no es como el registrado.
-    const bool igual = guardada.codigoCompleto() == copia.codigoCompleto() && guardada.enunciado == copia.enunciado
-                       && guardada.opciones == copia.opciones && guardada.correcta == copia.correcta
-                       && guardada.referencia == copia.referencia && guardada.explicacion == copia.explicacion
-                       && guardada.imagen == copia.imagen;
-    const int sitios = Generador::ponerCorregida(m_resultado, m_configResultado, copia, guardada);
-    // También en los exámenes de antes de cada cambio de pregunta: al deshacerlo, la pregunta vuelve corregida.
-    for (CambioPregunta &cambio : m_cambios)
-        Generador::ponerCorregida(cambio.antes, m_configResultado, copia, guardada);
-    if (!igual)
-        m_registrados = false;
+    const int sitios = corregirEnExamenes(copia, guardada);
     actualizarMaqueta();
     m_preguntaACambiar->setValue(indice + 1);
     m_visorExamen->scrollToAnchor(QStringLiteral("q%1").arg(indice + 1));
@@ -2101,6 +2118,104 @@ void VentanaPrincipal::editarDelExamen(int indice)
         //: Se añade al mensaje de pregunta guardada (con el espacio delante) si se ha marcado como anulada u obsoleta
         mensaje += tr(" Ya no está activa: si no debe salir, cámbiela por otra.");
     statusBar()->showMessage(mensaje, 10000);
+}
+
+Pregunta VentanaPrincipal::preguntaDelBanco(const Pregunta &copia) const
+{
+    for (const Pregunta &p : m_preguntas)
+        if (p.id == copia.id && p.codigoCompleto() == copia.codigoCompleto())
+            return p;
+    for (const Pregunta &p : m_preguntas)
+        if (p.codigoCompleto() == copia.codigoCompleto())
+            return p;
+    for (const Pregunta &p : m_preguntas)
+        if (p.id == copia.id)
+            return p;
+    return Pregunta();
+}
+
+int VentanaPrincipal::corregirEnExamenes(const Pregunta &antes, const Pregunta &guardada)
+{
+    // Si cambia lo que se ve en el examen, ya no es como el registrado.
+    if (guardada.codigoCompleto() != antes.codigoCompleto() || !guardada.mismoContenido(antes))
+        m_registrados = false;
+    const int sitios = Generador::ponerCorregida(m_resultado, m_configResultado, antes, guardada);
+    // También en los exámenes de antes de cada cambio de pregunta: al deshacerlo, la pregunta vuelve corregida.
+    for (CambioPregunta &cambio : m_cambios)
+        Generador::ponerCorregida(cambio.antes, m_configResultado, antes, guardada);
+    return sitios;
+}
+
+void VentanaPrincipal::verificarPreguntaExamen()
+{
+    verificarDelExamen(m_preguntaACambiar->value() - 1);
+}
+
+void VentanaPrincipal::verificarDelExamen(int indice)
+{
+    const int modelo = m_selectorModelo->currentIndex();
+    if (modelo < 0 || modelo >= m_resultado.modelos.size())
+        return;
+    // Las del examen que se ve, en su orden, como están en el banco (las que ya no están, no).
+    QVector<Pregunta> preguntas;
+    QVector<int> enExamen;   // número (desde 0) en el examen de cada una
+    int inicial = 0;
+    const QVector<PreguntaExamen> &delExamen = m_resultado.modelos.at(modelo).preguntas;
+    for (int i = 0; i < delExamen.size(); ++i) {
+        const Pregunta p = preguntaDelBanco(delExamen.at(i).pregunta);
+        if (p.id == 0)
+            continue;
+        if (i <= indice)
+            inicial = int(preguntas.size());
+        preguntas << p;
+        enExamen << i;
+    }
+    if (preguntas.isEmpty())
+        return;
+    // Lo que se corrija con el editor se pone también en los exámenes, como con «Editar…».
+    DialogoVerificar d(&m_bd, preguntas, inicial, m_temas,
+                       [this](const Pregunta &p) {
+                           Pregunta guardada;
+                           editar(p, DialogoPregunta::Cerrar, QString(), &guardada);
+                           if (guardada.id != 0)
+                               corregirEnExamenes(p, guardada);
+                           return guardada;
+                       },
+                       this);
+    //: Título del diálogo de verificar; %1 es el nombre del examen («Nacional Original»)
+    d.setWindowTitle(tr("Verificar las preguntas de «%1»").arg(m_resultado.modelos.at(modelo).nombre));
+    d.exec();
+    if (!d.cambiadas().isEmpty())
+        verificacionCambiada(preguntas.value(d.actual()).id);
+    if (d.hayEditadas())
+        actualizarMaqueta();
+    else
+        mostrarModelo();
+    const int numero = enExamen.value(d.actual()) + 1;
+    m_preguntaACambiar->setValue(numero);
+    m_visorExamen->scrollToAnchor(QStringLiteral("q%1").arg(numero));
+}
+
+void VentanaPrincipal::verificacionCambiada(int seleccionarId)
+{
+    bancoEditado(seleccionarId);
+    // La verificación de las preguntas de los exámenes (y de los de antes de cada cambio), la del banco.
+    auto poner = [this](ResultadoGeneracion &r) {
+        for (Modelo &m : r.modelos) {
+            for (PreguntaExamen &pe : m.preguntas) {
+                const Pregunta enBanco = preguntaDelBanco(pe.pregunta);
+                if (enBanco.id != 0) {
+                    pe.pregunta.verificada = enBanco.verificada;
+                    pe.pregunta.verificadores = enBanco.verificadores;
+                }
+            }
+        }
+    };
+    poner(m_resultado);
+    for (CambioPregunta &cambio : m_cambios)
+        poner(cambio.antes);
+    if (hayExamen())
+        mostrarModelo();
 }
 
 void VentanaPrincipal::deshacerCambio()
@@ -2144,6 +2259,7 @@ void VentanaPrincipal::menuVista(const QPoint &enVista)
     std::unique_ptr<QMenu> menu(m_visorExamen->createStandardContextMenu());
     QAction *primera = menu->actions().value(0);
     QAction *editar = nullptr;
+    QAction *verificar = nullptr;
     QAction *cambiar = nullptr;
     QAction *deshacer = nullptr;
     const int modelo = m_selectorModelo->currentIndex();
@@ -2154,6 +2270,11 @@ void VentanaPrincipal::menuVista(const QPoint &enVista)
                                  .arg(indice + 1).arg(m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta.codigoCompleto()),
                              menu.get());
         menu->insertAction(primera, editar);
+        //: %1 es el número de la pregunta en el examen y %2 su código (T2-15b)
+        verificar = new QAction(tr("Verificar la pregunta %1 (%2)…")
+                                    .arg(indice + 1).arg(m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta.codigoCompleto()),
+                                menu.get());
+        menu->insertAction(primera, verificar);
         cambiar = new QAction(tr("Cambiar la pregunta %1 por otra del tema %2")
                                   .arg(indice + 1).arg(m_resultado.modelos.at(modelo).preguntas.at(indice).pregunta.temaNumero),
                               menu.get());
@@ -2170,6 +2291,8 @@ void VentanaPrincipal::menuVista(const QPoint &enVista)
     QAction *elegida = menu->exec(m_visorExamen->viewport()->mapToGlobal(enVista));
     if (elegida && elegida == editar)
         editarDelExamen(indice);
+    else if (elegida && elegida == verificar)
+        verificarDelExamen(indice);
     else if (elegida && elegida == cambiar)
         this->cambiar(indice);
     else if (elegida && elegida == deshacer)
@@ -2236,6 +2359,7 @@ DialogoPregunta::Despues VentanaPrincipal::editar(Pregunta p, DialogoPregunta::D
         return DialogoPregunta::Cerrar;
     }
     DialogoPregunta d(m_temas, m_preguntas, p, idiomaExamen(), this);
+    d.ponerVerificacion(&m_bd);
     if (boton != DialogoPregunta::Cerrar)
         d.anadirBoton(boton, texto);
     while (d.exec() == QDialog::Accepted) {
@@ -2305,7 +2429,117 @@ void VentanaPrincipal::duplicarPregunta()
         return;
     }
     p.old = false;
+    // Es otra pregunta: nadie la ha revisado aún.
+    p.verificada = false;
+    p.verificadores.clear();
     editar(p);
+}
+
+void VentanaPrincipal::verificarPregunta()
+{
+    // Las de la lista, con su filtro y su orden, desde la seleccionada.
+    QVector<Pregunta> preguntas;
+    for (int f = 0; f < m_filtro->rowCount(); ++f)
+        preguntas << m_modelo->pregunta(m_filtro->mapToSource(m_filtro->index(f, 0)).row());
+    if (preguntas.isEmpty())
+        return;
+    DialogoVerificar d(&m_bd, preguntas, qMax(0, m_tabla->currentIndex().row()), m_temas,
+                       [this](const Pregunta &p) {
+                           Pregunta guardada;
+                           editar(p, DialogoPregunta::Cerrar, QString(), &guardada);
+                           return guardada;
+                       },
+                       this);
+    d.exec();
+    const int actual = preguntas.value(d.actual()).id;
+    if (!d.cambiadas().isEmpty())
+        verificacionCambiada(actual);
+    else
+        seleccionarPregunta(actual);
+}
+
+void VentanaPrincipal::verificarLista()
+{
+    QVector<Pregunta> lista;
+    for (int f = 0; f < m_filtro->rowCount(); ++f)
+        lista << m_modelo->pregunta(m_filtro->mapToSource(m_filtro->index(f, 0)).row());
+    if (lista.isEmpty())
+        return;
+    QDialog d(this);
+    d.setWindowTitle(tr("Marcar como verificadas"));
+    auto *l = new QVBoxLayout(&d);
+    l->addWidget(new QLabel(lista.size() == 1 ? tr("Se marcará como verificada la pregunta de la lista por:")
+                                              : tr("Se marcarán como verificadas las %1 preguntas de la lista por:").arg(lista.size())));
+    auto *panel = new PanelVerificacion(&m_bd, false);
+    panel->marcar(m_bd.ultimosVerificadores());
+    l->addWidget(panel);
+    auto *nota = new QLabel(tr("A las que ya estaban verificadas se les añaden estas personas."));
+    nota->setStyleSheet(QStringLiteral("color: gray"));
+    l->addWidget(nota);
+    auto *botones = new QDialogButtonBox;
+    botones->addButton(tr("Marcar como verificadas"), QDialogButtonBox::AcceptRole)->setDefault(true);
+    botones->addButton(tr("Cancelar"), QDialogButtonBox::RejectRole);
+    connect(botones, &QDialogButtonBox::accepted, &d, &QDialog::accept);
+    connect(botones, &QDialogButtonBox::rejected, &d, &QDialog::reject);
+    DialogoAyuda::ponerAyuda(&d, botones, QStringLiteral("verificar"));
+    l->addWidget(botones);
+    if (d.exec() != QDialog::Accepted)
+        return;
+    if (panel->hayVerificadores() && panel->verificadores().isEmpty()) {
+        QMessageBox::information(this, windowTitle(), tr("Marque quién las ha verificado."));
+        return;
+    }
+    QVector<Pregunta> cambiadas;
+    for (Pregunta p : std::as_const(lista)) {
+        QStringList nombres = p.verificadores;
+        for (const QString &n : panel->verificadores())
+            if (!nombres.contains(n))
+                nombres << n;
+        if (p.verificada && nombres == p.verificadores)
+            continue;
+        p.verificada = true;
+        p.verificadores = nombres;
+        cambiadas << p;
+    }
+    if (!m_bd.guardarVerificaciones(cambiadas)) {
+        QMessageBox::warning(this, windowTitle(), tr("No se pudo guardar la verificación:\n%1").arg(m_bd.ultimoError()));
+        return;
+    }
+    panel->recordar();
+    bool ok;
+    verificacionCambiada(preguntaSeleccionada(&ok).id);
+    statusBar()->showMessage(cambiadas.size() == 1 ? tr("1 pregunta marcada como verificada.")
+                                                   : tr("%1 preguntas marcadas como verificadas.").arg(cambiadas.size()),
+                             8000);
+}
+
+void VentanaPrincipal::gestionarVerificadores()
+{
+    DialogoVerificadores d(&m_bd, this);
+    d.exec();
+    if (d.hayCambios()) {
+        bool ok;
+        verificacionCambiada(preguntaSeleccionada(&ok).id);
+    }
+}
+
+void VentanaPrincipal::menuTabla(const QPoint &donde)
+{
+    QMenu menu;
+    const QModelIndex i = m_tabla->indexAt(donde);
+    if (i.isValid()) {
+        m_tabla->setCurrentIndex(i);
+        menu.addAction(tr("Editar…"), this, &VentanaPrincipal::editarPregunta);
+        menu.addAction(tr("Verificar…"), this, &VentanaPrincipal::verificarPregunta);
+        menu.addSeparator();
+    }
+    const int n = m_filtro->rowCount();
+    if (n > 0)
+        menu.addAction(n == 1 ? tr("Marcar como verificada la pregunta de la lista…")
+                              : tr("Marcar como verificadas las %1 preguntas de la lista…").arg(n),
+                       this, &VentanaPrincipal::verificarLista);
+    if (!menu.isEmpty())
+        menu.exec(m_tabla->viewport()->mapToGlobal(donde));
 }
 
 void VentanaPrincipal::eliminarPregunta()

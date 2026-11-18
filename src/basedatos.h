@@ -59,8 +59,27 @@ public:
     int contarPreguntas(int temaId);
 
     QVector<Pregunta> preguntas();
+    // Guarda la pregunta con su verificación: si no está verificada, sin verificadores; los que no estén en la lista
+    // de verificadores del banco se añaden.
     bool guardarPregunta(Pregunta &p);
     bool borrarPregunta(int id);
+
+    // Verificación de las preguntas por personas (ver Pregunta::verificada). Los verificadores del banco, por orden
+    // alfabético; cada pregunta dice cuáles la han verificado.
+    QStringList verificadores();
+    bool anadirVerificador(const QString &nombre);
+    // Cambia el nombre en la lista y en las preguntas que había verificado.
+    bool cambiarNombreVerificador(const QString &antes, const QString &despues);
+    // Lo quita de la lista y de las preguntas que había verificado, que siguen verificadas.
+    bool borrarVerificador(const QString &nombre);
+    // Cuántas preguntas ha verificado.
+    int preguntasVerificadasPor(const QString &nombre);
+    // Pone solo la verificación de una pregunta (o de varias, de una vez), sin tocar lo demás.
+    bool guardarVerificacion(int preguntaId, bool verificada, const QStringList &verificadores);
+    bool guardarVerificaciones(const QVector<Pregunta> &preguntas);
+    // Los que verificaron la última pregunta que se marcó como verificada: se proponen para la siguiente.
+    QStringList ultimosVerificadores();
+    bool guardarUltimosVerificadores(const QStringList &nombres);
 
     // Importa un JSON con el formato de herramientas/importar_docx.py.
     // Si 'reemplazar' es true borra antes todas las preguntas y temas, tras guardar una copia de seguridad de la
@@ -68,7 +87,9 @@ public:
     // hecho (banco sin temas, o añadir/actualizar). Si la importación falla, la base de datos no cambia y la copia
     // se borra. Las preguntas con el mismo tema, número y variante se actualizan. El nombre de la asignatura del
     // JSON solo se toma si el banco aún no tiene; la forma de la referencia de un tema, si el JSON no la dice (los
-    // de importar_docx.py no la dicen), es la que ya tenía el tema con ese número.
+    // de importar_docx.py no la dicen), es la que ya tenía el tema con ese número. La verificación de una pregunta
+    // es la del JSON si la dice («verificada»); si no, la que tenía en el banco la pregunta con el mismo código si su
+    // contenido no ha cambiado (también al reemplazarlo todo), y si no, sin verificar.
     int importarJson(const QString &ruta, bool reemplazar, QString *copia = nullptr);
     bool exportarJson(const QString &ruta);
 
@@ -135,7 +156,8 @@ private:
     bool crearEsquema();
     // Pone al día un banco de una versión anterior del programa (PRAGMA user_version). En la 1, el banco lleva el
     // nombre de la asignatura, sus repartos y la forma de la referencia de cada tema; a los bancos de antes, que
-    // eran todos de Fundamentos de la informática (los que tienen temas), se les ponen los de esa asignatura.
+    // eran todos de Fundamentos de la informática (los que tienen temas), se les ponen los de esa asignatura. En la 2,
+    // las preguntas dicen si están verificadas (ninguna lo está).
     bool actualizarEsquema();
     // Sentencia con sus valores (los «?», en orden); si falla, deja el error en m_error. En 'id' deja el de la fila
     // insertada.
@@ -146,6 +168,9 @@ private:
     // Id del tema con el número de 't' (si no hay, lo crea); con 'actualizar', le pone el título, el autor y la forma
     // de la referencia de 't'.
     int idTema(const Tema &t, bool actualizar);
+    // Id del verificador con ese nombre (si no está, lo añade); 0 si falla.
+    int idVerificador(const QString &nombre);
+    bool ponerVerificadores(int preguntaId, const QStringList &nombres);
 
     QSqlDatabase m_db;
     QString m_ruta;

@@ -603,6 +603,12 @@ QString Maquetador::fichaPreguntaHtml(const Pregunta &p, const QString &nombreTe
         etiquetas << tr("ya salió en exámenes (old)");
     if (p.revisar)
         etiquetas << tr("para revisar");
+    //: En la ficha de una pregunta: la han revisado personas; %1 son sus nombres
+    if (p.verificada)
+        etiquetas << (p.verificadores.isEmpty() ? tr("verificada") : tr("verificada por %1").arg(p.verificadores.join(QStringLiteral(", "))));
+    else
+        //: En la ficha de una pregunta: no la han revisado personas
+        etiquetas << tr("sin verificar");
 
     QString html = QStringLiteral("<html><body style=\"font-family:%1\">").arg(QLatin1String(kFuente));
     html += QStringLiteral("<p style=\"color:#555\">%1<br><b>%2</b> &middot; %3</p>")
@@ -627,10 +633,26 @@ int Maquetador::numNiveles()
     return Maqueta::numNiveles();
 }
 
-QString Maquetador::examenHtml(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int n, bool conPlantilla)
+QString Maquetador::examenHtml(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int n, bool conPlantilla,
+                              bool marcarVerificadas)
 {
     return QStringLiteral("<html><body style=\"font-family:%1; font-size:%2pt\">%3</body></html>")
-        .arg(QLatin1String(kFuente), QString::number(nivel(n).fuentePt), cuerpoExamen(modelo, d, soluciones, n, conPlantilla));
+        .arg(QLatin1String(kFuente), QString::number(nivel(n).fuentePt),
+             cuerpoExamen(modelo, d, soluciones, n, conPlantilla, marcarVerificadas));
+}
+
+QString Maquetador::marcaVerificacion(const Pregunta &p)
+{
+    // En la vista, que va en el idioma de la interfaz. Azul (y no verde, el de las soluciones) las verificadas; naranja
+    // las que no.
+    const auto tr = [](const char *texto) { return QCoreApplication::translate("Maquetador", texto); };
+    if (!p.verificada)
+        //: Marca de la vista del examen tras el número de una pregunta que no han revisado personas
+        return QStringLiteral("<span style=\"color:#b45309\">&#9679; %1</span>").arg(escapar(tr("sin verificar")));
+    //: Marca de la vista del examen tras el número de una pregunta revisada por personas; %1 son sus nombres
+    const QString texto = p.verificadores.isEmpty() ? tr("verificada")
+                                                    : tr("verificada: %1").arg(p.verificadores.join(QStringLiteral(", ")));
+    return QStringLiteral("<span style=\"color:#1d4ed8\">&#10003; %1</span>").arg(escapar(texto));
 }
 
 QString Maquetador::examenesHtml(const QVector<Modelo> &modelos, const DatosConvocatoria &d, bool soluciones, int n)
@@ -648,7 +670,8 @@ QString Maquetador::examenesHtml(const QVector<Modelo> &modelos, const DatosConv
     return html + QStringLiteral("</body></html>");
 }
 
-QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int n, bool conPlantilla)
+QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int n, bool conPlantilla,
+                                 bool marcarVerificadas)
 {
     QString html;
     QString derecha;
@@ -677,6 +700,9 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
         if (soluciones)
             prefijo += QStringLiteral("<span style=\"color:%1; font-style:normal\">[%2]</span> ")
                            .arg(QLatin1String(Maquetador::kColorCorrecta), escapar(pe.pregunta.codigoCompleto()));
+        if (marcarVerificadas)
+            prefijo += QStringLiteral("<span style=\"font-style:normal; font-weight:normal; font-size:%1\">%2</span> ")
+                           .arg(pt(puntosExplicacion(n)), marcaVerificacion(pe.pregunta));
         // Con letra grande, el enunciado va en negrita sin cursiva, que cuesta más de leer.
         html += QStringLiteral("<div style=\"margin-top:%1px; font-weight:bold%3\">%2</div>")
                     .arg(i == 0 ? separacion + 4 : separacion)

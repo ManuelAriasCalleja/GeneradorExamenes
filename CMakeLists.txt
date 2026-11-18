@@ -36,6 +36,7 @@ qt_add_library(nucleo STATIC
     src/maquetador.h src/maquetador.cpp src/maqueta.h
     src/modelopreguntas.h src/modelopreguntas.cpp
     src/dialogopregunta.h src/dialogopregunta.cpp
+    src/verificacion.h src/verificacion.cpp
     src/dialogotemas.h src/dialogotemas.cpp
     src/dialogopractica.h src/dialogopractica.cpp
     src/dialogoestilo.h src/dialogoestilo.cpp

@@ -61,6 +61,11 @@ QVariant ModeloPreguntas::data(const QModelIndex &index, int role) const
                 e += tr(" · imagen");
             return e;
         }
+        case ColVerificada:
+            if (!p.verificada)
+                return QString();
+            //: Columna «Verificada» de la lista de preguntas: la han revisado personas (sin decir quiénes)
+            return p.verificadores.isEmpty() ? tr("sí") : QStringLiteral("✓ ") + p.verificadores.join(QStringLiteral(", "));
         case ColEnunciado: {
             QString t = p.enunciado;
             t.replace(QLatin1String("```"), QString());
@@ -69,6 +74,13 @@ QVariant ModeloPreguntas::data(const QModelIndex &index, int role) const
         case ColCorrecta:
             return QString(Pregunta::letraMayuscula(p.correcta));
         }
+    } else if (role == Qt::ToolTipRole && index.column() == ColVerificada) {
+        if (!p.verificada)
+            return tr("Sin verificar: ninguna persona la ha revisado");
+        return p.verificadores.isEmpty() ? tr("Verificada por personas")
+                                         : tr("Verificada por %1").arg(p.verificadores.join(QStringLiteral(", ")));
+    } else if (role == Qt::ForegroundRole && index.column() == ColVerificada && p.activa()) {
+        return QBrush(QColor(0x1d, 0x4e, 0xd8));   // el azul de la marca de la vista del examen
     } else if (role == Qt::ToolTipRole && index.column() == ColEnunciado) {
         QString t = p.enunciado;
         for (int i = 0; i < 4; ++i)
@@ -80,7 +92,7 @@ QVariant ModeloPreguntas::data(const QModelIndex &index, int role) const
         QFont f;
         f.setStrikeOut(true);
         return f;
-    } else if (role == Qt::TextAlignmentRole && index.column() != ColEnunciado) {
+    } else if (role == Qt::TextAlignmentRole && index.column() != ColEnunciado && index.column() != ColVerificada) {
         return int(Qt::AlignCenter);
     }
     return {};
@@ -94,6 +106,8 @@ QVariant ModeloPreguntas::headerData(int section, Qt::Orientation orientation, i
     case ColTema: return tr("Tema");
     case ColCodigo: return tr("Código");
     case ColEstado: return tr("Estado");
+    //: Cabecera de la columna que dice si la pregunta la han revisado personas, y quiénes
+    case ColVerificada: return tr("Verificada");
     case ColEnunciado: return tr("Enunciado");
     //: Abreviatura de «Respuesta correcta» (cabecera de una columna estrecha)
     case ColCorrecta: return tr("Resp.");
@@ -132,6 +146,8 @@ bool FiltroPreguntas::filterAcceptsRow(int fila, const QModelIndex &) const
     case Obsoletas: if (p.estado != QLatin1String("obsoleta")) return false; break;
     case ParaRevisar: if (!p.revisar) return false; break;
     case ConImagen: if (p.imagen.isEmpty()) return false; break;
+    case Verificadas: if (!p.verificada) return false; break;
+    case SinVerificar: if (p.verificada) return false; break;
     }
     if (m_texto.isEmpty())
         return true;

@@ -16,6 +16,7 @@ struct ConfigExamen
     QStringList nombresModelos;         // un modelo por nombre (p. ej. "Nacional Original"), en este orden
     bool noRepetirEntreModelos = true;  // dentro de una misma convocatoria
     bool incluirParaRevisar = true;     // preguntas marcadas MEJORAR/REFINAR...
+    bool soloVerificadas = false;       // solo las verificadas por personas (Pregunta::verificada)
     bool ordenAleatorio = false;        // si no, por tema y número (como en los exámenes oficiales)
     bool barajarOpciones = false;       // repartiendo la correcta por igual entre a), b), c) y d)
     // Preguntas ya usadas, que se dejan para el final (con sus variantes y pseudorrepetidas): primero las nunca
@@ -91,6 +92,10 @@ public:
     static int ponerCorregida(ResultadoGeneracion &resultado, const ConfigExamen &config, const Pregunta &antes,
                               const Pregunta &corregida);
 
+    // Pone en los exámenes la verificación de 'p' (en cada sitio en que esté la misma pregunta: el mismo id y el mismo
+    // código), sin cambiar nada más. Devuelve en cuántos sitios estaba.
+    static int ponerVerificacion(ResultadoGeneracion &resultado, const Pregunta &p);
+
     // Número de preguntas distintas (sin contar variantes) disponibles por tema.
-    static QMap<int, int> gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar);
+    static QMap<int, int> gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar, bool soloVerificadas = false);
 };

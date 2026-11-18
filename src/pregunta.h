@@ -42,6 +42,10 @@ struct Pregunta
     QString notas;
     QString pseudoCon;              // otra pregunta equivalente de otro tema, p. ej. "T1-7"
     QByteArray imagen;              // PNG opcional (diagramas)
+    // Revisada por personas: las preguntas pueden estar redactadas por una IA y hay que revisarlas antes de ponerlas en
+    // un examen. Quiénes la han verificado, por su nombre (ver BaseDatos::verificadores()); sin verificar, ninguno.
+    bool verificada = false;
+    QStringList verificadores;
 
     QString codigo() const { return QString::number(numero) + variante; }
     QString codigoCompleto() const { return QStringLiteral("T%1-%2").arg(temaNumero).arg(codigo()); }
@@ -49,6 +53,13 @@ struct Pregunta
     QString grupo() const { return claveGrupo(temaNumero, numero); }
     static QString claveGrupo(int tema, int numero) { return QStringLiteral("T%1-%2").arg(tema).arg(numero); }
     bool activa() const { return estado == QLatin1String("activa"); }
+    // Lo que certifica la verificación: lo que se ve de la pregunta (no su estado ni sus marcas ni sus notas). Si cambia,
+    // la verificación ya no vale.
+    bool mismoContenido(const Pregunta &otra) const
+    {
+        return enunciado == otra.enunciado && opciones == otra.opciones && correcta == otra.correcta
+               && referencia == otra.referencia && explicacion == otra.explicacion && imagen == otra.imagen;
+    }
     static QChar letra(int i) { return QChar('a' + i); }            // de la opción: a, b, c, d
     static QChar letraMayuscula(int i) { return QChar('A' + i); }   // de la respuesta en soluciones y plantillas: A, B, C, D
 

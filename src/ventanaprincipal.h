@@ -86,6 +86,7 @@ private slots:
     void registrarAnteriores();
     void practicar();
     void editarPreguntaExamen();   // la del número elegido bajo la vista
+    void verificarPreguntaExamen();   // desde la del número elegido bajo la vista
     void cambiarPregunta();   // la del número elegido bajo la vista
     void deshacerCambio();
 
@@ -96,6 +97,9 @@ private slots:
     void editarPregunta();
     void duplicarPregunta();
     void eliminarPregunta();
+    void verificarPregunta();   // las de la lista, desde la seleccionada
+    void verificarLista();      // marca como verificadas todas las de la lista
+    void gestionarVerificadores();
 
 private:
     QWidget *crearPestanaExamen();
@@ -172,6 +176,20 @@ private:
     // (ver Generador::ponerCorregida). Solo así cambian las preguntas de los exámenes generados al editarlas: los
     // cambios hechos en la pestaña del banco no les llegan, como a los registrados en el historial.
     void editarDelExamen(int indice);
+    // La pregunta del banco que corresponde a la copia de un examen: la del mismo id y código; si no está, la del mismo
+    // código (que no cambia al reimportar el JSON), y si tampoco, la del mismo id. Con id 0 si ya no está.
+    Pregunta preguntaDelBanco(const Pregunta &copia) const;
+    // Pone en los exámenes la pregunta 'guardada', que era 'antes' (ver Generador::ponerCorregida()). Devuelve en
+    // cuántos sitios de los exámenes estaba.
+    int corregirEnExamenes(const Pregunta &antes, const Pregunta &guardada);
+    // Recorre las preguntas del examen que se ve para verificarlas, desde la 'indice' (ver DialogoVerificar).
+    void verificarDelExamen(int indice);
+    // Tras cambiar la verificación de preguntas: pone al día el JSON enlazado, la lista (seleccionando 'seleccionarId')
+    // y la verificación de las preguntas de los exámenes, que se ve en sus marcas.
+    void verificacionCambiada(int seleccionarId);
+    void seleccionarPregunta(int id);
+    // Menú del botón derecho en la lista de preguntas.
+    void menuTabla(const QPoint &donde);
     // Menú del botón derecho en la vista del examen: el normal, con «Editar la pregunta N» y «Cambiar la pregunta N
     // por otra» si se pulsa sobre una pregunta, «Deshacer» si hay algún cambio y los de ampliar y reducir la vista.
     void menuVista(const QPoint &enVista);
@@ -262,6 +280,7 @@ private:
     QSpinBox *m_numRecientes;
     QCheckBox *m_evitarOld;
     QCheckBox *m_incluirRevisar;
+    QCheckBox *m_soloVerificadas;           // generar solo con preguntas verificadas por personas
     QCheckBox *m_ordenAleatorio;
     QCheckBox *m_barajarOpciones;
     QCheckBox *m_limitarPaginas;            // compactar la maqueta para que quepa en una página por cada 10 preguntas

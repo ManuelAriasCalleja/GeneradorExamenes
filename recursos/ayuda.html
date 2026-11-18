@@ -218,6 +218,10 @@ convocatorias anteriores a esas N cuentan como no salidas: con un número mayor 
 banco), aunque antes que las de las convocatorias registradas.</td></tr>
 <tr><td><b>Incluir preguntas marcadas para revisar</b></td>
 <td>Si se desmarca, las preguntas marcadas para revisar no salen.</td></tr>
+<tr><td><b>Solo preguntas verificadas por humanos</b></td>
+<td>Sin marcar (como está al principio), entran todas las preguntas; marcada, solo las que ha revisado alguien (ver
+<a href="#verificar">Verificación por personas</a>). Junto a cada tema se ve cuántas hay. Si al marcarla un tema tiene
+menos de las que se le piden, se le piden las que hay, y al desmarcarla vuelven las de antes.</td></tr>
 <tr><td><b>Orden aleatorio</b></td>
 <td>Mezcla las preguntas del examen. Si no se marca, van por tema y número, como en los exámenes oficiales.</td></tr>
 <tr><td><b>Barajar las opciones</b></td>
@@ -272,7 +276,11 @@ si los exámenes se han cargado del historial. Su texto se puede seleccionar y c
 demasiadas veces, un examen que no cabe en su página… Conviene leerlos antes de exportar.</li>
 <li><b>Pregunta</b>, <b>Editar…</b> y <b>Cambiar por otra</b>, bajo la vista: corrigen o cambian una pregunta del
 examen que se ve (ver <a href="#editar-pregunta">Editar una pregunta del examen</a> y
-<a href="#cambiar-pregunta">Cambiar una pregunta</a>).</li>
+<a href="#cambiar-pregunta">Cambiar una pregunta</a>). <b>Verificar…</b> recorre sus preguntas, desde esa, para
+marcarlas como verificadas (ver <a href="#verificar">Verificación por personas</a>).</li>
+<li>Tras el número de cada pregunta, una marca dice si la ha verificado alguien: en azul, «✓ verificada: …» con sus
+nombres; en naranja, «● sin verificar». La marca solo está en la vista: no sale al imprimir ni en lo que se
+exporta.</li>
 <li>Para ver el examen más grande o más pequeño: <b>Ctrl</b> + rueda del ratón sobre él, o <b>Ctrl++</b> y
 <b>Ctrl+-</b> desde cualquier sitio de la pestaña (del 50 % al 300 %); <b>Ctrl+0</b> lo deja a su tamaño normal. Están
 también en el menú del botón derecho («Ampliar la vista», «Reducir la vista» y «Tamaño normal»). Solo cambia lo que se
@@ -532,8 +540,8 @@ explicación, la pregunta con la que está enlazada, las notas y en qué exámen
 <h3><a name="buscar"></a>Buscar y filtrar</h3>
 <ul>
 <li><b>Tema</b>: solo las preguntas de un tema.</li>
-<li><b>Estado</b>: todas, las activas, las anuladas, las obsoletas, las marcadas para revisar o las que tienen
-imagen.</li>
+<li><b>Estado</b>: todas, las activas, las anuladas, las obsoletas, las marcadas para revisar, las que tienen
+imagen, las verificadas o las que están sin verificar.</li>
 <li>El recuadro de búsqueda encuentra las preguntas que contienen un texto en el enunciado, en las opciones o en las
 notas, sin distinguir mayúsculas ni tildes («informatica» encuentra «Informática»). Si se escribe un código (<tt>T1-22b</tt>), encuentra esa
 pregunta.</li>
@@ -543,7 +551,8 @@ se ordena por ella. Al dejar el ratón sobre un enunciado se ven también sus op
 obsoletas aparecen tachadas y en gris.</p>
 <p>Columnas de la tabla: <b>Tema</b>; <b>Código</b> (número y variante, con «(old)» si ya salió en exámenes
 anteriores al historial); <b>Estado</b> (activa, anulada u obsoleta, con «revisar» e «imagen» si es el caso);
-<b>Enunciado</b>; y <b>Resp.</b>, la letra de la respuesta correcta.</p>
+<b>Verificada</b> (quiénes la han verificado, o nada si no lo está); <b>Enunciado</b>; y <b>Resp.</b>, la letra de la
+respuesta correcta.</p>
 
 <h3><a name="codigos"></a>Códigos, variantes y pseudorrepetidas</h3>
 <p>Cada pregunta tiene un código con su tema, su número y, si la tiene, la letra de la variante: <tt>T1-22b</tt> es
@@ -579,6 +588,10 @@ varias seguidas, <b>Guardar y nueva</b> guarda la pregunta y abre otra en el mis
 (si la pregunta no tiene letra, cuenta como la «a»), para escribir otra versión de ella. La copia no lleva la marca
 «old».</li>
 <li><b>Eliminar</b>: borra la pregunta del banco para siempre, después de pedir confirmación.</li>
+<li><b>Verificar…</b>: recorre las preguntas de la lista, desde la elegida, para marcarlas como verificadas (ver
+<a href="#verificar">Verificación por personas</a>).</li>
+<li>Con el botón derecho sobre la lista, además de <b>Editar…</b> y <b>Verificar…</b>, <b>Marcar como verificadas las N
+preguntas de la lista…</b> las marca todas de una vez.</li>
 </ul>
 <table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
 Si solo quiere que una pregunta deje de salir en los exámenes, no la elimine: edítela y póngala como anulada. Así se
@@ -608,6 +621,8 @@ grande</a>.</li>
 <li><b>Referencia y notas</b>: la <b>referencia</b> al libro de teoría, que va en las soluciones; la
 <b>explicación</b> de la respuesta, que se ve al corregir un examen de práctica y en Moodle; y las <b>notas
 internas</b>, que solo se ven en el banco.</li>
+<li><b>Verificación</b>: la casilla <b>Verificada por humanos</b> y quiénes la han verificado (ver
+<a href="#verificar">Verificación por personas</a>).</li>
 </ul>
 <p>Al pulsar <b>Guardar</b>, el programa comprueba que haya tema, enunciado y las cuatro opciones. Si la pregunta no
 sigue alguna de las <a href="#pautas">pautas de estilo</a>, las enumera y pregunta si se guarda así o se sigue
@@ -687,6 +702,53 @@ siguiente letra libre.</li>
 <li><b>Guardar como pregunta nueva</b>: se guarda tal cual.</li>
 <li><b>Seguir editando</b>: vuelve al editor sin guardar.</li>
 </ul>
+
+<!-- ======================================================================================================= -->
+<h2><a name="verificar"></a>Verificación por personas</h2>
+
+<p>Las preguntas pueden estar redactadas por una inteligencia artificial o no, y conviene que alguien las revise antes
+de ponerlas en un examen. Cada pregunta tiene la casilla <b>Verificada por humanos</b> y, debajo, una casilla por cada
+verificador del banco, para decir quiénes la han revisado. Una pregunta nueva, o una variante duplicada de otra, está
+sin verificar.</p>
+<p>La verificación se marca:</p>
+<ul>
+<li>en el <a href="#editor">editor de preguntas</a>, en el recuadro <b>Verificación</b>;</li>
+<li>con <b>Verificar…</b>, en la pestaña del banco (las preguntas de la lista, con su filtro y su orden, desde la
+elegida) o bajo la vista del examen (las del examen que se ve, desde la de <b>Pregunta</b>; también con el botón
+derecho sobre una pregunta);</li>
+<li>o en todas las de la lista a la vez, con el botón derecho sobre ella: <b>Marcar como verificadas las N preguntas
+de la lista…</b> pide quiénes y se lo añade a todas. Sirve, por ejemplo, para un banco escrito por el equipo
+docente.</li>
+</ul>
+<p>Para que haga falta lo mínimo, el programa supone que quien verifica una pregunta es quien verificó la anterior:</p>
+<ul>
+<li>Al marcar <b>Verificada por humanos</b> sin nadie marcado, se marcan los que verificaron la última pregunta
+verificada (en este banco).</li>
+<li>Al marcar a una persona, la pregunta queda verificada. Al desmarcar <b>Verificada por humanos</b>, se desmarca a
+todos, y si se vuelve a marcar, vuelven los que había.</li>
+</ul>
+<p>El diálogo de <b>Verificar…</b> muestra la ficha de cada pregunta (el enunciado, las opciones, la respuesta correcta,
+la explicación y la referencia) y su verificación:</p>
+<ul>
+<li><b>Verificada, siguiente</b> (o <b>Intro</b>): la marca como verificada, por los mismos que la anterior si no se ha
+marcado a nadie, y pasa a la siguiente. La primera vez, como aún no hay a quién proponer, pide que se marque quién.</li>
+<li><b>Anterior</b> y <b>Siguiente</b>: cambian de pregunta sin marcarla.</li>
+<li><b>Editar…</b>: abre la pregunta en el editor para corregirla (desde el examen, la corrección se ve también en
+él, como con <a href="#editar-pregunta">Editar una pregunta del examen</a>).</li>
+</ul>
+<p>Lo que se marque se guarda al pasar a otra pregunta o al cerrar. Al generar, la opción <b>Solo preguntas
+verificadas por humanos</b> deja fuera las demás (ver <a href="#opciones">Opciones</a>), y en la vista del examen cada
+pregunta lleva una marca que dice si está verificada (ver <a href="#vista">La vista del examen</a>).</p>
+<p>La verificación va en el JSON del banco (ver <a href="#formatojson">Formato del JSON</a>). Al importar uno que no la
+dice, como uno escrito a mano o por una IA, cada pregunta conserva la que tenía si no ha cambiado lo que se ve de ella
+(el enunciado, las opciones, la correcta, la referencia, la explicación o la imagen); si ha cambiado, queda sin
+verificar.</p>
+
+<h3><a name="verificadores"></a>Los verificadores</h3>
+<p>Cada banco tiene su lista de verificadores, las personas que revisan sus preguntas. Se añaden, se les cambia el
+nombre (también en las preguntas que han verificado) y se quitan en <i>Editar → Verificadores…</i> o con el botón
+<b>Añadir o quitar…</b> junto a las casillas. Al quitar a alguien, las preguntas que había verificado siguen
+verificadas, pero ya no dicen que fue esa persona.</p>
 
 <!-- ======================================================================================================= -->
 <h2><a name="temas"></a>Temas</h2>
@@ -782,6 +844,8 @@ se escribe. Los JSON que exporta el programa también la llevan.</p>
 si el banco aún no lo dice.</td></tr>
 <tr><td><tt>$schema</tt>, <tt>origen</tt></td><td>La dirección del esquema, y de dónde salen las preguntas
 (informativo).</td></tr>
+<tr><td><tt>verificadores</tt></td><td>Los verificadores del banco (ver <a href="#verificar">Verificación por
+personas</a>). Lo escribe el programa: no se pone al redactar preguntas.</td></tr>
 <tr><td><b><tt>numero</tt></b> (del tema)</td><td>Número del tema. Si ya está en el banco, las preguntas se añaden a
 él.</td></tr>
 <tr><td><tt>titulo</tt>, <tt>autor</tt></td><td>Título del tema y autor en el libro. Si no se ponen, un tema que ya
@@ -817,6 +881,10 @@ número, como <tt>"T1-7"</tt>.</td></tr>
 <a href="#editor">editor de preguntas</a>.</td></tr>
 <tr><td><tt>codigo</tt>, <tt>etiqueta_original</tt></td><td>Informativos: los ponen el programa y la herramienta del
 documento de preguntas; al importar cuentan <tt>numero</tt> y <tt>variante</tt>.</td></tr>
+<tr><td><tt>verificada</tt>, <tt>verificadores</tt></td><td>Si la han verificado personas (<tt>true</tt> o
+<tt>false</tt>) y quiénes. Los escribe el programa al exportar: no se ponen al redactar preguntas. Sin ellos, al
+importar la pregunta conserva la verificación que tuviera en el banco si no ha cambiado (ver
+<a href="#verificar">Verificación por personas</a>).</td></tr>
 </table>
 <p>Para escribir preguntas, o pedírselas a un asistente como Claude, hay una guía con el formato, cómo se escribe el
 código y las reglas que se comprueban: <a href="https://github.com/ManuelAriasCalleja/GeneradorExamenes/blob/main/docs/redactar_preguntas.md">Redactar preguntas para el generador de
@@ -906,7 +974,7 @@ y dice cuántas preguntas de cuántos temas se van a exportar.</p>
 de práctica, el tamaño de la ventana y el idioma de la interfaz. Lo que depende de la asignatura va con cada banco (ver
 <a href="#asignaturas">Varias asignaturas</a>): el nombre de la asignatura, el idioma de los exámenes, los repartos de
 preguntas por tema, las instrucciones, lo que va en la cabecera y en el pie, la lista de exámenes, las opciones, la
-puntuación y la carpeta de las exportaciones; la configuración guarda solo una copia de los del último banco abierto. Está en:</p>
+puntuación, los verificadores y la carpeta de las exportaciones; la configuración guarda solo una copia de los del último banco abierto. Está en:</p>
 <ul>
 <li>Linux: <tt>~/.config/UNED/GeneradorExamenes.conf</tt></li>
 <li>Windows: <tt>%APPDATA%\UNED\GeneradorExamenes.ini</tt></li>

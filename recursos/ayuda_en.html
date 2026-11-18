@@ -223,6 +223,11 @@ exam sessions (for example, 99) all of them are avoided, and the first to come b
 “old” in the bank), though ahead of those from the recorded exam sessions.</td></tr>
 <tr><td><b>Include questions flagged for review</b></td>
 <td>If unticked, questions flagged for review are not used.</td></tr>
+<tr><td><b>Only questions verified by humans</b></td>
+<td>Unticked (as it is at first), all questions are used; ticked, only those someone has reviewed (see
+<a href="#verificar">Verification by people</a>). Next to each topic you can see how many there are. If, when you tick
+it, a topic has fewer than are requested, the ones available are requested, and when you untick it the previous
+numbers come back.</td></tr>
 <tr><td><b>Random order</b></td>
 <td>Shuffles the questions of the exam. If unticked, they are ordered by topic and number, as in the official
 exams.</td></tr>
@@ -278,7 +283,10 @@ if the exams have been loaded from the history. Its text can be selected and cop
 correct too many times, an exam that does not fit on its page… It is worth reading them before exporting.</li>
 <li><b>Question</b>, <b>Edit…</b> and <b>Replace with another</b>, below the preview: correct or replace a question
 of the exam being shown (see <a href="#editar-pregunta">Editing a question of the exam</a> and
-<a href="#cambiar-pregunta">Replacing a question</a>).</li>
+<a href="#cambiar-pregunta">Replacing a question</a>). <b>Verify…</b> goes through its questions, from that one, to
+mark them as verified (see <a href="#verificar">Verification by people</a>).</li>
+<li>After the number of each question, a mark says whether someone has verified it: in blue, “✓ verified: …” with
+their names; in orange, “● not verified”. The mark is only in the preview: it is not printed or exported.</li>
 <li>To see the exam larger or smaller: <b>Ctrl</b> + mouse wheel over it, or <b>Ctrl++</b> and <b>Ctrl+-</b> from
 anywhere in the tab (from 50% to 300%); <b>Ctrl+0</b> sets it back to its normal size. They are also in the
 right-click menu (“Zoom in”, “Zoom out” and “Normal size”). Only what is shown on screen changes, not what is printed
@@ -539,8 +547,8 @@ explanation, the question it is linked to, the notes and which recorded exams it
 <h3><a name="buscar"></a>Searching and filtering</h3>
 <ul>
 <li><b>Topic</b>: only the questions of one topic.</li>
-<li><b>Status</b>: all, active, voided, obsolete, flagged for review or with an
-image.</li>
+<li><b>Status</b>: all, active, voided, obsolete, flagged for review, with an image, verified or not
+verified.</li>
 <li>The search box finds the questions that contain a piece of text in the question text, the options or the notes,
 ignoring capitals and accents (“resume” finds “Résumé”). If you type a code (<tt>T1-22b</tt>), it finds that
 question.</li>
@@ -550,7 +558,8 @@ that column. Hovering the mouse over a question text also shows its options. Voi
 struck through and in grey.</p>
 <p>Table columns: <b>Topic</b>; <b>Code</b> (number and variant, with “(old)” if it already appeared in exams from
 before the history was kept); <b>Status</b> (active, voided or obsolete, with “review” and “image” where applicable);
-<b>Question text</b>; and <b>Ans.</b>, the letter of the correct answer.</p>
+<b>Verified</b> (who has verified it, or nothing if it is not verified); <b>Question text</b>; and <b>Ans.</b>, the
+letter of the correct answer.</p>
 
 <h3><a name="codigos"></a>Codes, variants and pseudo-duplicates</h3>
 <p>Each question has a code with its topic, its number and, if it has one, its variant letter: <tt>T1-22b</tt> is
@@ -589,6 +598,10 @@ order.</li>
 (if the question has no letter, it counts as “a”), so that you can write another version of it. The copy does not
 have the “old” mark.</li>
 <li><b>Delete</b>: permanently deletes the question from the bank, after asking for confirmation.</li>
+<li><b>Verify…</b>: goes through the questions in the list, from the selected one, to mark them as verified (see
+<a href="#verificar">Verification by people</a>).</li>
+<li>Right-clicking the list, besides <b>Edit…</b> and <b>Verify…</b>, <b>Mark the N questions in the list as
+verified…</b> marks them all at once.</li>
 </ul>
 <table width="100%" cellpadding="8" cellspacing="0"><tr><td bgcolor="#e7f1fb" style="color: #0b3c6b; border-color: #b6d4f2">
 If you only want a question to stop appearing in exams, do not delete it: edit it and set it to voided. That way it
@@ -618,6 +631,8 @@ not take up more space that way (a very short image with options that fit on one
 <li><b>Reference and notes</b>: the <b>reference</b> to the textbook, which goes in the solutions; the
 <b>explanation</b> of the answer, which is shown when a practice exam is marked and in Moodle; and the <b>internal
 notes</b>, which are only shown in the bank.</li>
+<li><b>Verification</b>: the <b>Verified by humans</b> box and who has verified it (see
+<a href="#verificar">Verification by people</a>).</li>
 </ul>
 <p>When you click <b>Save</b>, the program checks that there is a topic, a question text and all four options. If the
 question does not follow some of the <a href="#pautas">style guidelines</a>, it lists them and asks whether to save
@@ -702,6 +717,55 @@ of”.</li>
 <li><b>Save as a new question</b>: it is saved as it is.</li>
 <li><b>Continue editing</b>: goes back to the editor without saving.</li>
 </ul>
+
+<!-- ======================================================================================================= -->
+<h2><a name="verificar"></a>Verification by people</h2>
+
+<p>Questions may or may not have been written by an artificial intelligence, and someone should review them before
+they are used in an exam. Each question has the <b>Verified by humans</b> box and, below it, one box for each of the
+bank’s verifiers, to record who has reviewed it. A new question, or a variant duplicated from another, is not
+verified.</p>
+<p>The verification is marked:</p>
+<ul>
+<li>in the <a href="#editor">question editor</a>, in the <b>Verification</b> box;</li>
+<li>with <b>Verify…</b>, in the bank tab (the questions in the list, with its filter and its order, from the selected
+one) or below the exam preview (those of the exam being shown, from the one in <b>Question</b>; also by
+right-clicking a question);</li>
+<li>or in all the questions of the list at once, by right-clicking it: <b>Mark the N questions in the list as
+verified…</b> asks who and adds them to all of them. It is useful, for example, for a bank written by the teaching
+team.</li>
+</ul>
+<p>So that as little as possible is needed, the program assumes that whoever verifies a question is whoever verified
+the previous one:</p>
+<ul>
+<li>When you tick <b>Verified by humans</b> with nobody ticked, the people who verified the last verified question
+(in this bank) are ticked.</li>
+<li>When you tick a person, the question becomes verified. When you untick <b>Verified by humans</b>, everybody is
+unticked, and if you tick it again, the previous ones come back.</li>
+</ul>
+<p>The <b>Verify…</b> dialog shows the card of each question (the question text, the options, the correct answer, the
+explanation and the reference) and its verification:</p>
+<ul>
+<li><b>Verified, next</b> (or <b>Enter</b>): marks it as verified, by the same people as the previous one if nobody has
+been ticked, and moves on to the next one. The first time, since there is nobody to suggest yet, it asks you to tick
+who.</li>
+<li><b>Previous</b> and <b>Next</b>: change question without marking it.</li>
+<li><b>Edit…</b>: opens the question in the editor to correct it (from the exam, the correction is also shown in it,
+as with <a href="#editar-pregunta">Editing a question of the exam</a>).</li>
+</ul>
+<p>What you tick is saved when you move to another question or close the dialog. When generating, the option <b>Only
+questions verified by humans</b> leaves out the rest (see <a href="#opciones">Options</a>), and in the exam preview each
+question has a mark that says whether it is verified (see <a href="#vista">The exam preview</a>).</p>
+<p>The verification goes in the bank’s JSON (see <a href="#formatojson">JSON format</a>). When importing one that does
+not say it, such as one written by hand or by an AI, each question keeps the one it had if what is shown of it has not
+changed (the question text, the options, the correct answer, the reference, the explanation or the image); if it has
+changed, it becomes not verified.</p>
+
+<h3><a name="verificadores"></a>The verifiers</h3>
+<p>Each bank has its list of verifiers, the people who review its questions. They are added, renamed (also in the
+questions they have verified) and removed in <i>Edit → Verifiers…</i> or with the <b>Add or remove…</b> button next to
+the boxes. When someone is removed, the questions they had verified stay verified, but no longer say it was that
+person.</p>
 
 <!-- ======================================================================================================= -->
 <h2><a name="temas"></a>Topics</h2>
@@ -797,6 +861,8 @@ exported by the program include it too.</p>
 used if the bank does not specify one yet.</td></tr>
 <tr><td><tt>$schema</tt>, <tt>origen</tt></td><td>The address of the schema, and where the questions come from
 (for information only).</td></tr>
+<tr><td><tt>verificadores</tt></td><td>The bank’s verifiers (see <a href="#verificar">Verification by people</a>).
+Written by the program: it is not added when writing questions.</td></tr>
 <tr><td><b><tt>numero</tt></b> (of the topic)</td><td>The topic number. If the topic is already in the bank, the
 questions are added to it.</td></tr>
 <tr><td><tt>titulo</tt>, <tt>autor</tt></td><td>The title of the topic and its author in the textbook. If they are
@@ -832,6 +898,10 @@ its topic and number, such as <tt>"T1-7"</tt>.</td></tr>
 <a href="#editor">question editor</a>.</td></tr>
 <tr><td><tt>codigo</tt>, <tt>etiqueta_original</tt></td><td>For information only: they are written by the program and
 by the questions document tool; when importing, <tt>numero</tt> and <tt>variante</tt> are what count.</td></tr>
+<tr><td><tt>verificada</tt>, <tt>verificadores</tt></td><td>Whether people have verified it (<tt>true</tt> or
+<tt>false</tt>) and who. They are written by the program when exporting: they are not added when writing questions.
+Without them, when importing, the question keeps the verification it had in the bank if it has not changed (see
+<a href="#verificar">Verification by people</a>).</td></tr>
 </table>
 <p>To write questions, or to ask an assistant such as Claude for them, there is a guide (in Spanish) with the format,
 how code is written and the rules that are checked: <a href="https://github.com/ManuelAriasCalleja/GeneradorExamenes/blob/main/docs/redactar_preguntas.md">Redactar preguntas para el generador de
@@ -920,8 +990,8 @@ and says how many questions from how many topics will be exported.</p>
 <p>The program saves in a settings file the path of the last bank opened, the duration of practice exams, the window
 size and the interface language. What depends on the subject goes with each bank (see
 <a href="#asignaturas">Several subjects</a>): the subject name, the exam language, the distributions of questions per
-topic, the instructions, what goes in the header and in the footer, the list of exams, the options, the scoring and
-the exports folder; the settings file only
+topic, the instructions, what goes in the header and in the footer, the list of exams, the options, the scoring, the
+verifiers and the exports folder; the settings file only
 keeps a copy of those of the last bank opened. The file is located at:</p>
 <ul>
 <li>Linux: <tt>~/.config/UNED/GeneradorExamenes.conf</tt></li>

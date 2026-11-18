@@ -70,6 +70,7 @@ si hay errores. Desde el programa es *Archivo → Comprobar un JSON…*.
 | `old` | `true` si ya ha salido en exámenes. |
 | `estado` | `"activa"` (la de por defecto), `"anulada"` u `"obsoleta"`. |
 | `imagen` | Una imagen PNG o JPG en base64. Es más fácil ponerla después desde el editor de preguntas. |
+| `verificada`, `verificadores` | **No se ponen.** Dicen si la han revisado personas, y quiénes: lo marcan ellas en el programa, que los escribe al exportar. Sin ellos, las preguntas nuevas quedan sin verificar. |
 
 Al importar con **Añadir/actualizar**, una pregunta con el mismo tema, número y variante que otra del banco la
 **sustituye**. Para añadir preguntas nuevas hay que usar números libres: los del banco están en su JSON enlazado (el
@@ -176,3 +177,4 @@ Para quien redacte las preguntas, persona o asistente:
 4. Las opciones siguen sus reglas y la explicación no cita letras.
 5. `GeneradorExamenes --comprobar preguntas.json` no da ni errores ni avisos.
 6. Si las preguntas no las ha revisado aún el profesor, llevan `"revisar": true`.
+7. No llevan `verificada` ni `verificadores`: la verificación la hacen personas en el programa.

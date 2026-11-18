@@ -24,6 +24,11 @@
       "type": "string",
       "description": "De dónde salen las preguntas (informativo, no se importa). / Where the questions come from (for information; not imported)."
     },
+    "verificadores": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "pattern": "\\S" },
+      "description": "Las personas que verifican las preguntas del banco. Lo escribe el programa al exportar: no lo ponga al redactar preguntas. / The people who verify the bank's questions. Written by the program when exporting: do not add it when writing questions."
+    },
     "temas": {
       "type": "array",
       "description": "Los temas, con sus preguntas. / The topics, with their questions.",
@@ -136,6 +141,15 @@
           "type": ["string", "null"],
           "contentEncoding": "base64",
           "description": "Imagen PNG o JPG que va bajo el enunciado, codificada en base64 (es más fácil ponerla después desde el editor de preguntas del programa). / PNG or JPG image under the question text, base64-encoded (easier to add later in the program's question editor)."
+        },
+        "verificada": {
+          "type": "boolean",
+          "description": "Si la han revisado personas. Lo escribe el programa al exportar: no lo ponga al redactar preguntas (sin él, al importar se conserva la verificación que tuviera la pregunta si no ha cambiado). / Whether people have reviewed it. Written by the program when exporting: do not add it when writing questions (without it, importing keeps the question's verification if it has not changed)."
+        },
+        "verificadores": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "pattern": "\\S" },
+          "description": "Quiénes la han verificado (si está verificada). Lo escribe el programa. / Who verified it (if verified). Written by the program."
         }
       }
     }

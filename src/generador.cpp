@@ -30,9 +30,9 @@ private:
     QHash<QString, QString> m_padre;
 };
 
-bool usable(const Pregunta &p, bool incluirParaRevisar)
+bool usable(const Pregunta &p, bool incluirParaRevisar, bool soloVerificadas)
 {
-    return p.activa() && (incluirParaRevisar || !p.revisar);
+    return p.activa() && (incluirParaRevisar || !p.revisar) && (!soloVerificadas || p.verificada);
 }
 
 // Pone la correcta de la pregunta en la letra 'letra' y las otras tres opciones al azar en las demás.
@@ -138,7 +138,7 @@ Seleccion::Seleccion(const QVector<Pregunta> &banco, const ConfigExamen &config,
     : m_config(config), m_rng(rng)
 {
     for (const Pregunta &p : banco) {
-        if (!usable(p, config.incluirParaRevisar))
+        if (!usable(p, config.incluirParaRevisar, config.soloVerificadas))
             continue;
         m_porTema[p.temaNumero][p.numero].append(p);
         if (!p.pseudoCon.trimmed().isEmpty())
@@ -416,11 +416,26 @@ int Generador::ponerCorregida(ResultadoGeneracion &resultado, const ConfigExamen
     return sitios;
 }
 
-QMap<int, int> Generador::gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar)
+int Generador::ponerVerificacion(ResultadoGeneracion &resultado, const Pregunta &p)
+{
+    int sitios = 0;
+    for (Modelo &m : resultado.modelos) {
+        for (PreguntaExamen &pe : m.preguntas) {
+            if (pe.pregunta.id != p.id || pe.pregunta.codigoCompleto() != p.codigoCompleto())
+                continue;
+            pe.pregunta.verificada = p.verificada;
+            pe.pregunta.verificadores = p.verificadores;
+            ++sitios;
+        }
+    }
+    return sitios;
+}
+
+QMap<int, int> Generador::gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar, bool soloVerificadas)
 {
     QMap<int, QSet<int>> grupos;
     for (const Pregunta &p : banco)
-        if (usable(p, incluirParaRevisar))
+        if (usable(p, incluirParaRevisar, soloVerificadas))
             grupos[p.temaNumero].insert(p.numero);
     QMap<int, int> res;
     for (auto it = grupos.cbegin(); it != grupos.cend(); ++it)
@@ -452,7 +467,9 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
             modelo.preguntas += elegidas;
             if (elegidas.size() < pedidas && !temasAvisoFaltan.contains(tema)) {
                 temasAvisoFaltan.insert(tema);
-                res.avisos << tr("Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas disponibles.")
+                res.avisos << (config.soloVerificadas
+                                   ? tr("Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas verificadas disponibles.")
+                                   : tr("Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas disponibles."))
                                   .arg(tema).arg(pedidas).arg(elegidas.size());
             }
             if (repetida && config.noRepetirEntreModelos && !temasAvisoRepeticion.contains(tema)) {
