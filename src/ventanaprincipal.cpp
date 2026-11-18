@@ -216,7 +216,12 @@ VentanaPrincipal::VentanaPrincipal(QWidget *parent)
     leerConfiguracion();
 }
 
-VentanaPrincipal::~VentanaPrincipal() = default;
+VentanaPrincipal::~VentanaPrincipal()
+{
+    // Al destruirse, la lista de exámenes se vacía y lo avisa cuando su recuadro ya se está destruyendo: sin esto, se
+    // pondría el título de un recuadro a medio destruir.
+    m_listaExamenes->model()->disconnect(this);
+}
 
 // ---------------------------------------------------------------------------------------------
 // Construcción de la interfaz
@@ -332,7 +337,7 @@ QWidget *VentanaPrincipal::crearGrupoConvocatoria()
 
 QWidget *VentanaPrincipal::crearGrupoExamenes()
 {
-    auto *gExamenes = new QGroupBox(tr("Exámenes"));
+    auto *gExamenes = m_grupoExamenes = new QGroupBox;
     auto *le = new QVBoxLayout(gExamenes);
     m_listaExamenes = new QListWidget;
     m_listaExamenes->setToolTip(tr("Se genera un examen por cada nombre marcado, en este orden.\n"
@@ -363,7 +368,27 @@ QWidget *VentanaPrincipal::crearGrupoExamenes()
     //: Botón: desmarca todos los exámenes de la lista. El & marca la letra del atajo (Alt+letra).
     botonExamenes(tr("&Ninguno"), tr("Desmarca todos los exámenes de la lista"), [marcarTodos]() { marcarTodos(false); });
     le->addLayout(botonesExamenes);
+    // El título dice cuántos hay marcados: se pone al día al marcar o desmarcar, añadir, quitar o cargar la lista.
+    const QAbstractItemModel *modelo = m_listaExamenes->model();
+    connect(modelo, &QAbstractItemModel::dataChanged, this, &VentanaPrincipal::actualizarCuentaExamenes);
+    connect(modelo, &QAbstractItemModel::rowsInserted, this, &VentanaPrincipal::actualizarCuentaExamenes);
+    connect(modelo, &QAbstractItemModel::rowsRemoved, this, &VentanaPrincipal::actualizarCuentaExamenes);
+    connect(modelo, &QAbstractItemModel::modelReset, this, &VentanaPrincipal::actualizarCuentaExamenes);
+    actualizarCuentaExamenes();
     return gExamenes;
+}
+
+void VentanaPrincipal::actualizarCuentaExamenes()
+{
+    const int total = m_listaExamenes->count();
+    int marcados = 0;
+    for (int i = 0; i < total; ++i)
+        marcados += m_listaExamenes->item(i)->checkState() == Qt::Checked ? 1 : 0;
+    //: Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay
+    m_grupoExamenes->setTitle(marcados == 1 ? tr("Exámenes: 1 modelo de %1 seleccionado.").arg(total)
+                                            //: Título del recuadro de la lista de exámenes (modelos): cuántos están
+                                            //: marcados, los que se generan, de cuántos hay
+                                            : tr("Exámenes: %1 modelos de %2 seleccionados.").arg(marcados).arg(total));
 }
 
 QWidget *VentanaPrincipal::crearGrupoTemas()

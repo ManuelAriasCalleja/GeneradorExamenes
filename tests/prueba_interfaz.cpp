@@ -667,8 +667,10 @@ private slots:
         QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
         QListWidget *lista = nullptr;
         QList<QPushButton *> botones;
+        QGroupBox *grupo = nullptr;
         for (QGroupBox *g : v.findChildren<QGroupBox *>())
-            if (g->title() == QStringLiteral("Exámenes")) {
+            if (g->title().startsWith(QStringLiteral("Exámenes:"))) {
+                grupo = g;
                 lista = g->findChild<QListWidget *>();
                 botones = g->findChildren<QPushButton *>();
             }
@@ -695,14 +697,25 @@ private slots:
                 n += lista->item(i)->checkState() == Qt::Checked ? 1 : 0;
             return n;
         };
+        // El título del recuadro dice cuántos hay marcados de cuántos (con «modelo» en singular si es uno).
         const int examenes = lista->count();
-        QVERIFY(examenes > 0 && marcados() > 0);
+        QVERIFY(examenes > 1 && marcados() > 0);
+        auto titulo = [](int marcados, int total) {
+            return marcados == 1 ? QStringLiteral("Exámenes: 1 modelo de %1 seleccionado.").arg(total)
+                                 : QStringLiteral("Exámenes: %1 modelos de %2 seleccionados.").arg(marcados).arg(total);
+        };
+        QCOMPARE(grupo->title(), titulo(marcados(), examenes));
         QTest::keyClick(&v, Qt::Key_N, Qt::AltModifier);
         QTRY_COMPARE(marcados(), 0);
+        QCOMPARE(grupo->title(), titulo(0, examenes));
+        lista->item(0)->setCheckState(Qt::Checked);
+        QCOMPARE(grupo->title(), titulo(1, examenes));
         QTest::keyClick(&v, Qt::Key_T, Qt::AltModifier);
         QTRY_COMPARE(marcados(), examenes);
+        QCOMPARE(grupo->title(), titulo(examenes, examenes));
         QTest::keyClick(&v, Qt::Key_D, Qt::AltModifier);
         QTRY_COMPARE(lista->count(), examenes + 1);
+        QCOMPARE(grupo->title(), titulo(examenes + 1, examenes + 1));
         QTest::keyClick(QApplication::focusWidget(), Qt::Key_Escape);   // deja el nombre que se propone
         QCOMPARE(lista->currentRow(), examenes);
         // La confirmación sale al pulsarse el botón, un momento después de la tecla: se responde cuando aparece.
@@ -716,6 +729,7 @@ private slots:
         espera.start(20);
         QTest::keyClick(&v, Qt::Key_Q, Qt::AltModifier);
         QTRY_COMPARE(lista->count(), examenes);
+        QCOMPARE(grupo->title(), titulo(examenes, examenes));
         v.close();
         QSettings().clear();
     }

@@ -2674,19 +2674,14 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>Instructions:</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>Exámenes</source>
-        <translation>Exams</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+13"/>
         <source>Se genera un examen por cada nombre marcado, en este orden.
 Doble clic para cambiar el nombre; arrastre para cambiar el orden.</source>
         <translation>One exam is generated for each ticked name, in this order.
 Double-click to change the name; drag to change the order.</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+53"/>
         <source>Preguntas por tema</source>
         <translation>Questions per topic</translation>
     </message>
@@ -2706,7 +2701,7 @@ Double-click to change the name; drag to change the order.</translation>
         <translation>Scoring</translation>
     </message>
     <message>
-        <location line="-35"/>
+        <location line="-55"/>
         <source>Aña&amp;dir</source>
         <extracomment>Botón: añade un examen a la lista de exámenes que se generan. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de un menú ni la de otro de estos cuatro botones.</extracomment>
         <translation>A&amp;dd</translation>
@@ -2750,7 +2745,7 @@ Double-click to change the name; drag to change the order.</translation>
         <translation>Unticks all the exams in the list</translation>
     </message>
     <message>
-        <location line="+36"/>
+        <location line="+56"/>
         <source>El examen vale 10 puntos: cada acierto, 10 entre el número de preguntas.</source>
         <translation>The exam is worth 10 points: each correct answer, 10 divided by the number of questions.</translation>
     </message>
@@ -3048,7 +3043,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-2227"/>
+        <location line="-2247"/>
         <location line="+5"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -3094,7 +3089,18 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Footer:</translation>
     </message>
     <message>
-        <location line="+147"/>
+        <location line="+54"/>
+        <source>Exámenes: 1 modelo de %1 seleccionado.</source>
+        <extracomment>Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay</extracomment>
+        <translation>Exams: 1 model of %1 selected.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Exámenes: %1 modelos de %2 seleccionados.</source>
+        <translation>Exams: %1 models of %2 selected.</translation>
+    </message>
+    <message>
+        <location line="+110"/>
         <source>Solo preguntas verificadas por humanos</source>
         <translation>Only questions verified by humans</translation>
     </message>

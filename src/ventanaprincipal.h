@@ -19,6 +19,7 @@ class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QGridLayout;
+class QGroupBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
@@ -144,6 +145,8 @@ private:
     void aplicarOpcionesDelBanco(const QVariantMap &opciones, bool carpetasPropias);
     // Los nombres de la lista de exámenes y, en 'marcados', los marcados.
     QStringList listaExamenes(QStringList *marcados = nullptr) const;
+    // El título del recuadro de la lista de exámenes: «Exámenes: 2 modelos de 3 seleccionados.».
+    void actualizarCuentaExamenes();
     // Ajustes que se guardan tal cual en la configuración: su clave y el control que los muestra. El valor por
     // defecto es el que tiene el control al crearlo.
     struct Ajuste
@@ -259,6 +262,7 @@ private:
     QComboBox *m_convocatoria;
     QSpinBox *m_anio;
     QListWidget *m_listaExamenes;           // nombres de los exámenes; se generan los marcados
+    QGroupBox *m_grupoExamenes;             // su recuadro, que dice cuántos hay marcados
     QPlainTextEdit *m_instrucciones;
     // Si van la asignatura y la convocatoria en la cabecera y en el pie de página de los exámenes.
     QCheckBox *m_asignaturaEnCabecera;
