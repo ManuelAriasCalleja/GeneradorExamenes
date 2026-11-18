@@ -2326,7 +2326,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+85"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+86"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
@@ -2352,7 +2352,7 @@ Do not hand in the question paper.</translation>
         <translation>Generate exams</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+25"/>
         <source>Convocatoria</source>
         <extracomment>Convocatoria de examen (Febrero, Junio, Septiembre…): datos de la cabecera de los exámenes</extracomment>
         <translation>Exam session</translation>
@@ -2646,6 +2646,12 @@ Applies to the preview, printing and exports; the files have “_letra_grande”
         <location line="+15"/>
         <source>&lt;p style=&quot;color:gray&quot;&gt;Elija cuántas preguntas quiere de cada tema y pulse &lt;b&gt;Generar exámenes&lt;/b&gt;.&lt;/p&gt;</source>
         <translation>&lt;p style=&quot;color:gray&quot;&gt;Choose how many questions you want from each topic and click &lt;b&gt;Generate exams&lt;/b&gt;.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Vista del examen al %1 %</source>
+        <extracomment>En la barra de estado, al ampliar o reducir la vista del examen; %1 es el porcentaje (125)</extracomment>
+        <translation>Exam preview at %1%</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -3601,7 +3607,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>Undo the last question change</translation>
     </message>
     <message>
-        <location line="+35"/>
+        <location line="+37"/>
         <source>1 pregunta</source>
         <translation>1 question</translation>
     </message>
@@ -3659,6 +3665,27 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
 %2
 
 (If you only want it to stop appearing in exams, edit it and mark it as voided.)</translation>
+    </message>
+</context>
+<context>
+    <name>VisorAmpliable</name>
+    <message>
+        <location filename="../src/visorampliable.cpp" line="+117"/>
+        <source>Ampliar la vista</source>
+        <extracomment>Acción de la vista del examen (Ctrl++): letra más grande, solo en pantalla</extracomment>
+        <translation>Zoom in</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Reducir la vista</source>
+        <extracomment>Acción de la vista del examen (Ctrl+-): letra más pequeña, solo en pantalla</extracomment>
+        <translation>Zoom out</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Tamaño normal</source>
+        <extracomment>Acción de la vista del examen (Ctrl+0): vuelve al tamaño normal</extracomment>
+        <translation>Normal size</translation>
     </message>
 </context>
 <context>

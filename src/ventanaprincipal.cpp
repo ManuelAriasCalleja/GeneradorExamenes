@@ -13,6 +13,7 @@
 #include "idioma.h"
 #include "modelopreguntas.h"
 #include "utilidades.h"
+#include "visorampliable.h"
 
 #include <QAction>
 #include <QActionGroup>
@@ -228,6 +229,8 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     divisor->addWidget(crearPanelResultados());
     divisor->setStretchFactor(1, 1);
     divisor->setSizes({430, 800});
+    // Los atajos para ampliar y reducir la vista, en toda la pestaña: no hace falta pulsar antes sobre el examen.
+    divisor->addActions(m_visorExamen->accionesEscala());
     return divisor;
 }
 
@@ -486,9 +489,16 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     m_avisos->setStyleSheet(QLatin1String(kEstiloAviso));
     m_avisos->hide();
     lr->addWidget(m_avisos);
-    m_visorExamen = new QTextBrowser;
+    m_visorExamen = new VisorAmpliable;
     m_visorExamen->setHtml(tr("<p style=\"color:gray\">Elija cuántas preguntas quiere de cada tema y pulse "
                               "<b>Generar exámenes</b>.</p>"));
+    // El tamaño de la vista (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0) se recuerda de una vez a otra.
+    m_visorExamen->ponerEscala(QSettings().value(QStringLiteral("vista/escala"), 1.0).toDouble());
+    connect(m_visorExamen, &VisorAmpliable::escalaCambiada, this, [this](qreal escala) {
+        QSettings().setValue(QStringLiteral("vista/escala"), escala);
+        //: En la barra de estado, al ampliar o reducir la vista del examen; %1 es el porcentaje (125)
+        statusBar()->showMessage(tr("Vista del examen al %1 %").arg(qRound(escala * 100)), 3000);
+    });
     m_visorExamen->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_visorExamen, &QWidget::customContextMenuRequested, this, &VentanaPrincipal::menuVista);
     lr->addWidget(m_visorExamen, 1);
@@ -1658,7 +1668,7 @@ void VentanaPrincipal::mostrarModelo()
     // Con soluciones, también la plantilla de corrección, que en los ficheros va en la hoja de soluciones.
     const QString html = Maquetador::examenHtml(m_resultado.modelos.at(i), datosConvocatoria(), m_verSoluciones->isChecked(),
                                                 nivelMaqueta(), true);
-    ponerDocumento(m_visorExamen, Maquetador::crearDocumento(html, Maquetador::preguntasDe(m_resultado.modelos), m_visorExamen));
+    m_visorExamen->ponerDocumento(Maquetador::crearDocumento(html, Maquetador::preguntasDe(m_resultado.modelos), m_visorExamen));
 }
 
 QString VentanaPrincipal::nombreBaseFichero() const
@@ -2009,6 +2019,8 @@ void VentanaPrincipal::menuVista(const QPoint &enVista)
     }
     if (cambiar || deshacer)
         menu->insertSeparator(primera);
+    menu->addSeparator();
+    menu->addActions(m_visorExamen->accionesEscala());
     QAction *elegida = menu->exec(m_visorExamen->viewport()->mapToGlobal(enVista));
     if (elegida && elegida == cambiar)
         this->cambiar(indice);

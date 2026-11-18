@@ -30,6 +30,7 @@ class QPushButton;
 class QSpinBox;
 class QTableView;
 class QTextBrowser;
+class VisorAmpliable;
 
 class VentanaPrincipal : public QMainWindow
 {
@@ -165,7 +166,7 @@ private:
     // Cambia la pregunta 'indice' del examen que se ve por otra (ver Generador::cambiarPregunta).
     void cambiar(int indice);
     // Menú del botón derecho en la vista del examen: el normal, con «Cambiar la pregunta N por otra» si se pulsa
-    // sobre una pregunta y «Deshacer» si hay algún cambio.
+    // sobre una pregunta, «Deshacer» si hay algún cambio y los de ampliar y reducir la vista.
     void menuVista(const QPoint &enVista);
     // Pregunta (desde 0) del examen que está en el punto 'enVista' de la vista, o -1 (cabecera, instrucciones).
     int preguntaEn(const QPoint &enVista) const;
@@ -259,7 +260,7 @@ private:
     QLabel *m_correctasPorLetra;
     QLabel *m_avisos;
     QLabel *m_infoGeneracion;
-    QTextBrowser *m_visorExamen;
+    VisorAmpliable *m_visorExamen;
     QList<QPushButton *> m_botonesExamen;
     QPushButton *m_botonRegistrar;
     QSpinBox *m_preguntaACambiar;

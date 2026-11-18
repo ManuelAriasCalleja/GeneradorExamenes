@@ -160,6 +160,9 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   grandes, sin límite de páginas. Vale para la
   vista, la impresión y las tres exportaciones, y los ficheros llevan `_letra_grande` en el nombre
   (`2026_Junio_letra_grande_Nacional_Original.pdf`) para no pisar los normales.
+- La vista del examen se amplía y se reduce como un navegador: Ctrl + rueda del ratón, Ctrl++ y Ctrl+-, y Ctrl+0
+  para el tamaño normal (también en el menú del botón derecho). Solo cambia la pantalla, no la impresión ni las
+  exportaciones, y el tamaño se recuerda de una vez a otra.
 - *Exportar LaTeX…* guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>_imagenes` al
   lado). Con la casilla «Con soluciones» del diálogo marcada incluye también la hoja de soluciones y las
   soluciones marcadas, con la explicación y la referencia de cada pregunta. Hay que compilarlo dos veces para que salga el «página / total» del pie:

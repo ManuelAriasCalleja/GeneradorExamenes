@@ -14,6 +14,7 @@
 #include "idioma.h"
 #include "utilidades.h"
 #include "ventanaprincipal.h"
+#include "visorampliable.h"
 
 #include <QAbstractButton>
 #include <QAction>
@@ -25,6 +26,7 @@
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
+#include <QImage>
 #include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
@@ -45,9 +47,12 @@
 #include <QTemporaryDir>
 #include <QTextBlock>
 #include <QTextBrowser>
+#include <QTextDocument>
+#include <QTextTable>
 #include <QTimer>
 #include <QToolButton>
 #include <QTreeWidget>
+#include <QWheelEvent>
 #include <QtTest>
 #include <functional>
 #include <memory>
@@ -88,6 +93,41 @@ Pregunta nuevaEn(int tema, int numero)
     p.temaNumero = tema;
     p.numero = numero;
     return p;
+}
+
+// Lo que mide cada trozo de texto del documento (el tamaño de su letra en puntos, o en píxeles si lo lleva así) y cada
+// imagen (su ancho), y la letra de cada línea vacía (la de su bloque).
+QVector<qreal> tamanos(const QTextDocument *doc)
+{
+    auto letra = [doc](const QTextCharFormat &f) {
+        const QFont fuente = f.font();
+        if (fuente.pixelSize() > 0)
+            return qreal(fuente.pixelSize());
+        return fuente.pointSizeF() > 0 ? fuente.pointSizeF() : doc->defaultFont().pointSizeF();
+    };
+    QVector<qreal> t;
+    for (QTextBlock b = doc->begin(); b.isValid(); b = b.next()) {
+        if (b.length() == 1)
+            t << letra(b.charFormat());
+        for (auto it = b.begin(); !it.atEnd(); ++it) {
+            const QTextCharFormat f = it.fragment().charFormat();
+            t << letra(f);
+            if (f.isImageFormat())
+                t << f.toImageFormat().width();
+        }
+    }
+    return t;
+}
+
+// Si cada medida de 'a' es 'escala' veces la de 'b' (con medio punto de margen, por los píxeles redondeados).
+bool proporcionales(const QVector<qreal> &a, const QVector<qreal> &b, qreal escala)
+{
+    if (a.size() != b.size() || a.isEmpty())
+        return false;
+    for (int i = 0; i < a.size(); ++i)
+        if (qAbs(a.at(i) - b.at(i) * escala) > 0.5)
+            return false;
+    return true;
 }
 
 } // namespace
@@ -1000,6 +1040,125 @@ private slots:
         QVERIFY2(opcion.startsWith(QStringLiteral("Cambiar la pregunta 5 por otra del tema")), qPrintable(opcion));
         QVERIFY(visor->toPlainText() != antes);
         QCOMPARE(numero->value(), 5);
+    }
+
+    void visorEscalaLaLetraYLasImagenes()
+    {
+        QTextDocument doc;
+        doc.setDefaultFont(QFont(QStringLiteral("Sans"), 10));
+        QImage imagen(20, 10, QImage::Format_RGB32);
+        imagen.fill(Qt::red);
+        doc.addResource(QTextDocument::ImageResource, QUrl(QStringLiteral("img:1")), imagen);
+        doc.setHtml(QStringLiteral("<h3>Título</h3><p>Sin tamaño, <span style=\"font-size:16pt\">en puntos</span> y "
+                                   "<span style=\"font-size:20px\">en píxeles</span>.</p><p><img src=\"img:1\" width=\"40\"></p>"
+                                   "<table><tr><td width=\"30\">Celda</td><td></td></tr></table><pre>uno\n\ndos</pre>"));
+        const QVector<qreal> normal = tamanos(&doc);
+        const QString texto = doc.toPlainText();
+        QVERIFY(normal.contains(16) && normal.contains(20) && normal.contains(40));
+
+        QTextTable *tabla = nullptr;
+        for (QTextFrame *f : doc.rootFrame()->childFrames())
+            tabla = tabla ? tabla : qobject_cast<QTextTable *>(f);
+        QVERIFY(tabla);
+        auto anchoColumna = [tabla] { return tabla->format().columnWidthConstraints().value(0).rawValue(); };
+        QCOMPARE(anchoColumna(), 30.0);
+
+        VisorAmpliable::escalarDocumento(&doc, 2);
+        QVERIFY(proporcionales(tamanos(&doc), normal, 2));
+        QCOMPARE(anchoColumna(), 60.0);
+        // Siempre respecto al original: escalar dos veces seguidas con lo mismo no acumula.
+        VisorAmpliable::escalarDocumento(&doc, 2);
+        QVERIFY(proporcionales(tamanos(&doc), normal, 2));
+        VisorAmpliable::escalarDocumento(&doc, 0.5);
+        QVERIFY(proporcionales(tamanos(&doc), normal, 0.5));
+        QCOMPARE(anchoColumna(), 15.0);
+        VisorAmpliable::escalarDocumento(&doc, 1);
+        QCOMPARE(tamanos(&doc), normal);
+        QCOMPARE(anchoColumna(), 30.0);
+        // Solo cambian los tamaños: el texto y la tabla siguen como estaban.
+        QCOMPARE(doc.toPlainText(), texto);
+        QCOMPARE(tabla->columns(), 2);
+        QCOMPARE(tabla->cellAt(0, 0).firstCursorPosition().block().text(), QStringLiteral("Celda"));
+    }
+
+    void ventanaAmpliaLaVistaDelExamen()
+    {
+        QTemporaryDir dir;
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(QTest::qWaitForWindowActive(&v));
+        QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        QMetaObject::invokeMethod(&v, "generar");
+        auto *visor = v.findChild<VisorAmpliable *>();
+        QVERIFY(visor);
+        QCOMPARE(visor->escala(), 1.0);
+        const QVector<qreal> normal = tamanos(visor->document());
+        const QString texto = visor->toPlainText();
+        QVERIFY(texto.contains(QStringLiteral("Pregunta contestada correctamente")));
+
+        // Ctrl + rueda sobre el examen: un paso de la rueda, o dos medios pasos de una rueda fina o de un panel táctil.
+        auto rueda = [visor](int giro) {
+            const QPoint centro = visor->viewport()->rect().center();
+            QWheelEvent e(centro, visor->viewport()->mapToGlobal(centro), QPoint(), QPoint(0, giro), Qt::NoButton,
+                          Qt::ControlModifier, Qt::NoScrollPhase, false);
+            QApplication::sendEvent(visor->viewport(), &e);
+        };
+        rueda(120);
+        QCOMPARE(visor->escala(), 1.1);
+        QVERIFY(proporcionales(tamanos(visor->document()), normal, 1.1));
+        rueda(60);
+        QCOMPARE(visor->escala(), 1.1);
+        rueda(60);
+        QCOMPARE(visor->escala(), 1.25);
+        QCOMPARE(visor->toPlainText(), texto);
+        QCOMPARE(QSettings().value(QStringLiteral("vista/escala")).toDouble(), 1.25);
+
+        // Con el teclado, aunque el foco esté en otro sitio de la pestaña.
+        QPushButton *generar = nullptr;
+        for (QPushButton *b : v.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Generar exámenes"))
+                generar = b;
+        QVERIFY(generar);
+        generar->setFocus();
+        QTest::keyClick(generar, Qt::Key_Minus, Qt::ControlModifier);
+        QCOMPARE(visor->escala(), 1.1);
+        QTest::keyClick(generar, Qt::Key_Plus, Qt::ControlModifier);
+        QCOMPARE(visor->escala(), 1.25);
+        QTest::keyClick(generar, Qt::Key_0, Qt::ControlModifier);
+        QCOMPARE(visor->escala(), 1.0);
+        QCOMPARE(tamanos(visor->document()), normal);
+        rueda(-120);
+        QCOMPARE(visor->escala(), 0.9);
+
+        // Lo que estaba arriba de la vista sigue arriba.
+        visor->scrollToAnchor(QStringLiteral("q5"));
+        const int arriba = visor->cursorForPosition(QPoint(0, 0)).blockNumber();
+        QVERIFY(arriba > 0);
+        visor->ampliar();
+        QCOMPARE(visor->cursorForPosition(QPoint(0, 0)).blockNumber(), arriba);
+
+        // El examen que se pone después en la vista (aquí, con soluciones) sale con la misma escala.
+        visor->tamanoNormal();
+        QCheckBox *soluciones = nullptr;
+        for (QCheckBox *c : v.findChildren<QCheckBox *>())
+            if (c->text() == QStringLiteral("Mostrar soluciones"))
+                soluciones = c;
+        QVERIFY(soluciones);
+        soluciones->setChecked(true);
+        const QVector<qreal> conSoluciones = tamanos(visor->document());
+        visor->ponerEscala(1.5);
+        soluciones->setChecked(false);
+        soluciones->setChecked(true);
+        QVERIFY(proporcionales(tamanos(visor->document()), conSoluciones, 1.5));
+
+        // Los atajos están también en el menú del botón derecho, y la ventana recuerda la escala.
+        for (QAction *a : visor->accionesEscala())
+            QVERIFY2(!a->shortcuts().isEmpty(), qPrintable(a->text()));
+        VentanaPrincipal otra;
+        QCOMPARE(otra.findChild<VisorAmpliable *>()->escala(), 1.5);
+        QSettings().clear();
     }
 
     void registrarExamenesAnteriores()
