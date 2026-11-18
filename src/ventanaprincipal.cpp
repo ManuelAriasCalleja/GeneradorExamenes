@@ -53,6 +53,7 @@
 #include <QRadioButton>
 #include <QRegularExpression>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QSet>
 #include <QSettings>
 #include <QSpinBox>
@@ -72,6 +73,32 @@ namespace {
 
 // Botones de reparto por fila.
 constexpr int kRepartosPorFila = 4;
+
+// Zona con desplazamiento vertical que es siempre tan ancha como lo que lleva dentro, para que se vea entero sin
+// redimensionar: con la letra, el idioma, los temas y los repartos que haya (se vuelve a medir cada vez que cambian).
+class ZonaVertical : public QScrollArea
+{
+public:
+    QSize minimumSizeHint() const override { return conAnchoDelContenido(QScrollArea::minimumSizeHint()); }
+    QSize sizeHint() const override { return conAnchoDelContenido(QScrollArea::sizeHint()); }
+
+protected:
+    bool eventFilter(QObject *o, QEvent *e) override
+    {
+        if (o == widget() && e->type() == QEvent::LayoutRequest)
+            updateGeometry();
+        return QScrollArea::eventFilter(o, e);
+    }
+
+private:
+    // Con sitio para la barra de desplazamiento, aunque no se vea: así cabe también cuando aparece.
+    QSize conAnchoDelContenido(QSize s) const
+    {
+        if (widget())
+            s.setWidth(widget()->minimumSizeHint().width() + verticalScrollBar()->sizeHint().width() + 2 * frameWidth());
+        return s;
+    }
+};
 
 // Lo que pone un reparto, para su botón: «T1: 3, T2: 2, T3: 3, T4: 2 (10 preguntas)».
 QString describirReparto(const QMap<int, int> &reparto)
@@ -206,10 +233,9 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     lc->addWidget(crearGrupoOpciones());
     lc->addStretch();
 
-    auto *scroll = new QScrollArea;
+    auto *scroll = new ZonaVertical;
     scroll->setWidget(config);
     scroll->setWidgetResizable(true);
-    scroll->setMinimumWidth(400);
 
     // El botón, debajo y fuera de la zona con desplazamiento: siempre a la vista, aunque la pantalla sea baja.
     auto *bGenerar = new QPushButton(tr("Generar exámenes"));

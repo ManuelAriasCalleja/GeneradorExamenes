@@ -39,6 +39,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QSettings>
 #include <QSpinBox>
 #include <QStandardPaths>
@@ -54,6 +55,7 @@
 #include <QTreeWidget>
 #include <QWheelEvent>
 #include <QtTest>
+#include <algorithm>
 #include <functional>
 #include <memory>
 
@@ -1044,6 +1046,37 @@ private slots:
         QVERIFY(editarla);
         QVERIFY(visor->toPlainText() != antes);
         QCOMPARE(numero->value(), 5);
+    }
+
+    void parteIzquierdaSinCortes()
+    {
+        // Con la letra grande (la del escritorio puede serlo), lo de la izquierda se ve entero sin redimensionar ni
+        // desplazarse en horizontal.
+        QTemporaryDir dir;
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
+        QSettings().clear();
+        const QFont antes = QApplication::font();
+        QApplication::setFont(QFont(antes.family(), 14));
+        {
+            VentanaPrincipal v;
+            v.resize(1000, 700);
+            v.show();
+            QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+            auto *zona = v.findChild<QScrollArea *>();
+            QVERIFY(zona && zona->widget());
+            // Los botones de los repartos se crean al abrir el banco y se muestran un momento después.
+            const QList<QPushButton *> botones = zona->widget()->findChildren<QPushButton *>();
+            QVERIFY(botones.size() >= 6);   // Añadir, Quitar, Todos, Ninguno, los repartos y Guardar reparto…
+            QTRY_VERIFY(std::none_of(botones.begin(), botones.end(), [](QPushButton *b) { return b->isHidden(); }));
+            QTRY_VERIFY(zona->viewport()->width() >= zona->widget()->minimumSizeHint().width());
+            QVERIFY(!zona->horizontalScrollBar()->isVisible());
+            for (QPushButton *b : botones) {
+                const QRect r(b->mapTo(zona->viewport(), QPoint(0, 0)), b->size());
+                QVERIFY2(r.left() >= 0 && r.right() < zona->viewport()->width(), qPrintable(b->text()));
+            }
+        }
+        QApplication::setFont(antes);
+        QSettings().clear();
     }
 
     void ventanaEditaUnaPreguntaDelExamen()
