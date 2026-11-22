@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QDateTime>
 #include <QIcon>
 #include <QSettings>
 #include <cstdio>
@@ -12,6 +13,10 @@
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
+
+// Fecha de la compilación y commit de git: los escribe cmake/compilacion.cmake al compilar (ver CMakeLists.txt).
+extern const char *const kFechaCompilacion;
+extern const char *const kCommitCompilacion;
 
 namespace {
 
@@ -54,6 +59,9 @@ int main(int argc, char *argv[])
     std::unique_ptr<QCoreApplication> app(soloComprobar ? new QCoreApplication(argc, argv) : new QApplication(argc, argv));
     QCoreApplication::setOrganizationName(QStringLiteral("UNED"));
     QCoreApplication::setApplicationName(QStringLiteral("GeneradorExamenes"));
+    // Para el diálogo «Acerca de» (VentanaPrincipal::versionYCompilacion()).
+    app->setProperty("fechaCompilacion", QDateTime::fromString(QString::fromLatin1(kFechaCompilacion), Qt::ISODate));
+    app->setProperty("commitCompilacion", QString::fromLatin1(kCommitCompilacion));
 #ifdef Q_OS_WIN
     // La configuración (último banco de preguntas abierto y opciones) va en un fichero también en Windows
     // (%APPDATA%\UNED\GeneradorExamenes.ini), no en el registro. En Linux ya es un fichero:

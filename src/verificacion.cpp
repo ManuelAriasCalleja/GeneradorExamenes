@@ -3,6 +3,7 @@
 #include "dialogoayuda.h"
 #include "maquetador.h"
 #include "utilidades.h"
+#include "visorampliable.h"
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -15,7 +16,7 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QTextBrowser>
+#include <QSettings>
 #include <QTextDocument>
 #include <QVBoxLayout>
 
@@ -342,7 +343,13 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     negrita.setBold(true);
     m_posicion->setFont(negrita);
     l->addWidget(m_posicion);
-    m_ficha = new QTextBrowser;
+    // El tamaño de la letra (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0) es el mismo en todas las preguntas, y se recuerda
+    // de una vez a otra.
+    m_ficha = new VisorAmpliable;
+    m_ficha->ponerEscala(QSettings().value(QStringLiteral("verificar/escala"), 1.0).toDouble());
+    connect(m_ficha, &VisorAmpliable::escalaCambiada, this,
+            [](qreal escala) { QSettings().setValue(QStringLiteral("verificar/escala"), escala); });
+    addActions(m_ficha->accionesEscala());
     l->addWidget(m_ficha, 1);
 
     auto *grupo = new QGroupBox(tr("Verificación"));
@@ -397,7 +404,7 @@ void DialogoVerificar::mostrar(int indice)
     const Pregunta &p = m_preguntas.at(indice);
     //: Arriba del diálogo de verificar: «Pregunta 3 de 20: T1-7a»
     m_posicion->setText(tr("Pregunta %1 de %2: %3").arg(indice + 1).arg(m_preguntas.size()).arg(p.codigoCompleto()));
-    ponerDocumento(m_ficha, Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema(m_temas, p.temaId)), {p}, m_ficha));
+    m_ficha->ponerDocumento(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema(m_temas, p.temaId)), {p}, m_ficha));
     m_panel->ponerPregunta(p);
     m_aviso->hide();
     m_anterior->setEnabled(indice > 0);

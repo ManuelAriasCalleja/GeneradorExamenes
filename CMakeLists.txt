@@ -95,6 +95,23 @@ target_compile_definitions(nucleo PRIVATE VERSION_APLICACION="${PROJECT_VERSION}
 qt_add_executable(GeneradorExamenes src/main.cpp)
 target_link_libraries(GeneradorExamenes PRIVATE nucleo)
 
+# Fecha de la última compilación y commit de git, para el diálogo «Acerca de»: cmake/compilacion.cmake los escribe en
+# compilacion.cpp cada vez que se ha recompilado algo del programa (la biblioteca, main.cpp, los recursos o las
+# traducciones), no en cada «cmake --build»: si no ha cambiado nada, el ejecutable no se toca y la fecha sigue siendo
+# la suya. Solo va en el ejecutable: las pruebas no la tienen.
+find_package(Git QUIET)
+file(GLOB_RECURSE recursos_y_traducciones CONFIGURE_DEPENDS recursos/* traducciones/*.ts)
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/compilacion.cpp
+    COMMAND ${CMAKE_COMMAND} -DSALIDA=${CMAKE_CURRENT_BINARY_DIR}/compilacion.cpp -DFUENTES=${CMAKE_CURRENT_SOURCE_DIR}
+            -DGIT=${GIT_EXECUTABLE} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/compilacion.cmake
+    DEPENDS nucleo src/main.cpp cmake/compilacion.cmake CMakeLists.txt ${recursos_y_traducciones}
+    COMMENT "Fecha de compilación y commit"
+    VERBATIM
+)
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/compilacion.cpp PROPERTIES SKIP_AUTOGEN ON)
+target_sources(GeneradorExamenes PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/compilacion.cpp)
+
 # Foto del autor para el diálogo «Acerca de» e icono de la aplicación (PNG generados con recursos/generar_iconos.sh).
 qt_add_resources(GeneradorExamenes "recursos"
     PREFIX "/"

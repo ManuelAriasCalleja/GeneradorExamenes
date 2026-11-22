@@ -352,6 +352,7 @@ campos), los ejemplos, la ayuda y la guía `docs/redactar_preguntas.md`.
 | `PENDIENTE.md` | Mejoras aceptadas que quedan por hacer. |
 | `compilar.sh`, `compilar.bat`, `compilar.ps1` | Compilan, pasan las pruebas e instalan el programa (Linux y Windows). |
 | `.github/workflows/windows.yml` | Prepara en GitHub el paquete de Windows (se lanza a mano o con una etiqueta `v*`). |
+| `cmake/compilacion.cmake` | Apunta al compilar la fecha, la hora y el commit de git, que dice el diálogo *Ayuda → Acerca de* junto a la versión. Solo se actualizan cuando se recompila algo del programa. |
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `traducciones/` | Traducciones de la interfaz y de los textos de los exámenes (Qt Linguist), una por idioma. |
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |

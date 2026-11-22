@@ -41,6 +41,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QDateTime>
 #include <QLocale>
 #include <QMenu>
 #include <QMenuBar>
@@ -1154,6 +1155,21 @@ void VentanaPrincipal::mostrarAyuda()
     DialogoAyuda::mostrar(this, pestanas && pestanas->currentIndex() == 1 ? QStringLiteral("banco") : QStringLiteral("generar"));
 }
 
+QString VentanaPrincipal::versionYCompilacion()
+{
+    const QString version = QStringLiteral(VERSION_APLICACION);
+    const QDateTime fecha = qApp->property("fechaCompilacion").toDateTime();
+    if (!fecha.isValid())
+        return version;
+    const QString cuando = QLocale().toString(fecha, QLocale::ShortFormat);
+    const QString commit = qApp->property("commitCompilacion").toString();
+    if (commit.isEmpty())
+        //: En «Acerca de», tras «Versión»: %1 es la versión (1.1) y %2, la fecha y la hora
+        return tr("%1 (compilado el %2)").arg(version, cuando);
+    //: En «Acerca de», tras «Versión»: %1 es la versión, %2 la fecha y la hora y %3 el commit de git (383615a)
+    return tr("%1 (compilado el %2, commit %3)").arg(version, cuando, commit);
+}
+
 void VentanaPrincipal::acercaDe()
 {
     QMessageBox caja(this);
@@ -1170,7 +1186,7 @@ void VentanaPrincipal::acercaDe()
                     "<p>Nunca pone en un mismo examen dos variantes de una pregunta (3a/3b) ni "
                     "pseudorrepetidas, y puede evitar que se repitan preguntas entre exámenes.</p>"
                     "<p>Base de datos: <tt>%2</tt></p><p>Configuración: <tt>%3</tt></p><p>Qt %4</p>")
-                     .arg(QStringLiteral(VERSION_APLICACION), QDir::toNativeSeparators(m_bd.ruta()).toHtmlEscaped(),
+                     .arg(versionYCompilacion().toHtmlEscaped(), QDir::toNativeSeparators(m_bd.ruta()).toHtmlEscaped(),
                           QDir::toNativeSeparators(QSettings().fileName()).toHtmlEscaped(), QString::fromLatin1(qVersion())));
     caja.setStandardButtons(QMessageBox::Ok);
     // QMessageBox elige el ancho del texto y lo deja muy estrecho (hasta el nombre se partía en dos líneas).

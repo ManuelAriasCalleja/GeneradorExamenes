@@ -15,7 +15,7 @@ class QGridLayout;
 class QLabel;
 class QListWidget;
 class QPushButton;
-class QTextBrowser;
+class VisorAmpliable;
 
 // Verificación de las preguntas por personas (Pregunta::verificada): las preguntas pueden estar redactadas por una IA
 // y alguien tiene que revisarlas antes de ponerlas en un examen.
@@ -135,7 +135,7 @@ private:
     bool m_editadas = false;
 
     QLabel *m_posicion;
-    QTextBrowser *m_ficha;
+    VisorAmpliable *m_ficha;
     PanelVerificacion *m_panel;
     QLabel *m_aviso;
     QPushButton *m_anterior;

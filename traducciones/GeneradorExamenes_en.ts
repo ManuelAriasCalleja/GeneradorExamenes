@@ -4,7 +4,7 @@
 <context>
     <name>BaseDatos</name>
     <message>
-        <location filename="../src/basedatos.cpp" line="+127"/>
+        <location filename="../src/basedatos.cpp" line="+132"/>
         <source>No se puede abrir %1: %2</source>
         <translation>Cannot open %1: %2</translation>
     </message>
@@ -259,7 +259,7 @@
         <translation>Control character (code %1) inside a text: JSON does not allow it; a tab is written \t.</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+28"/>
         <source>Después de \u van cuatro cifras hexadecimales (\u00e1).</source>
         <translation>\u must be followed by four hexadecimal digits (\u00e1).</translation>
     </message>
@@ -1832,7 +1832,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>DialogoVerificadores</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="+205"/>
+        <location filename="../src/verificacion.cpp" line="+206"/>
         <source>Verificadores</source>
         <translation>Verifiers</translation>
     </message>
@@ -1915,7 +1915,7 @@ Do you want to save it anyway?</translation>
         <translation>Verify questions</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+17"/>
         <source>Verificación</source>
         <translation>Verification</translation>
     </message>
@@ -2044,7 +2044,7 @@ Do you want to save it anyway?</translation>
         <translation>The question text must begin with a capital letter.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+10"/>
         <source>La negación va en mayúsculas: «NO», «FALSO».</source>
         <extracomment>«NO» y «FALSO» son las palabras de los enunciados en castellano que la regla quiere en mayúsculas.</extracomment>
         <translation>Negations go in capitals: “NO”, “FALSO”.</translation>
@@ -2173,26 +2173,26 @@ Do you want to save it anyway?</translation>
     <message>
         <location filename="../src/docx.cpp" line="+742"/>
         <location filename="../src/maquetador.cpp" line="+361"/>
-        <location line="+806"/>
+        <location line="+857"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location filename="../src/maquetador.cpp" line="-805"/>
-        <location line="+806"/>
+        <location filename="../src/maquetador.cpp" line="-856"/>
+        <location line="+857"/>
         <source>Referencia:</source>
         <translation>Reference:</translation>
     </message>
     <message>
         <location line="+134"/>
-        <location filename="../src/maquetador.cpp" line="-795"/>
-        <location line="+1027"/>
+        <location filename="../src/maquetador.cpp" line="-846"/>
+        <location line="+1083"/>
         <source>Plantilla de corrección: %1</source>
         <translation>Answer key: %1</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="-1239"/>
+        <location filename="../src/maquetador.cpp" line="-1295"/>
         <source>Respuesta correcta: +%1 puntos · incorrecta: −%2 puntos · en blanco: 0 puntos</source>
         <extracomment>Puntuación del examen, en una línea bajo las instrucciones. %1 son los puntos de un acierto (1,00) y %2 los que resta un fallo (0,30); el signo menos es «−» (U+2212)</extracomment>
         <translation>Correct answer: +%1 points · incorrect: −%2 points · blank: 0 points</translation>
@@ -2219,16 +2219,16 @@ Do not hand in the question paper.</translation>
     <message>
         <location filename="../src/docx.cpp" line="-61"/>
         <location filename="../src/maquetador.cpp" line="+271"/>
-        <location line="+646"/>
+        <location line="+702"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
     <message>
         <location line="+18"/>
         <location line="+88"/>
-        <location filename="../src/maquetador.cpp" line="-592"/>
+        <location filename="../src/maquetador.cpp" line="-648"/>
         <location line="+182"/>
-        <location line="+388"/>
+        <location line="+444"/>
         <location line="+65"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
         <location line="+1"/>
@@ -2239,28 +2239,28 @@ Do not hand in the question paper.</translation>
     </message>
     <message>
         <location line="-71"/>
-        <location filename="../src/maquetador.cpp" line="-626"/>
-        <location line="+645"/>
+        <location filename="../src/maquetador.cpp" line="-682"/>
+        <location line="+701"/>
         <source>Estructura de la convocatoria</source>
         <translation>Session structure</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+6"/>
-        <location filename="../src/maquetador.cpp" line="-644"/>
-        <location line="+634"/>
+        <location filename="../src/maquetador.cpp" line="-700"/>
+        <location line="+690"/>
         <source>Examen</source>
         <translation>Exam</translation>
     </message>
     <message>
         <location line="+34"/>
-        <location filename="../src/maquetador.cpp" line="-995"/>
-        <location line="+1030"/>
+        <location filename="../src/maquetador.cpp" line="-1051"/>
+        <location line="+1086"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
     <message>
-        <location filename="../src/moodle.cpp" line="+153"/>
+        <location filename="../src/moodle.cpp" line="+154"/>
         <source>Respuesta correcta.</source>
         <translation>Correct answer.</translation>
     </message>
@@ -2341,7 +2341,7 @@ Do not hand in the question paper.</translation>
         <translation>; tick “Shuffle the options” to spread it out</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+46"/>
         <source>«%1», pregunta %2: </source>
         <extracomment>Comienzo de un aviso sobre una pregunta: %1 es el nombre del examen y %2, el número de la pregunta en él.</extracomment>
         <translation>“%1”, question %2: </translation>
@@ -2365,7 +2365,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-819"/>
+        <location filename="../src/maquetador.cpp" line="-875"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>
@@ -2531,7 +2531,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelVerificacion</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="-408"/>
+        <location filename="../src/verificacion.cpp" line="-414"/>
         <source>Verificada por humanos</source>
         <translation>Verified by humans</translation>
     </message>
@@ -2575,7 +2575,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>Utilidades</name>
     <message>
-        <location filename="../src/utilidades.h" line="+88"/>
+        <location filename="../src/utilidades.h" line="+108"/>
         <source>Sí</source>
         <extracomment>Botón para responder que sí a una pregunta.</extracomment>
         <translation>Yes</translation>
@@ -2602,7 +2602,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+114"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+115"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
@@ -2623,7 +2623,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>Open the folder</translation>
     </message>
     <message>
-        <location line="+35"/>
+        <location line="+40"/>
         <source>Generar exámenes</source>
         <translation>Generate exams</translation>
     </message>
@@ -3035,7 +3035,7 @@ If empty, different exams come out each time.</translation>
     <message>
         <location line="-100"/>
         <location line="+102"/>
-        <location line="+1833"/>
+        <location line="+1848"/>
         <source>Editar…</source>
         <extracomment>Botón: abre en el editor esa pregunta del examen
 ----------
@@ -3043,7 +3043,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-2247"/>
+        <location line="-2262"/>
         <location line="+5"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -3137,7 +3137,7 @@ You can also right-click the question.</translation>
     <message>
         <location line="+3"/>
         <location line="+100"/>
-        <location line="+1832"/>
+        <location line="+1847"/>
         <source>Verificar…</source>
         <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas
 ----------
@@ -3145,7 +3145,7 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="-1931"/>
+        <location line="-1946"/>
         <source>Recorre las preguntas del examen, desde esta, para marcarlas como verificadas por personas: «Verificada, siguiente» la marca con los mismos verificadores que la anterior.</source>
         <translation>Goes through the questions of the exam, from this one, to mark them as verified by people: “Verified, next” marks each with the same verifiers as the previous one.</translation>
     </message>
@@ -3423,13 +3423,13 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+961"/>
+        <location line="+976"/>
         <location line="+593"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-1546"/>
+        <location line="-1561"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3574,7 +3574,19 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Save and next with warnings</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+25"/>
+        <source>%1 (compilado el %2)</source>
+        <extracomment>En «Acerca de», tras «Versión»: %1 es la versión (1.1) y %2, la fecha y la hora</extracomment>
+        <translation>%1 (built on %2)</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>%1 (compilado el %2, commit %3)</source>
+        <extracomment>En «Acerca de», tras «Versión»: %1 es la versión, %2 la fecha y la hora y %3 el commit de git (383615a)</extracomment>
+        <translation>%1 (built on %2, commit %3)</translation>
+    </message>
+    <message>
+        <location line="+6"/>
         <source>Acerca de</source>
         <translation>About</translation>
     </message>
@@ -4176,14 +4188,14 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
 <context>
     <name>main</name>
     <message>
-        <location filename="../src/main.cpp" line="+31"/>
+        <location filename="../src/main.cpp" line="+36"/>
         <source>Indique el JSON que quiere comprobar: GeneradorExamenes --comprobar preguntas.json
 </source>
         <translation>Give the JSON file to check: GeneradorExamenes --comprobar questions.json
 </translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+49"/>
         <source>Comprueba los JSON de preguntas indicados, sin abrir el programa: escribe sus errores y avisos, con su línea, y sale con 1 si hay errores.</source>
         <translation>Checks the given JSON files of questions without opening the program: prints their errors and warnings, with their line, and exits with 1 if there are errors.</translation>
     </message>

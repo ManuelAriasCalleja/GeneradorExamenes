@@ -18,6 +18,8 @@
 #include "verificacion.h"
 #include "visorampliable.h"
 
+#include <QLocale>
+#include <QDateTime>
 #include <QAbstractButton>
 #include <QAction>
 #include <QApplication>
@@ -1299,10 +1301,15 @@ private slots:
 
         // Desde la lista: la primera vez hay que decir quién; después, «Verificada, siguiente» basta (Intro).
         QString aviso, posicion;
+        bool ampliada = false;
         QTimer::singleShot(100, [&] {
             auto *d = qobject_cast<DialogoVerificar *>(QApplication::activeModalWidget());
             if (!d)
                 return;
+            // La ficha se amplía (Ctrl++), y las preguntas siguientes salen igual de grandes.
+            auto *ficha = d->findChild<VisorAmpliable *>();
+            if (ficha)
+                ficha->ampliar();
             pulsar(d, QStringLiteral("&Verificada, siguiente"));
             for (QLabel *l : d->findChildren<QLabel *>())
                 if (l->isVisible() && l->text().startsWith(QStringLiteral("Marque")))
@@ -1315,9 +1322,16 @@ private slots:
             for (QLabel *l : d->findChildren<QLabel *>())
                 if (l->text().startsWith(QStringLiteral("Pregunta ")))
                     posicion = l->text();
+            if (ficha) {
+                const QVector<qreal> grande = tamanos(ficha->document());
+                const qreal escala = ficha->escala();
+                ficha->tamanoNormal();
+                ampliada = escala == 1.1 && !grande.isEmpty() && proporcionales(grande, tamanos(ficha->document()), 1.1);
+            }
             d->reject();
         });
         QVERIFY(QMetaObject::invokeMethod(&v, "verificarPregunta"));
+        QVERIFY(ampliada);
         QCOMPARE(aviso, QStringLiteral("Marque quién la ha verificado."));
         QVERIFY2(posicion.startsWith(QStringLiteral("Pregunta 3 de ")), qPrintable(posicion));
         QCOMPARE(verificadas(), (QStringList{QStringLiteral("T1-1:Persona Uno"), QStringLiteral("T1-2:Persona Uno")}));
@@ -1945,6 +1959,31 @@ private slots:
         QVERIFY2(texto.contains(QDir::toNativeSeparators(ruta).toHtmlEscaped()), qPrintable(texto));
         QVERIFY2(!texto.contains(QStringLiteral("Asignatura inventada")), qPrintable(texto));
         QVERIFY2(!texto.contains(QStringLiteral("Asignatura:")), qPrintable(texto));
+    }
+
+    // «Acerca de» dice también cuándo se compiló el programa y de qué commit, que el ejecutable pone en la aplicación
+    // (las pruebas no los tienen: solo la versión).
+    void acercaDeDiceLaCompilacion()
+    {
+        const QString version = VentanaPrincipal::versionYCompilacion();
+        QVERIFY2(!version.isEmpty() && !version.contains(QLatin1Char('(')), qPrintable(version));
+        const QDateTime fecha(QDate(2020, 2, 3), QTime(4, 5));
+        const QString cuando = QLocale().toString(fecha, QLocale::ShortFormat);
+        qApp->setProperty("fechaCompilacion", fecha);
+        QCOMPARE(VentanaPrincipal::versionYCompilacion(), QStringLiteral("%1 (compilado el %2)").arg(version, cuando));
+        qApp->setProperty("commitCompilacion", QStringLiteral("abc1234"));
+        QCOMPARE(VentanaPrincipal::versionYCompilacion(),
+                 QStringLiteral("%1 (compilado el %2, commit abc1234)").arg(version, cuando));
+
+        VentanaPrincipal v;
+        v.show();
+        QString texto;
+        responder(QStringLiteral("OK"), &texto);
+        QVERIFY(QMetaObject::invokeMethod(&v, "acercaDe"));
+        QVERIFY2(texto.contains(QStringLiteral("<p>Versión %1 (compilado el ").arg(version)), qPrintable(texto));
+        QVERIFY2(texto.contains(QStringLiteral("commit abc1234")), qPrintable(texto));
+        for (const char *propiedad : {"fechaCompilacion", "commitCompilacion"})
+            qApp->setProperty(propiedad, QVariant());
     }
 
     // Los diálogos para elegir un banco se abren en la carpeta del banco abierto o, si no hay ninguno, en la del último

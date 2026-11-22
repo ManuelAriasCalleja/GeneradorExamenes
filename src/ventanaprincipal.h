@@ -40,6 +40,10 @@ public:
     explicit VentanaPrincipal(QWidget *parent = nullptr);
     ~VentanaPrincipal() override;
 
+    // La versión del programa y, en el ejecutable (main.cpp pone en la aplicación las propiedades «fechaCompilacion»
+    // y «commitCompilacion»), cuándo se compiló y de qué commit de git: lo que dice «Acerca de».
+    static QString versionYCompilacion();
+
     bool abrirBaseDatos(const QString &ruta);
     // Al arrancar: abre el banco indicado en la línea de órdenes o, si no, el último que se abrió (lo guarda el
     // fichero de configuración). Si no lo encuentra, pregunta cuál abrir o si crear uno. Devuelve false si se
