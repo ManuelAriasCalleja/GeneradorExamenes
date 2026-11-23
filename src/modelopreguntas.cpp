@@ -88,7 +88,7 @@ QVariant ModeloPreguntas::data(const QModelIndex &index, int role) const
         QString t = p.enunciado;
         for (int i = 0; i < 4; ++i)
             t += QStringLiteral("\n%1) %2").arg(Pregunta::letra(i)).arg(p.opciones.value(i));
-        return t;
+        return Enunciado::sinMarcas(t);   // es texto normal: el código en línea, sin sus comillas invertidas
     } else if (role == Qt::ForegroundRole && !p.activa()) {
         return QBrush(Paleta::tinta(Paleta::Inactiva));
     } else if (role == Qt::FontRole && !p.activa() && index.column() == ColCodigo) {

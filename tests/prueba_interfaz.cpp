@@ -2756,7 +2756,14 @@ private slots:
             ModeloPreguntas modelo;
             Pregunta verificada;
             verificada.verificada = true;
+            verificada.enunciado = QStringLiteral("Enunciado inventado con `nombre`:");
+            verificada.opciones = QStringList{QStringLiteral("El valor de `uno`."), QStringLiteral("Dos."), QStringLiteral("Tres."), QStringLiteral("Cuatro.")};
             modelo.establecer({verificada});
+            // La lista y su texto emergente son texto normal: el código en línea va sin sus comillas invertidas.
+            const QModelIndex celda = modelo.index(0, ModeloPreguntas::ColEnunciado);
+            QCOMPARE(modelo.data(celda, Qt::DisplayRole).toString(), QStringLiteral("Enunciado inventado con nombre:"));
+            QVERIFY(modelo.data(celda, Qt::ToolTipRole).toString().contains(QStringLiteral("a) El valor de uno.")));
+            QVERIFY(!modelo.data(celda, Qt::ToolTipRole).toString().contains(QLatin1Char('`')));
             QCOMPARE(modelo.data(modelo.index(0, ModeloPreguntas::ColVerificada), Qt::ForegroundRole).value<QBrush>().color(),
                      Paleta::tinta(Paleta::Verificada, true));
         }
