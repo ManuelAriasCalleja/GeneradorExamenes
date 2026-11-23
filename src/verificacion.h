@@ -115,6 +115,11 @@ public:
     // Si se ha guardado alguna con el editor.
     bool hayEditadas() const { return m_editadas; }
 
+signals:
+    // Se acaba de guardar en el banco la verificación de la pregunta 'id': quien ha abierto el diálogo puede poner al
+    // día lo que se ve detrás (la lista, el examen) sin esperar a que se cierre.
+    void verificacionGuardada(int id);
+
 public slots:
     void done(int resultado) override;
 

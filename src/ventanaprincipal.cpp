@@ -2295,6 +2295,13 @@ void VentanaPrincipal::verificarDelExamen(int indice)
                        this);
     //: Título del diálogo de verificar; %1 es el nombre del examen («Nacional Original»)
     d.setWindowTitle(tr("Verificar las preguntas de «%1»").arg(m_resultado.modelos.at(modelo).nombre));
+    // Cada pregunta que se verifica se ve ya en el examen, detrás del diálogo, sin esperar a cerrarlo.
+    connect(&d, &DialogoVerificar::verificacionGuardada, this, [&](int id) {
+        verificacionCambiada(id, false);
+        for (int i = 0; i < preguntas.size(); ++i)
+            if (preguntas.at(i).id == id)
+                m_visorExamen->scrollToAnchor(QStringLiteral("q%1").arg(enExamen.at(i) + 1));
+    });
     d.exec();
     if (!d.cambiadas().isEmpty())
         verificacionCambiada(preguntas.value(d.actual()).id);
@@ -2307,9 +2314,12 @@ void VentanaPrincipal::verificarDelExamen(int indice)
     m_visorExamen->scrollToAnchor(QStringLiteral("q%1").arg(numero));
 }
 
-void VentanaPrincipal::verificacionCambiada(int seleccionarId)
+void VentanaPrincipal::verificacionCambiada(int seleccionarId, bool conJson)
 {
-    bancoEditado(seleccionarId);
+    if (conJson)
+        bancoEditado(seleccionarId);
+    else
+        recargarDatos(seleccionarId);
     // La verificación de las preguntas de los exámenes (y de los de antes de cada cambio), la del banco.
     auto poner = [this](ResultadoGeneracion &r) {
         for (Modelo &m : r.modelos) {
@@ -2561,6 +2571,8 @@ void VentanaPrincipal::verificarPregunta()
                            return guardada;
                        },
                        this);
+    // Cada pregunta que se verifica se ve ya en la lista, detrás del diálogo, sin esperar a cerrarlo.
+    connect(&d, &DialogoVerificar::verificacionGuardada, this, [this](int id) { verificacionCambiada(id, false); });
     d.exec();
     const int actual = preguntas.value(d.actual()).id;
     if (!d.cambiadas().isEmpty())

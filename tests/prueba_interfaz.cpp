@@ -1300,7 +1300,7 @@ private slots:
         tabla->setCurrentIndex(tabla->model()->index(0, 0));
 
         // Desde la lista: la primera vez hay que decir quién; después, «Verificada, siguiente» basta (Intro).
-        QString aviso, posicion;
+        QString aviso, posicion, enLaLista;
         bool ampliada = false;
         QTimer::singleShot(100, [&] {
             auto *d = qobject_cast<DialogoVerificar *>(QApplication::activeModalWidget());
@@ -1318,6 +1318,8 @@ private slots:
                 if (c->text() == QStringLiteral("Persona Uno"))
                     c->setChecked(true);
             pulsar(d, QStringLiteral("&Verificada, siguiente"));
+            // Se ve ya en la lista, con el diálogo abierto.
+            enLaLista = tabla->model()->index(0, ModeloPreguntas::ColVerificada).data().toString();
             QTest::keyClick(d, Qt::Key_Return);
             for (QLabel *l : d->findChildren<QLabel *>())
                 if (l->text().startsWith(QStringLiteral("Pregunta ")))
@@ -1332,6 +1334,7 @@ private slots:
         });
         QVERIFY(QMetaObject::invokeMethod(&v, "verificarPregunta"));
         QVERIFY(ampliada);
+        QCOMPARE(enLaLista, QStringLiteral("✓ Persona Uno"));
         QCOMPARE(aviso, QStringLiteral("Marque quién la ha verificado."));
         QVERIFY2(posicion.startsWith(QStringLiteral("Pregunta 3 de ")), qPrintable(posicion));
         QCOMPARE(verificadas(), (QStringList{QStringLiteral("T1-1:Persona Uno"), QStringLiteral("T1-2:Persona Uno")}));
@@ -1397,16 +1400,29 @@ private slots:
         QVERIFY(visor->toPlainText().contains(QStringLiteral("sin verificar")));
 
         // Desde el examen: se recorren sus preguntas y la vista se pone al día.
+        int alEmpezar = 0, conElDialogoAbierto = -1;
+        bool deUnaEnUna = true;
         QTimer::singleShot(100, [&] {
             auto *d = qobject_cast<DialogoVerificar *>(QApplication::activeModalWidget());
             if (!d)
                 return;
+            // Cada una se ve ya en el examen, con el diálogo abierto: una menos sin verificar cada vez, o las mismas
+            // si ya lo estaba.
+            int sinVerificar = int(visor->toPlainText().count(QStringLiteral("sin verificar")));
+            alEmpezar = sinVerificar;
             for (int i = 0; i < 20 && pulsar(d, QStringLiteral("&Verificada, siguiente")); ++i) {
+                const int ahora = int(visor->toPlainText().count(QStringLiteral("sin verificar")));
+                deUnaEnUna = deUnaEnUna && (ahora == sinVerificar || ahora == sinVerificar - 1);
+                sinVerificar = ahora;
             }
             pulsar(d, QStringLiteral("&Verificada"));
+            conElDialogoAbierto = int(visor->toPlainText().count(QStringLiteral("sin verificar")));
             d->reject();
         });
         QVERIFY(QMetaObject::invokeMethod(&v, "verificarPreguntaExamen"));
+        QVERIFY2(alEmpezar > 1, qPrintable(QString::number(alEmpezar)));
+        QVERIFY(deUnaEnUna);
+        QCOMPARE(conElDialogoAbierto, 0);
         QVERIFY2(!visor->toPlainText().contains(QStringLiteral("sin verificar")), qPrintable(visor->toPlainText()));
         QSettings().clear();
     }

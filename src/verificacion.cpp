@@ -429,6 +429,7 @@ bool DialogoVerificar::guardar()
     m_cambiadas.insert(p.id, m_actual);
     m_panel->recordar();
     m_panel->ponerPregunta(p);
+    emit verificacionGuardada(p.id);
     return true;
 }
 

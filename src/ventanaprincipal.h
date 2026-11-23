@@ -194,7 +194,9 @@ private:
     void verificarDelExamen(int indice);
     // Tras cambiar la verificación de preguntas: pone al día el JSON enlazado, la lista (seleccionando 'seleccionarId')
     // y la verificación de las preguntas de los exámenes, que se ve en sus marcas.
-    void verificacionCambiada(int seleccionarId);
+    // Pone al día la lista y los exámenes con la verificación del banco. Sin 'conJson' (mientras se va verificando,
+    // pregunta a pregunta) no se reescribe el JSON del banco: se hace una vez, al acabar.
+    void verificacionCambiada(int seleccionarId, bool conJson = true);
     void seleccionarPregunta(int id);
     // Menú del botón derecho en la lista de preguntas.
     void menuTabla(const QPoint &donde);
