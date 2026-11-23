@@ -14,7 +14,7 @@ struct Tonos
 // En el orden de Paleta::Tinta.
 constexpr Tonos kTintas[] = {
     {"#595959", "#b4b4b4"},   // Secundario
-    {"#969696", "#8c8c8c"},   // Inactiva
+    {"#6a6a6a", "#a8a8a8"},   // Inactiva
     {"#a04a00", "#fbbf24"},   // Atencion
     {"#0a5d9c", "#8ab4f8"},   // Informacion
     {"#1d4ed8", "#8ab4f8"},   // Verificada

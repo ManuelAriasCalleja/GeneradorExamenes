@@ -89,7 +89,9 @@ QVariant ModeloPreguntas::data(const QModelIndex &index, int role) const
         return t;
     } else if (role == Qt::ForegroundRole && !p.activa()) {
         return QBrush(Paleta::tinta(Paleta::Inactiva));
-    } else if (role == Qt::FontRole && !p.activa()) {
+    } else if (role == Qt::FontRole && !p.activa() && index.column() == ColCodigo) {
+        // Tachado solo el código: basta para ver que no cuenta, y el enunciado se sigue leyendo bien (hay que leerlo
+        // para decidir si se recupera).
         QFont f;
         f.setStrikeOut(true);
         return f;

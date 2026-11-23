@@ -9,8 +9,7 @@ class QPalette;
 //
 // Hay tres clases, según sobre qué fondo van:
 //  - Tintas de la interfaz (tinta(), css()): texto de color sobre el fondo de las ventanas, que es claro u oscuro
-//    según el tema del escritorio. Cada una tiene dos tonos, y con los dos se lee bien (contraste de 4,5:1 o más,
-//    salvo Inactiva, que es de lo que no cuenta).
+//    según el tema del escritorio. Cada una tiene dos tonos, y con los dos se lee bien (contraste de 4,5:1 o más).
 //  - Recuadros (fondoAtencion(), recuadroAtencion()…): llevan su fondo y su tinta, así que se leen igual con
 //    cualquier tema.
 //  - Colores del papel (kPapel…): los de los exámenes y las fichas de las preguntas, que se ven y se imprimen siempre
@@ -19,7 +18,7 @@ namespace Paleta {
 
 enum Tinta {
     Secundario,    // notas y aclaraciones: lo que acompaña, sin dejar de leerse
-    Inactiva,      // lo que no cuenta: las preguntas anuladas u obsoletas de la lista
+    Inactiva,      // lo que no cuenta: las preguntas anuladas u obsoletas de la lista (más apagado que Secundario)
     Atencion,      // algo que conviene mirar: un aviso, «sin verificar»
     Informacion,   // un dato que se destaca: la nota de la práctica
     Verificada,    // la pregunta la ha revisado una persona (azul, para que no se confunda con «correcta»)

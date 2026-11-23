@@ -2622,17 +2622,30 @@ private slots:
         };
         const QList<QColor> claros{QColor(Qt::white), QColor(0xef, 0xef, 0xef)};
         const QList<QColor> oscuros{QColor(0x1e, 0x1e, 0x1e), QColor(0x3c, 0x3c, 0x3c)};
-        for (Paleta::Tinta t : {Paleta::Secundario, Paleta::Atencion, Paleta::Informacion, Paleta::Verificada,
+        for (Paleta::Tinta t : {Paleta::Secundario, Paleta::Inactiva, Paleta::Atencion, Paleta::Informacion, Paleta::Verificada,
                                 Paleta::Correcta, Paleta::Error}) {
             for (const QColor &fondo : claros)
                 QVERIFY2(contraste(Paleta::tinta(t, false), fondo) >= 4.5, qPrintable(Paleta::tinta(t, false).name()));
             for (const QColor &fondo : oscuros)
                 QVERIFY2(contraste(Paleta::tinta(t, true), fondo) >= 4.5, qPrintable(Paleta::tinta(t, true).name()));
         }
-        // Lo que no cuenta va más apagado que lo secundario, pero se distingue del fondo.
+        // Lo que no cuenta va más apagado que lo secundario, sin dejar de leerse.
         QVERIFY(contraste(Paleta::tinta(Paleta::Inactiva, false), Qt::white) < contraste(Paleta::tinta(Paleta::Secundario, false), Qt::white));
-        QVERIFY(contraste(Paleta::tinta(Paleta::Inactiva, false), Qt::white) >= 2.5);
-        QVERIFY(contraste(Paleta::tinta(Paleta::Inactiva, true), oscuros.first()) >= 2.5);
+        QVERIFY(contraste(Paleta::tinta(Paleta::Inactiva, true), oscuros.first()) < contraste(Paleta::tinta(Paleta::Secundario, true), oscuros.first()));
+        // Las preguntas anuladas de la lista del banco: en ese gris, y tachado solo el código, para que el enunciado
+        // se lea.
+        {
+            ModeloPreguntas modelo;
+            Pregunta anulada;
+            anulada.estado = QStringLiteral("anulada");
+            QVERIFY(!anulada.activa());
+            modelo.establecer({anulada, Pregunta()});
+            for (int c = 0; c < modelo.columnCount(); ++c) {
+                QCOMPARE(modelo.data(modelo.index(0, c), Qt::ForegroundRole).value<QBrush>().color(), Paleta::tinta(Paleta::Inactiva));
+                QCOMPARE(modelo.data(modelo.index(0, c), Qt::FontRole).value<QFont>().strikeOut(), c == ModeloPreguntas::ColCodigo);
+                QVERIFY(!modelo.data(modelo.index(1, c), Qt::FontRole).isValid());
+            }
+        }
         // Los recuadros: «background: #…; color: #…».
         static const QRegularExpression colores(QStringLiteral("background: (#[0-9a-f]{6}); color: (#[0-9a-f]{6})"));
         for (const QString &estilo : {Paleta::fondoAtencion(), Paleta::fondoError(), Paleta::recuadroAtencion(), Paleta::recuadroInformacion()}) {
