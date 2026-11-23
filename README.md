@@ -357,6 +357,7 @@ campos), los ejemplos, la ayuda y la guía `docs/redactar_preguntas.md`.
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `traducciones/` | Traducciones de la interfaz y de los textos de los exámenes (Qt Linguist), una por idioma. |
 | `herramientas/instalar_lanzador.sh` | Instala (o quita) el lanzador del programa en el menú del escritorio de Linux. |
+| `herramientas/contar_lineas.py`, `herramientas/contar_lineas.sh` | Cuenta las líneas de código del programa y de las pruebas, sin las líneas en blanco ni los comentarios (`-f`: de cada fichero). El `.sh` es para Linux y no necesita Python; el `.py`, para donde lo haya. Dan lo mismo. |
 | `docs/redactar_preguntas.md` | Guía para escribir preguntas, o pedírselas a Claude: el formato del JSON, el código con su lenguaje y números de línea, y las reglas que se comprueban. |
 | `recursos/` | Manual de uso (`ayuda.html`, el de *Ayuda → Manual de uso*, y `ayuda_en.html` en inglés), esquema JSON del formato de las preguntas (`banco.schema.json`) y JSON de ejemplo (`ejemplo_banco.json`, `ejemplo_banco_en.json`), foto del autor para el diálogo *Ayuda → Acerca de* e icono de la aplicación (`icono.svg`, y `icono_pequeno.svg` para 16 y 24 píxeles). Los PNG de `recursos/icono/` y el `icono.ico` del ejecutable de Windows se generan con `recursos/generar_iconos.sh`. `GeneradorExamenes.desktop.in` es el lanzador del menú del escritorio de Linux. `LEEME_windows.txt` va en el paquete de Windows. |
 | `src/` | Código fuente del programa. |
