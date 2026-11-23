@@ -1838,7 +1838,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>DialogoVerificadores</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="+215"/>
+        <location filename="../src/dialogoverificadores.cpp" line="+19"/>
         <source>Verificadores</source>
         <translation>Verifiers</translation>
     </message>
@@ -1916,7 +1916,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>DialogoVerificar</name>
     <message>
-        <location line="+18"/>
+        <location filename="../src/dialogoverificar.cpp" line="+36"/>
         <source>Verificar preguntas</source>
         <translation>Verify questions</translation>
     </message>
@@ -2019,7 +2019,7 @@ Do you want to save it anyway?</translation>
         <translation>You answered %1 and the answer in the bank is %2: review it carefully.</translation>
     </message>
     <message>
-        <location line="+26"/>
+        <location line="+16"/>
         <source>Verificadas: %1 de %2</source>
         <extracomment>Arriba del diálogo de verificar, junto a la barra de avance: «Verificadas: 12 de 20»</extracomment>
         <translation>Verified: %1 of %2</translation>
@@ -2032,23 +2032,23 @@ Do you want to save it anyway?</translation>
 %1</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+32"/>
         <source>Apenas ha habido tiempo para leerla. Si ya la ha revisado, pulse otra vez.</source>
         <translation>There has hardly been time to read it. If you have already reviewed it, click again.</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+8"/>
         <source>Marque quién la ha verificado.</source>
         <translation>Tick who has verified it.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+13"/>
         <source>Lleva %1 min verificando sin parar (preguntas verificadas: %2). Una pausa breve ayuda a mantener la atención.</source>
         <extracomment>En el diálogo de verificar; %1 son minutos y %2, preguntas (más de una casi siempre)</extracomment>
         <translation>You have been verifying for %1 min without stopping (questions verified: %2). A short break helps you stay focused.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+5"/>
         <source>Era la última de la lista.</source>
         <translation>That was the last one in the list.</translation>
     </message>
@@ -2607,7 +2607,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelVerificacion</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="-555"/>
+        <location filename="../src/panelverificacion.cpp" line="+30"/>
         <source>Verificada por humanos</source>
         <translation>Verified by humans</translation>
     </message>
@@ -2678,7 +2678,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+118"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+120"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>

@@ -1,5 +1,5 @@
 #include "dialogopregunta.h"
-#include "verificacion.h"
+#include "panelverificacion.h"
 #include "dialogoayuda.h"
 #include "dialogoparecidas.h"
 #include "estilo.h"

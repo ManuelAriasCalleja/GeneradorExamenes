@@ -15,7 +15,10 @@
 #include "modelopreguntas.h"
 #include "utilidades.h"
 #include "ventanaprincipal.h"
-#include "verificacion.h"
+#include "atencionalverificar.h"
+#include "dialogoverificadores.h"
+#include "dialogoverificar.h"
+#include "panelverificacion.h"
 #include "visorampliable.h"
 
 #include <QLocale>
@@ -1465,13 +1468,32 @@ private slots:
 
         // El tiempo mínimo: según las palabras, entre 2 y 20 segundos.
         Pregunta inventada;
-        QCOMPARE(DialogoVerificar::tiempoParaLeer(inventada), 2000);
+        QCOMPARE(AtencionAlVerificar::tiempoParaLeer(inventada), 2000);
         inventada.enunciado = QStringLiteral("palabra ").repeated(60);
         inventada.opciones = QStringList(4, QStringLiteral("dos palabras"));
         inventada.explicacion = QStringLiteral("otras  dos\npalabras  más");
-        QCOMPARE(DialogoVerificar::tiempoParaLeer(inventada), 72 * 150);
+        QCOMPARE(AtencionAlVerificar::tiempoParaLeer(inventada), 72 * 150);
         inventada.enunciado = QStringLiteral("palabra ").repeated(1000);
-        QCOMPARE(DialogoVerificar::tiempoParaLeer(inventada), 20000);
+        QCOMPARE(AtencionAlVerificar::tiempoParaLeer(inventada), 20000);
+
+        // La cuenta, sin el diálogo: de la prisa se avisa una vez por pregunta, y la pausa se propone cuando se ha
+        // verificado alguna y ha pasado el tiempo; después se empieza a contar de nuevo.
+        AtencionAlVerificar atencion;
+        atencion.empezar();
+        atencion.preguntaMostrada();
+        QVERIFY(atencion.demasiadoDeprisa(0, inventada));
+        QVERIFY(!atencion.demasiadoDeprisa(0, inventada));
+        QVERIFY(atencion.demasiadoDeprisa(1, inventada));
+        atencion.ponerPausaCada(0);
+        int minutos = -1;
+        int verificadas = -1;
+        QVERIFY(!atencion.tocaPausa(&minutos, &verificadas));
+        atencion.contarVerificada();
+        atencion.contarVerificada();
+        QVERIFY(atencion.tocaPausa(&minutos, &verificadas));
+        QCOMPARE(minutos, 0);
+        QCOMPARE(verificadas, 2);
+        QVERIFY(!atencion.tocaPausa(&minutos, &verificadas));
 
         const QVector<Pregunta> preguntas = bd.preguntas();
         QVERIFY(preguntas.size() > 4);

@@ -1,5 +1,7 @@
 #include "ventanaprincipal.h"
-#include "verificacion.h"
+#include "dialogoverificadores.h"
+#include "dialogoverificar.h"
+#include "panelverificacion.h"
 #include "dialogoanteriores.h"
 #include "dialogoayuda.h"
 #include "dialogocomprobacion.h"
