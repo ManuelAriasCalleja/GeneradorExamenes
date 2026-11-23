@@ -28,7 +28,7 @@ DialogoEstilo::DialogoEstilo(std::function<QVector<Pregunta>()> preguntas, std::
 
     m_parte = new QComboBox;
     m_parte->addItem(tr("Todos los avisos"), -1);
-    for (Estilo::Aviso::Parte parte : {Estilo::Aviso::Enunciado, Estilo::Aviso::Opciones, Estilo::Aviso::Referencia})
+    for (Estilo::Aviso::Parte parte : {Estilo::Aviso::Enunciado, Estilo::Aviso::Opciones, Estilo::Aviso::Referencia, Estilo::Aviso::Explicacion})
         m_parte->addItem(Estilo::nombreParte(parte), int(parte));
     m_todas = new QCheckBox(tr("Incluir las anuladas y obsoletas"));
     connect(m_parte, &QComboBox::currentIndexChanged, this, &DialogoEstilo::rellenar);

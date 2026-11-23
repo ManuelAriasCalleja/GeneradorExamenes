@@ -11,7 +11,7 @@ namespace Estilo {
 
 struct Aviso
 {
-    enum Parte { Enunciado, Opciones, Referencia };
+    enum Parte { Enunciado, Opciones, Referencia, Explicacion };
     Parte parte;
     QString texto;   // una frase, sin citar el texto de la pregunta
 };
@@ -27,6 +27,8 @@ QVector<QPair<QString, QString>> formatosReferencia();
 // formas «Véase la página…», enunciados que acaban en dos puntos y opciones en punto); en otro idioma solo se
 // comprueban las demás (longitud, mayúsculas, opciones iguales o que remiten a las demás, la correcta más larga,
 // que haya referencia, comillas del código y erratas).
+// El código dentro del texto (entre comillas invertidas: ver enunciado.h) no es redacción: las pautas del texto no lo
+// miran, y una opción que es solo código no tiene que empezar por mayúscula ni acabar en punto.
 QVector<Aviso> revisar(const Pregunta &p, const QVector<Tema> &temas = {}, const QString &idioma = QStringLiteral("es"));
 
 // Opción que remite a las demás («Todas las anteriores», «a y b», «All of the above»...): con ella no se pueden

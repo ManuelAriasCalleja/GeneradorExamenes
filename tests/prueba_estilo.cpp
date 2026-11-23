@@ -69,6 +69,17 @@ private slots:
         QTest::newRow("negación en minúscula") << conEnunciado("¿Cuál no es un componente inventado?:") << "mayúsculas";
         QTest::newRow("negación en mayúsculas") << conEnunciado("¿Cuál NO es un componente inventado?:") << QString();
         QTest::newRow("«es falso» en minúscula") << conEnunciado("Sobre lo inventado, es falso que:") << "mayúsculas";
+        // El código dentro del texto (entre comillas invertidas) no es redacción: las pautas no lo miran.
+        QTest::newRow("comillas rectas en código en línea") << conEnunciado("Si se escribe `\"hola\"` en lo inventado:") << QString();
+        QTest::newRow("? en código en línea") << conEnunciado("Lo que vale `a ? b : c` en lo inventado:") << QString();
+        QTest::newRow("empieza por código en línea") << conEnunciado("`total` es en lo inventado:") << QString();
+        QTest::newRow("comillas tipográficas en código en línea") << conEnunciado("Si se escribe `“hola”` en lo inventado:") << "rectas";
+        QTest::newRow("comilla invertida sin pareja") << conEnunciado("Si se escribe `total en lo inventado:") << "sin pareja";
+        QTest::newRow("opción que es solo código") << conOpcion(2, "`total = 1;`") << QString();
+        QTest::newRow("opción que es código y punto") << conOpcion(2, "`total = 1;`.") << QString();
+        QTest::newRow("opción con código y sin punto") << conOpcion(2, "El valor de `total`") << "terminar en punto";
+        QTest::newRow("opción con comillas rectas en código") << conOpcion(2, "Lo que escribe `print(\"x\")`.") << QString();
+        QTest::newRow("opción con comilla invertida sin pareja") << conOpcion(2, "El valor de `total.") << "opción c) hay una comilla invertida";
         QTest::newRow("comillas rectas en el texto") << conEnunciado("Si se escribe \"hola\" en lo inventado:") << "tipográficas";
         QTest::newRow("comillas rectas en una fórmula") << conEnunciado("En la celda se escribe =A1&\"x\", y el resultado:") << QString();
         QTest::newRow("comillas tipográficas en el código")
@@ -121,6 +132,20 @@ private slots:
             QVERIFY2(avisos.isEmpty(), qPrintable(avisos.join(QStringLiteral(" | "))));
         else
             QVERIFY2(avisos.join(QStringLiteral(" | ")).contains(aviso), qPrintable(avisos.join(QStringLiteral(" | "))));
+    }
+
+    // De la comilla invertida sin pareja se avisa también en la explicación, como parte propia.
+    void comillaSinParejaEnLaExplicacion()
+    {
+        Pregunta p = buena();
+        p.explicacion = QStringLiteral("Porque `total` vale uno.");
+        QVERIFY(Estilo::revisar(p, temasInventados()).isEmpty());
+        p.explicacion = QStringLiteral("Porque `total vale uno.");
+        const QVector<Estilo::Aviso> avisos = Estilo::revisar(p, temasInventados());
+        QCOMPARE(avisos.size(), 1);
+        QCOMPARE(avisos.first().parte, Estilo::Aviso::Explicacion);
+        QVERIFY(avisos.first().texto.contains(QStringLiteral("sin pareja")));
+        QVERIFY(!Estilo::nombreParte(Estilo::Aviso::Explicacion).isEmpty());
     }
 
     void opcionDependiente_data()

@@ -253,6 +253,20 @@ private slots:
         QCOMPARE(buscar(codigo, QStringLiteral("no se cierra"))->donde, QStringLiteral("tema 1, pregunta 1"));
         QCOMPARE(comprobar(banco(pregunta(1).replace("Enunciado inventado:", "Este:\\n```java numerado\\nint x;\\n```"))).problemas.size(), 0);
 
+        // El código dentro del texto: de una comilla invertida sin pareja se avisa en el enunciado, en las opciones y en
+        // la explicación; del código bien escrito, no.
+        const Resultado comillas = comprobar(banco(pregunta(1, "\"explicacion\": \"Porque `uno vale.\"")
+                                                       .replace("Enunciado inventado:", "El valor de `uno:")
+                                                       .replace("\"Tres.\"", "\"El `tres.\"")));
+        QVERIFY2(comillas.valido(), qPrintable(describir(comillas)));
+        QCOMPARE(comillas.avisos(), 3);
+        QVERIFY(buscar(comillas, QStringLiteral("Hay una comilla invertida")));
+        QVERIFY(buscar(comillas, QStringLiteral("En la opción c) hay una comilla invertida")));
+        QVERIFY(buscar(comillas, QStringLiteral("En la explicación hay una comilla invertida")));
+        QCOMPARE(comprobar(banco(pregunta(1, "\"explicacion\": \"Porque `uno` vale.\"")
+                                     .replace("Enunciado inventado:", "El valor de `uno`:")
+                                     .replace("\"Tres.\"", "\"El `tres`.\""))).problemas.size(), 0);
+
         // Si la pseudorrepetida está en el banco en el que se importa, no hay aviso; tampoco si está en el JSON.
         const QByteArray conPseudo = banco(pregunta(1, "\"pseudo_con\": \"T5-2\"") + ",\n" + pregunta(2, "\"pseudo_con\": \"T1-1\""));
         QCOMPARE(comprobar(conPseudo, {QStringLiteral("T5-2")}).problemas.size(), 0);

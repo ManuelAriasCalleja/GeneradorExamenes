@@ -41,6 +41,34 @@ Partes partesDe(const QString &enunciado)
     return partes;
 }
 
+// El texto sin su código en línea (entre comillas invertidas: ver enunciado.h), que no es redacción: en su lugar queda
+// una «X», para que las pautas vean que ahí hay algo sin mirar lo que es.
+QString sinCodigo(const QString &texto)
+{
+    QString res;
+    for (const Enunciado::Trozo &t : Enunciado::trozos(texto))
+        res += t.codigo ? QStringLiteral("X") : t.texto;
+    return res;
+}
+
+// El código en línea del texto, un trozo por línea.
+QString codigoEnLinea(const QString &texto)
+{
+    QStringList res;
+    for (const Enunciado::Trozo &t : Enunciado::trozos(texto))
+        if (t.codigo)
+            res << t.texto;
+    return res.join(QLatin1Char('\n'));
+}
+
+// Si el texto es solo código en línea (y, si acaso, un punto detrás).
+bool soloCodigo(const QString &texto)
+{
+    const QVector<Enunciado::Trozo> trozos = Enunciado::trozos(texto.trimmed());
+    return !trozos.isEmpty() && trozos.first().codigo
+           && (trozos.size() == 1 || (trozos.size() == 2 && trozos.last().texto == QLatin1String(".")));
+}
+
 // Texto que parece código o una fórmula (HTML, C, hoja de cálculo): en él las comillas rectas son correctas.
 bool pareceCodigo(const QString &s)
 {
@@ -79,10 +107,13 @@ void revisarEnunciado(const Pregunta &p, bool castellano, QVector<Aviso> &avisos
 {
     auto avisar = [&](const QString &texto) { avisos.append({Aviso::Enunciado, texto}); };
     const Partes partes = partesDe(p.enunciado);
-    const QString texto = partes.texto.join(QLatin1Char(' '));
+    // Lo que se lee, sin las comillas invertidas del código en línea, para la longitud; y sin ese código, para lo demás.
+    const QString conCodigo = partes.texto.join(QLatin1Char(' '));
+    const QString texto = sinCodigo(conCodigo);
+    const int largo = int(Enunciado::sinMarcas(conCodigo).size());
 
     if (castellano && !partes.texto.isEmpty()) {
-        const QString ultima = partes.texto.last();
+        const QString ultima = sinCodigo(partes.texto.last());
         if (ultima.endsWith(QLatin1Char('?')))
             avisar(QCoreApplication::translate("Estilo", "Las preguntas acaban en «?:», con los dos puntos detrás."));
         else if (ultima.endsWith(QLatin1Char('.')))
@@ -97,8 +128,8 @@ void revisarEnunciado(const Pregunta &p, bool castellano, QVector<Aviso> &avisos
         avisar(QCoreApplication::translate("Estilo", "Falta el «¿» de apertura de la pregunta."));
     else if (sinCitas.contains(QStringLiteral("¿")) && !sinCitas.contains(QLatin1Char('?')))
         avisar(QCoreApplication::translate("Estilo", "Falta el «?» de cierre de la pregunta."));
-    if (texto.size() > 180)
-        avisar(QCoreApplication::translate("Estilo", "El enunciado es largo (%1 caracteres); conviene que no pase de unos 180.").arg(texto.size()));
+    if (largo > 180)
+        avisar(QCoreApplication::translate("Estilo", "El enunciado es largo (%1 caracteres); conviene que no pase de unos 180.").arg(largo));
     if (empiezaPorMinuscula(texto))
         avisar(QCoreApplication::translate("Estilo", "El enunciado debe empezar por mayúscula."));
 
@@ -115,7 +146,7 @@ void revisarEnunciado(const Pregunta &p, bool castellano, QVector<Aviso> &avisos
     if (castellano && texto.contains(QLatin1Char('"')) && !pareceCodigo(texto))
         avisar(QCoreApplication::translate("Estilo", "En el texto, los literales van entre comillas tipográficas (“…”), no rectas."));
     static const QRegularExpression tipograficas(QStringLiteral("[“”‘’«»]"));
-    if (tipograficas.match(partes.codigo.join(QLatin1Char('\n'))).hasMatch())
+    if (tipograficas.match(partes.codigo.join(QLatin1Char('\n'))).hasMatch() || tipograficas.match(codigoEnLinea(conCodigo)).hasMatch())
         avisar(QCoreApplication::translate("Estilo", "Dentro del código, las comillas deben ser rectas (\")."));
     for (const QString &aviso : Enunciado::avisosDelCodigo(p.enunciado))
         avisar(aviso);
@@ -125,31 +156,37 @@ void revisarOpciones(const Pregunta &p, bool castellano, QVector<Aviso> &avisos)
 {
     auto avisar = [&](const QString &texto) { avisos.append({Aviso::Opciones, texto}); };
     for (int i = 0; i < 4; ++i) {
-        const QString o = p.opciones.value(i).trimmed();
+        const QString entera = p.opciones.value(i).trimmed();
         const QChar letra = Pregunta::letra(i);
-        if (o.isEmpty())
+        if (entera.isEmpty())
             continue;   // los campos vacíos los rechaza el editor
-        if (castellano && !o.endsWith(QLatin1Char('.')))
+        if (Enunciado::comillaSinPareja(entera))
+            //: «`» es la comilla invertida (acento grave) que marca el código dentro de una línea de texto
+            avisar(QCoreApplication::translate("Estilo", "En la opción %1) hay una comilla invertida (`) sin pareja: saldrá tal cual.").arg(letra));
+        // Las pautas de redacción no miran el código en línea.
+        const QString o = sinCodigo(entera);
+        if (castellano && !o.endsWith(QLatin1Char('.')) && !soloCodigo(entera))
             avisar(QCoreApplication::translate("Estilo", "La opción %1) debe terminar en punto.").arg(letra));
         if (empiezaPorMinuscula(o))
             avisar(QCoreApplication::translate("Estilo", "La opción %1) debe empezar por mayúscula.").arg(letra));
-        if (opcionDependiente(o))
+        if (opcionDependiente(Enunciado::sinMarcas(entera)))
             //: %1 es la letra de la opción (a, b, c o d). «Todas las anteriores» es un ejemplo de opción de las que busca la regla.
             avisar(QCoreApplication::translate("Estilo", "La opción %1) remite a las demás («Todas las anteriores»…): conviene evitarlo, porque "
                                                          "impide barajar las opciones.").arg(letra));
         if (castellano && o.contains(QLatin1Char('"')) && !pareceCodigo(o))
             avisar(QCoreApplication::translate("Estilo", "En la opción %1), los literales van entre comillas tipográficas (“…”), no rectas.").arg(letra));
         for (int j = i + 1; j < 4; ++j)
-            if (o.compare(p.opciones.value(j).trimmed(), Qt::CaseInsensitive) == 0)
+            if (entera.compare(p.opciones.value(j).trimmed(), Qt::CaseInsensitive) == 0)
                 avisar(QCoreApplication::translate("Estilo", "Las opciones %1) y %2) son iguales.").arg(letra).arg(Pregunta::letra(j)));
     }
 
     // La correcta no debe destacar por ser mucho más larga que las demás.
-    const int larga = p.opciones.value(p.correcta).trimmed().size();
+    auto largo = [&p](int i) { return int(Enunciado::sinMarcas(p.opciones.value(i).trimmed()).size()); };
+    const int larga = largo(p.correcta);
     int otras = 0;
     for (int i = 0; i < 4; ++i)
         if (i != p.correcta)
-            otras = qMax(otras, int(p.opciones.value(i).trimmed().size()));
+            otras = qMax(otras, largo(i));
     if (larga > otras * 3 / 2 && larga - otras >= 15)
         avisar(QCoreApplication::translate("Estilo", "La correcta es bastante más larga que las demás (%1 caracteres frente a %2 como mucho): "
                                                      "puede delatarla.").arg(larga).arg(otras));
@@ -219,6 +256,8 @@ QString nombreParte(Aviso::Parte parte)
     case Aviso::Opciones: return QCoreApplication::translate("Estilo", "Opciones");
     //: Parte de una pregunta: la referencia al libro de teoría.
     case Aviso::Referencia: return QCoreApplication::translate("Estilo", "Referencia");
+    //: Parte de una pregunta: la explicación de por qué la correcta es la correcta.
+    case Aviso::Explicacion: return QCoreApplication::translate("Estilo", "Explicación");
     }
     return QString();
 }
@@ -242,6 +281,8 @@ QVector<Aviso> revisar(const Pregunta &p, const QVector<Tema> &temas, const QStr
     revisarEnunciado(p, castellano, avisos);
     revisarOpciones(p, castellano, avisos);
     revisarReferencia(p, formato, castellano, avisos);
+    if (Enunciado::comillaSinPareja(p.explicacion))
+        avisos.append({Aviso::Explicacion, QCoreApplication::translate("Estilo", "Hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual.")});
     for (const auto &errata : kErratas) {
         if (p.enunciado.contains(errata.first, Qt::CaseInsensitive))
             //: %1 es una palabra mal escrita y %2, cómo se escribe.

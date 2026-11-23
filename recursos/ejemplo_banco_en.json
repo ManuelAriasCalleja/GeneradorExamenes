@@ -112,7 +112,9 @@
           ],
           "correcta": "B",
           "referencia": "See page 32 of the textbook (section 2.2).",
-          "pseudo_con": "T1-4"
+          "explicacion": "Nitrogen (`N2`) is about 78% of the air; oxygen (`O2`), about 21%.",
+          "pseudo_con": "T1-4",
+          "notas": "Example of code within the text: what goes between backticks is shown in a fixed-width font."
         },
         {
           "numero": 3,

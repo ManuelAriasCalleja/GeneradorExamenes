@@ -479,7 +479,12 @@
         <translation>The question text is empty.</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+8"/>
+        <source>En la explicación hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual. El código dentro del texto va entre dos, `así`.</source>
+        <translation>In the explanation there is a backtick (`) with no partner on its line: it will be shown as it is. Code within the text goes between two of them, `like this`.</translation>
+    </message>
+    <message>
+        <location line="+6"/>
         <source>«pseudo_con» tiene que ser el código de otra pregunta sin la letra de la variante, como &quot;T1-7&quot; (tema 1, número 7), y es «%1».</source>
         <translation>“pseudo_con” must be the code of another question without the variant letter, such as &quot;T1-7&quot; (topic 1, number 7), and it is “%1”.</translation>
     </message>
@@ -520,6 +525,11 @@
     </message>
     <message>
         <location line="+5"/>
+        <source>En la opción %1) hay una comilla invertida (`) sin pareja: saldrá tal cual. El código dentro del texto va entre dos, `así`.</source>
+        <translation>In option %1) there is a backtick (`) with no partner: it will be shown as it is. Code within the text goes between two of them, `like this`.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>La opción %1) tiene que ser un texto, entre comillas dobles, y es %2.</source>
         <translation>Option %1) must be a text, in double quotes, and it is %2.</translation>
     </message>
@@ -2092,7 +2102,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>Estilo</name>
     <message>
-        <location filename="../src/estilo.cpp" line="+87"/>
+        <location filename="../src/estilo.cpp" line="+118"/>
         <source>Las preguntas acaban en «?:», con los dos puntos detrás.</source>
         <translation>Questions end in “?:”, with the colon after the question mark.</translation>
     </message>
@@ -2143,7 +2153,13 @@ Do you want to save it anyway?</translation>
         <translation>Inside code, quotation marks must be straight (&quot;).</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+15"/>
+        <source>En la opción %1) hay una comilla invertida (`) sin pareja: saldrá tal cual.</source>
+        <extracomment>«`» es la comilla invertida (acento grave) que marca el código dentro de una línea de texto</extracomment>
+        <translation>In option %1) there is a backtick (`) with no partner: it will be shown as it is.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>La opción %1) debe terminar en punto.</source>
         <translation>Option %1) must end with a full stop.</translation>
     </message>
@@ -2169,7 +2185,7 @@ Do you want to save it anyway?</translation>
         <translation>Options %1) and %2) are the same.</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>La correcta es bastante más larga que las demás (%1 caracteres frente a %2 como mucho): puede delatarla.</source>
         <translation>The correct option is considerably longer than the others (%1 characters against at most %2): it may give it away.</translation>
     </message>
@@ -2233,13 +2249,24 @@ Do you want to save it anyway?</translation>
         <translation>Reference</translation>
     </message>
     <message>
+        <location line="+2"/>
+        <source>Explicación</source>
+        <extracomment>Parte de una pregunta: la explicación de por qué la correcta es la correcta.</extracomment>
+        <translation>Explanation</translation>
+    </message>
+    <message>
         <location line="+8"/>
         <source>Cualquiera</source>
         <extracomment>Forma de la referencia al libro que se pide a un tema: cualquiera (no se pide ninguna).</extracomment>
         <translation>Any</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+17"/>
+        <source>Hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual.</source>
+        <translation>There is a backtick (`) with no partner on its line: it will be shown as it is.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <location line="+2"/>
         <source>«%1» está mal escrito: es «%2».</source>
         <extracomment>%1 es una palabra mal escrita y %2, cómo se escribe.</extracomment>

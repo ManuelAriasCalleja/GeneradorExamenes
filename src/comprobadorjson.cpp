@@ -602,7 +602,9 @@ private:
         comprobarOpciones(p, donde);
         comprobarCorrecta(p, donde);
         texto(p, QStringLiteral("referencia"), donde, false);
-        texto(p, QStringLiteral("explicacion"), donde, false);
+        if (const Valor *e = texto(p, QStringLiteral("explicacion"), donde, false); e && Enunciado::comillaSinPareja(e->texto))
+            aviso(*e, donde, tr("En la explicación hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual. El "
+                                "código dentro del texto va entre dos, `así`."));
         texto(p, QStringLiteral("notas"), donde, false);
         if (const Valor *s = texto(p, QStringLiteral("pseudo_con"), donde, false); s && !s->texto.isEmpty()) {
             static const QRegularExpression grupo(QStringLiteral("^T\\d+-\\d+$"));
@@ -646,6 +648,9 @@ private:
         for (int i = 0; i < qMin(n, 4); ++i) {
             const Valor &o = ops->hijos[size_t(i)];
             const QChar letra = QChar(u'a' + i);
+            if (o.tipo == Valor::Texto && Enunciado::comillaSinPareja(o.texto))
+                aviso(o, donde, tr("En la opción %1) hay una comilla invertida (`) sin pareja: saldrá tal cual. El código "
+                                   "dentro del texto va entre dos, `así`.").arg(letra));
             if (o.tipo != Valor::Texto)
                 error(o, donde, tr("La opción %1) tiene que ser un texto, entre comillas dobles, y es %2.").arg(letra).arg(tipoDe(o)));
             else if (o.texto.trimmed().isEmpty())

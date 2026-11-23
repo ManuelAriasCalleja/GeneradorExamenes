@@ -114,7 +114,9 @@
           ],
           "correcta": "B",
           "referencia": "Pág. 32 libro (sección 2.2).",
-          "pseudo_con": "T1-4"
+          "explicacion": "El nitrógeno (`N2`) es cerca del 78 % del aire; el oxígeno (`O2`), cerca del 21 %.",
+          "pseudo_con": "T1-4",
+          "notas": "Ejemplo de código dentro del texto: lo que va entre comillas invertidas sale en letra de ancho fijo."
         },
         {
           "numero": 3,
