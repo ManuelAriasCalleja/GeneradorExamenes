@@ -12,8 +12,6 @@
 #include <QVector>
 #include <functional>
 
-class FiltroPreguntas;
-class ModeloPreguntas;
 class QAction;
 class QButtonGroup;
 class QCheckBox;
@@ -30,12 +28,11 @@ class QPoint;
 class QPrinter;
 class QPushButton;
 class QSpinBox;
-class QTableView;
 class QTextBrowser;
 class VisorAmpliable;
 class ZonaAmpliable;
 class GrupoPlegable;
-class QProgressBar;
+class PestanaBanco;
 
 class VentanaPrincipal : public QMainWindow
 {
@@ -99,18 +96,6 @@ private slots:
     void cambiarPregunta();   // la del número elegido bajo la vista
     void deshacerCambio();
 
-    // Banco de preguntas
-    void filtrar();
-    void ponerCuenta();
-    void seleccionCambiada();
-    void nuevaPregunta();
-    void editarPregunta();
-    void duplicarPregunta();
-    void eliminarPregunta();
-    void verificarPregunta();   // las de la lista, desde la seleccionada
-    void verificarLista();      // marca como verificadas todas las de la lista
-    void gestionarVerificadores();
-
 private:
     QWidget *crearPestanaExamen();
     QWidget *crearGrupoConvocatoria();
@@ -119,7 +104,6 @@ private:
     QWidget *crearGrupoPuntuacion();
     QWidget *crearGrupoOpciones();
     QWidget *crearPanelResultados();
-    QWidget *crearPestanaBanco();
     void crearMenus();
     void recargarDatos(int seleccionarId = 0);
     // Tras un cambio del banco hecho desde el programa (pregunta o tema guardado o borrado): reescribe el JSON
@@ -175,14 +159,6 @@ private:
     };
     QVector<Opcion> m_opciones;
     bool hayExamen() const;
-    Pregunta preguntaSeleccionada(bool *ok);
-    // Las preguntas de la lista del banco: las que cumplen los filtros, en el orden en que se ven.
-    QVector<Pregunta> preguntasDeLaLista() const;
-    // Abre la pregunta en el editor y la guarda. Con 'boton', el editor tiene además ese botón («Guardar y
-    // siguiente»…). Devuelve lo que se ha pedido al guardar (Cerrar si no se ha guardado). En 'guardada' deja la
-    // pregunta guardada (con id 0 si no se ha guardado).
-    DialogoPregunta::Despues editar(Pregunta p, DialogoPregunta::Despues boton = DialogoPregunta::Cerrar,
-                                    const QString &texto = QString(), Pregunta *guardada = nullptr);
     // Muestra m_resultado (recién generado o cargado del historial); 'origen' va delante de la semilla.
     void presentarResultado(const QString &origen = QString());
     // Avisos, nivel de la maqueta y examen mostrado, según el resultado y la casilla «Letra grande».
@@ -213,9 +189,6 @@ private:
     // Pone al día la lista y los exámenes con la verificación del banco. Sin 'conJson' (mientras se va verificando,
     // pregunta a pregunta) no se reescribe el JSON del banco: se hace una vez, al acabar.
     void verificacionCambiada(int seleccionarId, bool conJson = true);
-    void seleccionarPregunta(int id);
-    // Menú del botón derecho en la lista de preguntas.
-    void menuTabla(const QPoint &donde);
     // Menú del botón derecho en la vista del examen: el normal, con «Editar la pregunta N» y «Cambiar la pregunta N
     // por otra» si se pulsa sobre una pregunta, «Deshacer» si hay algún cambio y los de ampliar y reducir la vista.
     void menuVista(const QPoint &enVista);
@@ -257,14 +230,12 @@ private:
     BaseDatos m_bd;
     QVector<Tema> m_temas;
     QVector<Pregunta> m_preguntas;
-    int m_idGuardada = 0;                   // la última pregunta guardada en el editor
     ResultadoGeneracion m_resultado;
     QString m_origenResultado;              // «Registrada el …» si viene del historial
     bool m_semillaFija = false;             // m_resultado se generó con la semilla escrita en Opciones
     // Si m_resultado se ha exportado (o impreso) y si está registrado tal como está: si se ha exportado y no está
     // registrado, se pregunta antes de descartarlo.
     bool m_exportados = false;
-    bool m_filtroTemaRecordado = false;     // ya se ha puesto en el filtro el tema de la última vez
     bool m_registrados = false;
     QString m_infoBase;                     // la línea gris, sin el aviso de que no está registrado
     // Para cambiar preguntas: la configuración con que se generó m_resultado (o, si viene del historial, la de la
@@ -329,16 +300,7 @@ private:
     QSpinBox *m_preguntaACambiar;
     QPushButton *m_deshacerCambio;
 
-    // Pestaña del banco
-    QComboBox *m_filtroTema;
-    QComboBox *m_filtroEstado;
-    QLineEdit *m_filtroTexto;
-    QLabel *m_cuenta;
-    QProgressBar *m_barraVerificadas;   // de las preguntas de la lista, cuántas están verificadas
-    QTableView *m_tabla;
-    ModeloPreguntas *m_modelo;
-    FiltroPreguntas *m_filtro;
-    VisorAmpliable *m_ficha;
+    PestanaBanco *m_banco = nullptr;        // la pestaña «Banco de preguntas»
     // Lo que se amplía con Ctrl + rueda, Ctrl++, Ctrl+- y Ctrl+0, cada cosa con su tamaño: la vista del examen
     // (m_visorExamen), el panel izquierdo de «Generar examen» y el banco de preguntas (la lista y la ficha).
     // Lo que casi nunca se cambia va plegado, con un resumen de lo elegido en la cabecera.

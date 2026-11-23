@@ -19,6 +19,7 @@
 #include "dialogoverificadores.h"
 #include "dialogoverificar.h"
 #include "panelverificacion.h"
+#include "pestanabanco.h"
 #include "visorampliable.h"
 
 #include <QLocale>
@@ -351,7 +352,7 @@ private slots:
             pulsar(w, boton);
         };
         QTimer::singleShot(100, responderEditor);
-        QMetaObject::invokeMethod(&v, "editarPregunta");
+        QMetaObject::invokeMethod(v.findChild<PestanaBanco *>(), "editarPregunta");
         QCOMPARE(titulos, (QStringList{QStringLiteral("Editar pregunta T1-1"), QStringLiteral("Editar pregunta T1-2")}));
         QSettings().clear();
     }
@@ -475,7 +476,7 @@ private slots:
         QVERIFY(tabla);
         tabla->setCurrentIndex(tabla->model()->index(0, 0));
         responder(QStringLiteral("Sí"));
-        QMetaObject::invokeMethod(&v, "eliminarPregunta");
+        QMetaObject::invokeMethod(v.findChild<PestanaBanco *>(), "eliminarPregunta");
         QVERIFY(!aviso->isVisible());
         {
             BaseDatos bd;
@@ -1355,7 +1356,7 @@ private slots:
             }
             d->reject();
         });
-        QVERIFY(QMetaObject::invokeMethod(&v, "verificarPregunta"));
+        QVERIFY(QMetaObject::invokeMethod(v.findChild<PestanaBanco *>(), "verificarPregunta"));
         QVERIFY(ampliada);
         QCOMPARE(enLaLista, QStringLiteral("✓ Persona Uno"));
         QVERIFY(cuentaConElDialogo != cuentaAlEmpezar);
@@ -1383,7 +1384,7 @@ private slots:
             responder(QStringLiteral("Guardar así"));
             pulsar(d, QStringLiteral("Guardar"));
         });
-        QVERIFY(QMetaObject::invokeMethod(&v, "editarPregunta"));
+        QVERIFY(QMetaObject::invokeMethod(v.findChild<PestanaBanco *>(), "editarPregunta"));
         QCOMPARE(verificadas().size(), 3);
         QVERIFY(verificadas().contains(QStringLiteral("T1-3:Persona Uno")));
 
@@ -1403,7 +1404,7 @@ private slots:
                 c->setChecked(true);
             pulsar(d, QStringLiteral("Marcar como verificadas"));
         });
-        QVERIFY(QMetaObject::invokeMethod(&v, "verificarLista"));
+        QVERIFY(QMetaObject::invokeMethod(v.findChild<PestanaBanco *>(), "verificarLista"));
         QCOMPARE(verificadas().size(), delTema1);
         QVERIFY(verificadas().contains(QStringLiteral("T1-1:Otra Persona,Persona Uno")));
         filtroTema->setCurrentIndex(0);

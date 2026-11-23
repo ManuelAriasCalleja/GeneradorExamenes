@@ -2640,6 +2640,243 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
     </message>
 </context>
 <context>
+    <name>PestanaBanco</name>
+    <message>
+        <location filename="../src/pestanabanco.cpp" line="+47"/>
+        <source>Todas</source>
+        <extracomment>Filtro por estado de las preguntas (en femenino: «las preguntas»): todas</extracomment>
+        <translation>All</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Activas</source>
+        <extracomment>Filtro por estado de las preguntas: las activas</extracomment>
+        <translation>Active</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Anuladas</source>
+        <extracomment>Filtro por estado de las preguntas: las anuladas</extracomment>
+        <translation>Voided</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Obsoletas</source>
+        <extracomment>Filtro por estado de las preguntas: las obsoletas</extracomment>
+        <translation>Obsolete</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Para revisar</source>
+        <extracomment>Filtro por estado de las preguntas: las marcadas para revisar</extracomment>
+        <translation>Flagged for review</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Con imagen</source>
+        <extracomment>Filtro por estado de las preguntas: las que tienen imagen</extracomment>
+        <translation>With image</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Verificadas</source>
+        <extracomment>Filtro por estado de las preguntas: las revisadas por personas</extracomment>
+        <translation>Verify…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Sin verificar</source>
+        <extracomment>Filtro por estado de las preguntas: las que aún no ha revisado nadie</extracomment>
+        <translation>Verified</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Buscar texto o código (T1-22b)…</source>
+        <translation>Search text or code (T1-22b)…</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Tema:</source>
+        <translation>Topic:</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Estado:</source>
+        <extracomment>Estado de las preguntas (activa, anulada, obsoleta…), para filtrar la tabla</extracomment>
+        <translation>Status:</translation>
+    </message>
+    <message>
+        <location line="+51"/>
+        <source>Nueva…</source>
+        <extracomment>Botón: nueva pregunta</extracomment>
+        <translation>New…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+311"/>
+        <source>Editar…</source>
+        <extracomment>Botón: editar la pregunta seleccionada</extracomment>
+        <translation>Edit…</translation>
+    </message>
+    <message>
+        <location line="-309"/>
+        <location line="+310"/>
+        <source>Verificar…</source>
+        <extracomment>Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas como verificadas por personas</extracomment>
+        <translation>%1 (%2 questions)</translation>
+    </message>
+    <message>
+        <location line="-309"/>
+        <source>Duplicar como variante…</source>
+        <translation>Duplicate as variant…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Eliminar</source>
+        <extracomment>Botón: eliminar la pregunta seleccionada</extracomment>
+        <translation>Delete</translation>
+    </message>
+    <message>
+        <location line="+47"/>
+        <source>Todos los temas</source>
+        <translation>All topics</translation>
+    </message>
+    <message>
+        <location line="+36"/>
+        <source>0 preguntas</source>
+        <translation>0 questions</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>1 pregunta, verificada</source>
+        <translation>1 question, verified</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>1 pregunta, sin verificar</source>
+        <translation>1 question, not verified</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>%1 preguntas: %2 verificadas, %3 sin verificar</source>
+        <translation>%1 questions: %2 verified, %3 not verified</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Verificadas: el %1 % de las preguntas de la lista</source>
+        <extracomment>Al dejar el ratón sobre la barra de avance del banco de preguntas; %1 es el porcentaje (40)</extracomment>
+        <translation>Verified: %1% of the questions in the list</translation>
+    </message>
+    <message>
+        <location line="+31"/>
+        <source>&lt;p&gt;&lt;b&gt;Ha salido en:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;Appeared in:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Primero cree algún tema (Editar → Temas).</source>
+        <translation>First create a topic (Edit → Topics).</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>No se pudo guardar la pregunta:
+%1</source>
+        <translation>Could not save the question:
+%1</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>Guardar y nueva</source>
+        <translation>Save and new</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Guardar y siguiente</source>
+        <translation>Save and next</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Era la última pregunta de la lista.</source>
+        <translation>That was the last question in the list.</translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>%1 ya tiene variantes de la a a la z.</source>
+        <translation>%1 already has variants from a to z.</translation>
+    </message>
+    <message>
+        <location line="+39"/>
+        <location line="+11"/>
+        <source>Marcar como verificadas</source>
+        <translation>Mark as verified</translation>
+    </message>
+    <message>
+        <location line="-9"/>
+        <source>Se marcará como verificada la pregunta de la lista por:</source>
+        <translation>The question in the list will be marked as verified by:</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Se marcarán como verificadas las %1 preguntas de la lista por:</source>
+        <translation>The %1 questions in the list will be marked as verified by:</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>A las que ya estaban verificadas se les añaden estas personas.</source>
+        <translation>These people are added to those that were already verified.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Cancelar</source>
+        <translation>Cancel</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Marque quién las ha verificado.</source>
+        <translation>Tick who has verified them.</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>No se pudo guardar la verificación:
+%1</source>
+        <translation>The verification could not be saved:
+%1</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>1 pregunta marcada como verificada.</source>
+        <translation>1 question marked as verified.</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 preguntas marcadas como verificadas.</source>
+        <translation>%1 questions marked as verified.</translation>
+    </message>
+    <message>
+        <location line="+26"/>
+        <source>Marcar como verificada la pregunta de la lista…</source>
+        <translation>Mark the question in the list as verified…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Marcar como verificadas las %1 preguntas de la lista…</source>
+        <translation>Mark the %1 questions in the list as verified…</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>¿Eliminar definitivamente la pregunta %1?
+
+%2
+
+(Si solo quiere que deje de salir en los exámenes, edítela y márquela como anulada.)</source>
+        <translation>Permanently delete question %1?
+
+%2
+
+(If you only want it to stop appearing in exams, edit it and mark it as voided.)</translation>
+    </message>
+</context>
+<context>
     <name>Tema</name>
     <message>
         <location filename="../src/pregunta.cpp" line="-5"/>
@@ -2684,12 +2921,12 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="+91"/>
+        <location line="+89"/>
         <source>Generar examen</source>
         <translation>Generate exam</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+9"/>
         <source>Banco de preguntas</source>
         <translation>Question bank</translation>
     </message>
@@ -3051,75 +3288,13 @@ If empty, different exams come out each time.</translation>
         <translation>Practise this exam…</translation>
     </message>
     <message>
-        <location line="+19"/>
-        <source>Todas</source>
-        <extracomment>Filtro por estado de las preguntas (en femenino: «las preguntas»): todas</extracomment>
-        <translation>All</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Activas</source>
-        <extracomment>Filtro por estado de las preguntas: las activas</extracomment>
-        <translation>Active</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Anuladas</source>
-        <extracomment>Filtro por estado de las preguntas: las anuladas</extracomment>
-        <translation>Voided</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Obsoletas</source>
-        <extracomment>Filtro por estado de las preguntas: las obsoletas</extracomment>
-        <translation>Obsolete</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Para revisar</source>
-        <extracomment>Filtro por estado de las preguntas: las marcadas para revisar</extracomment>
-        <translation>Flagged for review</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Con imagen</source>
-        <extracomment>Filtro por estado de las preguntas: las que tienen imagen</extracomment>
-        <translation>With image</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Buscar texto o código (T1-22b)…</source>
-        <translation>Search text or code (T1-22b)…</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Tema:</source>
-        <translation>Topic:</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Estado:</source>
-        <extracomment>Estado de las preguntas (activa, anulada, obsoleta…), para filtrar la tabla</extracomment>
-        <translation>Status:</translation>
-    </message>
-    <message>
-        <location line="+51"/>
-        <source>Nueva…</source>
-        <extracomment>Botón: nueva pregunta</extracomment>
-        <translation>New…</translation>
-    </message>
-    <message>
-        <location line="-110"/>
-        <location line="+112"/>
-        <location line="+1959"/>
+        <location line="-17"/>
         <source>Editar…</source>
-        <extracomment>Botón: abre en el editor esa pregunta del examen
-----------
-Botón: editar la pregunta seleccionada</extracomment>
+        <extracomment>Botón: abre en el editor esa pregunta del examen</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-2454"/>
+        <location line="-383"/>
         <location line="+5"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -3275,44 +3450,17 @@ You can also right-click the question.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+110"/>
-        <location line="+1958"/>
         <source>Verificar…</source>
-        <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas
-----------
-Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas como verificadas por personas</extracomment>
+        <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas</extracomment>
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="-2067"/>
+        <location line="+1"/>
         <source>Recorre las preguntas del examen, desde esta, para marcarlas como verificadas por personas: «Verificada, siguiente» la marca con los mismos verificadores que la anterior.</source>
         <translation>Goes through the questions of the exam, from this one, to mark them as verified by people: “Verified, next” marks each with the same verifiers as the previous one.</translation>
     </message>
     <message>
-        <location line="+43"/>
-        <source>Verificadas</source>
-        <extracomment>Filtro por estado de las preguntas: las revisadas por personas</extracomment>
-        <translation>Verify…</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Sin verificar</source>
-        <extracomment>Filtro por estado de las preguntas: las que aún no ha revisado nadie</extracomment>
-        <translation>Verified</translation>
-    </message>
-    <message>
-        <location line="+65"/>
-        <source>Duplicar como variante…</source>
-        <translation>Duplicate as variant…</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Eliminar</source>
-        <extracomment>Botón: eliminar la pregunta seleccionada</extracomment>
-        <translation>Delete</translation>
-    </message>
-    <message>
-        <location line="+41"/>
+        <location line="+30"/>
         <source>Tamaño de la letra al %1 %</source>
         <extracomment>En la barra de estado, al ampliar o reducir un panel de la ventana; %1 es el porcentaje (125)</extracomment>
         <translation>Text size at %1%</translation>
@@ -3568,13 +3716,12 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+992"/>
-        <location line="+629"/>
+        <location line="+967"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-1613"/>
+        <location line="-959"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3741,17 +3888,12 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>&lt;h3&gt;Exam Generator&lt;/h3&gt;&lt;p&gt;Version %1&lt;/p&gt;&lt;p&gt;Developed by Manuel Arias Calleja&lt;/p&gt;&lt;p&gt;Generates multiple-choice exams by picking questions from the database at random, with the number of questions specified for each topic.&lt;/p&gt;&lt;p&gt;It never puts two variants of a question (3a/3b) or pseudo-duplicates in the same exam, and it can avoid repeating questions between exams.&lt;/p&gt;&lt;p&gt;Database: &lt;tt&gt;%2&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Settings: &lt;tt&gt;%3&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Qt %4&lt;/p&gt;</translation>
     </message>
     <message>
-        <location line="+36"/>
-        <source>Todos los temas</source>
-        <translation>All topics</translation>
-    </message>
-    <message>
-        <location line="+18"/>
+        <location line="+39"/>
         <source>Base de datos: %1  ·  %2 temas, %3 preguntas (%4 activas, %5 verificadas)</source>
         <translation>Database: %1  ·  %2 topics, %3 questions (%4 active, %5 verified)</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+33"/>
         <source>de %1</source>
         <extracomment>Junto al número de preguntas que se piden de un tema: «[3] de 12» (12 preguntas disponibles)</extracomment>
         <translation>of %1</translation>
@@ -4206,135 +4348,6 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <location line="+6"/>
         <source>Deshacer el último cambio de pregunta</source>
         <translation>Undo the last question change</translation>
-    </message>
-    <message>
-        <location line="+51"/>
-        <source>0 preguntas</source>
-        <translation>0 questions</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>1 pregunta, verificada</source>
-        <translation>1 question, verified</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>1 pregunta, sin verificar</source>
-        <translation>1 question, not verified</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>%1 preguntas: %2 verificadas, %3 sin verificar</source>
-        <translation>%1 questions: %2 verified, %3 not verified</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Verificadas: el %1 % de las preguntas de la lista</source>
-        <extracomment>Al dejar el ratón sobre la barra de avance del banco de preguntas; %1 es el porcentaje (40)</extracomment>
-        <translation>Verified: %1% of the questions in the list</translation>
-    </message>
-    <message>
-        <location line="+31"/>
-        <source>&lt;p&gt;&lt;b&gt;Ha salido en:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</source>
-        <translation>&lt;p&gt;&lt;b&gt;Appeared in:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Primero cree algún tema (Editar → Temas).</source>
-        <translation>First create a topic (Edit → Topics).</translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>No se pudo guardar la pregunta:
-%1</source>
-        <translation>Could not save the question:
-%1</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>Guardar y nueva</source>
-        <translation>Save and new</translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>Guardar y siguiente</source>
-        <translation>Save and next</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Era la última pregunta de la lista.</source>
-        <translation>That was the last question in the list.</translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <source>%1 ya tiene variantes de la a a la z.</source>
-        <translation>%1 already has variants from a to z.</translation>
-    </message>
-    <message>
-        <location line="+39"/>
-        <location line="+11"/>
-        <source>Marcar como verificadas</source>
-        <translation>Mark as verified</translation>
-    </message>
-    <message>
-        <location line="-9"/>
-        <source>Se marcará como verificada la pregunta de la lista por:</source>
-        <translation>The question in the list will be marked as verified by:</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Se marcarán como verificadas las %1 preguntas de la lista por:</source>
-        <translation>The %1 questions in the list will be marked as verified by:</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>A las que ya estaban verificadas se les añaden estas personas.</source>
-        <translation>These people are added to those that were already verified.</translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>Marque quién las ha verificado.</source>
-        <translation>Tick who has verified them.</translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>No se pudo guardar la verificación:
-%1</source>
-        <translation>The verification could not be saved:
-%1</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>1 pregunta marcada como verificada.</source>
-        <translation>1 question marked as verified.</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1 preguntas marcadas como verificadas.</source>
-        <translation>%1 questions marked as verified.</translation>
-    </message>
-    <message>
-        <location line="+26"/>
-        <source>Marcar como verificada la pregunta de la lista…</source>
-        <translation>Mark the question in the list as verified…</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Marcar como verificadas las %1 preguntas de la lista…</source>
-        <translation>Mark the %1 questions in the list as verified…</translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>¿Eliminar definitivamente la pregunta %1?
-
-%2
-
-(Si solo quiere que deje de salir en los exámenes, edítela y márquela como anulada.)</source>
-        <translation>Permanently delete question %1?
-
-%2
-
-(If you only want it to stop appearing in exams, edit it and mark it as voided.)</translation>
     </message>
 </context>
 <context>
