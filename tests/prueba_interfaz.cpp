@@ -1660,6 +1660,31 @@ private slots:
         QSettings().clear();
     }
 
+    // La vista del examen acaba con lo que sale al pie de las páginas, y cambia con las casillas de «Pie de página».
+    void vistaConElPieDePagina()
+    {
+        QTemporaryDir dir;
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        QMetaObject::invokeMethod(&v, "generar");
+        auto *visor = v.findChild<VisorAmpliable *>(QStringLiteral("visorExamen"));
+        QVERIFY(visor);
+        const QRegularExpression pie(QStringLiteral("Nacional Original · \\S+ \\d{4}: (\\d+) / \\1\\s*$"));
+        QVERIFY2(pie.match(visor->toPlainText()).hasMatch(), qPrintable(visor->toPlainText().right(120)));
+        QCheckBox *convocatoriaEnPie = nullptr;
+        for (QCheckBox *c : v.findChildren<QCheckBox *>())
+            if (c->text() == QStringLiteral("Convocatoria y año") && c->toolTip().contains(QStringLiteral("pie de cada")))
+                convocatoriaEnPie = c;
+        QVERIFY(convocatoriaEnPie);
+        convocatoriaEnPie->setChecked(false);
+        const QRegularExpression sinConvocatoria(QStringLiteral("\nNacional Original: (\\d+) / \\1\\s*$"));
+        QVERIFY2(sinConvocatoria.match(visor->toPlainText()).hasMatch(), qPrintable(visor->toPlainText().right(120)));
+        QSettings().clear();
+    }
+
     void registrarExamenesAnteriores()
     {
         QTemporaryDir dir;
@@ -1843,8 +1868,14 @@ private slots:
             QVERIFY(visor);
             QVERIFY(visor->toPlainText().contains(asignatura));
             QVERIFY(!visor->toPlainText().contains(QStringLiteral("Semilla")));
+            // Arriba, en la cabecera, y abajo, en el pie (al final de la vista): cada una con su casilla.
+            QCOMPARE(visor->toPlainText().count(asignatura), 2);
             casillas.value(QStringLiteral("Pone el nombre de la asignatura arriba"))->setChecked(false);
+            QCOMPARE(visor->toPlainText().count(asignatura), 1);
+            QVERIFY(!visor->toPlainText().startsWith(asignatura));
+            casillas.value(QStringLiteral("Pone el nombre de la asignatura abajo"))->setChecked(false);
             QVERIFY(!visor->toPlainText().contains(asignatura));
+            casillas.value(QStringLiteral("Pone el nombre de la asignatura abajo"))->setChecked(true);
             QVERIFY(v.close());   // guarda la configuración
         }
         // Al volver a abrir el banco, la casilla sigue sin marcar.

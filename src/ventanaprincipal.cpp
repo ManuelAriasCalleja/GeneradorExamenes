@@ -1887,8 +1887,12 @@ void VentanaPrincipal::mostrarModelo()
     m_preguntaACambiar->setRange(1, qMax(1, int(m_resultado.modelos.at(i).preguntas.size())));
     // Con soluciones, también la plantilla de corrección, que en los ficheros va en la hoja de soluciones. Y la marca de
     // las verificadas y las que no, que solo va en la vista.
-    const QString html = Maquetador::examenHtml(m_resultado.modelos.at(i), datosConvocatoria(), m_verSoluciones->isChecked(),
-                                                nivelMaqueta(), true, true);
+    QString html = Maquetador::examenHtml(m_resultado.modelos.at(i), datosConvocatoria(), m_verSoluciones->isChecked(),
+                                          nivelMaqueta(), true, true);
+    // Y al final, lo que sale al pie de cada página (aquí, el de la última): la vista no tiene páginas.
+    html.replace(QStringLiteral("</body>"), Maquetador::pieVistaHtml(m_resultado.modelos.at(i), datosConvocatoria(),
+                                                                     m_verSoluciones->isChecked(), nivelMaqueta())
+                                                + QStringLiteral("</body>"));
     m_visorExamen->ponerDocumento(Maquetador::crearDocumento(html, Maquetador::preguntasDe(m_resultado.modelos), m_visorExamen));
 }
 

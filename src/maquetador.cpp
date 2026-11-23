@@ -834,6 +834,14 @@ void evitarCortes(QTextDocument *doc)
     }
 }
 
+// El pie de una página: el del examen (textoPie()), con la página y cuántas tiene. En letra de kPuntosPie puntos.
+constexpr int kPuntosPie = 8;
+
+QString textoPiePagina(const QString &pie, int pagina, int total)
+{
+    return QStringLiteral("%1: %2 / %3").arg(pie).arg(pagina).arg(total);
+}
+
 // Medidas de una página del dispositivo: zona de texto en píxeles del documento (descontado el pie) y escala
 // para pintarla. Se maqueta con la resolución "de pantalla" del documento y se escala al pintar (como QTextDocument::print).
 struct Pagina
@@ -851,7 +859,7 @@ Pagina paginaDe(QPagedPaintDevice *dispositivo)
     const qreal dpiDoc = dpiDocumento();
     p.escala = dispositivo->logicalDpiY() / dpiDoc;
     const QRectF area = dispositivo->pageLayout().paintRect(QPageLayout::Point);
-    p.fuentePie = fuenteExamen(8);
+    p.fuentePie = fuenteExamen(kPuntosPie);
     const QFontMetricsF fm(p.fuentePie, dispositivo);
     const qreal altoPieDispositivo = fm.height() * 2.2;
     const qreal anchoDoc = area.width() * dpiDoc / 72.0;
@@ -903,6 +911,26 @@ int Maquetador::nivelParaCaber(const QVector<Modelo> &modelos, const DatosConvoc
     if (caben)
         *caben = false;
     return numNiveles() - 1;
+}
+
+int Maquetador::paginas(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int nivel)
+{
+    // Solo hacen falta las medidas de la página: un PDF que no se llega a escribir.
+    QBuffer nada;
+    QPdfWriter pdf(&nada);
+    configurarPdf(pdf);
+    const std::unique_ptr<QTextDocument> doc(crearDocumento(examenHtml(modelo, d, soluciones, nivel), preguntasDe({modelo}), nullptr));
+    doc->setPageSize(paginaDe(&pdf).documento);
+    evitarCortes(doc.get());
+    return doc->pageCount();
+}
+
+QString Maquetador::pieVistaHtml(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int nivel)
+{
+    const int total = paginas(modelo, d, soluciones, nivel);
+    return QStringLiteral("<hr><p align=\"right\" style=\"margin:0; font-size:%1pt\">%2</p>")
+        .arg(kPuntosPie)
+        .arg(escapar(textoPiePagina(textoPie(modelo.nombre, d), total, total)));
 }
 
 bool Maquetador::imprimirExamenes(QPagedPaintDevice *dispositivo, const QVector<Modelo> &modelos, const DatosConvocatoria &d,
@@ -960,8 +988,7 @@ bool Maquetador::imprimir(QPagedPaintDevice *dispositivo, const QVector<QTextDoc
             painter.setFont(pagina.fuentePie);
             painter.setPen(Qt::black);
             const QRectF caja(0, pagina.altoDispositivo - fm.height() * 1.3, pagina.anchoDispositivo, fm.height() * 1.3);
-            painter.drawText(caja, Qt::AlignRight | Qt::AlignVCenter,
-                             QStringLiteral("%1: %2 / %3").arg(pies.value(i)).arg(pg + 1).arg(paginas));
+            painter.drawText(caja, Qt::AlignRight | Qt::AlignVCenter, textoPiePagina(pies.value(i), pg + 1, paginas));
         }
     }
     painter.end();

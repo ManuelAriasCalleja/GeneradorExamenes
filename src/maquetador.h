@@ -95,6 +95,11 @@ public:
     // quiénes, o que está sin verificar.
     static QString examenHtml(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones, int nivel = 0,
                               bool conPlantilla = false, bool marcarVerificadas = false);
+    // Páginas que ocupa el modelo impreso (en A4, con los márgenes de configurarPagina()).
+    static int paginas(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones, int nivel = 0);
+    // El pie de página del modelo, para la vista, que no tiene páginas: va al final, tras una raya, como sale al pie
+    // de la última página («Asignatura · Nacional Original · Junio 2026: 2 / 2»). Se pone antes del «</body>».
+    static QString pieVistaHtml(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones, int nivel = 0);
     // La marca de la vista: «✓ verificada: Ana, Luis» o «● sin verificar», en el idioma de la interfaz.
     static QString marcaVerificacion(const Pregunta &p);
     // Todos los modelos en un único documento, cada uno en página nueva (para exportar a HTML). Con 'soluciones',

@@ -397,6 +397,31 @@ private slots:
         QVERIFY(Exportacion::pdf(dir.filePath(QStringLiteral("sin.pdf")), {m}, d, true, 0));
     }
 
+    // La vista del examen no tiene páginas: el pie va al final, como sale en la última página, con lo elegido.
+    void pieEnLaVista()
+    {
+        const Modelo corto = examenes(bancoInventado(), 3, 1).first();
+        DatosConvocatoria d = convocatoria();
+        d.asignatura = QStringLiteral("Asignatura inventada");
+        QCOMPARE(Maquetador::paginas(corto, d, false), 1);
+        QString pie = Maquetador::pieVistaHtml(corto, d, false);
+        QVERIFY2(pie.contains(QStringLiteral(">Asignatura inventada · Examen 1 · Junio 2026: 1 / 1</p>")), qPrintable(pie));
+        d.asignaturaEnPie = false;
+        d.convocatoriaEnPie = false;
+        pie = Maquetador::pieVistaHtml(corto, d, false);
+        QVERIFY2(pie.contains(QStringLiteral(">Examen 1: 1 / 1</p>")), qPrintable(pie));
+        // Con letra grande ocupa varias páginas: las mismas que su PDF.
+        const int paginas = Maquetador::paginas(corto, d, false, Maquetador::kLetraGrande);
+        QVERIFY2(paginas > 1, qPrintable(QString::number(paginas)));
+        QVERIFY(Maquetador::pieVistaHtml(corto, d, false, Maquetador::kLetraGrande).contains(QStringLiteral(": %1 / %1</p>").arg(paginas)));
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("grande.pdf"));
+        QVERIFY(Exportacion::pdf(ruta, {corto}, d, false, Maquetador::kLetraGrande));
+        QFile f(ruta);
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        QCOMPARE(int(f.readAll().count("/Type /Page\n")), paginas);
+    }
+
     void puntuacionEnUnaLinea()
     {
         const Modelo m = examenes(bancoInventado(), 3, 1).first();
