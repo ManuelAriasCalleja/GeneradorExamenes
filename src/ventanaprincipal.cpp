@@ -182,6 +182,16 @@ QVariant valorAjuste(const QWidget *control)
 // La puntuación se guarda con esta clave. Las versiones anteriores tenían en su lugar la casilla «Automática»
 // («examen/puntuacionAuto»): marcada, cada fallo restaba el 30 %; sin marcar, los puntos eran los de la ventana.
 const QString kClavePuntuacion = QStringLiteral("examen/puntuacion");
+// Las demás claves de la configuración de cada usuario (QSettings) que se usan en más de un sitio.
+const QString kClaveBanco = QStringLiteral("bd/ruta");                    // el último banco que se abrió
+const QString kClaveGeometria = QStringLiteral("ventana/geometria");
+const QString kClaveExamenes = QStringLiteral("examenes/nombres");        // la lista de exámenes y los marcados
+const QString kClaveExamenesMarcados = QStringLiteral("examenes/marcados");
+const QString kClaveEscalaVista = QStringLiteral("vista/escala");         // el tamaño de la vista del examen
+const QString kClaveFiltroTema = QStringLiteral("banco/filtroTema");      // los filtros del banco de preguntas
+const QString kClaveFiltroEstado = QStringLiteral("banco/filtroEstado");
+const QString kClaveDuracionPractica = QStringLiteral("practica/duracion");
+const QString kClaveTemasAntiguos = QStringLiteral("examen/temas");       // de versiones anteriores: va en el banco
 const QString kClavePuntuacionAntigua = QStringLiteral("examen/puntuacionAuto");
 
 QString puntuacionAntigua(const QVariant &automatica)
@@ -672,9 +682,9 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     m_visorExamen->setHtml(tr("<p style=\"color:gray\">Elija cuántas preguntas quiere de cada tema y pulse "
                               "<b>Generar exámenes</b>.</p>"));
     // El tamaño de la vista (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0) se recuerda de una vez a otra.
-    m_visorExamen->ponerEscala(QSettings().value(QStringLiteral("vista/escala"), 1.0).toDouble());
+    m_visorExamen->ponerEscala(QSettings().value(kClaveEscalaVista, 1.0).toDouble());
     connect(m_visorExamen, &VisorAmpliable::escalaCambiada, this, [this](qreal escala) {
-        QSettings().setValue(QStringLiteral("vista/escala"), escala);
+        QSettings().setValue(kClaveEscalaVista, escala);
         //: En la barra de estado, al ampliar o reducir la vista del examen; %1 es el porcentaje (125)
         statusBar()->showMessage(tr("Vista del examen al %1 %").arg(qRound(escala * 100)), 3000);
     });
@@ -832,11 +842,11 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
 
     // Los filtros de tema y de estado se recuerdan de una vez a otra, para seguir donde se dejó («Tema 4, sin
     // verificar»): los que elige el usuario, no los que pone el programa. El texto que se busca no se recuerda.
-    m_filtroEstado->setCurrentIndex(qMax(0, m_filtroEstado->findData(QSettings().value(QStringLiteral("banco/filtroEstado"), 0))));
+    m_filtroEstado->setCurrentIndex(qMax(0, m_filtroEstado->findData(QSettings().value(kClaveFiltroEstado, 0))));
     connect(m_filtroTema, &QComboBox::activated, this,
-            [this]() { QSettings().setValue(QStringLiteral("banco/filtroTema"), m_filtroTema->currentData()); });
+            [this]() { QSettings().setValue(kClaveFiltroTema, m_filtroTema->currentData()); });
     connect(m_filtroEstado, &QComboBox::activated, this,
-            [this]() { QSettings().setValue(QStringLiteral("banco/filtroEstado"), m_filtroEstado->currentData()); });
+            [this]() { QSettings().setValue(kClaveFiltroEstado, m_filtroEstado->currentData()); });
     connect(m_filtroTema, &QComboBox::currentIndexChanged, this, &VentanaPrincipal::filtrar);
     connect(m_filtroEstado, &QComboBox::currentIndexChanged, this, &VentanaPrincipal::filtrar);
     connect(m_filtroTexto, &QLineEdit::textChanged, this, &VentanaPrincipal::filtrar);
@@ -966,7 +976,7 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
 {
     // Las carpetas de la configuración son las del último banco abierto: las toma el que no tenga las suyas solo si
     // es ese (el primero que se abre tras pasar a esta versión, que guarda las opciones en el banco).
-    const QString ultimo = QSettings().value(QStringLiteral("bd/ruta")).toString();
+    const QString ultimo = QSettings().value(kClaveBanco).toString();
     const bool carpetasPropias = ultimo.isEmpty() || QFileInfo(ruta).absoluteFilePath() != QFileInfo(ultimo).absoluteFilePath();
     if (m_bd.abierta()) {
         guardarEstadoBanco();
@@ -1003,8 +1013,8 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
     m_cantidadesGuardadas = m_bd.ultimoReparto();
     if (m_cantidadesGuardadas.isEmpty()) {
         QSettings s;
-        const QVariantMap antiguo = s.value(QStringLiteral("examen/temas")).toMap();
-        s.remove(QStringLiteral("examen/temas"));
+        const QVariantMap antiguo = s.value(kClaveTemasAntiguos).toMap();
+        s.remove(kClaveTemasAntiguos);
         for (auto it = antiguo.cbegin(); it != antiguo.cend(); ++it)
             m_cantidadesGuardadas.insert(it.key().toInt(), it.value().toInt());
         const QVector<Reparto> repartos = m_bd.repartos();
@@ -1013,7 +1023,7 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
     }
     m_cantidades.clear();   // las casillas del banco anterior, que no deben pasar sus números a este
     recargarDatos();
-    QSettings().setValue(QStringLiteral("bd/ruta"), ruta);
+    QSettings().setValue(kClaveBanco, ruta);
     // Ya, para que la configuración tenga las opciones de este banco y él las suyas aunque el programa no se cierre bien.
     guardarConfiguracion();
     return true;
@@ -1021,7 +1031,7 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
 
 bool VentanaPrincipal::abrirBancoInicial(const QString &rutaIndicada)
 {
-    const QString ruta = rutaIndicada.isEmpty() ? QSettings().value(QStringLiteral("bd/ruta")).toString()
+    const QString ruta = rutaIndicada.isEmpty() ? QSettings().value(kClaveBanco).toString()
                                                 : QFileInfo(rutaIndicada).absoluteFilePath();
     // El de la línea de órdenes se crea si no existe; el de la configuración, no (se habrá movido).
     if (!ruta.isEmpty() && (!rutaIndicada.isEmpty() || QFileInfo::exists(ruta)) && abrirBaseDatos(ruta))
@@ -1051,7 +1061,7 @@ void VentanaPrincipal::abrirOtraBaseDatos()
     if (!puedenDescartarse())
         return;
     const QString ruta = QFileDialog::getOpenFileName(this, tr("Abrir banco de preguntas"),
-                                                      carpetaBancos(m_bd.ruta(), QSettings().value(QStringLiteral("bd/ruta")).toString()),
+                                                      carpetaBancos(m_bd.ruta(), QSettings().value(kClaveBanco).toString()),
                                                       tr("Bases de datos SQLite (*.db *.sqlite);;Todos (*)"));
     if (!ruta.isEmpty())
         abrirBaseDatos(ruta);
@@ -1062,7 +1072,7 @@ void VentanaPrincipal::nuevaBaseDatos()
     if (!puedenDescartarse())
         return;
     const QString ruta = QFileDialog::getSaveFileName(this, tr("Nuevo banco de preguntas"),
-                                                      carpetaBancos(m_bd.ruta(), QSettings().value(QStringLiteral("bd/ruta")).toString())
+                                                      carpetaBancos(m_bd.ruta(), QSettings().value(kClaveBanco).toString())
                                                           + QStringLiteral("/preguntas_nueva.db"),
                                                       tr("Bases de datos SQLite (*.db)"));
     if (ruta.isEmpty())
@@ -1367,7 +1377,7 @@ void VentanaPrincipal::recargarDatos(int seleccionarId)
     int temaFiltro = m_filtroTema->currentData().toInt();
     // La primera vez, el tema que se dejó elegido la última vez que se usó el programa (si el banco lo tiene).
     if (!m_filtroTemaRecordado && !m_temas.isEmpty()) {
-        temaFiltro = QSettings().value(QStringLiteral("banco/filtroTema"), 0).toInt();
+        temaFiltro = QSettings().value(kClaveFiltroTema, 0).toInt();
         m_filtroTemaRecordado = true;
     }
     m_filtroTema->blockSignals(true);
@@ -1455,14 +1465,14 @@ void VentanaPrincipal::reconstruirTemas()
 void VentanaPrincipal::leerConfiguracion()
 {
     QSettings s;
-    restoreGeometry(s.value(QStringLiteral("ventana/geometria")).toByteArray());
+    restoreGeometry(s.value(kClaveGeometria).toByteArray());
     for (const Ajuste &a : ajustes())
         if (s.contains(a.clave))
             ponerAjuste(a.control, s.value(a.clave));
     if (!s.contains(kClavePuntuacion) && s.contains(kClavePuntuacionAntigua))
         ponerAjuste(m_puntuacion, puntuacionAntigua(s.value(kClavePuntuacionAntigua)));
-    const QStringList examenes = s.value(QStringLiteral("examenes/nombres"), kExamenesPorDefecto).toStringList();
-    const QStringList marcados = s.value(QStringLiteral("examenes/marcados"), examenes).toStringList();
+    const QStringList examenes = s.value(kClaveExamenes, kExamenesPorDefecto).toStringList();
+    const QStringList marcados = s.value(kClaveExamenesMarcados, examenes).toStringList();
     for (const QString &nombre : examenes)
         anadirExamen(nombre, marcados.contains(nombre));
     connect(m_incluirRevisar, &QCheckBox::toggled, this, &VentanaPrincipal::reconstruirTemas);
@@ -1473,12 +1483,12 @@ void VentanaPrincipal::leerConfiguracion()
 void VentanaPrincipal::guardarConfiguracion()
 {
     QSettings s;
-    s.setValue(QStringLiteral("ventana/geometria"), saveGeometry());
+    s.setValue(kClaveGeometria, saveGeometry());
     for (const Ajuste &a : ajustes())
         s.setValue(a.clave, valorAjuste(a.control));
     QStringList marcados;
-    s.setValue(QStringLiteral("examenes/nombres"), listaExamenes(&marcados));
-    s.setValue(QStringLiteral("examenes/marcados"), marcados);
+    s.setValue(kClaveExamenes, listaExamenes(&marcados));
+    s.setValue(kClaveExamenesMarcados, marcados);
     s.remove(QStringLiteral("examen/asignatura"));   // de las versiones anteriores: ahora va en el banco
     s.remove(kClavePuntuacionAntigua);
     if (m_bd.abierta())
@@ -1506,8 +1516,8 @@ QVariantMap VentanaPrincipal::opcionesDelBanco() const
     for (const Ajuste &a : ajustes())
         opciones.insert(a.clave, valorAjuste(a.control));
     QStringList marcados;
-    opciones.insert(QStringLiteral("examenes/nombres"), listaExamenes(&marcados));
-    opciones.insert(QStringLiteral("examenes/marcados"), marcados);
+    opciones.insert(kClaveExamenes, listaExamenes(&marcados));
+    opciones.insert(kClaveExamenesMarcados, marcados);
     const QDir carpetaBanco = QFileInfo(m_bd.ruta()).absoluteDir();
     QSettings s;
     for (const QString &clave : kCarpetasDelBanco) {
@@ -1528,10 +1538,10 @@ void VentanaPrincipal::aplicarOpcionesDelBanco(const QVariantMap &opciones, bool
             ponerAjuste(a.control, opciones.value(a.clave));
     if (!opciones.contains(kClavePuntuacion) && opciones.contains(kClavePuntuacionAntigua))
         ponerAjuste(m_puntuacion, puntuacionAntigua(opciones.value(kClavePuntuacionAntigua)));
-    if (opciones.contains(QStringLiteral("examenes/nombres"))) {
-        const QStringList marcados = opciones.value(QStringLiteral("examenes/marcados")).toStringList();
+    if (opciones.contains(kClaveExamenes)) {
+        const QStringList marcados = opciones.value(kClaveExamenesMarcados).toStringList();
         m_listaExamenes->clear();
-        for (const QString &nombre : opciones.value(QStringLiteral("examenes/nombres")).toStringList())
+        for (const QString &nombre : opciones.value(kClaveExamenes).toStringList())
             anadirExamen(nombre, marcados.contains(nombre));
     }
     actualizarPuntuacion();
@@ -2536,11 +2546,11 @@ void VentanaPrincipal::practicar()
         return;
     // La duración se recuerda de una vez a otra (antes era un campo de la convocatoria: se hereda su valor).
     QSettings ajustes;
-    const int duracion = ajustes.value(QStringLiteral("practica/duracion"),
+    const int duracion = ajustes.value(kClaveDuracionPractica,
                                        ajustes.value(QStringLiteral("examen/duracion"), 60)).toInt();
     DialogoPractica d(m_resultado.modelos.at(i), datosConvocatoria(), duracion, this);
     d.exec();
-    ajustes.setValue(QStringLiteral("practica/duracion"), d.duracionMinutos());
+    ajustes.setValue(kClaveDuracionPractica, d.duracionMinutos());
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -2558,10 +2568,9 @@ void VentanaPrincipal::filtrar()
 // Cuántas preguntas hay en la lista (las que cumplen los filtros) y cuántas de ellas están verificadas.
 void VentanaPrincipal::ponerCuenta()
 {
-    const int n = m_filtro->rowCount();
-    int verificadas = 0;
-    for (int f = 0; f < n; ++f)
-        verificadas += m_modelo->pregunta(m_filtro->mapToSource(m_filtro->index(f, 0)).row()).verificada ? 1 : 0;
+    const QVector<Pregunta> lista = preguntasDeLaLista();
+    const int n = int(lista.size());
+    const int verificadas = int(std::count_if(lista.begin(), lista.end(), [](const Pregunta &p) { return p.verificada; }));
     if (n == 0)
         m_cuenta->setText(tr("0 preguntas"));
     else if (n == 1)
@@ -2574,6 +2583,15 @@ void VentanaPrincipal::ponerCuenta()
     //: Al dejar el ratón sobre la barra de avance del banco de preguntas; %1 es el porcentaje (40)
     m_barraVerificadas->setToolTip(n > 0 ? tr("Verificadas: el %1 % de las preguntas de la lista").arg(verificadas * 100 / n)
                                          : QString());
+}
+
+QVector<Pregunta> VentanaPrincipal::preguntasDeLaLista() const
+{
+    QVector<Pregunta> lista;
+    lista.reserve(m_filtro->rowCount());
+    for (int f = 0; f < m_filtro->rowCount(); ++f)
+        lista << m_modelo->pregunta(m_filtro->mapToSource(m_filtro->index(f, 0)).row());
+    return lista;
 }
 
 Pregunta VentanaPrincipal::preguntaSeleccionada(bool *ok)
@@ -2688,9 +2706,7 @@ void VentanaPrincipal::duplicarPregunta()
 void VentanaPrincipal::verificarPregunta()
 {
     // Las de la lista, con su filtro y su orden, desde la seleccionada.
-    QVector<Pregunta> preguntas;
-    for (int f = 0; f < m_filtro->rowCount(); ++f)
-        preguntas << m_modelo->pregunta(m_filtro->mapToSource(m_filtro->index(f, 0)).row());
+    const QVector<Pregunta> preguntas = preguntasDeLaLista();
     if (preguntas.isEmpty())
         return;
     DialogoVerificar d(&m_bd, preguntas, qMax(0, m_tabla->currentIndex().row()), m_temas,
@@ -2712,9 +2728,7 @@ void VentanaPrincipal::verificarPregunta()
 
 void VentanaPrincipal::verificarLista()
 {
-    QVector<Pregunta> lista;
-    for (int f = 0; f < m_filtro->rowCount(); ++f)
-        lista << m_modelo->pregunta(m_filtro->mapToSource(m_filtro->index(f, 0)).row());
+    QVector<Pregunta> lista = preguntasDeLaLista();
     if (lista.isEmpty())
         return;
     QDialog d(this);

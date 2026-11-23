@@ -165,6 +165,8 @@ private:
     QVector<Ajuste> ajustes() const;
     bool hayExamen() const;
     Pregunta preguntaSeleccionada(bool *ok);
+    // Las preguntas de la lista del banco: las que cumplen los filtros, en el orden en que se ven.
+    QVector<Pregunta> preguntasDeLaLista() const;
     // Abre la pregunta en el editor y la guarda. Con 'boton', el editor tiene además ese botón («Guardar y
     // siguiente»…). Devuelve lo que se ha pedido al guardar (Cerrar si no se ha guardado). En 'guardada' deja la
     // pregunta guardada (con id 0 si no se ha guardado).

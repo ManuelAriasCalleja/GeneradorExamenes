@@ -28,6 +28,11 @@ namespace {
 
 constexpr int kColumnas = 3;   // casillas de verificadores por fila
 
+// Claves de la configuración de cada usuario (QSettings) del diálogo de verificar.
+const QString kClaveEscala = QStringLiteral("verificar/escala");       // el tamaño de la ficha
+const QString kClaveAvisos = QStringLiteral("verificar/avisos");       // los avisos de atención (prisa y pausas)
+const QString kClaveResolver = QStringLiteral("verificar/resolver");   // resolverla antes de ver la solución
+
 QStringList ordenados(QStringList nombres)
 {
     nombres.sort(Qt::CaseInsensitive);
@@ -361,9 +366,9 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     // El tamaño de la letra (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0) es el mismo en todas las preguntas, y se recuerda
     // de una vez a otra.
     m_ficha = new VisorAmpliable;
-    m_ficha->ponerEscala(QSettings().value(QStringLiteral("verificar/escala"), 1.0).toDouble());
+    m_ficha->ponerEscala(QSettings().value(kClaveEscala, 1.0).toDouble());
     connect(m_ficha, &VisorAmpliable::escalaCambiada, this,
-            [](qreal escala) { QSettings().setValue(QStringLiteral("verificar/escala"), escala); });
+            [](qreal escala) { QSettings().setValue(kClaveEscala, escala); });
     addActions(m_ficha->accionesEscala());
     l->addWidget(m_ficha, 1);
 
@@ -380,9 +385,9 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     m_avisos->setObjectName(QStringLiteral("avisosVerificar"));
     m_avisos->setToolTip(tr("Avisa si se marca una pregunta como verificada sin que haya dado tiempo a leerla (hay que "
                             "pulsar otra vez) y propone una pausa cada 25 minutos seguidos verificando."));
-    m_avisos->setChecked(QSettings().value(QStringLiteral("verificar/avisos"), true).toBool());
+    m_avisos->setChecked(QSettings().value(kClaveAvisos, true).toBool());
     connect(m_avisos, &QCheckBox::toggled, this,
-            [](bool marcada) { QSettings().setValue(QStringLiteral("verificar/avisos"), marcada); });
+            [](bool marcada) { QSettings().setValue(kClaveAvisos, marcada); });
     lg->addWidget(m_avisos);
 
     m_resolver = new QCheckBox(tr("Resolverla antes de ver la solución"));
@@ -390,7 +395,7 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     m_resolver->setToolTip(tr("Las preguntas sin verificar se muestran sin la respuesta correcta ni la explicación: se "
                               "resuelve la pregunta y, al mostrar la solución, se compara con la del banco. Viéndola "
                               "desde el principio es más fácil dar por buena una respuesta equivocada."));
-    m_resolver->setChecked(QSettings().value(QStringLiteral("verificar/resolver"), false).toBool());
+    m_resolver->setChecked(QSettings().value(kClaveResolver, false).toBool());
     lg->addWidget(m_resolver);
     m_filaRespuesta = new QWidget;
     auto *lr = new QHBoxLayout(m_filaRespuesta);
@@ -406,7 +411,7 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     lr->addStretch();
     lg->addWidget(m_filaRespuesta);
     connect(m_resolver, &QCheckBox::toggled, this, [this](bool marcada) {
-        QSettings().setValue(QStringLiteral("verificar/resolver"), marcada);
+        QSettings().setValue(kClaveResolver, marcada);
         // En la pregunta que se ve, si aún no se ha tocado su verificación.
         if (m_actual >= 0 && (!marcada || (!m_preguntas.at(m_actual).verificada && m_panel->sinCambios())))
             ponerOculta(marcada);
