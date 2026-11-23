@@ -1306,6 +1306,8 @@ void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)
     if (!primero)
         return;
     resultado.semilla = primero->semilla;
+    // La copia guarda la verificación de cuando se registró: la de ahora está en el banco.
+    ponerVerificacionDelBanco(resultado);
     m_resultado = resultado;
 
     // Los datos de la convocatoria pasan a la ventana, para que lo que se exporte salga como cuando se registró.
@@ -1485,22 +1487,24 @@ void VentanaPrincipal::verificacionCambiada(int seleccionarId, bool conJson)
     else
         recargarDatos(seleccionarId);
     // La verificación de las preguntas de los exámenes (y de los de antes de cada cambio), la del banco.
-    auto poner = [this](ResultadoGeneracion &r) {
-        for (Modelo &m : r.modelos) {
-            for (PreguntaExamen &pe : m.preguntas) {
-                const Pregunta enBanco = preguntaDelBanco(pe.pregunta);
-                if (enBanco.id != 0) {
-                    pe.pregunta.verificada = enBanco.verificada;
-                    pe.pregunta.verificadores = enBanco.verificadores;
-                }
-            }
-        }
-    };
-    poner(m_resultado);
+    ponerVerificacionDelBanco(m_resultado);
     for (CambioPregunta &cambio : m_cambios)
-        poner(cambio.antes);
+        ponerVerificacionDelBanco(cambio.antes);
     if (hayExamen())
         mostrarModelo();
+}
+
+void VentanaPrincipal::ponerVerificacionDelBanco(ResultadoGeneracion &resultado) const
+{
+    for (Modelo &m : resultado.modelos) {
+        for (PreguntaExamen &pe : m.preguntas) {
+            const Pregunta enBanco = preguntaDelBanco(pe.pregunta);
+            if (enBanco.id != 0 && enBanco.mismoContenido(pe.pregunta)) {
+                pe.pregunta.verificada = enBanco.verificada;
+                pe.pregunta.verificadores = enBanco.verificadores;
+            }
+        }
+    }
 }
 
 void VentanaPrincipal::deshacerCambio()

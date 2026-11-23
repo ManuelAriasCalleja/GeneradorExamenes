@@ -1531,6 +1531,62 @@ private slots:
         QSettings().clear();
     }
 
+    // Un examen del historial se ve con la verificación de ahora, aunque se verificara después de registrarlo; salvo la
+    // pregunta que se ha corregido desde entonces, porque lo verificado es otro texto.
+    void historialConLaVerificacionDelBanco()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        const QString anadido = QStringLiteral(" Texto añadido después de registrar.");
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(ruta));
+            QVERIFY(bd.anadirVerificador(QStringLiteral("Persona Uno")));
+            const QVector<Pregunta> banco = bd.preguntas();
+            Modelo modelo;
+            modelo.nombre = QStringLiteral("Uno");
+            for (int i = 0; i < 3; ++i) {
+                PreguntaExamen pe;
+                pe.pregunta = banco.at(i);
+                modelo.preguntas << pe;
+            }
+            DatosConvocatoria datos;
+            datos.convocatoria = QStringLiteral("Junio");
+            datos.anio = 2026;
+            QVERIFY(bd.registrarExamenes({modelo}, datos, 1));
+            QVERIFY(bd.guardarVerificacion(banco.at(0).id, true, {QStringLiteral("Persona Uno")}));
+            Pregunta corregida = banco.at(1);
+            corregida.enunciado += anadido;
+            corregida.verificada = true;
+            corregida.verificadores = {QStringLiteral("Persona Uno")};
+            QVERIFY(bd.guardarPregunta(corregida));
+        }
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QTimer::singleShot(100, [] {
+            auto *d = qobject_cast<QDialog *>(QApplication::activeModalWidget());
+            if (!d)
+                return;
+            auto *arbol = d->findChild<QTreeWidget *>();
+            arbol->setCurrentItem(arbol->topLevelItem(0));
+            d->accept();
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "historialConvocatorias"));
+        QTextBrowser *visor = nullptr;
+        for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
+            if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
+                visor = t;
+        QVERIFY(visor);
+        const QString examen = visor->toPlainText();
+        QCOMPARE(examen.count(QStringLiteral("verificada: Persona Uno")), 1);
+        QCOMPARE(examen.count(QStringLiteral("sin verificar")), 2);
+        QVERIFY(!examen.contains(anadido));   // sigue tal como salió
+        QSettings().clear();
+    }
+
     // Al verificar: si se marca una pregunta sin tiempo para leerla, se avisa y hay que pulsar otra vez; y cada cierto
     // tiempo seguido verificando, se propone una pausa. Con la casilla desmarcada, ni lo uno ni lo otro.
     void verificarAvisaDeLaPrisaYDeLasPausas()

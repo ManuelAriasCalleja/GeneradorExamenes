@@ -145,6 +145,9 @@ private:
     // Pone al día la lista y los exámenes con la verificación del banco. Sin 'conJson' (mientras se va verificando,
     // pregunta a pregunta) no se reescribe el JSON del banco: se hace una vez, al acabar.
     void verificacionCambiada(int seleccionarId, bool conJson = true);
+    // Pone en las preguntas de 'resultado' la verificación que tienen en el banco. Las que ya no dicen lo mismo que en el
+    // banco (un examen del historial, si se han corregido después) se quedan con la suya: la del banco no certifica su texto.
+    void ponerVerificacionDelBanco(ResultadoGeneracion &resultado) const;
     // Menú del botón derecho en la vista del examen: el normal, con «Editar la pregunta N» y «Cambiar la pregunta N
     // por otra» si se pulsa sobre una pregunta, «Deshacer» si hay algún cambio y los de ampliar y reducir la vista.
     void menuVista(const QPoint &enVista);
