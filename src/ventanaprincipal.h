@@ -32,6 +32,7 @@ class QTextBrowser;
 class VisorAmpliable;
 class ZonaAmpliable;
 class GrupoPlegable;
+class PanelConfiguracion;
 class PestanaBanco;
 
 class VentanaPrincipal : public QMainWindow
@@ -70,15 +71,9 @@ private slots:
     void mostrarAyuda();
     void acercaDe();
 
-    // Generar examen
-    void guardarAsignatura();   // si se ha cambiado en la ventana, en el banco
-    void cambiarIdiomaExamen();   // el elegido en la ventana, en el banco
     void cambiarIdioma(const QString &codigo);   // de la interfaz (Editar → Idioma); vacío: el del sistema
-    void guardarReparto();      // el de la ventana, como un reparto del banco con nombre (un botón más)
-    void actualizarTotal();
-    void actualizarPuntuacion();
-    void nuevoExamen();
-    void quitarExamen();
+
+    // Generar examen
     void generar();
     void mostrarModelo();
     void vistaPreviaImpresion();
@@ -98,11 +93,6 @@ private slots:
 
 private:
     QWidget *crearPestanaExamen();
-    QWidget *crearGrupoConvocatoria();
-    QWidget *crearGrupoExamenes();
-    QWidget *crearGrupoTemas();
-    QWidget *crearGrupoPuntuacion();
-    QWidget *crearGrupoOpciones();
     QWidget *crearPanelResultados();
     void crearMenus();
     void recargarDatos(int seleccionarId = 0);
@@ -111,53 +101,19 @@ private:
     void bancoEditado(int seleccionarId = 0);
     // Compara el banco con su JSON enlazado y enseña (u oculta) el aviso de la barra de estado.
     void comprobarJson();
-    void reconstruirTemas();
-    // Botones de los repartos guardados en el banco.
-    void reconstruirRepartos();
-    // Menú del botón derecho de un reparto del banco (en 'donde', en coordenadas de la pantalla): sustituirlo por el de
-    // la ventana o quitarlo.
-    void menuReparto(const QString &nombre, const QPoint &donde);
-    // Las preguntas de cada tema en la ventana (solo los temas con alguna).
-    QMap<int, int> repartoActual() const;
-    void aplicarReparto(const QMap<int, int> &reparto);
     // «Generador de exámenes - <asignatura del banco>».
     void actualizarTitulo();
     void leerConfiguracion();
     // Guarda las opciones de la ventana en la configuración y, las que van con él (ver opcionesDelBanco()), en el banco
     // abierto. Al generar, al exportar, al cambiar de banco y al salir.
     void guardarConfiguracion();
-    // Lo que va con el banco abierto y no se guarda al momento: el nombre de la asignatura, si se está cambiando, y el
-    // reparto de la ventana (el último usado). Antes de cerrarlo (al salir o abrir otro).
-    void guardarEstadoBanco();
-    // Las opciones de la ventana que van con cada banco (BaseDatos::opciones()): las de ajustes(), la lista de
-    // exámenes y las carpetas de las exportaciones, relativas a la del banco (como el JSON enlazado).
+    // Las opciones de la ventana que van con cada banco (BaseDatos::opciones()): las del panel de configuración
+    // (PanelConfiguracion::opciones()) y las carpetas de las exportaciones, relativas a la del banco (como el JSON enlazado).
     QVariantMap opcionesDelBanco() const;
     // Pone en la ventana las opciones de un banco. Las que no tenga (un banco de una versión anterior) se quedan como
     // están, salvo las carpetas si 'carpetasPropias': entonces, la del banco, para no exportar los exámenes de una
     // asignatura en la carpeta de otra.
     void aplicarOpcionesDelBanco(const QVariantMap &opciones, bool carpetasPropias);
-    // Los nombres de la lista de exámenes y, en 'marcados', los marcados.
-    QStringList listaExamenes(QStringList *marcados = nullptr) const;
-    // El título del recuadro de la lista de exámenes: «Exámenes: 2 modelos de 3 seleccionados.».
-    void actualizarCuentaExamenes();
-    // Ajustes que se guardan tal cual en la configuración: su clave y el control que los muestra. El valor por
-    // defecto es el que tiene el control al crearlo.
-    struct Ajuste
-    {
-        QString clave;
-        QWidget *control;
-    };
-    QVector<Ajuste> ajustes() const;
-    // Las opciones del recuadro «Opciones», en el orden en que se ven: la clave con que se guarda (vacía: no se
-    // guarda), su control y lo que dice el resumen del recuadro plegado cuando no está como viene de entrada (vacío
-    // si lo está; sin función, el resumen no la nombra).
-    struct Opcion
-    {
-        QString clave;
-        QWidget *control;
-        std::function<QString()> cambio;
-    };
-    QVector<Opcion> m_opciones;
     bool hayExamen() const;
     // Muestra m_resultado (recién generado o cargado del historial); 'origen' va delante de la semilla.
     void presentarResultado(const QString &origen = QString());
@@ -202,15 +158,9 @@ private:
     // de la ventana no cuentan: son los que se generan, que sustituirán a los registrados con su nombre.
     QHash<QString, int> usoReciente(const QStringList &examenes);
     DatosConvocatoria datosConvocatoria() const;
-    QString idiomaExamen() const;
     QSet<QString> gruposDelBanco() const;   // «T1-7» de las preguntas del banco abierto
-    // Al cambiar el idioma de los exámenes (de 'antes' al de la ventana), lo que la ventana propone en él: las
-    // convocatorias de la lista, la elegida si es una de ellas y las instrucciones si son las de por defecto.
-    void adaptarAlIdiomaExamen(const QString &antes);
-    ConfigExamen configuracionExamen() const;
     QString nombreBaseFichero() const;
     QStringList nombresModelos() const;
-    QListWidgetItem *anadirExamen(const QString &nombre, bool marcado);
     QVector<Modelo> modelosDe(const QVector<int> &indices) const;
     // Nivel de la maqueta: el de letra grande si está marcada la casilla; si no, el de compactación con el que los
     // modelos generados caben en sus páginas (ver Maquetador), o el normal si no hay que ajustarlos a ellas.
@@ -256,38 +206,7 @@ private:
     bool m_jsonCoincide = false;            // el JSON enlazado existe y coincide con el banco
 
     // Pestaña de examen
-    QLineEdit *m_asignatura;
-    QComboBox *m_idiomaExamen;              // el del banco (BaseDatos::idioma())
-    QComboBox *m_convocatoria;
-    QSpinBox *m_anio;
-    QListWidget *m_listaExamenes;           // nombres de los exámenes; se generan los marcados
-    QGroupBox *m_grupoExamenes;             // su recuadro, que dice cuántos hay marcados
-    QPlainTextEdit *m_instrucciones;
-    // Si van la asignatura y la convocatoria en la cabecera y en el pie de página de los exámenes.
-    QCheckBox *m_asignaturaEnCabecera;
-    QCheckBox *m_convocatoriaEnCabecera;
-    QCheckBox *m_asignaturaEnPie;
-    QCheckBox *m_convocatoriaEnPie;
-    QGridLayout *m_rejillaTemas;
-    QWidget *m_contenedorTemas;
-    QMap<int, QSpinBox *> m_cantidades;     // número de tema -> preguntas
-    QMap<int, int> m_cantidadesGuardadas;
-    QGridLayout *m_rejillaRepartos;         // botones de los repartos del banco y «Ninguna»
-    QLabel *m_total;
-    QWidget *m_puntuacion;                  // los botones de las formas de puntuar (DatosConvocatoria::Puntuacion)
-    QButtonGroup *m_formasPuntuacion;       // los mismos, con la forma como id
-    QDoubleSpinBox *m_acierto;
-    QDoubleSpinBox *m_fallo;
-    QCheckBox *m_noRepetir;
-    QCheckBox *m_evitarRecientes;
-    QSpinBox *m_numRecientes;
-    QCheckBox *m_evitarOld;
-    QCheckBox *m_incluirRevisar;
-    QCheckBox *m_soloVerificadas;           // generar solo con preguntas verificadas por personas
-    QCheckBox *m_ordenAleatorio;
-    QCheckBox *m_barajarOpciones;
-    QCheckBox *m_limitarPaginas;            // compactar la maqueta para que quepa en una página por cada 10 preguntas
-    QLineEdit *m_semilla;
+    PanelConfiguracion *m_panel = nullptr;  // lo que se elige antes de generar
     QComboBox *m_selectorModelo;
     QCheckBox *m_verSoluciones;
     QCheckBox *m_letraGrande;
@@ -303,11 +222,6 @@ private:
     PestanaBanco *m_banco = nullptr;        // la pestaña «Banco de preguntas»
     // Lo que se amplía con Ctrl + rueda, Ctrl++, Ctrl+- y Ctrl+0, cada cosa con su tamaño: la vista del examen
     // (m_visorExamen), el panel izquierdo de «Generar examen» y el banco de preguntas (la lista y la ficha).
-    // Lo que casi nunca se cambia va plegado, con un resumen de lo elegido en la cabecera.
-    GrupoPlegable *m_plegablePuntuacion = nullptr;
-    GrupoPlegable *m_plegableOpciones = nullptr;
-    void resumirPuntuacion();
-    void resumirOpciones();
     ZonaAmpliable *m_zonaPanel = nullptr;
     ZonaAmpliable *m_zonaBanco = nullptr;
 };

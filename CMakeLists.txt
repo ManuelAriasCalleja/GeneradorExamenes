@@ -65,6 +65,7 @@ qt_add_library(nucleo STATIC
     src/zonaampliable.h src/zonaampliable.cpp
     src/grupoplegable.h src/grupoplegable.cpp
     src/pestanabanco.h src/pestanabanco.cpp
+    src/panelconfiguracion.h src/panelconfiguracion.cpp
     src/ventanaprincipal.h src/ventanaprincipal.cpp
 )
 target_include_directories(nucleo PUBLIC src)

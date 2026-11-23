@@ -2605,6 +2605,513 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
     </message>
 </context>
 <context>
+    <name>PanelConfiguracion</name>
+    <message>
+        <location filename="../src/panelconfiguracion.cpp" line="+322"/>
+        <source>Convocatoria</source>
+        <extracomment>Convocatoria de examen (Febrero, Junio, Septiembre…): datos de la cabecera de los exámenes</extracomment>
+        <translation>Exam session</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Nombre de la asignatura</source>
+        <translation>Subject name</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Va en la cabecera de los exámenes. Se guarda en el banco de preguntas: cada banco tiene el de su asignatura.</source>
+        <translation>Printed in the exam header. It is saved in the question bank, so each bank keeps the name of its own subject.</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Idioma de lo que pone el programa en los exámenes (instrucciones propuestas, puntuación, soluciones, meses de las convocatorias) y en Moodle, y de las pautas de estilo que se comprueban. Se guarda en el banco de preguntas: cada banco tiene el de su asignatura.</source>
+        <translation>Language of the text that the program writes in the exams (suggested instructions, scoring, solutions, exam session months) and in Moodle, and of the style guidelines that are checked. It is saved in the question bank, so each bank keeps the language of its own subject.</translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <location line="+5"/>
+        <source>Asignatura</source>
+        <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
+        <translation>Subject</translation>
+    </message>
+    <message>
+        <location line="-5"/>
+        <source>Pone el nombre de la asignatura arriba, en la cabecera de los exámenes y de la hoja de soluciones.</source>
+        <translation>Puts the subject name at the top, in the header of the exams and of the solutions sheet.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <location line="+4"/>
+        <source>Convocatoria y año</source>
+        <extracomment>Casilla: la convocatoria y el año («Junio 2026») van en la cabecera (o en el pie) de los exámenes</extracomment>
+        <translation>Exam session and year</translation>
+    </message>
+    <message>
+        <location line="-4"/>
+        <source>Pone la convocatoria y el año arriba, en la cabecera de los exámenes y de la hoja de soluciones.</source>
+        <translation>Puts the exam session and the year at the top, in the header of the exams and of the solutions sheet.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Pone el nombre de la asignatura abajo, en el pie de cada página (en el PDF, el LaTeX y el Word).</source>
+        <translation>Puts the subject name at the bottom, in the footer of each page (in the PDF, LaTeX and Word files).</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Pone la convocatoria y el año abajo, en el pie de cada página (en el PDF, el LaTeX y el Word).</source>
+        <translation>Puts the exam session and the year at the bottom, in the footer of each page (in the PDF, LaTeX and Word files).</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Asignatura:</source>
+        <translation>Subject:</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Idioma de los exámenes:</source>
+        <translation>Exam language:</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Convocatoria:</source>
+        <translation>Exam session:</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Año:</source>
+        <translation>Year:</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Instrucciones:</source>
+        <translation>Instructions:</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Cabecera:</source>
+        <extracomment>Delante de las casillas de lo que va en la cabecera de los exámenes (arriba de la primera página)</extracomment>
+        <translation>Header:</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Pie de página:</source>
+        <extracomment>Delante de las casillas de lo que va en el pie de cada página de los exámenes</extracomment>
+        <translation>Footer:</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Se genera un examen por cada nombre marcado, en este orden.
+Doble clic para cambiar el nombre; arrastre para cambiar el orden.</source>
+        <translation>One exam is generated for each ticked name, in this order.
+Double-click to change the name; drag to change the order.</translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Aña&amp;dir</source>
+        <extracomment>Botón: añade un examen a la lista de exámenes que se generan. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de un menú ni la de otro de estos cuatro botones.</extracomment>
+        <translation>A&amp;dd</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Añade un examen a la lista</source>
+        <translation>Adds an exam to the list</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Quitar</source>
+        <extracomment>Botón: quita de la lista el examen seleccionado. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
+        <translation>&amp;Remove</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Quita de la lista el examen seleccionado</source>
+        <translation>Removes the selected exam from the list</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Todos</source>
+        <extracomment>Botón: marca todos los exámenes de la lista. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
+        <translation>&amp;All</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Marca todos los exámenes de la lista</source>
+        <translation>Ticks all the exams in the list</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Ninguno</source>
+        <extracomment>Botón: desmarca todos los exámenes de la lista. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
+        <translation>&amp;None</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Desmarca todos los exámenes de la lista</source>
+        <translation>Unticks all the exams in the list</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>Exámenes: 1 modelo de %1 seleccionado.</source>
+        <extracomment>Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay</extracomment>
+        <translation>Exams: 1 model of %1 selected.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Exámenes: %1 modelos de %2 seleccionados.</source>
+        <translation>Exams: %1 models of %2 selected.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Preguntas por tema</source>
+        <translation>Questions per topic</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Guardar reparto…</source>
+        <translation>Save distribution…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Guarda en el banco el número de preguntas de cada tema que hay ahora, con un nombre: sale un botón que lo pone</source>
+        <translation>Saves in the bank the number of questions per topic currently set, under a name: a button appears that applies it</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Puntuación</source>
+        <translation>Scoring</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>El examen vale 10 puntos: cada acierto, 10 entre el número de preguntas.</source>
+        <translation>The exam is worth 10 points: each correct answer, 10 divided by the number of questions.</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Cada fallo resta el 30 %</source>
+        <translation>Each wrong answer deducts 30%</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Cada fallo resta el %1 %</source>
+        <extracomment>%1 es el porcentaje de un acierto que resta cada fallo para que contestar al azar dé 0 de media («33,3»)</extracomment>
+        <translation>Each wrong answer deducts %1%</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Es lo justo para que contestar al azar dé 0 puntos de media: con cuatro opciones se acierta una vez de cada cuatro, y ese acierto compensa los tres fallos.</source>
+        <translation>Just enough for random guessing to score 0 points on average: with four options, one guess in four is right, and that correct answer makes up for the three wrong ones.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Los fallos no restan</source>
+        <translation>Wrong answers deduct nothing</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Personalizada</source>
+        <extracomment>Forma de puntuar: los puntos de cada acierto y de cada fallo los escribe quien hace el examen</extracomment>
+        <translation>Custom</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Los puntos de cada acierto y de cada fallo, los que se escriban abajo.</source>
+        <translation>The points for each correct and each wrong answer are the ones entered below.</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>Acierto:</source>
+        <extracomment>Puntos que suma cada respuesta correcta</extracomment>
+        <translation>Correct:</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Fallo:</source>
+        <extracomment>Puntos que resta cada respuesta incorrecta</extracomment>
+        <translation>Wrong:</translation>
+    </message>
+    <message>
+        <location line="+22"/>
+        <source>acierto +%1, fallo -%2</source>
+        <extracomment>Resumen de la puntuación personalizada: %1 y %2 son los puntos de cada acierto y de cada fallo</extracomment>
+        <translation>correct +%1, wrong -%2</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>las habituales</source>
+        <extracomment>Resumen de las opciones cuando están todas como vienen de entrada</extracomment>
+        <translation>the usual ones</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Opciones</source>
+        <translation>Options</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>No repetir preguntas entre exámenes</source>
+        <translation>Do not repeat questions between exams</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>se repiten entre exámenes</source>
+        <translation>repeated between exams</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Evitar las preguntas de las últimas</source>
+        <extracomment>Casilla seguida de un número y del sufijo « convocatorias»: «Evitar las preguntas de las últimas [3] convocatorias»</extracomment>
+        <translation>Avoid questions from the last</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Deja para el final las preguntas (y sus variantes) que salieron en las últimas convocatorias registradas, empezando por las más recientes</source>
+        <translation>Leaves until last the questions (and their variants) that appeared in the last recorded exam sessions, starting with the most recent</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source> convocatorias</source>
+        <extracomment>Sufijo del número: «Evitar las preguntas de las últimas [3] convocatorias» (con el espacio delante)</extracomment>
+        <translation> exam sessions</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>sin evitar las recientes</source>
+        <translation>recent ones not avoided</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>evita las de las últimas %1</source>
+        <translation>avoids those of the last %1</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Evitar también las marcadas «old»</source>
+        <extracomment>«old» es el nombre de la marca de las preguntas que ya salieron en exámenes anteriores al historial</extracomment>
+        <translation>Also avoid those marked “old”</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>sin evitar las «old»</source>
+        <translation>“old” ones not avoided</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Deja para el final (aunque antes que las de las convocatorias registradas) las preguntas que ya salieron en exámenes anteriores al historial</source>
+        <translation>Leaves until last (though ahead of those from recorded exam sessions) the questions that already appeared in exams from before the history was kept</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Incluir preguntas marcadas para revisar</source>
+        <translation>Include questions flagged for review</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>sin las de revisar</source>
+        <translation>without those to review</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Solo preguntas verificadas por humanos</source>
+        <translation>Only questions verified by humans</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>solo verificadas</source>
+        <translation>verified only</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Sin marcar, entran todas las preguntas; marcada, solo las que ha revisado alguien («Verificada por humanos»). En la vista del examen, cada pregunta dice si está verificada.</source>
+        <translation>Unticked, all questions are used; ticked, only those someone has reviewed (“Verified by humans”). In the exam preview, each question says whether it is verified.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Orden aleatorio (si no, por tema y número)</source>
+        <translation>Random order (otherwise, by topic and number)</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>orden aleatorio</source>
+        <translation>random order</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Barajar las opciones (la correcta, repartida entre a)–d))</source>
+        <translation>Shuffle the options (correct answer spread across a)–d))</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>opciones barajadas</source>
+        <translation>options shuffled</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>En cada examen, la correcta sale en a), b), c) y d) por igual y nunca tres veces seguidas en la misma letra (si se puede).
+No se barajan las preguntas con opciones del tipo «Todas las anteriores».</source>
+        <translation>In each exam, the correct answer falls on a), b), c) and d) equally often and never three times in a row on the same letter (where possible).
+Questions with options such as “All of the above” are not shuffled.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Ajustar a una página por cada 10 preguntas</source>
+        <translation>Fit on one page per 10 questions</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>sin ajustar las páginas</source>
+        <translation>pages not fitted</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Compacta la maqueta (opciones en dos columnas, menos separación, letra menor) hasta que cada examen quepa en una página por cada 10 preguntas, y avisa si no se consigue.
+Sin marcar, los exámenes van con la maqueta normal y ocupan las páginas que necesiten.</source>
+        <translation>Compacts the layout (options in two columns, less spacing, smaller font) until each exam fits on one page per 10 questions, and warns if it cannot.
+Unticked, exams use the normal layout and take as many pages as they need.</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>aleatoria</source>
+        <extracomment>Lo que pone el campo «Semilla» cuando está vacío (la semilla será aleatoria)</extracomment>
+        <translation>random</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Con la misma semilla y la misma configuración se obtienen los mismos exámenes.
+Vacía, cada vez salen otros.</source>
+        <translation>The same seed and the same settings produce the same exams.
+If empty, different exams come out each time.</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>semilla %1</source>
+        <extracomment>Resumen de las opciones: %1 es la semilla (un número)</extracomment>
+        <translation>seed %1</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Semilla:</source>
+        <extracomment>Semilla del generador de números aleatorios</extracomment>
+        <translation>Seed:</translation>
+    </message>
+    <message>
+        <location line="+31"/>
+        <source>de %1</source>
+        <extracomment>Junto al número de preguntas que se piden de un tema: «[3] de 12» (12 preguntas disponibles)</extracomment>
+        <translation>of %1</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Preguntas distintas disponibles (las variantes a, b, c... cuentan como una)</source>
+        <translation>Distinct questions available (variants a, b, c... count as one)</translation>
+    </message>
+    <message>
+        <location line="+54"/>
+        <source>No se pudo guardar el nombre de la asignatura en el banco:
+%1</source>
+        <translation>Could not save the subject name in the bank:
+%1</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>No se pudo guardar el idioma de los exámenes en el banco:
+%1</source>
+        <translation>Could not save the exam language in the bank:
+%1</translation>
+    </message>
+    <message>
+        <location line="+50"/>
+        <source>%1
+Botón derecho: sustituirlo o quitarlo</source>
+        <extracomment>%1 es el reparto: «T1: 3, T2: 2 (5 preguntas)»</extracomment>
+        <translation>%1
+Right-click: replace or remove it</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Ninguna</source>
+        <extracomment>Botón de reparto: ninguna pregunta de ningún tema (pone todos los temas a 0)</extracomment>
+        <translation>None</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Poner todos los temas a 0</source>
+        <translation>Set all topics to 0</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Sustituir «%1» por el reparto de ahora</source>
+        <translation>Replace “%1” with the current distribution</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Quitar «%1»</source>
+        <translation>Remove “%1”</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>¿Quitar el reparto «%1»?</source>
+        <translation>Remove the distribution “%1”?</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>No se pudo guardar el cambio:
+%1</source>
+        <translation>Could not save the change:
+%1</translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>Indique antes cuántas preguntas quiere de cada tema.</source>
+        <translation>First specify how many questions you want from each topic.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Guardar reparto</source>
+        <translation>Save distribution</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1
+
+Nombre del reparto (el texto de su botón):</source>
+        <translation>%1
+
+Name of the distribution (the text of its button):</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Ya hay un reparto «%1»: %2.
+
+¿Sustituirlo por este?</source>
+        <translation>There is already a distribution “%1”: %2.
+
+Replace it with this one?</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>No se pudo guardar el reparto:
+%1</source>
+        <translation>Could not save the distribution:
+%1</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>&lt;b&gt;Total: %1 preguntas&lt;/b&gt;</source>
+        <translation>&lt;b&gt;Total: %1 questions&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location line="+33"/>
+        <source>Nuevo examen</source>
+        <extracomment>Nombre que se propone para un examen nuevo de la lista (se cambia en el momento)</extracomment>
+        <translation>New exam</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>¿Quitar «%1» de la lista de exámenes?</source>
+        <translation>Remove “%1” from the list of exams?</translation>
+    </message>
+</context>
+<context>
     <name>PanelVerificacion</name>
     <message>
         <location filename="../src/panelverificacion.cpp" line="+30"/>
@@ -2915,13 +3422,13 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+120"/>
+        <location filename="../src/panelconfiguracion.cpp" line="-869"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="+89"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+125"/>
         <source>Generar examen</source>
         <translation>Generate exam</translation>
     </message>
@@ -2936,269 +3443,12 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>Open the folder</translation>
     </message>
     <message>
-        <location line="+50"/>
+        <location line="+36"/>
         <source>Generar exámenes</source>
         <translation>Generate exams</translation>
     </message>
     <message>
-        <location line="+24"/>
-        <source>Convocatoria</source>
-        <extracomment>Convocatoria de examen (Febrero, Junio, Septiembre…): datos de la cabecera de los exámenes</extracomment>
-        <translation>Exam session</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Nombre de la asignatura</source>
-        <translation>Subject name</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Va en la cabecera de los exámenes. Se guarda en el banco de preguntas: cada banco tiene el de su asignatura.</source>
-        <translation>Printed in the exam header. It is saved in the question bank, so each bank keeps the name of its own subject.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Idioma de lo que pone el programa en los exámenes (instrucciones propuestas, puntuación, soluciones, meses de las convocatorias) y en Moodle, y de las pautas de estilo que se comprueban. Se guarda en el banco de preguntas: cada banco tiene el de su asignatura.</source>
-        <translation>Language of the text that the program writes in the exams (suggested instructions, scoring, solutions, exam session months) and in Moodle, and of the style guidelines that are checked. It is saved in the question bank, so each bank keeps the language of its own subject.</translation>
-    </message>
-    <message>
-        <location line="+44"/>
-        <source>Asignatura:</source>
-        <translation>Subject:</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Idioma de los exámenes:</source>
-        <translation>Exam language:</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Convocatoria:</source>
-        <translation>Exam session:</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Año:</source>
-        <translation>Year:</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Instrucciones:</source>
-        <translation>Instructions:</translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>Se genera un examen por cada nombre marcado, en este orden.
-Doble clic para cambiar el nombre; arrastre para cambiar el orden.</source>
-        <translation>One exam is generated for each ticked name, in this order.
-Double-click to change the name; drag to change the order.</translation>
-    </message>
-    <message>
-        <location line="+53"/>
-        <source>Preguntas por tema</source>
-        <translation>Questions per topic</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Guardar reparto…</source>
-        <translation>Save distribution…</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Guarda en el banco el número de preguntas de cada tema que hay ahora, con un nombre: sale un botón que lo pone</source>
-        <translation>Saves in the bank the number of questions per topic currently set, under a name: a button appears that applies it</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>Puntuación</source>
-        <translation>Scoring</translation>
-    </message>
-    <message>
-        <location line="-55"/>
-        <source>Aña&amp;dir</source>
-        <extracomment>Botón: añade un examen a la lista de exámenes que se generan. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de un menú ni la de otro de estos cuatro botones.</extracomment>
-        <translation>A&amp;dd</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Añade un examen a la lista</source>
-        <translation>Adds an exam to the list</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>&amp;Quitar</source>
-        <extracomment>Botón: quita de la lista el examen seleccionado. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
-        <translation>&amp;Remove</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Quita de la lista el examen seleccionado</source>
-        <translation>Removes the selected exam from the list</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>&amp;Todos</source>
-        <extracomment>Botón: marca todos los exámenes de la lista. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
-        <translation>&amp;All</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Marca todos los exámenes de la lista</source>
-        <translation>Ticks all the exams in the list</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>&amp;Ninguno</source>
-        <extracomment>Botón: desmarca todos los exámenes de la lista. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
-        <translation>&amp;None</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Desmarca todos los exámenes de la lista</source>
-        <translation>Unticks all the exams in the list</translation>
-    </message>
-    <message>
-        <location line="+56"/>
-        <source>El examen vale 10 puntos: cada acierto, 10 entre el número de preguntas.</source>
-        <translation>The exam is worth 10 points: each correct answer, 10 divided by the number of questions.</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Cada fallo resta el 30 %</source>
-        <translation>Each wrong answer deducts 30%</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Cada fallo resta el %1 %</source>
-        <extracomment>%1 es el porcentaje de un acierto que resta cada fallo para que contestar al azar dé 0 de media («33,3»)</extracomment>
-        <translation>Each wrong answer deducts %1%</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Es lo justo para que contestar al azar dé 0 puntos de media: con cuatro opciones se acierta una vez de cada cuatro, y ese acierto compensa los tres fallos.</source>
-        <translation>Just enough for random guessing to score 0 points on average: with four options, one guess in four is right, and that correct answer makes up for the three wrong ones.</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Los fallos no restan</source>
-        <translation>Wrong answers deduct nothing</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Personalizada</source>
-        <extracomment>Forma de puntuar: los puntos de cada acierto y de cada fallo los escribe quien hace el examen</extracomment>
-        <translation>Custom</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Los puntos de cada acierto y de cada fallo, los que se escriban abajo.</source>
-        <translation>The points for each correct and each wrong answer are the ones entered below.</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>Acierto:</source>
-        <extracomment>Puntos que suma cada respuesta correcta</extracomment>
-        <translation>Correct:</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Fallo:</source>
-        <extracomment>Puntos que resta cada respuesta incorrecta</extracomment>
-        <translation>Wrong:</translation>
-    </message>
-    <message>
-        <location line="+46"/>
-        <source>Opciones</source>
-        <translation>Options</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>No repetir preguntas entre exámenes</source>
-        <translation>Do not repeat questions between exams</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Evitar las preguntas de las últimas</source>
-        <extracomment>Casilla seguida de un número y del sufijo « convocatorias»: «Evitar las preguntas de las últimas [3] convocatorias»</extracomment>
-        <translation>Avoid questions from the last</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Deja para el final las preguntas (y sus variantes) que salieron en las últimas convocatorias registradas, empezando por las más recientes</source>
-        <translation>Leaves until last the questions (and their variants) that appeared in the last recorded exam sessions, starting with the most recent</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source> convocatorias</source>
-        <extracomment>Sufijo del número: «Evitar las preguntas de las últimas [3] convocatorias» (con el espacio delante)</extracomment>
-        <translation> exam sessions</translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>Evitar también las marcadas «old»</source>
-        <extracomment>«old» es el nombre de la marca de las preguntas que ya salieron en exámenes anteriores al historial</extracomment>
-        <translation>Also avoid those marked “old”</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Deja para el final (aunque antes que las de las convocatorias registradas) las preguntas que ya salieron en exámenes anteriores al historial</source>
-        <translation>Leaves until last (though ahead of those from recorded exam sessions) the questions that already appeared in exams from before the history was kept</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Incluir preguntas marcadas para revisar</source>
-        <translation>Include questions flagged for review</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Orden aleatorio (si no, por tema y número)</source>
-        <translation>Random order (otherwise, by topic and number)</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Barajar las opciones (la correcta, repartida entre a)–d))</source>
-        <translation>Shuffle the options (correct answer spread across a)–d))</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>En cada examen, la correcta sale en a), b), c) y d) por igual y nunca tres veces seguidas en la misma letra (si se puede).
-No se barajan las preguntas con opciones del tipo «Todas las anteriores».</source>
-        <translation>In each exam, the correct answer falls on a), b), c) and d) equally often and never three times in a row on the same letter (where possible).
-Questions with options such as “All of the above” are not shuffled.</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Ajustar a una página por cada 10 preguntas</source>
-        <translation>Fit on one page per 10 questions</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Compacta la maqueta (opciones en dos columnas, menos separación, letra menor) hasta que cada examen quepa en una página por cada 10 preguntas, y avisa si no se consigue.
-Sin marcar, los exámenes van con la maqueta normal y ocupan las páginas que necesiten.</source>
-        <translation>Compacts the layout (options in two columns, less spacing, smaller font) until each exam fits on one page per 10 questions, and warns if it cannot.
-Unticked, exams use the normal layout and take as many pages as they need.</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>aleatoria</source>
-        <extracomment>Lo que pone el campo «Semilla» cuando está vacío (la semilla será aleatoria)</extracomment>
-        <translation>random</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Con la misma semilla y la misma configuración se obtienen los mismos exámenes.
-Vacía, cada vez salen otros.</source>
-        <translation>The same seed and the same settings produce the same exams.
-If empty, different exams come out each time.</translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>Semilla:</source>
-        <extracomment>Semilla del generador de números aleatorios</extracomment>
-        <translation>Seed:</translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+29"/>
         <source>Mostrar soluciones</source>
         <translation>Show solutions</translation>
     </message>
@@ -3294,137 +3544,7 @@ If empty, different exams come out each time.</translation>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-383"/>
-        <location line="+5"/>
-        <source>Asignatura</source>
-        <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
-        <translation>Subject</translation>
-    </message>
-    <message>
-        <location line="-5"/>
-        <source>Pone el nombre de la asignatura arriba, en la cabecera de los exámenes y de la hoja de soluciones.</source>
-        <translation>Puts the subject name at the top, in the header of the exams and of the solutions sheet.</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <location line="+4"/>
-        <source>Convocatoria y año</source>
-        <extracomment>Casilla: la convocatoria y el año («Junio 2026») van en la cabecera (o en el pie) de los exámenes</extracomment>
-        <translation>Exam session and year</translation>
-    </message>
-    <message>
-        <location line="-4"/>
-        <source>Pone la convocatoria y el año arriba, en la cabecera de los exámenes y de la hoja de soluciones.</source>
-        <translation>Puts the exam session and the year at the top, in the header of the exams and of the solutions sheet.</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Pone el nombre de la asignatura abajo, en el pie de cada página (en el PDF, el LaTeX y el Word).</source>
-        <translation>Puts the subject name at the bottom, in the footer of each page (in the PDF, LaTeX and Word files).</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Pone la convocatoria y el año abajo, en el pie de cada página (en el PDF, el LaTeX y el Word).</source>
-        <translation>Puts the exam session and the year at the bottom, in the footer of each page (in the PDF, LaTeX and Word files).</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>Cabecera:</source>
-        <extracomment>Delante de las casillas de lo que va en la cabecera de los exámenes (arriba de la primera página)</extracomment>
-        <translation>Header:</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Pie de página:</source>
-        <extracomment>Delante de las casillas de lo que va en el pie de cada página de los exámenes</extracomment>
-        <translation>Footer:</translation>
-    </message>
-    <message>
-        <location line="+54"/>
-        <source>Exámenes: 1 modelo de %1 seleccionado.</source>
-        <extracomment>Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay</extracomment>
-        <translation>Exams: 1 model of %1 selected.</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Exámenes: %1 modelos de %2 seleccionados.</source>
-        <translation>Exams: %1 models of %2 selected.</translation>
-    </message>
-    <message>
-        <location line="+93"/>
-        <source>acierto +%1, fallo -%2</source>
-        <extracomment>Resumen de la puntuación personalizada: %1 y %2 son los puntos de cada acierto y de cada fallo</extracomment>
-        <translation>correct +%1, wrong -%2</translation>
-    </message>
-    <message>
-        <location line="+34"/>
-        <source>se repiten entre exámenes</source>
-        <translation>repeated between exams</translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <source>sin evitar las recientes</source>
-        <translation>recent ones not avoided</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>evita las de las últimas %1</source>
-        <translation>avoids those of the last %1</translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>sin evitar las «old»</source>
-        <translation>“old” ones not avoided</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>sin las de revisar</source>
-        <translation>without those to review</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>solo verificadas</source>
-        <translation>verified only</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>orden aleatorio</source>
-        <translation>random order</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>opciones barajadas</source>
-        <translation>options shuffled</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>sin ajustar las páginas</source>
-        <translation>pages not fitted</translation>
-    </message>
-    <message>
-        <location line="+23"/>
-        <source>semilla %1</source>
-        <extracomment>Resumen de las opciones: %1 es la semilla (un número)</extracomment>
-        <translation>seed %1</translation>
-    </message>
-    <message>
-        <location line="-85"/>
-        <source>las habituales</source>
-        <extracomment>Resumen de las opciones cuando están todas como vienen de entrada</extracomment>
-        <translation>the usual ones</translation>
-    </message>
-    <message>
-        <location line="+51"/>
-        <source>Solo preguntas verificadas por humanos</source>
-        <translation>Only questions verified by humans</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Sin marcar, entran todas las preguntas; marcada, solo las que ha revisado alguien («Verificada por humanos»). En la vista del examen, cada pregunta dice si está verificada.</source>
-        <translation>Unticked, all questions are used; ticked, only those someone has reviewed (“Verified by humans”). In the exam preview, each question says whether it is verified.</translation>
-    </message>
-    <message>
-        <location line="+59"/>
+        <location line="-81"/>
         <source>Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.
 Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-letra-grande» en el nombre.</source>
         <translation>Adapted version for visually impaired students: 16 pt font, one option per line (question text not in italics), more spacing and larger images, with no page limit.
@@ -3622,7 +3742,7 @@ You can also right-click the question.</translation>
 %2</translation>
     </message>
     <message>
-        <location line="+54"/>
+        <location line="+34"/>
         <source>Elija el banco de preguntas (fichero .db) con el que quiere trabajar.</source>
         <translation>Choose the question bank (.db file) you want to work with.</translation>
     </message>
@@ -3716,19 +3836,19 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+967"/>
+        <location line="+611"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-959"/>
+        <location line="-603"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
 %1</translation>
     </message>
     <message>
-        <location line="+20"/>
+        <location line="+13"/>
         <source>Se han importado %1 preguntas.</source>
         <translation>%1 questions have been imported.</translation>
     </message>
@@ -3888,23 +4008,12 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>&lt;h3&gt;Exam Generator&lt;/h3&gt;&lt;p&gt;Version %1&lt;/p&gt;&lt;p&gt;Developed by Manuel Arias Calleja&lt;/p&gt;&lt;p&gt;Generates multiple-choice exams by picking questions from the database at random, with the number of questions specified for each topic.&lt;/p&gt;&lt;p&gt;It never puts two variants of a question (3a/3b) or pseudo-duplicates in the same exam, and it can avoid repeating questions between exams.&lt;/p&gt;&lt;p&gt;Database: &lt;tt&gt;%2&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Settings: &lt;tt&gt;%3&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Qt %4&lt;/p&gt;</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+38"/>
         <source>Base de datos: %1  ·  %2 temas, %3 preguntas (%4 activas, %5 verificadas)</source>
         <translation>Database: %1  ·  %2 topics, %3 questions (%4 active, %5 verified)</translation>
     </message>
     <message>
-        <location line="+33"/>
-        <source>de %1</source>
-        <extracomment>Junto al número de preguntas que se piden de un tema: «[3] de 12» (12 preguntas disponibles)</extracomment>
-        <translation>of %1</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Preguntas distintas disponibles (las variantes a, b, c... cuentan como una)</source>
-        <translation>Distinct questions available (variants a, b, c... count as one)</translation>
-    </message>
-    <message>
-        <location line="+157"/>
+        <location line="+73"/>
         <source>Generador de exámenes</source>
         <translation>Exam Generator</translation>
     </message>
@@ -3914,21 +4023,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Exam Generator - %1</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>No se pudo guardar el nombre de la asignatura en el banco:
-%1</source>
-        <translation>Could not save the subject name in the bank:
-%1</translation>
-    </message>
-    <message>
-        <location line="+14"/>
-        <source>No se pudo guardar el idioma de los exámenes en el banco:
-%1</source>
-        <translation>Could not save the exam language in the bank:
-%1</translation>
-    </message>
-    <message>
-        <location line="+41"/>
+        <location line="+13"/>
         <source>El programa estará en %1 la próxima vez que se abra.</source>
         <extracomment>%1 es el nombre del idioma elegido, en ese idioma («English»)</extracomment>
         <translation>The program will be in %1 the next time it starts.</translation>
@@ -3944,99 +4039,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Later</translation>
     </message>
     <message>
-        <location line="+25"/>
-        <source>%1
-Botón derecho: sustituirlo o quitarlo</source>
-        <extracomment>%1 es el reparto: «T1: 3, T2: 2 (5 preguntas)»</extracomment>
-        <translation>%1
-Right-click: replace or remove it</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Ninguna</source>
-        <extracomment>Botón de reparto: ninguna pregunta de ningún tema (pone todos los temas a 0)</extracomment>
-        <translation>None</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Poner todos los temas a 0</source>
-        <translation>Set all topics to 0</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Sustituir «%1» por el reparto de ahora</source>
-        <translation>Replace “%1” with the current distribution</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Quitar «%1»</source>
-        <translation>Remove “%1”</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>¿Quitar el reparto «%1»?</source>
-        <translation>Remove the distribution “%1”?</translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>No se pudo guardar el cambio:
-%1</source>
-        <translation>Could not save the change:
-%1</translation>
-    </message>
-    <message>
-        <location line="+23"/>
-        <source>Indique antes cuántas preguntas quiere de cada tema.</source>
-        <translation>First specify how many questions you want from each topic.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Guardar reparto</source>
-        <translation>Save distribution</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1
-
-Nombre del reparto (el texto de su botón):</source>
-        <translation>%1
-
-Name of the distribution (the text of its button):</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Ya hay un reparto «%1»: %2.
-
-¿Sustituirlo por este?</source>
-        <translation>There is already a distribution “%1”: %2.
-
-Replace it with this one?</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>No se pudo guardar el reparto:
-%1</source>
-        <translation>Could not save the distribution:
-%1</translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>&lt;b&gt;Total: %1 preguntas&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Total: %1 questions&lt;/b&gt;</translation>
-    </message>
-    <message>
-        <location line="+33"/>
-        <source>Nuevo examen</source>
-        <extracomment>Nombre que se propone para un examen nuevo de la lista (se cambia en el momento)</extracomment>
-        <translation>New exam</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>¿Quitar «%1» de la lista de exámenes?</source>
-        <translation>Remove “%1” from the list of exams?</translation>
-    </message>
-    <message>
-        <location line="+47"/>
+        <location line="+21"/>
         <source>Indique cuántas preguntas quiere de cada tema.</source>
         <translation>Specify how many questions you want from each topic.</translation>
     </message>
@@ -4061,7 +4064,7 @@ Replace it with this one?</translation>
         <translation>There is no exam session recorded in the history, so questions from previous ones are not avoided. If they were held outside the program, record them with File → Record previous exams…</translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+41"/>
         <source>Semilla: %1</source>
         <extracomment>Línea de información del examen generado: semilla del generador de números aleatorios</extracomment>
         <translation>Seed: %1</translation>
@@ -4273,12 +4276,12 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
     </message>
     <message>
         <location line="+3"/>
-        <location line="+24"/>
+        <location line="+21"/>
         <source>Registrados en el historial los exámenes de %1</source>
         <translation>Exams for %1 recorded in the history</translation>
     </message>
     <message>
-        <location line="+42"/>
+        <location line="+34"/>
         <source>Registrada el %1</source>
         <extracomment>Origen de los exámenes cargados del historial: la convocatoria se registró el día %1</extracomment>
         <translation>Recorded on %1</translation>
