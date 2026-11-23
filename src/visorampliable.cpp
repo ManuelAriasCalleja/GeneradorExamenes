@@ -130,7 +130,7 @@ QList<QAction *> VisorAmpliable::accionesEscala() const
 
 void VisorAmpliable::ponerEscala(qreal escala)
 {
-    escala = qBound(kNiveles.front(), escala, kNiveles.back());
+    escala = escalaValida(escala);
     if (qAbs(escala - m_escala) < 0.001)
         return;
     // Lo que se ve arriba de la vista sigue arriba.
@@ -156,22 +156,45 @@ void VisorAmpliable::ponerDocumento(QTextDocument *doc)
         escalarDocumento(doc, m_escala);
 }
 
-void VisorAmpliable::ampliar()
+qreal VisorAmpliable::escalaSiguiente(qreal escala)
 {
     for (qreal n : kNiveles)
-        if (n > m_escala + 0.001) {
-            ponerEscala(n);
-            return;
-        }
+        if (n > escala + 0.001)
+            return n;
+    return escala;
+}
+
+qreal VisorAmpliable::escalaAnterior(qreal escala)
+{
+    for (auto it = kNiveles.rbegin(); it != kNiveles.rend(); ++it)
+        if (*it < escala - 0.001)
+            return *it;
+    return escala;
+}
+
+qreal VisorAmpliable::escalaValida(qreal escala)
+{
+    return qBound(kNiveles.front(), escala, kNiveles.back());
+}
+
+void VisorAmpliable::quitarAtajos()
+{
+    for (QAction *a : accionesEscala()) {
+        if (a->shortcuts().isEmpty())
+            continue;
+        a->setText(a->text() + QLatin1Char('\t') + a->shortcut().toString(QKeySequence::NativeText));
+        a->setShortcuts(QList<QKeySequence>());
+    }
+}
+
+void VisorAmpliable::ampliar()
+{
+    ponerEscala(escalaSiguiente(m_escala));
 }
 
 void VisorAmpliable::reducir()
 {
-    for (auto it = kNiveles.rbegin(); it != kNiveles.rend(); ++it)
-        if (*it < m_escala - 0.001) {
-            ponerEscala(*it);
-            return;
-        }
+    ponerEscala(escalaAnterior(m_escala));
 }
 
 void VisorAmpliable::tamanoNormal()
@@ -193,6 +216,21 @@ void VisorAmpliable::wheelEvent(QWheelEvent *e)
     for (; m_giro <= -120; m_giro += 120)
         reducir();
     e->accept();
+}
+
+void VisorAmpliable::changeEvent(QEvent *e)
+{
+    // Cuando cambia la letra del visor (la de la ventana, o la del panel en el que está: ZonaAmpliable), QTextEdit se
+    // la pone al documento como letra por defecto. La de los documentos que se ven aquí es la suya (Maquetador), con
+    // la escala de la vista: se deja como estaba.
+    if (e->type() != QEvent::FontChange || !document()) {
+        QTextBrowser::changeEvent(e);
+        return;
+    }
+    const QFont letra = document()->defaultFont();
+    QTextBrowser::changeEvent(e);
+    if (document()->defaultFont() != letra)
+        document()->setDefaultFont(letra);
 }
 
 void VisorAmpliable::actualizarAcciones()

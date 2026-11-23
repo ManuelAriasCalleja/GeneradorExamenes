@@ -1114,7 +1114,7 @@ private slots:
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
         QMetaObject::invokeMethod(&v, "generar");
-        auto *visor = v.findChild<VisorAmpliable *>();
+        auto *visor = v.findChild<VisorAmpliable *>(QStringLiteral("visorExamen"));
         QSpinBox *numero = nullptr;
         for (QSpinBox *s : v.findChildren<QSpinBox *>())
             if (s->toolTip().startsWith(QStringLiteral("Número de la pregunta que se quiere editar o cambiar")))
@@ -1460,7 +1460,7 @@ private slots:
         QVERIFY(QTest::qWaitForWindowActive(&v));
         QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
         QMetaObject::invokeMethod(&v, "generar");
-        auto *visor = v.findChild<VisorAmpliable *>();
+        auto *visor = v.findChild<VisorAmpliable *>(QStringLiteral("visorExamen"));
         QVERIFY(visor);
         QCOMPARE(visor->escala(), 1.0);
         const QVector<qreal> normal = tamanos(visor->document());
@@ -1522,11 +1522,141 @@ private slots:
         soluciones->setChecked(true);
         QVERIFY(proporcionales(tamanos(visor->document()), conSoluciones, 1.5));
 
-        // Los atajos están también en el menú del botón derecho, y la ventana recuerda la escala.
+        // Las acciones están también en el menú del botón derecho, con sus teclas escritas (las atiende la ventana,
+        // que amplía la zona en la que está el puntero), y la ventana recuerda la escala.
         for (QAction *a : visor->accionesEscala())
-            QVERIFY2(!a->shortcuts().isEmpty(), qPrintable(a->text()));
+            QVERIFY2(a->shortcuts().isEmpty() && a->text().contains(QStringLiteral("\tCtrl+")), qPrintable(a->text()));
         VentanaPrincipal otra;
-        QCOMPARE(otra.findChild<VisorAmpliable *>()->escala(), 1.5);
+        QCOMPARE(otra.findChild<VisorAmpliable *>(QStringLiteral("visorExamen"))->escala(), 1.5);
+        QSettings().clear();
+    }
+
+    // El panel izquierdo de «Generar examen» y el banco de preguntas (la lista y la ficha) se amplían también, cada
+    // uno con su tamaño, con Ctrl + rueda sobre ellos o con las teclas cuando el puntero está encima.
+    void ventanaAmpliaLosPaneles()
+    {
+        QTemporaryDir dir;
+        QVERIFY(crearBancoInventado(dir.filePath(QStringLiteral("banco.db"))));
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(QTest::qWaitForWindowActive(&v));
+        QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
+        QMetaObject::invokeMethod(&v, "generar");
+        auto *visor = v.findChild<VisorAmpliable *>(QStringLiteral("visorExamen"));
+        auto *ficha = v.findChild<VisorAmpliable *>(QStringLiteral("fichaBanco"));
+        auto *tabla = v.findChild<QTableView *>();
+        auto *pestanas = v.findChild<QTabWidget *>();
+        QPushButton *generar = nullptr;
+        for (QPushButton *b : v.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Generar exámenes"))
+                generar = b;
+        QVERIFY(visor && ficha && tabla && pestanas && generar);
+        // Una casilla numérica del panel izquierdo (el botón está en él, debajo de las opciones).
+        QSpinBox *numero = nullptr;
+        for (QSpinBox *s : generar->parentWidget()->findChildren<QSpinBox *>())
+            if (!numero && s->isVisible() && s->isEnabled() && s->value() < s->maximum())
+                numero = s;
+        QVERIFY(numero);
+        auto rueda = [](QWidget *w, int giro) {
+            const QPoint centro = w->rect().center();
+            QWheelEvent e(centro, w->mapToGlobal(centro), QPoint(), QPoint(0, giro), Qt::NoButton, Qt::ControlModifier,
+                          Qt::NoScrollPhase, false);
+            QApplication::sendEvent(w, &e);
+        };
+        auto letra = [](const QWidget *w) { return w->font().pointSizeF(); };
+        const qreal normal = letra(generar);
+        const qreal normalTabla = letra(tabla);
+        const QVector<qreal> examen = tamanos(visor->document());
+        QVERIFY(normal > 0 && normalTabla > 0);
+
+        // Sobre un control del panel: crece la letra de todo el panel, y la casilla no cambia de valor.
+        const int valor = numero->value();
+        rueda(numero, 120);
+        QCOMPARE(numero->value(), valor);
+        QCOMPARE(letra(numero), normal * 1.1);
+        QCOMPARE(letra(generar), normal * 1.1);
+        QVERIFY(generar->font().bold());
+        // También las etiquetas con color propio («de 20», junto a cada tema), las que hay y las que se ponen después.
+        auto deTantas = [&]() -> QLabel * {
+            for (QLabel *l : generar->parentWidget()->findChildren<QLabel *>())
+                if (l->text().startsWith(QStringLiteral("de ")))
+                    return l;
+            return nullptr;
+        };
+        QVERIFY(deTantas());
+        QCOMPARE(letra(deTantas()), normal * 1.1);
+        QVERIFY(v.abrirBaseDatos(dir.filePath(QStringLiteral("banco.db"))));
+        QVERIFY(deTantas());
+        QCOMPARE(letra(deTantas()), normal * 1.1);
+        QMetaObject::invokeMethod(&v, "generar");
+        // Ni el examen ni el banco cambian.
+        QCOMPARE(visor->escala(), 1.0);
+        QCOMPARE(tamanos(visor->document()), examen);
+        QCOMPARE(letra(tabla), normalTabla);
+        QCOMPARE(QSettings().value(QStringLiteral("vista/escalaPanel")).toDouble(), 1.1);
+        // Sin Ctrl, la rueda hace lo de siempre.
+        rueda(generar, -120);
+        QCOMPARE(letra(generar), normal);
+
+        // Las teclas, sobre la zona en la que está el puntero.
+        QCursor::setPos(generar->mapToGlobal(generar->rect().center()));
+        if (QApplication::widgetAt(QCursor::pos()) == generar) {
+            QTest::keyClick(&v, Qt::Key_Plus, Qt::ControlModifier);
+            QCOMPARE(letra(generar), normal * 1.1);
+            QCOMPARE(visor->escala(), 1.0);
+            QTest::keyClick(&v, Qt::Key_0, Qt::ControlModifier);
+            QCOMPARE(letra(generar), normal);
+            QCursor::setPos(visor->mapToGlobal(visor->rect().center()));
+            QTest::keyClick(&v, Qt::Key_Plus, Qt::ControlModifier);
+            QCOMPARE(visor->escala(), 1.1);
+            QCOMPARE(letra(generar), normal);
+            QTest::keyClick(&v, Qt::Key_0, Qt::ControlModifier);
+        }
+
+        // El banco: la lista (la letra, el alto de las filas y el ancho de las columnas) y la ficha, a la vez.
+        pestanas->setCurrentIndex(1);
+        tabla->setCurrentIndex(tabla->model()->index(0, 0));
+        const QVector<qreal> fichaNormal = tamanos(ficha->document());
+        const int ancho = tabla->columnWidth(ModeloPreguntas::ColCodigo);
+        const int alto = tabla->rowHeight(0);
+        QVERIFY(!fichaNormal.isEmpty());
+        rueda(tabla->viewport(), 120);
+        rueda(tabla->viewport(), 120);
+        QCOMPARE(letra(tabla), normalTabla * 1.25);
+        QCOMPARE(tabla->columnWidth(ModeloPreguntas::ColCodigo), qRound(ancho * 1.25));
+        QVERIFY2(tabla->rowHeight(0) > alto, qPrintable(QStringLiteral("%1, %2").arg(tabla->rowHeight(0)).arg(alto)));
+        QCOMPARE(ficha->escala(), 1.25);
+        QVERIFY(proporcionales(tamanos(ficha->document()), fichaNormal, 1.25));
+        // La ficha de otra pregunta sale igual de grande, y sobre la ficha la rueda amplía también la lista.
+        tabla->setCurrentIndex(tabla->model()->index(1, 0));
+        QCOMPARE(ficha->escala(), 1.25);
+        rueda(ficha->viewport(), -120);
+        QCOMPARE(ficha->escala(), 1.1);
+        QCOMPARE(letra(tabla), normalTabla * 1.1);
+        QCOMPARE(letra(generar), normal);
+        QCOMPARE(visor->escala(), 1.0);
+        // Con el puntero fuera de las zonas, las teclas amplían lo de la pestaña que se ve.
+        QCursor::setPos(v.mapToGlobal(QPoint(2, 2)));
+        QTest::keyClick(&v, Qt::Key_0, Qt::ControlModifier);
+        QCOMPARE(letra(tabla), normalTabla);
+        QCOMPARE(tabla->columnWidth(ModeloPreguntas::ColCodigo), ancho);
+        rueda(tabla->viewport(), 120);
+
+        // Cada tamaño se recuerda.
+        rueda(generar, 120);
+        rueda(generar, 120);
+        VentanaPrincipal otra;
+        QPushButton *otroGenerar = nullptr;
+        for (QPushButton *b : otra.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("Generar exámenes"))
+                otroGenerar = b;
+        QVERIFY(otroGenerar);
+        QCOMPARE(letra(otroGenerar), normal * 1.25);
+        QCOMPARE(letra(otra.findChild<QTableView *>()), normalTabla * 1.1);
+        QCOMPARE(otra.findChild<VisorAmpliable *>(QStringLiteral("fichaBanco"))->escala(), 1.1);
+        QCOMPARE(otra.findChild<QTableView *>()->columnWidth(ModeloPreguntas::ColCodigo), qRound(ancho * 1.1));
+        QCOMPARE(otra.findChild<VisorAmpliable *>(QStringLiteral("visorExamen"))->escala(), 1.0);
         QSettings().clear();
     }
 

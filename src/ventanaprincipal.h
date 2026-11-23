@@ -32,6 +32,7 @@ class QSpinBox;
 class QTableView;
 class QTextBrowser;
 class VisorAmpliable;
+class ZonaAmpliable;
 
 class VentanaPrincipal : public QMainWindow
 {
@@ -200,6 +201,10 @@ private:
     // Menú del botón derecho en la vista del examen: el normal, con «Editar la pregunta N» y «Cambiar la pregunta N
     // por otra» si se pulsa sobre una pregunta, «Deshacer» si hay algún cambio y los de ampliar y reducir la vista.
     void menuVista(const QPoint &enVista);
+    // Amplía (pasos > 0), reduce (< 0) o deja a su tamaño normal (0) la zona en la que está el puntero del ratón; si
+    // no está en ninguna, la vista del examen o el banco de preguntas, según la pestaña.
+    void cambiarEscala(int pasos);
+    ZonaAmpliable *crearZona(QWidget *raiz, const QString &clave);
     // Pregunta (desde 0) del examen que está en el punto 'enVista' de la vista, o -1 (cabecera, instrucciones).
     int preguntaEn(const QPoint &enVista) const;
     // Si se evitan, las preguntas de las últimas convocatorias registradas. Los exámenes 'examenes' de la convocatoria
@@ -313,5 +318,9 @@ private:
     QTableView *m_tabla;
     ModeloPreguntas *m_modelo;
     FiltroPreguntas *m_filtro;
-    QTextBrowser *m_ficha;
+    VisorAmpliable *m_ficha;
+    // Lo que se amplía con Ctrl + rueda, Ctrl++, Ctrl+- y Ctrl+0, cada cosa con su tamaño: la vista del examen
+    // (m_visorExamen), el panel izquierdo de «Generar examen» y el banco de preguntas (la lista y la ficha).
+    ZonaAmpliable *m_zonaPanel = nullptr;
+    ZonaAmpliable *m_zonaBanco = nullptr;
 };

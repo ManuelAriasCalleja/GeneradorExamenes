@@ -1976,7 +1976,7 @@ Do you want to save it anyway?</translation>
 %1</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+26"/>
         <source>Marque quién la ha verificado.</source>
         <translation>Tick who has verified it.</translation>
     </message>
@@ -2173,26 +2173,26 @@ Do you want to save it anyway?</translation>
     <message>
         <location filename="../src/docx.cpp" line="+742"/>
         <location filename="../src/maquetador.cpp" line="+361"/>
-        <location line="+857"/>
+        <location line="+884"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location filename="../src/maquetador.cpp" line="-856"/>
-        <location line="+857"/>
+        <location filename="../src/maquetador.cpp" line="-883"/>
+        <location line="+884"/>
         <source>Referencia:</source>
         <translation>Reference:</translation>
     </message>
     <message>
         <location line="+134"/>
-        <location filename="../src/maquetador.cpp" line="-846"/>
-        <location line="+1083"/>
+        <location filename="../src/maquetador.cpp" line="-873"/>
+        <location line="+1110"/>
         <source>Plantilla de corrección: %1</source>
         <translation>Answer key: %1</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="-1295"/>
+        <location filename="../src/maquetador.cpp" line="-1322"/>
         <source>Respuesta correcta: +%1 puntos · incorrecta: −%2 puntos · en blanco: 0 puntos</source>
         <extracomment>Puntuación del examen, en una línea bajo las instrucciones. %1 son los puntos de un acierto (1,00) y %2 los que resta un fallo (0,30); el signo menos es «−» (U+2212)</extracomment>
         <translation>Correct answer: +%1 points · incorrect: −%2 points · blank: 0 points</translation>
@@ -2219,16 +2219,16 @@ Do not hand in the question paper.</translation>
     <message>
         <location filename="../src/docx.cpp" line="-61"/>
         <location filename="../src/maquetador.cpp" line="+271"/>
-        <location line="+702"/>
+        <location line="+729"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
     <message>
         <location line="+18"/>
         <location line="+88"/>
-        <location filename="../src/maquetador.cpp" line="-648"/>
-        <location line="+182"/>
-        <location line="+444"/>
+        <location filename="../src/maquetador.cpp" line="-675"/>
+        <location line="+210"/>
+        <location line="+443"/>
         <location line="+65"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
         <location line="+1"/>
@@ -2239,23 +2239,23 @@ Do not hand in the question paper.</translation>
     </message>
     <message>
         <location line="-71"/>
-        <location filename="../src/maquetador.cpp" line="-682"/>
-        <location line="+701"/>
+        <location filename="../src/maquetador.cpp" line="-709"/>
+        <location line="+728"/>
         <source>Estructura de la convocatoria</source>
         <translation>Session structure</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+6"/>
-        <location filename="../src/maquetador.cpp" line="-700"/>
-        <location line="+690"/>
+        <location filename="../src/maquetador.cpp" line="-727"/>
+        <location line="+717"/>
         <source>Examen</source>
         <translation>Exam</translation>
     </message>
     <message>
         <location line="+34"/>
-        <location filename="../src/maquetador.cpp" line="-1051"/>
-        <location line="+1086"/>
+        <location filename="../src/maquetador.cpp" line="-1078"/>
+        <location line="+1113"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
@@ -2365,7 +2365,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-875"/>
+        <location filename="../src/maquetador.cpp" line="-902"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>
@@ -2531,7 +2531,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelVerificacion</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="-414"/>
+        <location filename="../src/verificacion.cpp" line="-415"/>
         <source>Verificada por humanos</source>
         <translation>Verified by humans</translation>
     </message>
@@ -2602,7 +2602,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+115"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+116"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
@@ -2618,7 +2618,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>Question bank</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+22"/>
         <source>Abrir la carpeta</source>
         <translation>Open the folder</translation>
     </message>
@@ -2628,7 +2628,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>Generate exams</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+24"/>
         <source>Convocatoria</source>
         <extracomment>Convocatoria de examen (Febrero, Junio, Septiembre…): datos de la cabecera de los exámenes</extracomment>
         <translation>Exam session</translation>
@@ -2907,7 +2907,7 @@ If empty, different exams come out each time.</translation>
         <translation>How many times each letter is correct in this exam</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+16"/>
         <source>&lt;p style=&quot;color:gray&quot;&gt;Elija cuántas preguntas quiere de cada tema y pulse &lt;b&gt;Generar exámenes&lt;/b&gt;.&lt;/p&gt;</source>
         <translation>&lt;p style=&quot;color:gray&quot;&gt;Choose how many questions you want from each topic and click &lt;b&gt;Generate exams&lt;/b&gt;.&lt;/p&gt;</translation>
     </message>
@@ -3016,7 +3016,7 @@ If empty, different exams come out each time.</translation>
         <translation>Search text or code (T1-22b)…</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+4"/>
         <source>Tema:</source>
         <translation>Topic:</translation>
     </message>
@@ -3027,15 +3027,15 @@ If empty, different exams come out each time.</translation>
         <translation>Status:</translation>
     </message>
     <message>
-        <location line="+42"/>
+        <location line="+44"/>
         <source>Nueva…</source>
         <extracomment>Botón: nueva pregunta</extracomment>
         <translation>New…</translation>
     </message>
     <message>
-        <location line="-100"/>
-        <location line="+102"/>
-        <location line="+1848"/>
+        <location line="-103"/>
+        <location line="+105"/>
+        <location line="+1930"/>
         <source>Editar…</source>
         <extracomment>Botón: abre en el editor esa pregunta del examen
 ----------
@@ -3043,7 +3043,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-2262"/>
+        <location line="-2348"/>
         <location line="+5"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -3117,7 +3117,7 @@ Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-le
 Applies to the preview, printing and exports; the files have “-letra-grande” in their name.</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+59"/>
         <source>Exportar Word…</source>
         <extracomment>Botón: guarda los exámenes en un documento de Word (.docx)</extracomment>
         <translation>Export Word…</translation>
@@ -3136,8 +3136,8 @@ You can also right-click the question.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+100"/>
-        <location line="+1847"/>
+        <location line="+103"/>
+        <location line="+1929"/>
         <source>Verificar…</source>
         <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas
 ----------
@@ -3145,7 +3145,7 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="-1946"/>
+        <location line="-2031"/>
         <source>Recorre las preguntas del examen, desde esta, para marcarlas como verificadas por personas: «Verificada, siguiente» la marca con los mismos verificadores que la anterior.</source>
         <translation>Goes through the questions of the exam, from this one, to mark them as verified by people: “Verified, next” marks each with the same verifiers as the previous one.</translation>
     </message>
@@ -3162,7 +3162,7 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>Verified</translation>
     </message>
     <message>
-        <location line="+55"/>
+        <location line="+58"/>
         <source>Duplicar como variante…</source>
         <translation>Duplicate as variant…</translation>
     </message>
@@ -3173,7 +3173,13 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>Delete</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+34"/>
+        <source>Tamaño de la letra al %1 %</source>
+        <extracomment>En la barra de estado, al ampliar o reducir un panel de la ventana; %1 es el porcentaje (125)</extracomment>
+        <translation>Text size at %1%</translation>
+    </message>
+    <message>
+        <location line="+32"/>
         <location filename="../tests/prueba_idiomas.cpp" line="-1"/>
         <location line="+9"/>
         <source>&amp;Archivo</source>
@@ -3423,13 +3429,13 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+976"/>
-        <location line="+593"/>
+        <location line="+980"/>
+        <location line="+619"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-1561"/>
+        <location line="-1591"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3851,7 +3857,7 @@ With “Fit on one page per 10 questions” (in Options), the layout is compacte
         <translation>Correct: %1</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+50"/>
         <source>No se pudieron escribir estos ficheros:
 %1</source>
         <translation>Could not write these files:
@@ -4024,7 +4030,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>&amp;Verifiers…</translation>
     </message>
     <message>
-        <location line="+50"/>
+        <location line="+60"/>
         <source>Deshecho el cambio de la pregunta %1 de «%2»</source>
         <translation>Change to question %1 of “%2” undone</translation>
     </message>
@@ -4098,7 +4104,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>%1 already has variants from a to z.</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+43"/>
         <location line="+11"/>
         <source>Marcar como verificadas</source>
         <translation>Mark as verified</translation>

@@ -58,6 +58,7 @@ qt_add_library(nucleo STATIC
     src/examenesanteriores.h src/examenesanteriores.cpp
     src/dialogoanteriores.h src/dialogoanteriores.cpp
     src/visorampliable.h src/visorampliable.cpp
+    src/zonaampliable.h src/zonaampliable.cpp
     src/ventanaprincipal.h src/ventanaprincipal.cpp
 )
 target_include_directories(nucleo PUBLIC src)

@@ -185,7 +185,8 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   (`2026-Junio-letra-grande-Nacional-Original.pdf`) para no pisar los normales.
 - La vista del examen se amplía y se reduce como un navegador: Ctrl + rueda del ratón, Ctrl++ y Ctrl+-, y Ctrl+0
   para el tamaño normal (también en el menú del botón derecho). Solo cambia la pantalla, no la impresión ni las
-  exportaciones, y el tamaño se recuerda de una vez a otra.
+  exportaciones, y el tamaño se recuerda de una vez a otra. Igual se amplían, cada uno con su tamaño, el panel de la
+  izquierda y el banco de preguntas (la lista y la ficha): las teclas actúan sobre aquello en lo que está el puntero.
 - *Exportar LaTeX…* guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>-imagenes` al
   lado). Con la casilla «Con soluciones» del diálogo marcada incluye también la hoja de soluciones y las
   soluciones marcadas, con la explicación y la referencia de cada pregunta. Hay que compilarlo dos veces para que salga el «página / total» del pie:

@@ -25,6 +25,16 @@ public:
     // Pone un documento (como ponerDocumento() de utilidades.h) con la escala de la vista.
     void ponerDocumento(QTextDocument *doc);
 
+    // Las escalas por las que se pasa al ampliar y al reducir, como en los navegadores: la siguiente y la anterior a
+    // una (ella misma si no hay más), y la más cercana a una que esté entre la menor y la mayor.
+    static qreal escalaSiguiente(qreal escala);
+    static qreal escalaAnterior(qreal escala);
+    static qreal escalaValida(qreal escala);
+
+    // Deja las acciones sin atajos (con ellos escritos en su texto, para los menús): para cuando las teclas las atiende
+    // otro, como la ventana principal, que amplía la zona en la que está el puntero.
+    void quitarAtajos();
+
     // Ampliar, reducir y tamaño normal, con sus atajos. Funcionan cuando el foco está en el visor o en cualquier otro
     // control de los widgets a los que se añadan (QWidget::addActions()).
     QList<QAction *> accionesEscala() const;
@@ -44,6 +54,7 @@ signals:
 
 protected:
     void wheelEvent(QWheelEvent *e) override;
+    void changeEvent(QEvent *e) override;
 
 private:
     void actualizarAcciones();

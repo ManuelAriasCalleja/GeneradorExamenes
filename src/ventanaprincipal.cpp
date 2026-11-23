@@ -15,6 +15,7 @@
 #include "modelopreguntas.h"
 #include "utilidades.h"
 #include "visorampliable.h"
+#include "zonaampliable.h"
 
 #include <QAction>
 #include <QActionGroup>
@@ -197,6 +198,17 @@ VentanaPrincipal::VentanaPrincipal(QWidget *parent)
     pestanas->addTab(crearPestanaBanco(), tr("Banco de preguntas"));
     setCentralWidget(pestanas);
     crearMenus();
+    // Ctrl++, Ctrl+- y Ctrl+0, en toda la ventana: amplían la zona en la que está el puntero del ratón, como Ctrl +
+    // rueda. Las teclas son las de las acciones del visor, que se quedan sin ellas (solo para su menú).
+    const QList<QAction *> delVisor = m_visorExamen->accionesEscala();
+    const int pasos[] = {1, -1, 0};
+    for (int i = 0; i < delVisor.size(); ++i) {
+        auto *a = new QAction(this);
+        a->setShortcuts(delVisor.at(i)->shortcuts());
+        connect(a, &QAction::triggered, this, [this, n = pasos[i]] { cambiarEscala(n); });
+        addAction(a);
+    }
+    m_visorExamen->quitarAtajos();
     // Aviso de que el JSON del banco no coincide con la base de datos; pulsándolo se actualiza.
     m_avisoJson = new QPushButton;
     m_avisoJson->setFlat(true);
@@ -262,8 +274,7 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     divisor->addWidget(crearPanelResultados());
     divisor->setStretchFactor(1, 1);
     divisor->setSizes({430, 800});
-    // Los atajos para ampliar y reducir la vista, en toda la pestaña: no hace falta pulsar antes sobre el examen.
-    divisor->addActions(m_visorExamen->accionesEscala());
+    m_zonaPanel = crearZona(izquierda, QStringLiteral("vista/escalaPanel"));
     return divisor;
 }
 
@@ -580,6 +591,7 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     m_avisos->hide();
     lr->addWidget(m_avisos);
     m_visorExamen = new VisorAmpliable;
+    m_visorExamen->setObjectName(QStringLiteral("visorExamen"));
     m_visorExamen->setHtml(tr("<p style=\"color:gray\">Elija cuántas preguntas quiere de cada tema y pulse "
                               "<b>Generar exámenes</b>.</p>"));
     // El tamaño de la vista (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0) se recuerda de una vez a otra.
@@ -704,7 +716,9 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
     m_tabla->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_tabla, &QWidget::customContextMenuRequested, this, &VentanaPrincipal::menuTabla);
     m_tabla->setColumnWidth(ModeloPreguntas::ColCorrecta, 50);
-    m_ficha = new QTextBrowser;
+    m_ficha = new VisorAmpliable;
+    m_ficha->setObjectName(QStringLiteral("fichaBanco"));
+    m_ficha->quitarAtajos();
 
     auto *divisor = new QSplitter;
     divisor->addWidget(m_tabla);
@@ -736,7 +750,59 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
     connect(m_filtroTexto, &QLineEdit::textChanged, this, &VentanaPrincipal::filtrar);
     connect(m_tabla->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &VentanaPrincipal::seleccionCambiada);
     connect(m_tabla, &QTableView::doubleClicked, this, &VentanaPrincipal::editarPregunta);
+
+    // La lista y la ficha se amplían juntas. El ancho de las columnas y el alto de las filas no cambian solos con la
+    // letra: se ajustan aquí.
+    m_zonaBanco = crearZona(w, QStringLiteral("vista/escalaBanco"));
+    m_zonaBanco->anadirVisor(m_ficha);
+    auto ajustarColumnas = [this, anterior = 1.0, alto = m_tabla->verticalHeader()->defaultSectionSize()](qreal escala) mutable {
+        m_tabla->verticalHeader()->setDefaultSectionSize(qRound(alto * escala));
+        for (int c = 0; c < m_tabla->model()->columnCount(); ++c)
+            if (m_tabla->horizontalHeader()->sectionResizeMode(c) == QHeaderView::Interactive)
+                m_tabla->setColumnWidth(c, qRound(m_tabla->columnWidth(c) * escala / anterior));
+        anterior = escala;
+    };
+    ajustarColumnas(m_zonaBanco->escala());
+    connect(m_zonaBanco, &ZonaAmpliable::escalaCambiada, this, ajustarColumnas);
     return w;
+}
+
+ZonaAmpliable *VentanaPrincipal::crearZona(QWidget *raiz, const QString &clave)
+{
+    // El tamaño de cada zona se recuerda de una vez a otra, como el de la vista del examen.
+    auto *zona = new ZonaAmpliable(raiz, this);
+    zona->ponerEscala(QSettings().value(clave, 1.0).toDouble());
+    connect(zona, &ZonaAmpliable::escalaCambiada, this, [this, clave](qreal escala) {
+        QSettings().setValue(clave, escala);
+        //: En la barra de estado, al ampliar o reducir un panel de la ventana; %1 es el porcentaje (125)
+        statusBar()->showMessage(tr("Tamaño de la letra al %1 %").arg(qRound(escala * 100)), 3000);
+    });
+    return zona;
+}
+
+void VentanaPrincipal::cambiarEscala(int pasos)
+{
+    const QWidget *bajoElPuntero = QApplication::widgetAt(QCursor::pos());
+    const auto *pestanas = qobject_cast<QTabWidget *>(centralWidget());
+    ZonaAmpliable *zona = nullptr;
+    if (m_zonaPanel->contiene(bajoElPuntero))
+        zona = m_zonaPanel;
+    else if (m_zonaBanco->contiene(bajoElPuntero) || (pestanas && pestanas->currentIndex() == 1))
+        zona = m_zonaBanco;
+    if (zona) {
+        if (pasos > 0)
+            zona->ampliar();
+        else if (pasos < 0)
+            zona->reducir();
+        else
+            zona->tamanoNormal();
+    } else if (pasos > 0) {
+        m_visorExamen->ampliar();
+    } else if (pasos < 0) {
+        m_visorExamen->reducir();
+    } else {
+        m_visorExamen->tamanoNormal();
+    }
 }
 
 void VentanaPrincipal::crearMenus()
@@ -2387,7 +2453,7 @@ void VentanaPrincipal::seleccionCambiada()
     if (!usos.isEmpty())
         html.replace(QStringLiteral("</body>"), tr("<p><b>Ha salido en:</b> %1</p></body>")
                                                     .arg(Maquetador::escapar(usos.join(QStringLiteral("; ")))));
-    ponerDocumento(m_ficha, Maquetador::crearDocumento(html, {p}, m_ficha));
+    m_ficha->ponerDocumento(Maquetador::crearDocumento(html, {p}, m_ficha));
 }
 
 DialogoPregunta::Despues VentanaPrincipal::editar(Pregunta p, DialogoPregunta::Despues boton, const QString &texto,
