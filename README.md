@@ -63,7 +63,7 @@ el zip para descargar en la página de la ejecución, durante 30 días. Al subir
 cada `push`.
 
 El mismo flujo prepara el paquete de macOS, `GeneradorExamenes-<versión>-macos.dmg`, para procesadores Apple e Intel
-(macOS 12 o posterior), con el objetivo `paquete` de CMake (`cmake/paquete_macos.cmake`) y un `LEEME.txt`
+(macOS 13 o posterior), con Qt 6.11, el objetivo `paquete` de CMake (`cmake/paquete_macos.cmake`) y un `LEEME.txt`
 (`recursos/LEEME_macos.txt`). No lleva la firma de pago de Apple, así que la primera vez hay que permitirlo en
 *Ajustes del Sistema → Privacidad y seguridad*. Queda para descargar en la ejecución y no se publica en las versiones
 hasta que se haya probado en un Mac.

@@ -1,7 +1,7 @@
 Generador de exámenes tipo test
 ===============================
 
-Necesita macOS 12 o posterior, en un Mac con procesador Apple o Intel.
+Necesita macOS 13 o posterior, en un Mac con procesador Apple o Intel.
 
 1. Arrastre GeneradorExamenes a la carpeta Aplicaciones.
 
@@ -20,7 +20,7 @@ Para pasar a una versión nueva, sustituya la aplicación por la nueva: la confi
 
 English
 -------
-Requires macOS 12 or later, on an Apple or Intel Mac. Drag GeneradorExamenes to the Applications folder and open it.
+Requires macOS 13 or later, on an Apple or Intel Mac. Drag GeneradorExamenes to the Applications folder and open it.
 The program does not carry Apple's paid signature, so macOS blocks it the first time: close the warning, go to
 System Settings → Privacy & Security, scroll down to Security and click "Open Anyway". The program asks for a
 question bank (a .db file) or creates a new one; no questions come with it. It starts in the language of the system
