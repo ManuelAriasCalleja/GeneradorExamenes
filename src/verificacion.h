@@ -3,6 +3,7 @@
 #include "pregunta.h"
 
 #include <QDialog>
+#include <QElapsedTimer>
 #include <QHash>
 #include <QStringList>
 #include <QVector>
@@ -116,6 +117,14 @@ public:
     // Si se ha guardado alguna con el editor.
     bool hayEditadas() const { return m_editadas; }
 
+    // Avisos de atención (se quitan con la casilla del diálogo): verificar muchas preguntas seguidas acaba siendo
+    // pulsar Intro por inercia.
+    // Lo mínimo que se tarda en leer la pregunta, en milisegundos, según sus palabras: si se marca como verificada
+    // antes, se avisa y hay que pulsar otra vez.
+    static int tiempoParaLeer(const Pregunta &p);
+    // Cada cuánto se propone una pausa, en milisegundos (25 minutos; las pruebas lo acortan).
+    void ponerPausaCada(int ms) { m_pausaCada = ms; }
+
 signals:
     // Se acaba de guardar en el banco la verificación de la pregunta 'id': quien ha abierto el diálogo puede poner al
     // día lo que se ve detrás (la lista, el examen) sin esperar a que se cierre.
@@ -133,6 +142,7 @@ private:
     void editarActual();
     // Cuántas de las preguntas que se recorren están ya verificadas, en número y en la barra.
     void ponerProgreso();
+    bool conAvisos() const;
 
     BaseDatos *m_bd;
     QVector<Pregunta> m_preguntas;
@@ -141,6 +151,12 @@ private:
     int m_actual = -1;
     QHash<int, int> m_cambiadas;   // id -> índice en m_preguntas
     bool m_editadas = false;
+    QElapsedTimer m_vista;         // desde que se ve la pregunta actual
+    QElapsedTimer m_sinParar;      // desde que se empezó, o desde la última pausa (propuesta o hecha)
+    int m_desdeLaPausa = 0;        // las verificadas desde entonces
+    int m_avisadaDePrisa = -1;     // índice de la pregunta de la que ya se ha avisado que se marcaba muy deprisa
+    int m_pausaCada = 25 * 60 * 1000;
+    QCheckBox *m_avisos;
 
     QLabel *m_posicion;
     QLabel *m_progreso;

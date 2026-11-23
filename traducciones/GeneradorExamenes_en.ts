@@ -1832,7 +1832,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>DialogoVerificadores</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="+207"/>
+        <location filename="../src/verificacion.cpp" line="+208"/>
         <source>Verificadores</source>
         <translation>Verifiers</translation>
     </message>
@@ -1920,7 +1920,17 @@ Do you want to save it anyway?</translation>
         <translation>Verification</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+9"/>
+        <source>Avisar si voy muy deprisa o llevo mucho rato sin parar</source>
+        <translation>Warn me if I go too fast or have been at it for a long time</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Avisa si se marca una pregunta como verificada sin que haya dado tiempo a leerla (hay que pulsar otra vez) y propone una pausa cada 25 minutos seguidos verificando.</source>
+        <translation>Warns you if a question is marked as verified before there has been time to read it (you have to click again) and suggests a break after every 25 minutes of verifying without stopping.</translation>
+    </message>
+    <message>
+        <location line="+12"/>
         <source>&amp;Anterior</source>
         <extracomment>Botón: pasa a la pregunta anterior de la lista (guarda lo que se haya marcado)</extracomment>
         <translation>&amp;Previous</translation>
@@ -1952,7 +1962,7 @@ Do you want to save it anyway?</translation>
         <translation>Close</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Pregunta %1 de %2: %3</source>
         <extracomment>Arriba del diálogo de verificar: «Pregunta 3 de 20: T1-7a»</extracomment>
         <translation>Question %1 of %2: %3</translation>
@@ -1969,7 +1979,7 @@ Do you want to save it anyway?</translation>
         <translation>&amp;Verified</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+24"/>
         <source>Verificadas: %1 de %2</source>
         <extracomment>Arriba del diálogo de verificar, junto a la barra de avance: «Verificadas: 12 de 20»</extracomment>
         <translation>Verified: %1 of %2</translation>
@@ -1982,12 +1992,23 @@ Do you want to save it anyway?</translation>
 %1</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+29"/>
+        <source>Apenas ha habido tiempo para leerla. Si ya la ha revisado, pulse otra vez.</source>
+        <translation>There has hardly been time to read it. If you have already reviewed it, click again.</translation>
+    </message>
+    <message>
+        <location line="+12"/>
         <source>Marque quién la ha verificado.</source>
         <translation>Tick who has verified it.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+11"/>
+        <source>Lleva %1 min verificando sin parar (preguntas verificadas: %2). Una pausa breve ayuda a mantener la atención.</source>
+        <extracomment>En el diálogo de verificar; %1 son minutos y %2, preguntas (más de una casi siempre)</extracomment>
+        <translation>You have been verifying for %1 min without stopping (questions verified: %2). A short break helps you stay focused.</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>Era la última de la lista.</source>
         <translation>That was the last one in the list.</translation>
     </message>
@@ -2537,7 +2558,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelVerificacion</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="-439"/>
+        <location filename="../src/verificacion.cpp" line="-488"/>
         <source>Verificada por humanos</source>
         <translation>Verified by humans</translation>
     </message>

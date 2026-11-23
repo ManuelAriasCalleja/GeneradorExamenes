@@ -17,6 +17,7 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QTextDocument>
 #include <QVBoxLayout>
@@ -370,9 +371,19 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     lg->addWidget(m_panel);
     m_aviso = new QLabel;
     m_aviso->setStyleSheet(QStringLiteral("color: #b45309"));
+    m_aviso->setObjectName(QStringLiteral("avisoVerificar"));
     m_aviso->hide();
     lg->addWidget(m_aviso);
+    m_avisos = new QCheckBox(tr("Avisar si voy muy deprisa o llevo mucho rato sin parar"));
+    m_avisos->setObjectName(QStringLiteral("avisosVerificar"));
+    m_avisos->setToolTip(tr("Avisa si se marca una pregunta como verificada sin que haya dado tiempo a leerla (hay que "
+                            "pulsar otra vez) y propone una pausa cada 25 minutos seguidos verificando."));
+    m_avisos->setChecked(QSettings().value(QStringLiteral("verificar/avisos"), true).toBool());
+    connect(m_avisos, &QCheckBox::toggled, this,
+            [](bool marcada) { QSettings().setValue(QStringLiteral("verificar/avisos"), marcada); });
+    lg->addWidget(m_avisos);
     l->addWidget(grupo);
+    m_sinParar.start();
     connect(m_panel, &PanelVerificacion::cambiado, m_aviso, &QWidget::hide);
 
     auto *fila = new QHBoxLayout;
@@ -413,6 +424,7 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
 void DialogoVerificar::mostrar(int indice)
 {
     m_actual = indice;
+    m_vista.start();
     const Pregunta &p = m_preguntas.at(indice);
     //: Arriba del diálogo de verificar: «Pregunta 3 de 20: T1-7a»
     m_posicion->setText(tr("Pregunta %1 de %2: %3").arg(indice + 1).arg(m_preguntas.size()).arg(p.codigoCompleto()));
@@ -426,6 +438,21 @@ void DialogoVerificar::mostrar(int indice)
     m_verificarYSeguir->setText(indice + 1 < m_preguntas.size() ? tr("&Verificada, siguiente")
                                                                  //: Botón (Intro) en la última pregunta: la marca como verificada
                                                                  : tr("&Verificada"));
+}
+
+bool DialogoVerificar::conAvisos() const
+{
+    return m_avisos->isChecked();
+}
+
+int DialogoVerificar::tiempoParaLeer(const Pregunta &p)
+{
+    // Lo que se lee al verificar: el enunciado, las opciones y la explicación. A unas 400 palabras por minuto, que es
+    // leer muy deprisa: por debajo no se ha leído. Entre 2 y 20 segundos.
+    static const QRegularExpression espacios(QStringLiteral("\\s+"));
+    const QString texto = p.enunciado + QLatin1Char(' ') + p.opciones.join(QLatin1Char(' ')) + QLatin1Char(' ') + p.explicacion;
+    const int palabras = int(texto.split(espacios, Qt::SkipEmptyParts).size());
+    return qBound(2000, palabras * 150, 20000);
 }
 
 void DialogoVerificar::ponerProgreso()
@@ -448,6 +475,7 @@ bool DialogoVerificar::guardar()
         QMessageBox::warning(this, windowTitle(), tr("No se pudo guardar la verificación:\n%1").arg(m_bd->ultimoError()));
         return false;
     }
+    m_desdeLaPausa += !p.verificada && m_panel->verificada() ? 1 : 0;
     p.verificada = m_panel->verificada();
     p.verificadores = p.verificada ? m_panel->verificadores() : QStringList();
     m_cambiadas.insert(p.id, m_actual);
@@ -469,6 +497,19 @@ void DialogoVerificar::verificarYSeguir()
 {
     if (m_actual < 0)
         return;
+    // Marcada antes de que haya dado tiempo a leerla: se avisa una vez, y hay que pulsar de nuevo.
+    if (conAvisos() && !m_preguntas.at(m_actual).verificada && m_avisadaDePrisa != m_actual
+        && m_vista.elapsed() < tiempoParaLeer(m_preguntas.at(m_actual))) {
+        m_avisadaDePrisa = m_actual;
+        m_aviso->setText(tr("Apenas ha habido tiempo para leerla. Si ya la ha revisado, pulse otra vez."));
+        m_aviso->show();
+        return;
+    }
+    // Si se ha estado un rato sin tocar nada, eso ya ha sido una pausa.
+    if (m_vista.elapsed() > 3 * 60 * 1000) {
+        m_sinParar.start();
+        m_desdeLaPausa = 0;
+    }
     m_panel->marcarVerificada();
     // Si el banco tiene verificadores, tiene que decir quién (la primera vez no hay «últimos» que proponer).
     if (m_panel->hayVerificadores() && m_panel->verificadores().isEmpty()) {
@@ -480,6 +521,15 @@ void DialogoVerificar::verificarYSeguir()
         return;
     if (m_actual + 1 < m_preguntas.size()) {
         mostrar(m_actual + 1);
+        // La atención baja al cabo de un rato de una tarea repetitiva: se propone una pausa.
+        if (conAvisos() && m_desdeLaPausa > 0 && m_sinParar.elapsed() >= m_pausaCada) {
+            //: En el diálogo de verificar; %1 son minutos y %2, preguntas (más de una casi siempre)
+            m_aviso->setText(tr("Lleva %1 min verificando sin parar (preguntas verificadas: %2). Una pausa breve ayuda a "
+                                "mantener la atención.").arg(m_sinParar.elapsed() / 60000).arg(m_desdeLaPausa));
+            m_aviso->show();
+            m_sinParar.start();
+            m_desdeLaPausa = 0;
+        }
     } else {
         m_aviso->setText(tr("Era la última de la lista."));
         m_aviso->show();

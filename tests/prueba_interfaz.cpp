@@ -1277,6 +1277,8 @@ private slots:
             QVERIFY(bd.anadirVerificador(QStringLiteral("Otra Persona")));
         }
         QSettings().clear();
+        // Sin los avisos de atención (los prueba verificarAvisaDeLaPrisaYDeLasPausas): aquí se pulsa sin esperar.
+        QSettings().setValue(QStringLiteral("verificar/avisos"), false);
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
@@ -1459,6 +1461,77 @@ private slots:
         QVERIFY(deUnaEnUna);
         QCOMPARE(conElDialogoAbierto, 0);
         QVERIFY2(!visor->toPlainText().contains(QStringLiteral("sin verificar")), qPrintable(visor->toPlainText()));
+        QSettings().clear();
+    }
+
+    // Al verificar: si se marca una pregunta sin tiempo para leerla, se avisa y hay que pulsar otra vez; y cada cierto
+    // tiempo seguido verificando, se propone una pausa. Con la casilla desmarcada, ni lo uno ni lo otro.
+    void verificarAvisaDeLaPrisaYDeLasPausas()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        BaseDatos bd;
+        QVERIFY(bd.abrir(ruta));
+        QVERIFY(bd.anadirVerificador(QStringLiteral("Persona Uno")));
+        QSettings().clear();
+
+        // El tiempo mínimo: según las palabras, entre 2 y 20 segundos.
+        Pregunta inventada;
+        QCOMPARE(DialogoVerificar::tiempoParaLeer(inventada), 2000);
+        inventada.enunciado = QStringLiteral("palabra ").repeated(60);
+        inventada.opciones = QStringList(4, QStringLiteral("dos palabras"));
+        inventada.explicacion = QStringLiteral("otras  dos\npalabras  más");
+        QCOMPARE(DialogoVerificar::tiempoParaLeer(inventada), 72 * 150);
+        inventada.enunciado = QStringLiteral("palabra ").repeated(1000);
+        QCOMPARE(DialogoVerificar::tiempoParaLeer(inventada), 20000);
+
+        const QVector<Pregunta> preguntas = bd.preguntas();
+        QVERIFY(preguntas.size() > 4);
+        DialogoVerificar d(&bd, preguntas, 0, bd.temas());
+        d.show();
+        auto *aviso = d.findChild<QLabel *>(QStringLiteral("avisoVerificar"));
+        auto *casilla = d.findChild<QCheckBox *>(QStringLiteral("avisosVerificar"));
+        QVERIFY(aviso && casilla && casilla->isChecked());
+        QPushButton *verificar = nullptr;
+        for (QPushButton *b : d.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("&Verificada, siguiente"))
+                verificar = b;
+        QVERIFY(verificar);
+        for (QCheckBox *c : d.findChildren<QCheckBox *>())
+            if (c->text() == QStringLiteral("Persona Uno"))
+                c->setChecked(true);
+
+        // Demasiado deprisa: no la marca ni pasa a la siguiente hasta que se pulsa otra vez.
+        verificar->click();
+        QVERIFY(aviso->isVisible());
+        QVERIFY2(aviso->text().startsWith(QStringLiteral("Apenas ha habido tiempo")), qPrintable(aviso->text()));
+        QCOMPARE(d.actual(), 0);
+        QVERIFY(!bd.preguntas().first().verificada);
+        verificar->click();
+        QCOMPARE(d.actual(), 1);
+        QVERIFY(!aviso->isVisible());
+        QVERIFY(bd.preguntas().first().verificada);
+
+        // La pausa, al pasar a la siguiente cuando ha pasado el tiempo.
+        d.ponerPausaCada(0);
+        verificar->click();
+        QCOMPARE(d.actual(), 1);
+        verificar->click();
+        QCOMPARE(d.actual(), 2);
+        QVERIFY(aviso->isVisible());
+        QVERIFY2(aviso->text().contains(QStringLiteral("(preguntas verificadas: 2)")), qPrintable(aviso->text()));
+        QVERIFY2(aviso->text().contains(QStringLiteral("pausa")), qPrintable(aviso->text()));
+
+        // Sin avisos (se recuerda): a la primera, y sin proponer pausas.
+        casilla->setChecked(false);
+        QCOMPARE(QSettings().value(QStringLiteral("verificar/avisos")).toBool(), false);
+        verificar->click();
+        QCOMPARE(d.actual(), 3);
+        QVERIFY(!aviso->isVisible());
+        d.reject();
+        DialogoVerificar otro(&bd, preguntas, 0, bd.temas());
+        QVERIFY(!otro.findChild<QCheckBox *>(QStringLiteral("avisosVerificar"))->isChecked());
         QSettings().clear();
     }
 
