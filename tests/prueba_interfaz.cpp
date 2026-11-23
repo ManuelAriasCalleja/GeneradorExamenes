@@ -89,6 +89,34 @@ void responder(const QString &boton, QString *texto = nullptr, const QString &de
     });
 }
 
+// El control de ese tipo (un botón, una casilla…) que hay en 'w' con ese texto; nullptr si no lo hay.
+template <class T>
+T *conTexto(const QWidget *w, const QString &texto)
+{
+    for (T *control : w->findChildren<T *>())
+        if (control->text() == texto)
+            return control;
+    return nullptr;
+}
+
+// Pulsa el botón de 'w' con ese texto; false si no lo hay.
+bool pulsar(const QWidget *w, const QString &texto)
+{
+    QPushButton *boton = conTexto<QPushButton>(w, texto);
+    if (boton)
+        boton->click();
+    return boton != nullptr;
+}
+
+// Marca (o desmarca) la casilla de 'w' con ese texto; false si no la hay.
+bool marcar(const QWidget *w, const QString &texto, bool marcada = true)
+{
+    QCheckBox *casilla = conTexto<QCheckBox>(w, texto);
+    if (casilla)
+        casilla->setChecked(marcada);
+    return casilla != nullptr;
+}
+
 // Banco inventado de ocho temas en 'ruta', que la ventana abre con diez preguntas de los temas 1 a 4 (3, 2, 3 y 2).
 bool crearBancoInventado(const QString &ruta)
 {
@@ -281,9 +309,7 @@ private slots:
             DialogoPregunta d(temasInventados(2), banco, banco.first());
             d.anadirBoton(despues, QStringLiteral("Guardar y otra cosa"));
             d.show();
-            for (QPushButton *b : d.findChildren<QPushButton *>())
-                if (b->text() == QStringLiteral("Guardar y otra cosa"))
-                    b->click();
+            pulsar(&d, QStringLiteral("Guardar y otra cosa"));
             QCOMPARE(d.result(), int(QDialog::Accepted));
             QCOMPARE(d.despues(), despues);
         }
@@ -291,9 +317,7 @@ private slots:
         DialogoPregunta d(temasInventados(2), banco, banco.first());
         d.anadirBoton(DialogoPregunta::Siguiente, QStringLiteral("Guardar y siguiente"));
         d.show();
-        for (QPushButton *b : d.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Guardar"))
-                b->click();
+        pulsar(&d, QStringLiteral("Guardar"));
         QCOMPARE(d.result(), int(QDialog::Accepted));
         QCOMPARE(d.despues(), DialogoPregunta::Cerrar);
     }
@@ -321,11 +345,7 @@ private slots:
             const QString boton = titulos.size() == 1 ? QStringLiteral("Guardar y siguiente") : QStringLiteral("Cancelar");
             if (titulos.size() == 1)
                 QTimer::singleShot(100, responderEditor);
-            for (QPushButton *b : w->findChildren<QPushButton *>())
-                if (b->text() == boton) {
-                    b->click();
-                    break;
-                }
+            pulsar(w, boton);
         };
         QTimer::singleShot(100, responderEditor);
         QMetaObject::invokeMethod(&v, "editarPregunta");
@@ -353,9 +373,7 @@ private slots:
         d.show();
         auto *arbol = d.findChild<QTreeWidget *>();
         arbol->setCurrentItem(arbol->topLevelItem(0));
-        for (QPushButton *b : d.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Editar la pregunta…"))
-                b->click();
+        pulsar(&d, QStringLiteral("Editar la pregunta…"));
         QCOMPARE(editadas, (QVector<int>{banco.at(0).id, banco.at(1).id, banco.at(2).id}));
         QCOMPARE(arbol->topLevelItemCount(), banco.size() - 3);
     }
@@ -374,10 +392,7 @@ private slots:
         QCOMPARE(grupos.size(), 10);
         // Hasta pulsar «Empezar» no se puede contestar ni corregir; el reloj arranca con la duración elegida.
         QVERIFY(!grupos.first()->button(0)->isEnabled());
-        QPushButton *empezar = nullptr;
-        for (QPushButton *b : p.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Empezar"))
-                empezar = b;
+        auto *empezar = conTexto<QPushButton>(&p, QStringLiteral("Empezar"));
         QVERIFY(empezar);
         QCOMPARE(p.duracionMinutos(), 45);
         p.findChild<QSpinBox *>()->setValue(50);
@@ -822,10 +837,7 @@ private slots:
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
-        QCheckBox *ajustar = nullptr;
-        for (QCheckBox *c : v.findChildren<QCheckBox *>())
-            if (c->text() == QStringLiteral("Ajustar a una página por cada 10 preguntas"))
-                ajustar = c;
+        auto *ajustar = conTexto<QCheckBox>(&v, QStringLiteral("Ajustar a una página por cada 10 preguntas"));
         QVERIFY(ajustar && ajustar->isChecked());
         QMetaObject::invokeMethod(&v, "generar");
         auto texto = [&v](const QString &parte) {
@@ -899,10 +911,7 @@ private slots:
         v.show();
         QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
         // El botón de generar no está en la zona con desplazamiento: siempre se ve.
-        QPushButton *generar = nullptr;
-        for (QPushButton *b : v.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Generar exámenes"))
-                generar = b;
+        auto *generar = conTexto<QPushButton>(&v, QStringLiteral("Generar exámenes"));
         QVERIFY(generar);
         for (QWidget *w = generar; w; w = w->parentWidget())
             QVERIFY(!qobject_cast<QScrollArea *>(w));
@@ -916,9 +925,7 @@ private slots:
                 if (!d)
                     return;
                 d->findChild<QLineEdit *>()->setText(carpeta);
-                for (QPushButton *b : d->findChildren<QPushButton *>())
-                    if (b->text() == QStringLiteral("Exportar"))
-                        b->click();
+                pulsar(d, QStringLiteral("Exportar"));
             });
             QVERIFY(QMetaObject::invokeMethod(&v, slot));
         }
@@ -929,16 +936,11 @@ private slots:
                 return;
             d->findChild<QLineEdit *>()->setText(carpeta);
             d->findChild<QCheckBox *>()->setChecked(true);
-            for (QPushButton *b : d->findChildren<QPushButton *>())
-                if (b->text() == QStringLiteral("Exportar"))
-                    b->click();
+            pulsar(d, QStringLiteral("Exportar"));
         });
         QVERIFY(QMetaObject::invokeMethod(&v, "exportarHtml"));
         // Tras exportar, la barra de estado ofrece abrir la carpeta.
-        QPushButton *abrir = nullptr;
-        for (QPushButton *b : v.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Abrir la carpeta"))
-                abrir = b;
+        auto *abrir = conTexto<QPushButton>(&v, QStringLiteral("Abrir la carpeta"));
         QVERIFY(abrir);
         QVERIFY(abrir->isVisible());
         QCOMPARE(abrir->toolTip(), QDir::toNativeSeparators(carpeta));
@@ -947,9 +949,7 @@ private slots:
         QVERIFY(QString::fromUtf8(conSoluciones.readAll()).contains(QStringLiteral("CON SOLUCIONES")));
         // Con «Letra grande», los ficheros llevan «-letra-grande» en el nombre.
         auto *letraGrande = v.findChild<QCheckBox *>(QString(), Qt::FindChildrenRecursively);
-        for (QCheckBox *c : v.findChildren<QCheckBox *>())
-            if (c->text() == QStringLiteral("Letra grande"))
-                letraGrande = c;
+        letraGrande = conTexto<QCheckBox>(&v, QStringLiteral("Letra grande"));
         QCOMPARE(letraGrande->text(), QStringLiteral("Letra grande"));
         letraGrande->setChecked(true);
         QTimer::singleShot(100, [&carpeta] {
@@ -957,9 +957,7 @@ private slots:
             if (!d)
                 return;
             d->findChild<QLineEdit *>()->setText(carpeta);
-            for (QPushButton *b : d->findChildren<QPushButton *>())
-                if (b->text() == QStringLiteral("Exportar"))
-                    b->click();
+            pulsar(d, QStringLiteral("Exportar"));
         });
         QVERIFY(QMetaObject::invokeMethod(&v, "exportarPdf"));
         // Por omisión, un fichero por examen (Nacional Original y Nacional Reserva) de cada tipo.
@@ -986,9 +984,7 @@ private slots:
             if (!d)
                 return;
             d->findChild<QLineEdit *>()->setText(moodle);
-            for (QPushButton *b : d->findChildren<QPushButton *>())
-                if (b->text() == QStringLiteral("Exportar"))
-                    b->click();
+            pulsar(d, QStringLiteral("Exportar"));
         });
         QVERIFY(QMetaObject::invokeMethod(&v, "exportarMoodle"));
         QFile f(moodle);
@@ -1150,11 +1146,7 @@ private slots:
             codigo = d->pregunta().codigoCompleto();
             d->findChild<QPlainTextEdit *>()->setPlainText(enunciado);
             responder(QStringLiteral("Guardar así"));   // por si avisa de alguna pauta
-            for (QPushButton *b : d->findChildren<QPushButton *>())
-                if (b->text() == QStringLiteral("Guardar")) {
-                    b->click();
-                    break;
-                }
+            pulsar(d, QStringLiteral("Guardar"));
         });
         editar->click();
         QVERIFY(!codigo.isEmpty());
@@ -1341,9 +1333,7 @@ private slots:
             for (QLabel *l : d->findChildren<QLabel *>())
                 if (l->isVisible() && l->text().startsWith(QStringLiteral("Marque")))
                     aviso = l->text();
-            for (QCheckBox *c : d->findChildren<QCheckBox *>())
-                if (c->text() == QStringLiteral("Persona Uno"))
-                    c->setChecked(true);
+            marcar(d, QStringLiteral("Persona Uno"));
             pulsar(d, QStringLiteral("&Verificada, siguiente"));
             // Se ve ya en la lista, con el diálogo abierto.
             enLaLista = tabla->model()->index(0, ModeloPreguntas::ColVerificada).data().toString();
@@ -1386,9 +1376,7 @@ private slots:
             auto *d = qobject_cast<DialogoPregunta *>(QApplication::activeModalWidget());
             if (!d)
                 return;
-            for (QCheckBox *c : d->findChildren<QCheckBox *>())
-                if (c->text() == QStringLiteral("Verificada por humanos"))
-                    c->setChecked(true);
+            marcar(d, QStringLiteral("Verificada por humanos"));
             responder(QStringLiteral("Guardar así"));
             pulsar(d, QStringLiteral("Guardar"));
         });
@@ -1418,10 +1406,7 @@ private slots:
         filtroTema->setCurrentIndex(0);
 
         // Al generar solo con las verificadas, solo salen las del tema 1, y la vista lo marca (no los ficheros).
-        QCheckBox *soloVerificadas = nullptr;
-        for (QCheckBox *c : v.findChildren<QCheckBox *>())
-            if (c->text() == QStringLiteral("Solo preguntas verificadas por humanos"))
-                soloVerificadas = c;
+        auto *soloVerificadas = conTexto<QCheckBox>(&v, QStringLiteral("Solo preguntas verificadas por humanos"));
         QVERIFY(soloVerificadas);
         QVERIFY(!soloVerificadas->isChecked());
         soloVerificadas->setChecked(true);
@@ -1495,14 +1480,9 @@ private slots:
         auto *aviso = d.findChild<QLabel *>(QStringLiteral("avisoVerificar"));
         auto *casilla = d.findChild<QCheckBox *>(QStringLiteral("avisosVerificar"));
         QVERIFY(aviso && casilla && casilla->isChecked());
-        QPushButton *verificar = nullptr;
-        for (QPushButton *b : d.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("&Verificada, siguiente"))
-                verificar = b;
+        auto *verificar = conTexto<QPushButton>(&d, QStringLiteral("&Verificada, siguiente"));
         QVERIFY(verificar);
-        for (QCheckBox *c : d.findChildren<QCheckBox *>())
-            if (c->text() == QStringLiteral("Persona Uno"))
-                c->setChecked(true);
+        marcar(&d, QStringLiteral("Persona Uno"));
 
         // Demasiado deprisa: no la marca ni pasa a la siguiente hasta que se pulsa otra vez.
         verificar->click();
@@ -1620,9 +1600,7 @@ private slots:
         QVERIFY2(aviso->text().contains(QStringLiteral("coincide con la del banco")), qPrintable(aviso->text()));
 
         // Sin responder, solo la enseña. Y las que ya están verificadas se ven enteras.
-        for (QPushButton *b : d.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("&Siguiente"))
-                b->click();
+        pulsar(&d, QStringLiteral("&Siguiente"));
         QCOMPARE(d.actual(), 2);
         boton()->click();
         QVERIFY(ficha->toPlainText().contains(QStringLiteral("Respuesta correcta")));
@@ -1769,9 +1747,7 @@ private slots:
         auto *semilla = v.findChild<GrupoPlegable *>(QStringLiteral("plegableOpciones"))->findChild<QLineEdit *>();
         QVERIFY(avisos && semilla);
         // Sin lo de «no hay ninguna convocatoria registrada», para ver solo los de aquí.
-        for (QCheckBox *c : v.findChildren<QCheckBox *>())
-            if (c->text() == QStringLiteral("Evitar las preguntas de las últimas"))
-                c->setChecked(false);
+        marcar(&v, QStringLiteral("Evitar las preguntas de las últimas"), false);
 
         // (Puede haber otros avisos de la generación, según cómo salgan los exámenes.)
         auto dice = [avisos](const QString &texto) { return avisos->isVisible() && avisos->text().contains(texto); };
@@ -1801,11 +1777,7 @@ private slots:
                 if (c->findText(QStringLiteral("Anulada")) >= 0)
                     c->setCurrentIndex(c->findText(QStringLiteral("Anulada")));
             responder(QStringLiteral("Guardar así"));
-            for (QPushButton *b : d->findChildren<QPushButton *>())
-                if (b->text() == QStringLiteral("Guardar")) {
-                    b->click();
-                    break;
-                }
+            pulsar(d, QStringLiteral("Guardar"));
         });
         QVERIFY(QMetaObject::invokeMethod(&v, "editarPreguntaExamen"));
         QVERIFY(avisos->isVisible());
@@ -1889,10 +1861,7 @@ private slots:
         QCOMPARE(QSettings().value(QStringLiteral("vista/escala")).toDouble(), 1.25);
 
         // Con el teclado, aunque el foco esté en otro sitio de la pestaña.
-        QPushButton *generar = nullptr;
-        for (QPushButton *b : v.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Generar exámenes"))
-                generar = b;
+        auto *generar = conTexto<QPushButton>(&v, QStringLiteral("Generar exámenes"));
         QVERIFY(generar);
         generar->setFocus();
         QTest::keyClick(generar, Qt::Key_Minus, Qt::ControlModifier);
@@ -1914,10 +1883,7 @@ private slots:
 
         // El examen que se pone después en la vista (aquí, con soluciones) sale con la misma escala.
         visor->tamanoNormal();
-        QCheckBox *soluciones = nullptr;
-        for (QCheckBox *c : v.findChildren<QCheckBox *>())
-            if (c->text() == QStringLiteral("Mostrar soluciones"))
-                soluciones = c;
+        auto *soluciones = conTexto<QCheckBox>(&v, QStringLiteral("Mostrar soluciones"));
         QVERIFY(soluciones);
         soluciones->setChecked(true);
         const QVector<qreal> conSoluciones = tamanos(visor->document());
@@ -1951,10 +1917,7 @@ private slots:
         auto *ficha = v.findChild<VisorAmpliable *>(QStringLiteral("fichaBanco"));
         auto *tabla = v.findChild<QTableView *>();
         auto *pestanas = v.findChild<QTabWidget *>();
-        QPushButton *generar = nullptr;
-        for (QPushButton *b : v.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Generar exámenes"))
-                generar = b;
+        auto *generar = conTexto<QPushButton>(&v, QStringLiteral("Generar exámenes"));
         QVERIFY(visor && ficha && tabla && pestanas && generar);
         // Una casilla numérica del panel izquierdo (el botón está en él, debajo de las opciones).
         QSpinBox *numero = nullptr;
@@ -2051,10 +2014,7 @@ private slots:
         rueda(generar, 120);
         rueda(generar, 120);
         VentanaPrincipal otra;
-        QPushButton *otroGenerar = nullptr;
-        for (QPushButton *b : otra.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Generar exámenes"))
-                otroGenerar = b;
+        auto *otroGenerar = conTexto<QPushButton>(&otra, QStringLiteral("Generar exámenes"));
         QVERIFY(otroGenerar);
         QCOMPARE(letra(otroGenerar), normal * 1.25);
         QCOMPARE(letra(otra.findChild<QTableView *>()), normalTabla * 1.1);
@@ -2162,10 +2122,7 @@ private slots:
             if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
                 visor = t;
         QVERIFY(visor);
-        QPushButton *registrar = nullptr;
-        for (QPushButton *b : v.findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Registrar convocatoria…"))
-                registrar = b;
+        auto *registrar = conTexto<QPushButton>(&v, QStringLiteral("Registrar convocatoria…"));
         QVERIFY(registrar);
         // Sin exportar, se generan otros sin preguntar.
         QMetaObject::invokeMethod(&v, "generar");
@@ -2178,9 +2135,7 @@ private slots:
             if (!d)
                 return;
             d->findChild<QLineEdit *>()->setText(carpeta);
-            for (QPushButton *b : d->findChildren<QPushButton *>())
-                if (b->text() == QStringLiteral("Exportar"))
-                    b->click();
+            pulsar(d, QStringLiteral("Exportar"));
         });
         QVERIFY(QMetaObject::invokeMethod(&v, "exportarPdf"));
         QVERIFY(!registrar->styleSheet().isEmpty());
@@ -2350,10 +2305,7 @@ private slots:
         // El botón «Ayuda» del editor la abre por su apartado, hija del editor: si no, el editor (modal) la bloquearía.
         auto *editor = new DialogoPregunta(temasInventados(2), bancoInventado(2, 5), nuevaEn(1, 6));
         editor->show();
-        QPushButton *boton = nullptr;
-        for (QPushButton *b : editor->findChildren<QPushButton *>())
-            if (b->text() == QStringLiteral("Ayuda"))
-                boton = b;
+        auto *boton = conTexto<QPushButton>(editor, QStringLiteral("Ayuda"));
         QVERIFY(boton);
         boton->click();
         QPointer<DialogoAyuda> delEditor = editor->findChild<DialogoAyuda *>();
@@ -2366,10 +2318,7 @@ private slots:
         VentanaPrincipal v;
         v.show();
         v.findChild<QTabWidget *>()->setCurrentIndex(1);
-        QAction *manual = nullptr;
-        for (QAction *a : v.findChildren<QAction *>())
-            if (a->text() == QStringLiteral("&Manual de uso"))
-                manual = a;
+        auto *manual = conTexto<QAction>(&v, QStringLiteral("&Manual de uso"));
         QVERIFY(manual);
         manual->trigger();
         QVERIFY(!delEditor);
@@ -2518,10 +2467,7 @@ private slots:
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
-        QAction *acerca = nullptr;
-        for (QAction *a : v.findChildren<QAction *>())
-            if (a->text() == QStringLiteral("&Acerca de…"))
-                acerca = a;
+        auto *acerca = conTexto<QAction>(&v, QStringLiteral("&Acerca de…"));
         QVERIFY(acerca);
         QString texto;
         responder(QStringLiteral("OK"), &texto);
