@@ -2,6 +2,7 @@
 
 #include "datos_prueba.h"
 #include "exportacion.h"
+#include "latex.h"
 #include "generador.h"
 #include "maquetador.h"
 
@@ -193,7 +194,7 @@ private slots:
         };
         auto alLado = [](const Modelo &m, int nivel, bool soluciones = false) {
             const QString html = Maquetador::examenHtml(m, convocatoria(), soluciones, nivel);
-            const QString tex = Maquetador::examenesLatex({m}, convocatoria(), soluciones, QStringLiteral("img"), nivel);
+            const QString tex = Latex::examenes({m}, convocatoria(), soluciones, QStringLiteral("img"), nivel);
             const bool htmlAlLado = html.contains(QStringLiteral("<td valign=\"top\"><img src=\"img:"));
             const bool texAlLado = tex.contains(QStringLiteral("\\raisebox{\\dimexpr\\ht\\strutbox-\\height}{\\includegraphics"));
             // Una cosa o la otra, igual en los dos formatos.
@@ -246,7 +247,7 @@ private slots:
         QVERIFY(!grande.contains(QStringLiteral("font-style:italic")));
 
         // En LaTeX: \LARGE para todo el modelo, más separación y una opción por línea.
-        const QString tex = Maquetador::examenesLatex({m}, d, false, QStringLiteral("img"), Maquetador::kLetraGrande);
+        const QString tex = Latex::examenes({m}, d, false, QStringLiteral("img"), Maquetador::kLetraGrande);
         QVERIFY(tex.contains(QStringLiteral("\\renewcommand{\\letraexamen}{\\LARGE}")));
         QVERIFY(tex.contains(QStringLiteral("\\setlength{\\seppregunta}{14pt}")));
         QVERIFY(tex.contains(QStringLiteral("{\\huge\\bfseries ")));
@@ -290,11 +291,11 @@ private slots:
         const qsizetype donde = con.indexOf(QStringLiteral("Explicación:"));
         QVERIFY(donde > con.indexOf(QStringLiteral("name=\"q1\"")) && donde < con.indexOf(QStringLiteral("name=\"q2\"")));
 
-        const QString tex = Maquetador::examenesLatex({m}, convocatoria(), true, QStringLiteral("img"));
-        QVERIFY(tex.contains(QStringLiteral("\\textcolor{verde}{\\textbf{Explicación:}} ") + Maquetador::escaparLatex(explicacion)));
+        const QString tex = Latex::examenes({m}, convocatoria(), true, QStringLiteral("img"));
+        QVERIFY(tex.contains(QStringLiteral("\\textcolor{verde}{\\textbf{Explicación:}} ") + Latex::escapar(explicacion)));
         QCOMPARE(tex.count(QStringLiteral("\\textbf{Explicación:}")), 1);
         QCOMPARE(tex.count(QStringLiteral("\\textbf{Referencia:}")), m.preguntas.size() - 1);
-        QVERIFY(!Maquetador::examenesLatex({m}, convocatoria(), false, QStringLiteral("img")).contains(QStringLiteral("Explicación:")));
+        QVERIFY(!Latex::examenes({m}, convocatoria(), false, QStringLiteral("img")).contains(QStringLiteral("Explicación:")));
 
         // Algo menor que el examen (un punto; en LaTeX, un tamaño), salvo con letra grande: igual en el PDF y en LaTeX.
         auto letra = [&m](int nivel) {
@@ -303,7 +304,7 @@ private slots:
             return html.mid(donde, html.indexOf(QLatin1Char('"'), donde) - donde);
         };
         auto letraLatex = [&m](int nivel) {
-            const QString tex = Maquetador::examenesLatex({m}, convocatoria(), true, QStringLiteral("img"), nivel);
+            const QString tex = Latex::examenes({m}, convocatoria(), true, QStringLiteral("img"), nivel);
             const qsizetype donde = tex.lastIndexOf(QStringLiteral("\\vspace{2pt}{"), tex.indexOf(QStringLiteral("\\textbf{Explicación:}")));
             return tex.mid(donde + 13, tex.indexOf(QStringLiteral("\\leftskip"), donde) - donde - 13);
         };
@@ -322,7 +323,7 @@ private slots:
         const QString titulo = QStringLiteral("Plantilla de corrección: Examen 1");
         const QString hoja = Maquetador::solucionesHtml({m}, convocatoria());
         QVERIFY(hoja.contains(titulo));
-        const QString tex = Maquetador::examenesLatex({m}, convocatoria(), true, QStringLiteral("img"));
+        const QString tex = Latex::examenes({m}, convocatoria(), true, QStringLiteral("img"));
         QVERIFY(tex.contains(titulo));
         for (int i = 0; i < m.preguntas.size(); ++i) {
             const QString letra(Pregunta::letraMayuscula(m.preguntas.at(i).correcta()));
@@ -353,12 +354,12 @@ private slots:
         const Modelo m = examenes(bancoInventado(), 3, 1).first();
         DatosConvocatoria d = convocatoria();
         d.asignatura.clear();
-        const QString tex = Maquetador::examenesLatex({m}, d, true, QStringLiteral("img"));
+        const QString tex = Latex::examenes({m}, d, true, QStringLiteral("img"));
         QVERIFY(!tex.contains(QStringLiteral("\\bfseries }")));
         QCOMPARE(tex.count(QStringLiteral("\\begin{minipage}[t]{0.58\\linewidth}\nJunio 2026\n\\end{minipage}")), 2);   // hoja y examen
         QVERIFY(Maquetador::examenHtml(m, d, false).contains(QStringLiteral("<td>Junio 2026</td>")));
         d.asignatura = QStringLiteral("Asignatura inventada");
-        QVERIFY(Maquetador::examenesLatex({m}, d, false, QStringLiteral("img")).contains(QStringLiteral("{\\Large\\bfseries Asignatura inventada}\\\\\nJunio 2026\n")));
+        QVERIFY(Latex::examenes({m}, d, false, QStringLiteral("img")).contains(QStringLiteral("{\\Large\\bfseries Asignatura inventada}\\\\\nJunio 2026\n")));
         QVERIFY(Maquetador::examenHtml(m, d, false).contains(QStringLiteral("Asignatura inventada</span><br>Junio 2026</td>")));
     }
 
@@ -370,7 +371,7 @@ private slots:
         d.asignatura = QStringLiteral("Asignatura inventada");
         QString html = Maquetador::examenHtml(m, d, false);
         QVERIFY(html.contains(QStringLiteral("Asignatura inventada</span><br>Junio 2026</td>")));
-        QString tex = Maquetador::examenesLatex({m}, d, true, QStringLiteral("img"));
+        QString tex = Latex::examenes({m}, d, true, QStringLiteral("img"));
         QVERIFY(tex.contains(QStringLiteral("\\empezarmodelo{Asignatura inventada · Examen 1 · Junio 2026}")));
         QVERIFY(tex.contains(QStringLiteral("\\empezarmodelo{Asignatura inventada · Soluciones · Junio 2026}")));
         // Solo la convocatoria arriba y solo la asignatura abajo.
@@ -379,7 +380,7 @@ private slots:
         html = Maquetador::examenHtml(m, d, false);
         QVERIFY(!html.contains(QStringLiteral("Asignatura inventada")));
         QVERIFY(html.contains(QStringLiteral("<td>Junio 2026</td>")));
-        tex = Maquetador::examenesLatex({m}, d, false, QStringLiteral("img"));
+        tex = Latex::examenes({m}, d, false, QStringLiteral("img"));
         QVERIFY(tex.contains(QStringLiteral("\\empezarmodelo{Asignatura inventada · Examen 1}")));
         QVERIFY(tex.contains(QStringLiteral("\\begin{minipage}[t]{0.58\\linewidth}\nJunio 2026\n\\end{minipage}")));
         // Nada arriba: sin cabecera, y el recuadro de las instrucciones, sin espacio encima; abajo, solo el examen.
@@ -388,7 +389,7 @@ private slots:
         html = Maquetador::examenHtml(m, d, false);
         QVERIFY(!html.contains(QStringLiteral("Junio 2026")));
         QVERIFY(html.contains(QStringLiteral("style=\"margin-top:0px; border-collapse")));
-        tex = Maquetador::examenesLatex({m}, d, false, QStringLiteral("img"));
+        tex = Latex::examenes({m}, d, false, QStringLiteral("img"));
         QVERIFY(!tex.contains(QStringLiteral("{0.58\\linewidth}")));
         QVERIFY(tex.contains(QStringLiteral("\\empezarmodelo{Examen 1}")));
         // La hoja de soluciones conserva su título a la derecha.
@@ -431,7 +432,7 @@ private slots:
         const QString linea = QStringLiteral("Respuesta correcta: +0,50 puntos · incorrecta: −0,15 puntos · en blanco: 0 puntos");
         const QString html = Maquetador::examenHtml(m, d, false);
         QVERIFY(html.contains(linea));
-        QVERIFY(Maquetador::examenesLatex({m}, d, false, QStringLiteral("img")).contains(linea));
+        QVERIFY(Latex::examenes({m}, d, false, QStringLiteral("img")).contains(linea));
         // En la maqueta normal, el recuadro tiene tres líneas: las dos de las instrucciones y la de la puntuación.
         const std::unique_ptr<QTextDocument> doc(Maquetador::crearDocumento(html, {}, nullptr));
         doc->setTextWidth(174 / 25.4 * QGuiApplication::primaryScreen()->logicalDotsPerInchY());
@@ -455,11 +456,11 @@ private slots:
         QVERIFY(!Maquetador::examenesHtml({m}, d, false).contains(QStringLiteral("987654")));
         QVERIFY(!Maquetador::examenHtml(m, d, true, 0, true).contains(QStringLiteral("987654")));
         // En LaTeX, en un comentario del principio y en las propiedades del PDF; con soluciones, también en la hoja.
-        QString tex = Maquetador::examenesLatex({m}, d, false, QStringLiteral("img"));
+        QString tex = Latex::examenes({m}, d, false, QStringLiteral("img"));
         QVERIFY(tex.section(QLatin1Char('\n'), 0, 0).endsWith(semilla));
         QVERIFY(tex.contains(QStringLiteral("\\ifdefined\\pdfinfo\\pdfinfo{/Subject (Semilla: 987654)}\\fi")));
         QVERIFY(!tex.section(QStringLiteral("\n\\begin{document}\n"), 1).contains(QStringLiteral("987654")));
-        tex = Maquetador::examenesLatex({m}, d, true, QStringLiteral("img"));
+        tex = Latex::examenes({m}, d, true, QStringLiteral("img"));
         QVERIFY(tex.section(QStringLiteral("\n\\begin{document}\n"), 1).contains(semilla));
         // Con preguntas cambiadas a mano, la semilla ya no los reproduce, y se dice.
         d.cambiadosAMano = true;
@@ -467,7 +468,7 @@ private slots:
         // Sin semilla, nada.
         d.semilla = 0;
         QVERIFY(!Maquetador::solucionesHtml({m}, d).contains(QStringLiteral("Semilla")));
-        QVERIFY(!Maquetador::examenesLatex({m}, d, true, QStringLiteral("img")).contains(QStringLiteral("Semilla")));
+        QVERIFY(!Latex::examenes({m}, d, true, QStringLiteral("img")).contains(QStringLiteral("Semilla")));
         // El HTML y el PDF, en sus propiedades.
         d.semilla = 987654;
         d.cambiadosAMano = false;
@@ -492,7 +493,7 @@ private slots:
         QCOMPARE(vista.count(QStringLiteral("sin verificar")), int(m.preguntas.size()) - 2);
         // En los ficheros (y en la vista si no se pide), nada.
         for (const QString &texto : {Maquetador::examenHtml(m, convocatoria(), true), Maquetador::examenesHtml({m}, convocatoria(), true),
-                                     Maquetador::examenesLatex({m}, convocatoria(), true, QStringLiteral("img"))})
+                                     Latex::examenes({m}, convocatoria(), true, QStringLiteral("img"))})
             QVERIFY(!texto.contains(QStringLiteral("verificad")));
         // La ficha de la pregunta lo dice.
         QVERIFY(Maquetador::fichaPreguntaHtml(m.preguntas[0].pregunta, QString()).contains(QStringLiteral("verificada por Persona Uno, Otra Persona")));
@@ -554,7 +555,7 @@ private slots:
 
     void latexEscapaLosCaracteresEspeciales()
     {
-        QCOMPARE(Maquetador::escaparLatex(QStringLiteral("50% & $5 #1 a_b {x}")),
+        QCOMPARE(Latex::escapar(QStringLiteral("50% & $5 #1 a_b {x}")),
                  QStringLiteral("50\\% \\& \\$5 \\#1 a\\_b \\{x\\}"));
     }
 };

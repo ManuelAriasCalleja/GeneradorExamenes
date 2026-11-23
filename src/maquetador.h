@@ -111,13 +111,7 @@ public:
     // de corrección («1 C», «2 A»…) y el código, la respuesta y la referencia de cada pregunta.
     static QString solucionesHtml(const QVector<Modelo> &modelos, const DatosConvocatoria &datos);
 
-    // Documento LaTeX (para pdflatex) con todos los modelos, cada uno en página nueva con su pie «…: página / total»
-    // (hay que compilar dos veces). Con 'soluciones', como el PDF de soluciones: empieza por la hoja de soluciones
-    // (estructura y plantilla de corrección de cada modelo), marca las correctas y pone debajo de cada pregunta su
-    // explicación y su referencia. Las imágenes se enlazan como «carpetaImagenes/<código>.png»: las guarda quien llama.
-    static QString examenesLatex(const QVector<Modelo> &modelos, const DatosConvocatoria &datos, bool soluciones,
-                                 const QString &carpetaImagenes, int nivel = 0);
-    static QString escaparLatex(const QString &texto);
+    // Nombre del fichero de la imagen de la pregunta en las exportaciones que las llevan aparte (HTML, LaTeX, Moodle).
     static QString nombreImagen(const Pregunta &p) { return p.codigoCompleto() + QStringLiteral(".png"); }
 
     // Crea un documento con el HTML dado y las imágenes de las preguntas como recursos "img:<id>".
@@ -153,7 +147,4 @@ private:
     static QString cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones, int nivel,
                                 bool conPlantilla, bool marcarVerificadas = false);
     static QString cuerpoSoluciones(const QVector<Modelo> &modelos, const DatosConvocatoria &datos);
-    static QString cuerpoExamenLatex(const Modelo &modelo, const DatosConvocatoria &datos, bool soluciones,
-                                     const QString &carpetaImagenes, int nivel);
-    static QString solucionesLatex(const QVector<Modelo> &modelos, const DatosConvocatoria &datos);
 };

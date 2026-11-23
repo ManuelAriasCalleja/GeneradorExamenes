@@ -2,7 +2,7 @@
 
 // Lo que comparten las maquetas de los exámenes (la vista y el PDF, el HTML, el LaTeX y el Word): los niveles de la
 // maqueta, cómo se reparten las opciones, el tamaño de las imágenes y los textos fijos que pone el programa. Es
-// interno: lo usan maquetador.cpp, docx.cpp y exportacion.cpp.
+// interno: lo usan maquetador.cpp, latex.cpp, docx.cpp y exportacion.cpp.
 
 #include "maquetador.h"
 

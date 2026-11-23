@@ -39,6 +39,7 @@ qt_add_library(nucleo STATIC
     src/resaltado.h src/resaltado.cpp
     src/estilo.h src/estilo.cpp
     src/exportacion.h src/exportacion.cpp
+    src/latex.h src/latex.cpp
     src/docx.h src/docx.cpp
     src/zip.h src/zip.cpp
     src/parecidas.h src/parecidas.cpp

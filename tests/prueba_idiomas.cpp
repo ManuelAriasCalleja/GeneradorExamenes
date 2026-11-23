@@ -7,6 +7,7 @@
 #include "generador.h"
 #include "idioma.h"
 #include "maquetador.h"
+#include "latex.h"
 #include "moodle.h"
 
 #include <QCoreApplication>
@@ -139,13 +140,13 @@ private slots:
         QVERIFY(soluciones.contains(QStringLiteral("Session structure")));
         QVERIFY(soluciones.contains(QStringLiteral("Answer key: Modelo inventado")));
         QVERIFY(html.contains(QStringLiteral("Reference:</span>")));
-        const QString tex = Maquetador::examenesLatex({m}, en, true, QStringLiteral("imagenes"));
+        const QString tex = Latex::examenes({m}, en, true, QStringLiteral("imagenes"));
         QVERIFY(tex.contains(QStringLiteral("\\usepackage[english]{babel}")));
         QVERIFY(tex.contains(QStringLiteral("blank: 0 points")));
         // El mismo examen en castellano, como siempre.
         const DatosConvocatoria es = convocatoria(QStringLiteral("es"));
         QVERIFY(Maquetador::examenHtml(m, es, true).contains(QStringLiteral("Respuesta correcta: +1,00 puntos")));
-        QVERIFY(Maquetador::examenesLatex({m}, es, true, QStringLiteral("imagenes")).contains(QStringLiteral("[spanish,es-noshorthands]{babel}")));
+        QVERIFY(Latex::examenes({m}, es, true, QStringLiteral("imagenes")).contains(QStringLiteral("[spanish,es-noshorthands]{babel}")));
     }
 
     void moodleEnIngles()

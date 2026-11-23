@@ -565,7 +565,7 @@
     </message>
     <message>
         <location line="+0"/>
-        <location filename="../tests/prueba_idiomas.cpp" line="+84"/>
+        <location filename="../tests/prueba_idiomas.cpp" line="+85"/>
         <source>aviso</source>
         <translation>warning</translation>
     </message>
@@ -2238,28 +2238,28 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
+        <location filename="../src/latex.cpp" line="+265"/>
         <location filename="../src/docx.cpp" line="+742"/>
-        <location filename="../src/maquetador.cpp" line="+361"/>
-        <location line="+885"/>
+        <location filename="../src/maquetador.cpp" line="+353"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location filename="../src/maquetador.cpp" line="-884"/>
-        <location line="+885"/>
+        <location filename="../src/docx.cpp" line="+1"/>
+        <location filename="../src/maquetador.cpp" line="+1"/>
         <source>Referencia:</source>
         <translation>Reference:</translation>
     </message>
     <message>
-        <location line="+134"/>
-        <location filename="../src/maquetador.cpp" line="-874"/>
-        <location line="+1111"/>
+        <location line="+163"/>
+        <location filename="../src/docx.cpp" line="+134"/>
+        <location filename="../src/maquetador.cpp" line="+11"/>
         <source>Plantilla de corrección: %1</source>
         <translation>Answer key: %1</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="-1323"/>
+        <location filename="../src/maquetador.cpp" line="-204"/>
         <source>Respuesta correcta: +%1 puntos · incorrecta: −%2 puntos · en blanco: 0 puntos</source>
         <extracomment>Puntuación del examen, en una línea bajo las instrucciones. %1 son los puntos de un acierto (1,00) y %2 los que resta un fallo (0,30); el signo menos es «−» (U+2212)</extracomment>
         <translation>Correct answer: +%1 points · incorrect: −%2 points · blank: 0 points</translation>
@@ -2277,26 +2277,26 @@ Do you want to save it anyway?</translation>
         <translation> (with questions changed by hand)</translation>
     </message>
     <message>
-        <location line="+236"/>
+        <location line="+228"/>
         <source>Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.
 No entregue el enunciado.</source>
         <translation>Mark the correct answer on the answer sheet only.
 Do not hand in the question paper.</translation>
     </message>
     <message>
+        <location filename="../src/latex.cpp" line="-74"/>
         <location filename="../src/docx.cpp" line="-61"/>
         <location filename="../src/maquetador.cpp" line="+272"/>
-        <location line="+729"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+43"/>
+        <location line="+114"/>
+        <location filename="../src/docx.cpp" line="+18"/>
         <location line="+88"/>
-        <location filename="../src/maquetador.cpp" line="-675"/>
+        <location filename="../src/maquetador.cpp" line="+54"/>
         <location line="+210"/>
-        <location line="+443"/>
-        <location line="+65"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
         <location line="+1"/>
         <location line="+2"/>
@@ -2305,24 +2305,24 @@ Do not hand in the question paper.</translation>
         <translation>Solutions</translation>
     </message>
     <message>
-        <location line="-71"/>
-        <location filename="../src/maquetador.cpp" line="-709"/>
-        <location line="+728"/>
+        <location line="-95"/>
+        <location filename="../src/docx.cpp" line="-71"/>
+        <location filename="../src/maquetador.cpp" line="-201"/>
         <source>Estructura de la convocatoria</source>
         <translation>Session structure</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-10"/>
+        <location filename="../src/docx.cpp" line="+2"/>
         <location line="+6"/>
-        <location filename="../src/maquetador.cpp" line="-727"/>
-        <location line="+717"/>
+        <location filename="../src/maquetador.cpp" line="+1"/>
         <source>Examen</source>
         <translation>Exam</translation>
     </message>
     <message>
-        <location line="+34"/>
-        <location filename="../src/maquetador.cpp" line="-1079"/>
-        <location line="+1114"/>
+        <location line="+35"/>
+        <location filename="../src/docx.cpp" line="+34"/>
+        <location filename="../src/maquetador.cpp" line="-362"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
@@ -2441,7 +2441,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-903"/>
+        <location filename="../src/maquetador.cpp" line="+211"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>

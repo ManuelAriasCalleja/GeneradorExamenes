@@ -1,4 +1,5 @@
 #include "exportacion.h"
+#include "latex.h"
 #include "docx.h"
 #include "maqueta.h"
 #include "utilidades.h"
@@ -64,7 +65,7 @@ bool html(const QString &ruta, const QVector<Modelo> &modelos, const DatosConvoc
 bool latex(const QString &ruta, const QVector<Modelo> &modelos, const DatosConvocatoria &datos, bool soluciones, int nivel)
 {
     const QString carpeta = guardarImagenes(ruta, modelos);
-    return escribir(ruta, Maquetador::examenesLatex(modelos, datos, soluciones, carpeta, nivel).toUtf8());
+    return escribir(ruta, Latex::examenes(modelos, datos, soluciones, carpeta, nivel).toUtf8());
 }
 
 bool docx(const QString &ruta, const QVector<Modelo> &modelos, const DatosConvocatoria &datos, bool soluciones, int nivel)

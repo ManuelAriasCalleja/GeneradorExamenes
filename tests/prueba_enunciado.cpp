@@ -4,6 +4,7 @@
 #include "datos_prueba.h"
 #include "enunciado.h"
 #include "maquetador.h"
+#include "latex.h"
 #include "resaltado.h"
 
 #include <QTextBlock>
@@ -46,7 +47,7 @@ QString latex(const QString &enunciado)
     pe.pregunta = bancoInventado(1, 1).first();
     pe.pregunta.enunciado = enunciado;
     m.preguntas << pe;
-    return Maquetador::examenesLatex({m}, DatosConvocatoria(), false, QStringLiteral("img"), 0);
+    return Latex::examenes({m}, DatosConvocatoria(), false, QStringLiteral("img"), 0);
 }
 
 } // namespace
@@ -223,7 +224,7 @@ private slots:
         pe.pregunta = bancoInventado(1, 1).first();
         pe.pregunta.enunciado = QStringLiteral("A:\n\nB:");
         m.preguntas << pe;
-        const QString tex = Maquetador::examenesLatex({m}, DatosConvocatoria(), false, QStringLiteral("img"), 0);
+        const QString tex = Latex::examenes({m}, DatosConvocatoria(), false, QStringLiteral("img"), 0);
         QVERIFY(tex.contains(QStringLiteral("\\enunciado{1.- A:\\\\\\relax\nB:}")));
     }
 };

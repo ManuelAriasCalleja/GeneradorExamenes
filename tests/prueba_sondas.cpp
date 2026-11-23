@@ -12,6 +12,7 @@
 #include "estilo.h"
 #include "examenesanteriores.h"
 #include "exportacion.h"
+#include "latex.h"
 #include "generador.h"
 #include "maquetador.h"
 #include "moodle.h"
@@ -275,10 +276,10 @@ private slots:
         QRandomGenerator rng(11);
         for (int i = 0; i < vueltas(2000); ++i) {
             const QString texto = textoRaro(rng, rng.bounded(12));
-            const QString resto = sinEscapes(Maquetador::escaparLatex(texto));
+            const QString resto = sinEscapes(Latex::escapar(texto));
             for (const QChar c : QStringLiteral("\\{}$&#_%~^"))
-                QVERIFY2(!resto.contains(c), qPrintable(QStringLiteral("«%1» deja «%2» en «%3»").arg(texto, QString(c), Maquetador::escaparLatex(texto))));
-            QVERIFY2(!Maquetador::escaparLatex(texto).contains(QStringLiteral("--")),
+                QVERIFY2(!resto.contains(c), qPrintable(QStringLiteral("«%1» deja «%2» en «%3»").arg(texto, QString(c), Latex::escapar(texto))));
+            QVERIFY2(!Latex::escapar(texto).contains(QStringLiteral("--")),
                      qPrintable(QStringLiteral("«%1»: «--» haría una raya").arg(texto)));
         }
     }
@@ -306,7 +307,7 @@ private slots:
                     const std::unique_ptr<QTextDocument> doc(Maquetador::crearDocumento(html, preguntas, nullptr));
                     doc->setPageSize(QSizeF(650, 900));
                     QVERIFY(doc->pageCount() >= 1);
-                    QVERIFY(!Maquetador::examenesLatex({m}, d, soluciones, QStringLiteral("img"), nivel).isEmpty());
+                    QVERIFY(!Latex::examenes({m}, d, soluciones, QStringLiteral("img"), nivel).isEmpty());
                     const QMap<QString, QByteArray> partes = Docx::partes({m, m}, d, soluciones, nivel);
                     for (auto it = partes.cbegin(); it != partes.cend(); ++it) {
                         QString error;
