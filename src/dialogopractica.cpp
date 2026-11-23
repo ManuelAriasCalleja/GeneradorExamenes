@@ -1,4 +1,5 @@
 #include "dialogopractica.h"
+#include "paleta.h"
 #include "idioma.h"
 #include "dialogoayuda.h"
 
@@ -45,7 +46,7 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
     m_reloj->setStyleSheet(QStringLiteral("font-size: 16pt; font-weight: bold"));
     m_reloj->hide();
     m_nota = new QLabel;
-    m_nota->setStyleSheet(QStringLiteral("font-size: 14pt; font-weight: bold; color: #0a5d9c"));
+    m_nota->setStyleSheet(QStringLiteral("font-size: 14pt; font-weight: bold; ") + Paleta::css(Paleta::Informacion));
     auto *cabecera = new QHBoxLayout;
     cabecera->addWidget(titulo, 1);
     cabecera->addWidget(m_nota);
@@ -183,7 +184,7 @@ void DialogoPractica::tic()
         return;
     }
     m_reloj->setText(QStringLiteral("%1:%2").arg(m_segundosRestantes / 60).arg(m_segundosRestantes % 60, 2, 10, QLatin1Char('0')));
-    m_reloj->setStyleSheet(m_segundosRestantes < 300 ? QStringLiteral("font-size: 16pt; font-weight: bold; color: #c0392b")
+    m_reloj->setStyleSheet(m_segundosRestantes < 300 ? QStringLiteral("font-size: 16pt; font-weight: bold; ") + Paleta::css(Paleta::Error)
                                                      : QStringLiteral("font-size: 16pt; font-weight: bold"));
     --m_segundosRestantes;
 }
@@ -205,19 +206,19 @@ void DialogoPractica::corregir()
         for (QAbstractButton *b : f.grupo->buttons())
             b->setEnabled(false);
         f.blanco->hide();
-        f.opciones[correcta]->setStyleSheet(QStringLiteral("color: %1; font-weight: bold").arg(QLatin1String(Maquetador::kColorCorrecta)));
+        f.opciones[correcta]->setStyleSheet(Paleta::css(Paleta::Correcta) + QStringLiteral("; font-weight: bold"));
         QString texto;
         if (marcada < 0) {
             ++blancos;
-            texto = tr("<span style=\"color:#7f8c8d\"><b>En blanco.</b></span>");
+            texto = tr("<span style=\"color:%1\"><b>En blanco.</b></span>").arg(Paleta::tinta(Paleta::Secundario).name());
         } else if (marcada == correcta) {
             ++aciertos;
-            texto = tr("<span style=\"color:%1\"><b>¡Correcto!</b></span>").arg(QLatin1String(Maquetador::kColorCorrecta));
+            texto = tr("<span style=\"color:%1\"><b>¡Correcto!</b></span>").arg(Paleta::tinta(Paleta::Correcta).name());
         } else {
             ++fallos;
-            f.opciones[marcada]->setStyleSheet(QStringLiteral("color: #c0392b; text-decoration: line-through"));
-            texto = tr("<span style=\"color:#c0392b\"><b>Incorrecto.</b></span> La respuesta correcta es la %1).")
-                        .arg(Pregunta::letra(correcta));
+            f.opciones[marcada]->setStyleSheet(Paleta::css(Paleta::Error) + QStringLiteral("; text-decoration: line-through"));
+            texto = tr("<span style=\"color:%2\"><b>Incorrecto.</b></span> La respuesta correcta es la %1).")
+                        .arg(Pregunta::letra(correcta), Paleta::tinta(Paleta::Error).name());
         }
         texto += QStringLiteral(" <small>[%1] %2</small>").arg(Maquetador::escapar(pe.pregunta.codigoCompleto()),
                                                                   Maquetador::escapar(pe.pregunta.referencia));

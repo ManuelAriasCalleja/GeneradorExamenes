@@ -1,6 +1,7 @@
 #pragma once
 
 #include "generador.h"
+#include "paleta.h"
 
 #include <QString>
 #include <QVector>
@@ -78,7 +79,7 @@ struct DatosConvocatoria
 class Maquetador
 {
 public:
-    static constexpr const char *kColorCorrecta = "#0a7d32";   // verde de las respuestas correctas
+    static constexpr const char *kColorCorrecta = Paleta::kPapelCorrecta;   // verde de las respuestas correctas
     static constexpr int kLetraGrande = -1;                    // nivel de la maqueta con letra grande
 
     // Enunciado (texto con bloques ``` y tablas |) a HTML. 'prefijo' (ya en HTML) se pone al principio.

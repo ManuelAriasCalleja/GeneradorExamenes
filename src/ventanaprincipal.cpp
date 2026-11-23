@@ -1,4 +1,5 @@
 #include "ventanaprincipal.h"
+#include "paleta.h"
 #include "dialogoverificadores.h"
 #include "dialogoverificar.h"
 #include "panelverificacion.h"
@@ -149,14 +150,14 @@ VentanaPrincipal::VentanaPrincipal(QWidget *parent)
     m_avisoJson = new QPushButton;
     m_avisoJson->setFlat(true);
     m_avisoJson->setCursor(Qt::PointingHandCursor);
-    m_avisoJson->setStyleSheet(QString::fromLatin1(kEstiloAviso) + QStringLiteral("; padding: 1px 6px"));
+    m_avisoJson->setStyleSheet(Paleta::recuadroAtencion() + QStringLiteral("; padding: 1px 6px"));
     m_avisoJson->hide();
     connect(m_avisoJson, &QPushButton::clicked, this, &VentanaPrincipal::actualizarJsonBanco);
     statusBar()->addPermanentWidget(m_avisoJson);
     m_abrirCarpeta = new QPushButton(tr("Abrir la carpeta"));
     m_abrirCarpeta->setFlat(true);
     m_abrirCarpeta->setCursor(Qt::PointingHandCursor);
-    m_abrirCarpeta->setStyleSheet(QString::fromLatin1(kEstiloInformacion) + QStringLiteral("; padding: 1px 6px"));
+    m_abrirCarpeta->setStyleSheet(Paleta::recuadroInformacion() + QStringLiteral("; padding: 1px 6px"));
     m_abrirCarpeta->hide();
     connect(m_abrirCarpeta, &QPushButton::clicked, this, [this]() {
         QDesktopServices::openUrl(QUrl::fromLocalFile(m_abrirCarpeta->property("carpeta").toString()));
@@ -226,7 +227,7 @@ QWidget *VentanaPrincipal::crearPanelResultados()
                                  "Vale para la vista, la impresión y las exportaciones; los ficheros llevan "
                                  "«-letra-grande» en el nombre."));
     m_infoGeneracion = new QLabel;
-    m_infoGeneracion->setStyleSheet(QStringLiteral("color: gray"));
+    m_infoGeneracion->setStyleSheet(Paleta::css(Paleta::Secundario));
     m_infoGeneracion->setTextInteractionFlags(Qt::TextSelectableByMouse);
     //: Delante de la lista para elegir cuál de los exámenes generados se ve
     barra->addWidget(new QLabel(tr("Examen:")));
@@ -246,7 +247,7 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     m_avisos = new QLabel;
     m_avisos->setWordWrap(true);
     m_avisos->setObjectName(QStringLiteral("avisosExamen"));
-    m_avisos->setStyleSheet(QLatin1String(kEstiloAviso));
+    m_avisos->setStyleSheet(Paleta::recuadroAtencion());
     m_avisos->setTextFormat(Qt::RichText);
     m_avisos->hide();
     // Lo que pide una decisión se queda aquí, junto al examen, hasta que se resuelve (en la barra de estado se va a
@@ -262,8 +263,9 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     lr->addWidget(m_avisos);
     m_visorExamen = new VisorAmpliable;
     m_visorExamen->setObjectName(QStringLiteral("visorExamen"));
-    m_visorExamen->setHtml(tr("<p style=\"color:gray\">Elija cuántas preguntas quiere de cada tema y pulse "
-                              "<b>Generar exámenes</b>.</p>"));
+    m_visorExamen->setHtml(QStringLiteral("<p style=\"color:%1\">%2</p>")
+                               .arg(QLatin1String(Paleta::kPapelSecundario),
+                                    tr("Elija cuántas preguntas quiere de cada tema y pulse <b>Generar exámenes</b>.")));
     // El tamaño de la vista (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0) se recuerda de una vez a otra.
     m_visorExamen->ponerEscala(QSettings().value(kClaveEscalaVista, 1.0).toDouble());
     connect(m_visorExamen, &VisorAmpliable::escalaCambiada, this, [this](qreal escala) {
@@ -1151,7 +1153,7 @@ void VentanaPrincipal::actualizarRegistro()
     const bool pendiente = hayExamen() && m_exportados && !m_registrados;
     //: Se añade a la línea de información de los exámenes (con el separador delante)
     m_infoGeneracion->setText(pendiente ? m_infoBase + tr("  ·  Exportados y sin registrar") : m_infoBase);
-    m_botonRegistrar->setStyleSheet(pendiente ? QStringLiteral("background: #fff3cd; color: #664d03") : QString());
+    m_botonRegistrar->setStyleSheet(pendiente ? Paleta::fondoAtencion() : QString());
     m_botonRegistrar->setToolTip(pendiente ? tr("Los exámenes se han exportado pero no se han registrado: si son "
                                                 "los definitivos, regístrelos para que sus preguntas se eviten "
                                                 "en las convocatorias siguientes.")

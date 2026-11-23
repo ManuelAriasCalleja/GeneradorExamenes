@@ -1,4 +1,5 @@
 #include "dialogocomprobacion.h"
+#include "paleta.h"
 #include "dialogoayuda.h"
 #include "utilidades.h"
 
@@ -72,7 +73,7 @@ void DialogoComprobacion::comprobar()
                     : m_resultado.problemas.isEmpty() ? tr("Ya no tiene problemas: se puede importar.")
                                                       : tr("Los avisos no impiden importarlo."));
     m_resumen->setText(texto);
-    m_resumen->setStyleSheet(QLatin1String(errores > 0 || !m_resultado.problemas.isEmpty() ? kEstiloAviso : kEstiloInformacion));
+    m_resumen->setStyleSheet(errores > 0 || !m_resultado.problemas.isEmpty() ? Paleta::recuadroAtencion() : Paleta::recuadroInformacion());
 
     m_lista->clear();
     const QIcon iconoError = style()->standardIcon(QStyle::SP_MessageBoxCritical);

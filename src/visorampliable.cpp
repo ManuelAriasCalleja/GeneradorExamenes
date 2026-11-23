@@ -1,4 +1,5 @@
 #include "visorampliable.h"
+#include "paleta.h"
 
 #include "utilidades.h"
 
@@ -97,6 +98,9 @@ void tablasEscaladas(QTextFrame *marco, qreal escala, QVector<QPair<QTextTable *
 VisorAmpliable::VisorAmpliable(QWidget *parent)
     : QTextBrowser(parent)
 {
+    // Lo que enseña es papel (los exámenes y las fichas de las preguntas): blanco con tinta negra, como se imprime,
+    // también con el tema oscuro. Sus colores (el verde de la correcta, el gris del código) cuentan con ese fondo.
+    setPalette(Paleta::papel(palette()));
     // Atajos sin repetir: en algunos sistemas «Ctrl+=» ya es uno de los de ampliar, y una tecla repetida en la misma
     // acción la haría ambigua.
     auto atajos = [](QKeySequence::StandardKey estandar, std::initializer_list<QKeySequence> otros) {

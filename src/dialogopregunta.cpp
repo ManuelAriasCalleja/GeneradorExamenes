@@ -1,4 +1,5 @@
 #include "dialogopregunta.h"
+#include "paleta.h"
 #include "panelverificacion.h"
 #include "dialogoayuda.h"
 #include "dialogoparecidas.h"
@@ -188,7 +189,7 @@ QGroupBox *DialogoPregunta::crearTextos(const Pregunta &pregunta)
     m_enunciado->setMinimumHeight(90);
     //: «```» y «|» son marcas de los textos de las preguntas: no se traducen («celda» sí)
     auto *ayuda = new QLabel(tr("Código entre líneas <tt>```</tt>; filas de tabla como <tt>| celda | celda |</tt>."));
-    ayuda->setStyleSheet(QStringLiteral("color: gray"));
+    ayuda->setStyleSheet(Paleta::css(Paleta::Secundario));
     ft->addWidget(m_enunciado, 0, 0, 1, 3);
     ft->addWidget(ayuda, 1, 0, 1, 3);
     auto *grupoCorrecta = new QButtonGroup(this);
@@ -202,7 +203,7 @@ QGroupBox *DialogoPregunta::crearTextos(const Pregunta &pregunta)
     }
     m_correcta[qBound(0, pregunta.correcta, 3)]->setChecked(true);
     auto *nota = new QLabel(tr("El botón marcado indica la respuesta correcta."));
-    nota->setStyleSheet(QStringLiteral("color: gray"));
+    nota->setStyleSheet(Paleta::css(Paleta::Secundario));
     ft->addWidget(nota, 6, 1, 1, 2);
     return gTexto;
 }
@@ -250,11 +251,11 @@ QGroupBox *DialogoPregunta::crearVistaPrevia()
     lp->addWidget(m_vistaPrevia);
     m_avisosEstilo = new QLabel;
     m_avisosEstilo->setWordWrap(true);
-    m_avisosEstilo->setStyleSheet(QLatin1String(kEstiloAviso));
+    m_avisosEstilo->setStyleSheet(Paleta::recuadroAtencion());
     lp->addWidget(m_avisosEstilo);
     m_parecidas = new QLabel;
     m_parecidas->setWordWrap(true);
-    m_parecidas->setStyleSheet(QLatin1String(kEstiloInformacion));
+    m_parecidas->setStyleSheet(Paleta::recuadroInformacion());
     //: «Pseudorrepetida con» es la etiqueta de un campo de este diálogo: tradúzcase igual
     m_parecidas->setToolTip(tr("Si es la misma idea que una de ellas, guárdela como su variante (mismo número, "
                                "otra letra) o, si es de otro tema, enlácela en «Pseudorrepetida con»."));

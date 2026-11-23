@@ -236,8 +236,8 @@ const QList<QPair<int, QString>> kConvocatoriasOrdinarias{
 const char *const kFuente = "'Liberation Sans', Arial, 'DejaVu Sans', sans-serif";
 const char *const kFuenteCodigo = "'DejaVu Sans Mono', 'Liberation Mono', monospace";
 // Recuadro del código de los enunciados: fondo gris claro (que se nota también en fotocopia) y borde gris.
-const char *const kFondoCodigo = "#eeeeee";
-const char *const kBordeCodigo = "#808080";
+const char *const kFondoCodigo = Paleta::kPapelFondoCodigo;
+const char *const kBordeCodigo = Paleta::kPapelBordeCodigo;
 
 // Documento que sirve las imágenes de las preguntas como recursos "img:<id>".
 class DocumentoConImagenes : public QTextDocument
@@ -641,11 +641,11 @@ QString Maquetador::marcaVerificacion(const Pregunta &p)
     const auto tr = [](const char *texto) { return QCoreApplication::translate("Maquetador", texto); };
     if (!p.verificada)
         //: Marca de la vista del examen tras el número de una pregunta que no han revisado personas
-        return QStringLiteral("<span style=\"color:#b45309\">&#9679; %1</span>").arg(escapar(tr("sin verificar")));
+        return QStringLiteral("<span style=\"color:%1\">&#9679; %2</span>").arg(QLatin1String(Paleta::kPapelSinVerificar), escapar(tr("sin verificar")));
     //: Marca de la vista del examen tras el número de una pregunta revisada por personas; %1 son sus nombres
     const QString texto = p.verificadores.isEmpty() ? tr("verificada")
                                                     : tr("verificada: %1").arg(p.verificadores.join(QStringLiteral(", ")));
-    return QStringLiteral("<span style=\"color:#1d4ed8\">&#10003; %1</span>").arg(escapar(texto));
+    return QStringLiteral("<span style=\"color:%1\">&#10003; %2</span>").arg(QLatin1String(Paleta::kPapelVerificada), escapar(texto));
 }
 
 QString Maquetador::examenesHtml(const QVector<Modelo> &modelos, const DatosConvocatoria &d, bool soluciones, int n)
@@ -726,7 +726,7 @@ QString Maquetador::cuerpoSoluciones(const QVector<Modelo> &modelos, const Datos
     QString derecha = QStringLiteral("<span style=\"font-size:16pt; font-weight:bold\">%1</span>")
                           .arg(escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones"))));
     if (!textoSemilla(d).isEmpty())
-        derecha += QStringLiteral("<br><span style=\"font-size:8pt; color:#555555\">%1</span>").arg(escapar(textoSemilla(d)));
+        derecha += QStringLiteral("<br><span style=\"font-size:8pt; color:%1\">%2</span>").arg(QLatin1String(Paleta::kPapelSecundario), escapar(textoSemilla(d)));
     QString html = cabeceraHtml(d, derecha);
 
     // Estructura: qué preguntas de cada tema entran en cada modelo (como la tabla que se prepara a mano).

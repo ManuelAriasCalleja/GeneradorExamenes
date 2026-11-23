@@ -1,4 +1,5 @@
 #include "dialogoayuda.h"
+#include "paleta.h"
 #include "idioma.h"
 #include "utilidades.h"
 
@@ -177,6 +178,6 @@ void DialogoAyuda::buscar(bool siguiente)
     } else {
         m_texto->setTextCursor(sinMarca);
     }
-    m_buscar->setStyleSheet(encontrado >= 0 ? QString() : QStringLiteral("background: #f8d7da; color: #58151c"));
+    m_buscar->setStyleSheet(encontrado >= 0 ? QString() : Paleta::fondoError());
     m_noEsta->setVisible(encontrado < 0);
 }

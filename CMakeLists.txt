@@ -30,6 +30,7 @@ include(GNUInstallDirs)
 qt_add_library(nucleo STATIC
     src/pregunta.h src/pregunta.cpp
     src/utilidades.h
+    src/paleta.h src/paleta.cpp
     src/idioma.h src/idioma.cpp
     src/comprobadorjson.h src/comprobadorjson.cpp
     src/dialogocomprobacion.h src/dialogocomprobacion.cpp

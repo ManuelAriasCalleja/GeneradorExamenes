@@ -638,7 +638,7 @@
 <context>
     <name>DialogoAnteriores</name>
     <message>
-        <location filename="../src/dialogoanteriores.cpp" line="+49"/>
+        <location filename="../src/dialogoanteriores.cpp" line="+48"/>
         <source>Registrar exámenes anteriores</source>
         <translation>Record previous exams</translation>
     </message>
@@ -904,7 +904,7 @@ Record them?</translation>
 <context>
     <name>DialogoAyuda</name>
     <message>
-        <location filename="../src/dialogoayuda.cpp" line="+22"/>
+        <location filename="../src/dialogoayuda.cpp" line="+23"/>
         <source>Ayuda del generador de exámenes</source>
         <translation>Exam Generator Help</translation>
     </message>
@@ -944,7 +944,7 @@ Record them?</translation>
 <context>
     <name>DialogoComprobacion</name>
     <message>
-        <location filename="../src/dialogocomprobacion.cpp" line="+22"/>
+        <location filename="../src/dialogocomprobacion.cpp" line="+23"/>
         <source>Comprobar %1</source>
         <translation>Check %1</translation>
     </message>
@@ -1401,7 +1401,7 @@ Its questions will no longer count as used when generating exams, and it will no
 <context>
     <name>DialogoPractica</name>
     <message>
-        <location filename="../src/dialogopractica.cpp" line="+27"/>
+        <location filename="../src/dialogopractica.cpp" line="+28"/>
         <source>Practicar: %1 - %2</source>
         <translation>Practice: %1 - %2</translation>
     </message>
@@ -1448,8 +1448,8 @@ Its questions will no longer count as used when generating exams, and it will no
     </message>
     <message>
         <location line="+31"/>
-        <source>&lt;span style=&quot;color:#7f8c8d&quot;&gt;&lt;b&gt;En blanco.&lt;/b&gt;&lt;/span&gt;</source>
-        <translation>&lt;span style=&quot;color:#7f8c8d&quot;&gt;&lt;b&gt;Blank.&lt;/b&gt;&lt;/span&gt;</translation>
+        <source>&lt;span style=&quot;color:%1&quot;&gt;&lt;b&gt;En blanco.&lt;/b&gt;&lt;/span&gt;</source>
+        <translation>&lt;span style=&quot;color:%1&quot;&gt;&lt;b&gt;Blank.&lt;/b&gt;&lt;/span&gt;</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1458,8 +1458,8 @@ Its questions will no longer count as used when generating exams, and it will no
     </message>
     <message>
         <location line="+4"/>
-        <source>&lt;span style=&quot;color:#c0392b&quot;&gt;&lt;b&gt;Incorrecto.&lt;/b&gt;&lt;/span&gt; La respuesta correcta es la %1).</source>
-        <translation>&lt;span style=&quot;color:#c0392b&quot;&gt;&lt;b&gt;Incorrect.&lt;/b&gt;&lt;/span&gt; The correct answer is %1).</translation>
+        <source>&lt;span style=&quot;color:%2&quot;&gt;&lt;b&gt;Incorrecto.&lt;/b&gt;&lt;/span&gt; La respuesta correcta es la %1).</source>
+        <translation>&lt;span style=&quot;color:%2&quot;&gt;&lt;b&gt;Incorrect.&lt;/b&gt;&lt;/span&gt; The correct answer is %1).</translation>
     </message>
     <message>
         <location line="+12"/>
@@ -1483,7 +1483,7 @@ Score: %4 out of %5</translation>
 <context>
     <name>DialogoPregunta</name>
     <message>
-        <location filename="../src/dialogopregunta.cpp" line="+38"/>
+        <location filename="../src/dialogopregunta.cpp" line="+39"/>
         <source>Editar pregunta %1</source>
         <translation>Edit question %1</translation>
     </message>
@@ -1916,7 +1916,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>DialogoVerificar</name>
     <message>
-        <location filename="../src/dialogoverificar.cpp" line="+36"/>
+        <location filename="../src/dialogoverificar.cpp" line="+37"/>
         <source>Verificar preguntas</source>
         <translation>Verify questions</translation>
     </message>
@@ -2327,7 +2327,7 @@ Do not hand in the question paper.</translation>
         <translation>Correct answers: %1</translation>
     </message>
     <message>
-        <location filename="../src/moodle.cpp" line="+154"/>
+        <location filename="../src/moodle.cpp" line="+156"/>
         <source>Respuesta correcta.</source>
         <translation>Correct answer.</translation>
     </message>
@@ -2517,7 +2517,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>ModeloPreguntas</name>
     <message>
-        <location filename="../src/modelopreguntas.cpp" line="+47"/>
+        <location filename="../src/modelopreguntas.cpp" line="+48"/>
         <source> (old)</source>
         <extracomment>Tras el código de las preguntas que ya han salido en exámenes</extracomment>
         <translation> (old)</translation>
@@ -2607,7 +2607,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelConfiguracion</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="+322"/>
+        <location filename="../src/panelconfiguracion.cpp" line="+323"/>
         <source>Convocatoria</source>
         <extracomment>Convocatoria de examen (Febrero, Junio, Septiembre…): datos de la cabecera de los exámenes</extracomment>
         <translation>Exam session</translation>
@@ -3114,7 +3114,7 @@ Replace it with this one?</translation>
 <context>
     <name>PanelVerificacion</name>
     <message>
-        <location filename="../src/panelverificacion.cpp" line="+30"/>
+        <location filename="../src/panelverificacion.cpp" line="+31"/>
         <source>Verificada por humanos</source>
         <translation>Verified by humans</translation>
     </message>
@@ -3149,7 +3149,7 @@ Replace it with this one?</translation>
 <context>
     <name>PestanaBanco</name>
     <message>
-        <location filename="../src/pestanabanco.cpp" line="+47"/>
+        <location filename="../src/pestanabanco.cpp" line="+48"/>
         <source>Todas</source>
         <extracomment>Filtro por estado de las preguntas (en femenino: «las preguntas»): todas</extracomment>
         <translation>All</translation>
@@ -3395,7 +3395,7 @@ Replace it with this one?</translation>
 <context>
     <name>Utilidades</name>
     <message>
-        <location filename="../src/utilidades.h" line="+95"/>
+        <location filename="../src/utilidades.h" line="+91"/>
         <source>Sí</source>
         <extracomment>Botón para responder que sí a una pregunta.</extracomment>
         <translation>Yes</translation>
@@ -3428,7 +3428,7 @@ Replace it with this one?</translation>
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+125"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+126"/>
         <source>Generar examen</source>
         <translation>Generate exam</translation>
     </message>
@@ -3470,12 +3470,12 @@ Replace it with this one?</translation>
         <translation>How many times each letter is correct in this exam</translation>
     </message>
     <message>
-        <location line="+28"/>
-        <source>&lt;p style=&quot;color:gray&quot;&gt;Elija cuántas preguntas quiere de cada tema y pulse &lt;b&gt;Generar exámenes&lt;/b&gt;.&lt;/p&gt;</source>
-        <translation>&lt;p style=&quot;color:gray&quot;&gt;Choose how many questions you want from each topic and click &lt;b&gt;Generate exams&lt;/b&gt;.&lt;/p&gt;</translation>
+        <location line="+30"/>
+        <source>Elija cuántas preguntas quiere de cada tema y pulse &lt;b&gt;Generar exámenes&lt;/b&gt;.</source>
+        <translation>Choose how many questions you want from each topic and click &lt;b&gt;Generate exams&lt;/b&gt;.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+6"/>
         <source>Vista del examen al %1 %</source>
         <extracomment>En la barra de estado, al ampliar o reducir la vista del examen; %1 es el porcentaje (125)</extracomment>
         <translation>Exam preview at %1%</translation>
@@ -3544,14 +3544,14 @@ Replace it with this one?</translation>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-81"/>
+        <location line="-82"/>
         <source>Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.
 Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-letra-grande» en el nombre.</source>
         <translation>Adapted version for visually impaired students: 16 pt font, one option per line (question text not in italics), more spacing and larger images, with no page limit.
 Applies to the preview, printing and exports; the files have “-letra-grande” in their name.</translation>
     </message>
     <message>
-        <location line="+71"/>
+        <location line="+72"/>
         <source>Exportar Word…</source>
         <extracomment>Botón: guarda los exámenes en un documento de Word (.docx)</extracomment>
         <translation>Export Word…</translation>
@@ -4356,7 +4356,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
 <context>
     <name>VisorAmpliable</name>
     <message>
-        <location filename="../src/visorampliable.cpp" line="+118"/>
+        <location filename="../src/visorampliable.cpp" line="+122"/>
         <source>Ampliar la vista</source>
         <extracomment>Acción de la vista del examen (Ctrl++): letra más grande, solo en pantalla</extracomment>
         <translation>Zoom in</translation>

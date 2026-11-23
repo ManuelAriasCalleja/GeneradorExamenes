@@ -1,4 +1,5 @@
 #include "panelverificacion.h"
+#include "paleta.h"
 #include "basedatos.h"
 #include "dialogoverificadores.h"
 
@@ -42,7 +43,7 @@ PanelVerificacion::PanelVerificacion(BaseDatos *bd, bool conCasilla, QWidget *pa
     m_rejilla->setContentsMargins(0, 0, 0, 0);
     fila->addLayout(m_rejilla, 1);
     m_ninguno = new QLabel(tr("Aún no hay verificadores en este banco."));
-    m_ninguno->setStyleSheet(QStringLiteral("color: gray"));
+    m_ninguno->setStyleSheet(Paleta::css(Paleta::Secundario));
     fila->addWidget(m_ninguno, 1, Qt::AlignTop);
     //: Botón: abre la lista de verificadores del banco para añadir o quitar personas
     auto *gestionar = new QPushButton(tr("Añadir o quitar…"));

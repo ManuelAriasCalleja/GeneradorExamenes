@@ -9,10 +9,6 @@
 #include <QSettings>
 #include <QStandardPaths>
 
-// Recuadros de la interfaz: avisos (amarillo) e información (azul).
-constexpr const char *kEstiloAviso = "background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; padding: 6px";
-constexpr const char *kEstiloInformacion = "background: #e7f1fb; color: #0b3c6b; border: 1px solid #b6d4f2; padding: 6px";
-
 // Carpeta en la que se abren los diálogos para elegir un banco de preguntas: la del banco abierto o, si no hay ninguno
 // (al empezar, o si el último se ha movido), la del último banco que se abrió, o la más cercana a ella que siga
 // existiendo; si no se ha abierto ninguno nunca, la de los documentos.

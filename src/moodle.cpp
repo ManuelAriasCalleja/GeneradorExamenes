@@ -1,4 +1,5 @@
 #include "moodle.h"
+#include "paleta.h"
 #include "utilidades.h"
 #include "enunciado.h"
 #include "resaltado.h"
@@ -38,8 +39,9 @@ QString enunciadoHtml(const QString &texto)
                     lineas[i] = QStringLiteral("<span style=\"color:#%1\">%2</span>  %3")
                                     .arg(QLatin1String(Resaltado::kColorNumero), QString::number(i + 1).rightJustified(cifras), lineas.at(i));
             }
-            html += QStringLiteral("<pre style=\"background-color:#eeeeee; border:1px solid #808080; padding:4px\">%1</pre>")
-                        .arg(lineas.join(QLatin1Char('\n')));
+            html += QStringLiteral("<pre style=\"background-color:%2; border:1px solid %3; padding:4px\">%1</pre>")
+                        .arg(lineas.join(QLatin1Char('\n')), QString::fromLatin1(Paleta::kPapelFondoCodigo),
+                             QString::fromLatin1(Paleta::kPapelBordeCodigo));
             break;
         }
         case Enunciado::Bloque::Tabla:

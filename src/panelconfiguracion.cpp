@@ -1,4 +1,5 @@
 #include "panelconfiguracion.h"
+#include "paleta.h"
 #include "basedatos.h"
 #include "grupoplegable.h"
 #include "idioma.h"
@@ -621,7 +622,7 @@ QWidget *PanelConfiguracion::crearGrupoOpciones()
                              "Vacía, cada vez salen otros."));
     // Con una semilla escrita, todas las generaciones salen iguales: que se note.
     connect(m_semilla, &QLineEdit::textChanged, this, [this](const QString &texto) {
-        m_semilla->setStyleSheet(texto.isEmpty() ? QString() : QStringLiteral("background: #fff3cd; color: #664d03"));
+        m_semilla->setStyleSheet(texto.isEmpty() ? QString() : Paleta::fondoAtencion());
     });
     connect(m_semilla, &QLineEdit::textChanged, this, &PanelConfiguracion::resumirOpciones);
     connect(m_semilla, &QLineEdit::textChanged, this, &PanelConfiguracion::semillaCambiada);
@@ -671,7 +672,7 @@ void PanelConfiguracion::reconstruirTemas()
         spin->setValue(m_cantidadesGuardadas.value(t.numero, 0));
         //: Junto al número de preguntas que se piden de un tema: «[3] de 12» (12 preguntas disponibles)
         auto *max = new QLabel(tr("de %1").arg(disponibles.value(t.numero)));
-        max->setStyleSheet(QStringLiteral("color: gray"));
+        max->setStyleSheet(Paleta::css(Paleta::Secundario));
         max->setToolTip(tr("Preguntas distintas disponibles (las variantes a, b, c... cuentan como una)"));
         m_rejillaTemas->addWidget(nombre, fila, 0);
         m_rejillaTemas->addWidget(spin, fila, 1);

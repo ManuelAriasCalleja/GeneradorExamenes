@@ -1,4 +1,5 @@
 #include "dialogoverificar.h"
+#include "paleta.h"
 #include "basedatos.h"
 #include "dialogoayuda.h"
 #include "maquetador.h"
@@ -64,7 +65,7 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     m_panel = new PanelVerificacion(bd);
     lg->addWidget(m_panel);
     m_aviso = new QLabel;
-    m_aviso->setStyleSheet(QStringLiteral("color: #b45309"));
+    m_aviso->setStyleSheet(Paleta::css(Paleta::Atencion));
     m_aviso->setObjectName(QStringLiteral("avisoVerificar"));
     m_aviso->hide();
     lg->addWidget(m_aviso);

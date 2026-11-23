@@ -19,9 +19,13 @@
 #include "dialogoverificadores.h"
 #include "dialogoverificar.h"
 #include "panelverificacion.h"
+#include "paleta.h"
 #include "pestanabanco.h"
 #include "visorampliable.h"
 
+#include <QPalette>
+#include <QRegularExpression>
+#include <cmath>
 #include <QLocale>
 #include <QDateTime>
 #include <QAbstractButton>
@@ -2601,6 +2605,78 @@ private slots:
         QSettings vacia(tmp.filePath(QStringLiteral("vacia.ini")), QSettings::IniFormat);
         QVERIFY(!traerConfiguracionAntigua(ninguna, vacia));
         QVERIFY(vacia.allKeys().isEmpty());
+    }
+
+    // Los colores salen de la paleta, y se leen: cada tinta de la interfaz, sobre el fondo claro y sobre el oscuro, y
+    // las de los recuadros y las del papel sobre el suyo, con el contraste que se pide para un texto (4,5:1).
+    void losColoresDeLaPaletaSeLeen()
+    {
+        // Contraste entre dos colores, de 1 a 21 (WCAG 2).
+        auto luminancia = [](const QColor &c) {
+            auto canal = [](qreal v) { return v <= 0.03928 ? v / 12.92 : std::pow((v + 0.055) / 1.055, 2.4); };
+            return 0.2126 * canal(c.redF()) + 0.7152 * canal(c.greenF()) + 0.0722 * canal(c.blueF());
+        };
+        auto contraste = [&](const QColor &a, const QColor &b) {
+            const qreal la = luminancia(a), lb = luminancia(b);
+            return (qMax(la, lb) + 0.05) / (qMin(la, lb) + 0.05);
+        };
+        const QList<QColor> claros{QColor(Qt::white), QColor(0xef, 0xef, 0xef)};
+        const QList<QColor> oscuros{QColor(0x1e, 0x1e, 0x1e), QColor(0x3c, 0x3c, 0x3c)};
+        for (Paleta::Tinta t : {Paleta::Secundario, Paleta::Atencion, Paleta::Informacion, Paleta::Verificada,
+                                Paleta::Correcta, Paleta::Error}) {
+            for (const QColor &fondo : claros)
+                QVERIFY2(contraste(Paleta::tinta(t, false), fondo) >= 4.5, qPrintable(Paleta::tinta(t, false).name()));
+            for (const QColor &fondo : oscuros)
+                QVERIFY2(contraste(Paleta::tinta(t, true), fondo) >= 4.5, qPrintable(Paleta::tinta(t, true).name()));
+        }
+        // Lo que no cuenta va más apagado que lo secundario, pero se distingue del fondo.
+        QVERIFY(contraste(Paleta::tinta(Paleta::Inactiva, false), Qt::white) < contraste(Paleta::tinta(Paleta::Secundario, false), Qt::white));
+        QVERIFY(contraste(Paleta::tinta(Paleta::Inactiva, false), Qt::white) >= 2.5);
+        QVERIFY(contraste(Paleta::tinta(Paleta::Inactiva, true), oscuros.first()) >= 2.5);
+        // Los recuadros: «background: #…; color: #…».
+        static const QRegularExpression colores(QStringLiteral("background: (#[0-9a-f]{6}); color: (#[0-9a-f]{6})"));
+        for (const QString &estilo : {Paleta::fondoAtencion(), Paleta::fondoError(), Paleta::recuadroAtencion(), Paleta::recuadroInformacion()}) {
+            const QRegularExpressionMatch m = colores.match(estilo);
+            QVERIFY2(m.hasMatch(), qPrintable(estilo));
+            QVERIFY2(contraste(QColor(m.captured(1)), QColor(m.captured(2))) >= 4.5, qPrintable(estilo));
+        }
+        QVERIFY(contraste(Paleta::colorFondoAtencion(), Paleta::colorTintaAtencion()) >= 4.5);
+        // El papel.
+        for (const char *c : {Paleta::kPapelCorrecta, Paleta::kPapelVerificada, Paleta::kPapelSinVerificar, Paleta::kPapelSecundario})
+            QVERIFY2(contraste(QColor(QLatin1String(c)), Qt::white) >= 4.5, c);
+        QVERIFY(contraste(QColor(Qt::black), QColor(QLatin1String(Paleta::kPapelFondoCodigo))) >= 4.5);
+    }
+
+    // Con el tema oscuro, las tintas de la interfaz pasan a sus tonos claros, y los exámenes y las fichas siguen
+    // viéndose sobre papel blanco con tinta negra, que es con lo que cuentan sus colores.
+    void conElTemaOscuro()
+    {
+        const QPalette antes = QApplication::palette();
+        QVERIFY(!Paleta::oscura());
+        QCOMPARE(Paleta::tinta(Paleta::Secundario), Paleta::tinta(Paleta::Secundario, false));
+        QPalette oscura = antes;
+        oscura.setColor(QPalette::Window, QColor(0x2b, 0x2b, 0x2b));
+        oscura.setColor(QPalette::Base, QColor(0x1e, 0x1e, 0x1e));
+        oscura.setColor(QPalette::WindowText, Qt::white);
+        oscura.setColor(QPalette::Text, Qt::white);
+        QApplication::setPalette(oscura);
+        QVERIFY(Paleta::oscura());
+        QCOMPARE(Paleta::tinta(Paleta::Secundario), Paleta::tinta(Paleta::Secundario, true));
+        QVERIFY(Paleta::css(Paleta::Verificada).contains(Paleta::tinta(Paleta::Verificada, true).name()));
+        {
+            VisorAmpliable visor;
+            QCOMPARE(visor.palette().color(QPalette::Base), QColor(Qt::white));
+            QCOMPARE(visor.palette().color(QPalette::Text), QColor(Qt::black));
+            // La lista del banco sí sigue el tema: su azul de «verificada» es el del fondo oscuro.
+            ModeloPreguntas modelo;
+            Pregunta verificada;
+            verificada.verificada = true;
+            modelo.establecer({verificada});
+            QCOMPARE(modelo.data(modelo.index(0, ModeloPreguntas::ColVerificada), Qt::ForegroundRole).value<QBrush>().color(),
+                     Paleta::tinta(Paleta::Verificada, true));
+        }
+        QApplication::setPalette(antes);
+        QVERIFY(!Paleta::oscura());
     }
 };
 

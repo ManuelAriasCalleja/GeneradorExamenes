@@ -1,4 +1,5 @@
 #include "pestanabanco.h"
+#include "paleta.h"
 #include "basedatos.h"
 #include "dialogoayuda.h"
 #include "dialogoverificadores.h"
@@ -376,7 +377,7 @@ void PestanaBanco::verificarLista()
     panel->marcar(m_bd->ultimosVerificadores());
     l->addWidget(panel);
     auto *nota = new QLabel(tr("A las que ya estaban verificadas se les añaden estas personas."));
-    nota->setStyleSheet(QStringLiteral("color: gray"));
+    nota->setStyleSheet(Paleta::css(Paleta::Secundario));
     l->addWidget(nota);
     auto *botones = new QDialogButtonBox;
     botones->addButton(tr("Marcar como verificadas"), QDialogButtonBox::AcceptRole)->setDefault(true);

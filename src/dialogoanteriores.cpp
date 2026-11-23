@@ -1,4 +1,5 @@
 #include "dialogoanteriores.h"
+#include "paleta.h"
 #include "basedatos.h"
 #include "dialogoayuda.h"
 #include "utilidades.h"
@@ -32,8 +33,6 @@ enum ColumnaPregunta { ColNumero, ColCodigo, ColParecido, ColTexto };
 const char *const kClaveCarpeta = "anteriores/carpeta";
 
 // Las dudosas, en amarillo (con el texto oscuro, que se lea también con el tema oscuro).
-const QColor kFondoDudosa(0xff, 0xf3, 0xcd);
-const QColor kTextoDudosa(0x66, 0x4d, 0x03);
 
 int dudosas(const QVector<Reconocida> &preguntas)
 {
@@ -270,8 +269,8 @@ void DialogoAnteriores::ponerFila(int fila)
             m_preguntas->setItem(fila, c, item);
         }
         item->setText(textos.at(c));
-        item->setBackground(r.dudosa ? QBrush(kFondoDudosa) : QBrush());
-        item->setForeground(r.dudosa ? QBrush(kTextoDudosa) : QBrush());
+        item->setBackground(r.dudosa ? QBrush(Paleta::colorFondoAtencion()) : QBrush());
+        item->setForeground(r.dudosa ? QBrush(Paleta::colorTintaAtencion()) : QBrush());
     }
     //: T1-7a es un ejemplo de código de pregunta: se escribe igual en cualquier idioma
     m_preguntas->item(fila, ColCodigo)->setToolTip(
@@ -325,8 +324,8 @@ void DialogoAnteriores::actualizarExamen(int examen)
         const int n = dudosas(preguntas);
         m_lista->item(examen, ColDudosas)->setText(n ? QString::number(n) : QString());
         for (int c = 0; c < m_lista->columnCount(); ++c) {
-            m_lista->item(examen, c)->setBackground(n ? QBrush(kFondoDudosa) : QBrush());
-            m_lista->item(examen, c)->setForeground(n ? QBrush(kTextoDudosa) : QBrush());
+            m_lista->item(examen, c)->setBackground(n ? QBrush(Paleta::colorFondoAtencion()) : QBrush());
+            m_lista->item(examen, c)->setForeground(n ? QBrush(Paleta::colorTintaAtencion()) : QBrush());
         }
         m_rellenando = false;
     }

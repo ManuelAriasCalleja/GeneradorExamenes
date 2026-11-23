@@ -1,4 +1,5 @@
 #include "modelopreguntas.h"
+#include "paleta.h"
 #include "utilidades.h"
 
 #include <QBrush>
@@ -80,14 +81,14 @@ QVariant ModeloPreguntas::data(const QModelIndex &index, int role) const
         return p.verificadores.isEmpty() ? tr("Verificada por personas")
                                          : tr("Verificada por %1").arg(p.verificadores.join(QStringLiteral(", ")));
     } else if (role == Qt::ForegroundRole && index.column() == ColVerificada && p.activa()) {
-        return QBrush(QColor(0x1d, 0x4e, 0xd8));   // el azul de la marca de la vista del examen
+        return QBrush(Paleta::tinta(Paleta::Verificada));
     } else if (role == Qt::ToolTipRole && index.column() == ColEnunciado) {
         QString t = p.enunciado;
         for (int i = 0; i < 4; ++i)
             t += QStringLiteral("\n%1) %2").arg(Pregunta::letra(i)).arg(p.opciones.value(i));
         return t;
     } else if (role == Qt::ForegroundRole && !p.activa()) {
-        return QBrush(QColor(150, 150, 150));
+        return QBrush(Paleta::tinta(Paleta::Inactiva));
     } else if (role == Qt::FontRole && !p.activa()) {
         QFont f;
         f.setStrikeOut(true);
