@@ -187,8 +187,9 @@ QGroupBox *DialogoPregunta::crearTextos(const Pregunta &pregunta)
     m_enunciado = new QPlainTextEdit(pregunta.enunciado);
     m_enunciado->setTabChangesFocus(true);
     m_enunciado->setMinimumHeight(90);
-    //: «```» y «|» son marcas de los textos de las preguntas: no se traducen («celda» sí)
-    auto *ayuda = new QLabel(tr("Código entre líneas <tt>```</tt>; filas de tabla como <tt>| celda | celda |</tt>."));
+    //: «```», «|» y «`» son marcas de los textos de las preguntas: no se traducen («celda» y «nombre» sí)
+    auto *ayuda = new QLabel(tr("Código entre líneas <tt>```</tt>; filas de tabla como <tt>| celda | celda |</tt>; código "
+                                "dentro del texto (también en las opciones), <tt>`nombre`</tt>."));
     ayuda->setStyleSheet(Paleta::css(Paleta::Secundario));
     ft->addWidget(m_enunciado, 0, 0, 1, 3);
     ft->addWidget(ayuda, 1, 0, 1, 3);

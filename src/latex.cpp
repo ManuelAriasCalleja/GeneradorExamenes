@@ -164,11 +164,21 @@ QString imagenLatex(const Pregunta &p, const QString &carpeta, int n)
         .arg(QString::number(ancho * 2.54 / 96, 'f', 2), carpeta, Maquetador::nombreImagen(p));
 }
 
+// Texto de una pregunta con su código en línea (entre comillas invertidas: ver enunciado.h) en letra de ancho fijo y
+// sin cursiva.
+QString textoLatex(const QString &texto)
+{
+    QString tex;
+    for (const Enunciado::Trozo &t : Enunciado::trozos(texto))
+        tex += t.codigo ? QStringLiteral("\\texttt{\\upshape %1}").arg(Latex::escapar(t.texto)) : Latex::escapar(t.texto);
+    return tex;
+}
+
 QString opcionLatex(int i, const QString &texto, bool marcada)
 {
     return QStringLiteral("\\%1{%2}{%3}")
         .arg(marcada ? QStringLiteral("opcioncorrecta") : QStringLiteral("opcion"), QString(Pregunta::letra(i)),
-             Latex::escapar(texto));
+             textoLatex(texto));
 }
 
 // Equivalente a opcionesConImagenHtml(): las opciones, una por línea, y la imagen a su derecha, con su borde de
@@ -258,7 +268,7 @@ QString explicacionLatex(const Pregunta &p, const DatosConvocatoria &d, int n)
             return;
         QStringList lineas;
         for (const QString &linea : texto.trimmed().split(QLatin1Char('\n')))
-            lineas << Latex::escapar(linea);
+            lineas << textoLatex(linea);
         partes << QStringLiteral("\\textcolor{verde}{\\textbf{%1}} %2")
                       .arg(Latex::escapar(tx(d, etiqueta)), lineas.join(QStringLiteral("\\newline ")));
     };
@@ -290,7 +300,7 @@ QString enunciadoLatex(const QString &texto, const QString &prefijo)
             QStringList lineas;
             for (const QString &linea : b.lineas)
                 if (tieneAlgoVisible(linea))
-                    lineas << Latex::escapar(linea);
+                    lineas << textoLatex(linea);
             if (lineas.isEmpty())
                 break;
             QString contenido = lineas.join(QStringLiteral("\\\\\\relax\n"));
@@ -310,7 +320,7 @@ QString enunciadoLatex(const QString &texto, const QString &prefijo)
             for (const QStringList &fila : b.filas) {
                 QStringList celdas;
                 for (const QString &c : fila)
-                    celdas << Latex::escapar(c);
+                    celdas << textoLatex(c);
                 while (celdas.size() < columnas)
                     celdas << QString();
                 tex += celdas.join(QStringLiteral(" & ")) + QStringLiteral(" \\\\ \\hline\n");

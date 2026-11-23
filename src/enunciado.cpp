@@ -5,6 +5,59 @@
 
 namespace Enunciado {
 
+QVector<Trozo> trozos(const QString &texto)
+{
+    QVector<Trozo> res;
+    auto anadir = [&res](const QString &t, bool codigo) {
+        if (t.isEmpty())
+            return;
+        if (!codigo && !res.isEmpty() && !res.last().codigo)
+            res.last().texto += t;
+        else
+            res.append({t, codigo});
+    };
+    int i = 0;
+    while (i < texto.size()) {
+        const int abre = texto.indexOf(QLatin1Char('`'), i);
+        if (abre < 0)
+            break;
+        // Código si se cierra en la misma línea y tiene algo dentro; si no, la comilla es un carácter más.
+        const int cierra = texto.indexOf(QLatin1Char('`'), abre + 1);
+        const int finLinea = texto.indexOf(QLatin1Char('\n'), abre + 1);
+        if (cierra < 0 || (finLinea >= 0 && finLinea < cierra)) {
+            anadir(texto.mid(i, abre + 1 - i), false);
+            i = abre + 1;
+            continue;
+        }
+        if (cierra == abre + 1) {   // dos seguidas, sin nada dentro: se quedan las dos
+            anadir(texto.mid(i, cierra + 1 - i), false);
+            i = cierra + 1;
+            continue;
+        }
+        anadir(texto.mid(i, abre - i), false);
+        anadir(texto.mid(abre + 1, cierra - abre - 1), true);
+        i = cierra + 1;
+    }
+    anadir(texto.mid(i), false);
+    return res;
+}
+
+QString sinMarcas(const QString &texto)
+{
+    QString res;
+    for (const Trozo &t : trozos(texto))
+        res += t.texto;
+    return res;
+}
+
+bool comillaSinPareja(const QString &texto)
+{
+    for (const Trozo &t : trozos(texto))
+        if (!t.codigo && t.texto.contains(QLatin1Char('`')))
+            return true;
+    return false;
+}
+
 QVector<Bloque> bloques(const QString &texto)
 {
     QVector<Bloque> res;
@@ -56,7 +109,13 @@ QStringList avisosDelCodigo(const QString &texto)
 {
     const auto tr = [](const char *t) { return QCoreApplication::translate("Enunciado", t); };
     QStringList avisos;
+    bool sinPareja = false;
     for (const Bloque &b : bloques(texto)) {
+        if (b.tipo == Bloque::Parrafo)
+            sinPareja = sinPareja || comillaSinPareja(b.lineas.join(QLatin1Char('\n')));
+        for (const QStringList &fila : b.filas)
+            for (const QString &celda : fila)
+                sinPareja = sinPareja || comillaSinPareja(celda);
         if (b.tipo != Bloque::Codigo)
             continue;
         if (!b.lenguaje.isEmpty() && !Resaltado::conocido(b.lenguaje))
@@ -70,6 +129,10 @@ QStringList avisosDelCodigo(const QString &texto)
         if (!b.cerrado)
             avisos << tr("Un bloque de código no se cierra con otra línea ```: llega hasta el final del enunciado.");
     }
+    if (sinPareja)
+        //: «`» es la comilla invertida (acento grave) que marca el código dentro de una línea de texto
+        avisos << tr("Hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual. El código dentro del texto va "
+                     "entre dos, `así`.");
     return avisos;
 }
 

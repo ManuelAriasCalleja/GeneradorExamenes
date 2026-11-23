@@ -147,6 +147,22 @@ QString trozo(const QString &texto, const Letra &l = Letra())
     return r + QStringLiteral("</w:r>");
 }
 
+// Texto de una pregunta con su letra; su código en línea (entre comillas invertidas: ver enunciado.h), con la misma
+// pero de ancho fijo y sin cursiva.
+QString textoPregunta(const QString &t, const Letra &l = Letra())
+{
+    QString r;
+    for (const Enunciado::Trozo &parte : Enunciado::trozos(t)) {
+        Letra letraParte = l;
+        if (parte.codigo) {
+            letraParte.codigo = true;
+            letraParte.cursiva = false;
+        }
+        r += trozo(parte.texto, letraParte);
+    }
+    return r;
+}
+
 const QString kSalto = QStringLiteral("<w:r><w:br/></w:r>");
 
 struct Parrafo
@@ -598,7 +614,7 @@ Tabla tablaEnunciado(const Enunciado::Bloque &b, int n)
     for (const QStringList &fila : b.filas) {
         QVector<Celda> celdas;
         for (int c = 0; c < columnas; ++c)
-            celdas << celda(anchos[c], {parrafo(trozo(fila.value(c)))});
+            celdas << celda(anchos[c], {parrafo(textoPregunta(fila.value(c)))});
         t.filas << celdas;
     }
     t.sangria = kSangria;
@@ -678,8 +694,8 @@ QString textoOpcion(const PreguntaExamen &pe, int i, bool marcada)
 {
     const QString texto = QString(Pregunta::letra(i)) + QStringLiteral(") ") + pe.opcion(i);
     if (marcada)
-        return trozo(texto + QLatin1Char(' ') + QChar(0x2714), letra(0, true, false, verde()));
-    return trozo(texto);
+        return textoPregunta(texto + QLatin1Char(' ') + QChar(0x2714), letra(0, true, false, verde()));
+    return textoPregunta(texto);
 }
 
 // Opciones a)..d) repartidas en filas como en la maqueta (Maqueta::filasOpciones()).
@@ -737,7 +753,7 @@ QVector<Parrafo> explicacion(const Pregunta &p, const DatosConvocatoria &d, int 
     QStringList partes;
     auto parte = [&](const char *nombre, const QString &texto) {
         if (!texto.trimmed().isEmpty())
-            partes << trozo(tx(d, nombre), etiqueta) + trozo(QStringLiteral(" ") + texto.trimmed(), normal);
+            partes << trozo(tx(d, nombre), etiqueta) + textoPregunta(QStringLiteral(" ") + texto.trimmed(), normal);
     };
     parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion);
     parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia);
@@ -772,7 +788,7 @@ QVector<Bloque> pregunta(Documento &doc, const PreguntaExamen &pe, int indice, c
     for (const Enunciado::Bloque &b : Enunciado::bloques(pe.pregunta.enunciado)) {
         switch (b.tipo) {
         case Enunciado::Bloque::Parrafo: {
-            Parrafo p = parrafo((prefijoPuesto ? QString() : prefijo) + trozo(b.lineas.join(QLatin1Char('\n')), enunciado));
+            Parrafo p = parrafo((prefijoPuesto ? QString() : prefijo) + textoPregunta(b.lineas.join(QLatin1Char('\n')), enunciado));
             p.despues = twips(2);
             prefijoPuesto = true;
             bloques << p;

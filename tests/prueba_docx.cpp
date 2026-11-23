@@ -230,6 +230,22 @@ private slots:
         QVERIFY(cuerpo.section(QStringLiteral("</w:tbl>"), 0, 0).contains(QStringLiteral("Seleccione")));
     }
 
+    // El código dentro del texto (entre comillas invertidas): con la letra de ancho fijo y sin cursiva, en el enunciado
+    // (que sigue en negrita) y en las opciones.
+    void codigoEnLinea()
+    {
+        QVector<Pregunta> banco = bancoInventado(1, 1);
+        banco[0].enunciado = QStringLiteral("Texto inventado con `nombre_1` dentro:");
+        banco[0].opciones[0] = QStringLiteral("La opción `valor` inventada.");
+        const QVector<Modelo> modelos = examenes(banco, 1);
+        const QString documento = QString::fromUtf8(Docx::partes(modelos, convocatoria(), false).value(QStringLiteral("word/document.xml")));
+        QVERIFY(!documento.contains(QLatin1Char('`')));
+        const QRegularExpression enEnunciado(QStringLiteral("<w:rPr><w:rFonts w:ascii=\"Courier New\"[^>]*/><w:b/><w:bCs/></w:rPr><w:t xml:space=\"preserve\">nombre_1</w:t>"));
+        QVERIFY2(enEnunciado.match(documento).hasMatch(), qPrintable(documento.mid(documento.indexOf(QStringLiteral("nombre_1")) - 300, 400)));
+        const QRegularExpression enOpcion(QStringLiteral("<w:rPr><w:rFonts w:ascii=\"Courier New\"[^>]*/></w:rPr><w:t xml:space=\"preserve\">valor</w:t>"));
+        QVERIFY2(enOpcion.match(documento).hasMatch(), qPrintable(documento.mid(documento.indexOf(QStringLiteral(">valor<")) - 300, 400)));
+    }
+
     void letraGrande()
     {
         const QVector<Modelo> modelos = examenes(bancoCompleto(), 1);

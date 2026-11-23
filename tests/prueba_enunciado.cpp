@@ -227,6 +227,61 @@ private slots:
         const QString tex = Latex::examenes({m}, DatosConvocatoria(), false, QStringLiteral("img"), 0);
         QVERIFY(tex.contains(QStringLiteral("\\enunciado{1.- A:\\\\\\relax\nB:}")));
     }
+
+    // Código dentro del texto: lo que va entre dos comillas invertidas de una misma línea. Una sin pareja, o dos sin
+    // nada dentro, son caracteres normales.
+    void codigoEnLinea()
+    {
+        auto partes = [](const QString &texto) {
+            QStringList r;
+            for (const Enunciado::Trozo &t : Enunciado::trozos(texto))
+                r << (t.codigo ? QStringLiteral("[%1]") : QStringLiteral("%1")).arg(t.texto);
+            return r.join(QLatin1Char('|'));
+        };
+        QCOMPARE(partes(QStringLiteral("texto normal")), QStringLiteral("texto normal"));
+        QCOMPARE(partes(QStringLiteral("la variable `l` y la `I`.")), QStringLiteral("la variable |[l]| y la |[I]|."));
+        QCOMPARE(partes(QStringLiteral("`a`")), QStringLiteral("[a]"));
+        QCOMPARE(partes(QStringLiteral("una ` suelta")), QStringLiteral("una ` suelta"));
+        QCOMPARE(partes(QStringLiteral("vacío `` y `x` y otra `")), QStringLiteral("vacío `` y |[x]| y otra `"));
+        // No se empareja con la de otra línea.
+        QCOMPARE(partes(QStringLiteral("abre ` aquí\ny cierra ` aquí")), QStringLiteral("abre ` aquí\ny cierra ` aquí"));
+        QCOMPARE(partes(QStringLiteral("una ` suelta\ny `código`")), QStringLiteral("una ` suelta\ny |[código]"));
+        QCOMPARE(Enunciado::sinMarcas(QStringLiteral("el método `leer()` y una ` suelta")), QStringLiteral("el método leer() y una ` suelta"));
+        QVERIFY(!Enunciado::comillaSinPareja(QStringLiteral("el método `leer()`")));
+        QVERIFY(Enunciado::comillaSinPareja(QStringLiteral("vacío `` aquí")));
+        QVERIFY(Enunciado::comillaSinPareja(QStringLiteral("el método `leer()")));
+        // De la comilla sin pareja se avisa; del código bien escrito, no. Dentro de un bloque de código no cuenta.
+        QVERIFY(Enunciado::avisosDelCodigo(QStringLiteral("La variable `total`:\n```\nint ` = 1;\n```\n| `a` | b |")).isEmpty());
+        QCOMPARE(Enunciado::avisosDelCodigo(QStringLiteral("La variable `total:")).size(), 1);
+        QCOMPARE(Enunciado::avisosDelCodigo(QStringLiteral("| a` | b |")).size(), 1);
+
+        // En la vista: letra de ancho fijo y sin cursiva, con lo de dentro escapado.
+        const QString html = Maquetador::textoHtml(QStringLiteral("Si `a < b` & c"));
+        QVERIFY2(html.contains(QStringLiteral("; font-style:normal\">a &lt; b</span> &amp; c")), qPrintable(html));
+        QVERIFY(html.contains(QStringLiteral("Mono")));
+        QVERIFY(!html.contains(QLatin1Char('`')));
+        QCOMPARE(Maquetador::textoHtml(QStringLiteral("sin código <b>")), Maquetador::escapar(QStringLiteral("sin código <b>")));
+        QVERIFY(Maquetador::enunciadoHtml(QStringLiteral("La `I`:\n| `l` | 1 |")).count(QStringLiteral("font-style:normal\">")) >= 2);
+
+        // En un examen: en el enunciado, en las opciones y en la explicación, en todos los formatos.
+        Modelo m;
+        PreguntaExamen pe;
+        pe.pregunta = bancoInventado(1, 1).first();
+        pe.pregunta.enunciado = QStringLiteral("¿Qué vale `suma_1`?");
+        pe.pregunta.opciones = QStringList{QStringLiteral("`cero`"), QStringLiteral("Lo que vale `uno`"), QStringLiteral("dos"), QStringLiteral("tres")};
+        pe.pregunta.explicacion = QStringLiteral("Porque `suma_1` empieza en cero.");
+        m.preguntas << pe;
+        const QString vista = Maquetador::examenHtml(m, DatosConvocatoria(), true);
+        QVERIFY(vista.contains(QStringLiteral("font-style:normal\">suma_1</span>?")));
+        QVERIFY(vista.contains(QStringLiteral("font-style:normal\">cero</span>")));
+        QVERIFY(vista.contains(QStringLiteral("Porque <span style=")));
+        QVERIFY(!vista.contains(QLatin1Char('`')));
+        const QString tex = Latex::examenes({m}, DatosConvocatoria(), true, QStringLiteral("img"));
+        QVERIFY2(tex.contains(QStringLiteral("\\texttt{\\upshape suma\\_1}?")), qPrintable(tex));
+        QVERIFY(tex.contains(QStringLiteral("\\texttt{\\upshape cero}")));
+        QVERIFY(tex.contains(QStringLiteral("Porque \\texttt{\\upshape suma\\_1}")));
+        QVERIFY(!tex.contains(QStringLiteral("`suma")) && !tex.contains(QStringLiteral("`cero")));
+    }
 };
 
 QTEST_MAIN(PruebaEnunciado)

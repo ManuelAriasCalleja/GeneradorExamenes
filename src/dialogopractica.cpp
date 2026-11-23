@@ -134,7 +134,7 @@ QWidget *DialogoPractica::crearPregunta(int numero, const PreguntaExamen &pe)
     for (int k = 0; k < 4; ++k) {
         auto *radio = new QRadioButton(QStringLiteral("%1)").arg(Pregunta::letra(k)));
         f.grupo->addButton(radio, k);
-        f.opciones[k] = new QLabel(Maquetador::escapar(pe.opcion(k)));
+        f.opciones[k] = new QLabel(Maquetador::textoHtml(pe.opcion(k)));
         f.opciones[k]->setWordWrap(true);
         f.opciones[k]->setProperty("radio", QVariant::fromValue<QObject *>(radio));
         f.opciones[k]->installEventFilter(this);

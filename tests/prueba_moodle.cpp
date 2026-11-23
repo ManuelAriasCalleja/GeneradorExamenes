@@ -119,6 +119,25 @@ private slots:
 
     // Un texto copiado de Word puede llevar U+000B (el salto de línea manual) u otros caracteres de control, que el XML no
     // admite: se quitan, y el resto se queda (lo encontró una sonda, ver docs/revision_errores.md).
+    // El código dentro del texto (entre comillas invertidas) va en <code>, y el nombre de la pregunta, sin las comillas.
+    void codigoEnLinea()
+    {
+        QVector<Pregunta> preguntas = bancoInventado(1, 2);
+        preguntas[0].enunciado = QStringLiteral("Texto inventado con `nombre_1` dentro:");
+        preguntas[0].opciones[1] = QStringLiteral("La opción `a < b` inventada.");
+        preguntas[0].explicacion = QStringLiteral("Explicación con `otro` inventada.");
+        const QString xml = Moodle::xml(temasInventados(1), preguntas, Moodle::Opciones());
+        QXmlStreamReader r(xml);
+        while (!r.atEnd())
+            r.readNext();
+        QVERIFY2(!r.hasError(), qPrintable(r.errorString()));
+        QVERIFY(xml.contains(QStringLiteral("con <code>nombre_1</code> dentro:")));
+        QVERIFY(xml.contains(QStringLiteral("La opción <code>a &lt; b</code> inventada.")));
+        QVERIFY(xml.contains(QStringLiteral("con <code>otro</code> inventada.")));
+        QVERIFY(xml.contains(QStringLiteral("Texto inventado con nombre_1 dentro")));
+        QVERIFY(!xml.contains(QLatin1Char('`')));
+    }
+
     void sinCaracteresQueElXmlNoAdmite()
     {
         QVector<Pregunta> preguntas = bancoInventado(1, 2);

@@ -90,13 +90,19 @@ int anchoImagen(const Pregunta &p, int n)
     return tamano.isEmpty() ? 0 : tamano.width();
 }
 
+// Los caracteres de una opción que se ven: sin las comillas invertidas de su código en línea.
+int largo(const QString &opcion)
+{
+    return int(Enunciado::sinMarcas(opcion).size());
+}
+
 int filasOpciones(const PreguntaExamen &pe, int n)
 {
     if (n == Maquetador::kLetraGrande)
         return 4;
     int maximo = 0;
     for (int i = 0; i < 4; ++i)
-        maximo = qMax(maximo, int(pe.opcion(i).size()));
+        maximo = qMax(maximo, largo(pe.opcion(i)));
     const qreal porLinea = 88.0 * 10.5 / nivel(n).fuentePt;   // caracteres por línea completa
     const qreal porColumna = porLinea * 0.48 - 3;              // en una de dos columnas, descontando «a) »
     if (maximo <= porLinea * 0.24 - 5)
@@ -108,9 +114,9 @@ int filasOpciones(const PreguntaExamen &pe, int n)
     auto lineas = [](qsizetype caracteres, qreal anchura) { return qMax(1, qCeil(caracteres / anchura)); };
     int unaPorLinea = 0, dosColumnas = 0;
     for (int i = 0; i < 4; ++i)
-        unaPorLinea += lineas(pe.opcion(i).size(), porLinea);
+        unaPorLinea += lineas(largo(pe.opcion(i)), porLinea);
     for (int fila = 0; fila < 2; ++fila)
-        dosColumnas += qMax(lineas(pe.opcion(fila).size(), porColumna), lineas(pe.opcion(fila + 2).size(), porColumna));
+        dosColumnas += qMax(lineas(largo(pe.opcion(fila)), porColumna), lineas(largo(pe.opcion(fila + 2)), porColumna));
     return dosColumnas < unaPorLinea ? 2 : 4;
 }
 
@@ -126,7 +132,7 @@ bool imagenAlLado(const PreguntaExamen &pe, int n)
     const qreal ancho = kAnchoLinea - kSangriaOpciones - kSeparacionImagen - imagen.width();
     const qreal caben = 0.9 * 88.0 * 10.5 / nivel(n).fuentePt * ancho / (kAnchoLinea - kSangriaOpciones);
     for (int i = 0; i < 4; ++i)
-        if (pe.opcion(i).size() + 5 > caben)
+        if (largo(pe.opcion(i)) + 5 > caben)
             return false;
     const qreal fila = nivel(n).fuentePt * 96 / 72 * 1.15 + 4;   // alto de una fila de opciones
     const qreal debajo = imagen.height() + 8 + filasOpciones(pe, n) * fila;
@@ -291,7 +297,7 @@ QString imagenHtml(const Pregunta &p, int n = 0)
 
 QString textoOpcion(const QString &letra, const QString &texto, bool marcada)
 {
-    QString t = Maquetador::escapar(texto);
+    QString t = Maquetador::textoHtml(texto);
     if (marcada)
         return QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2) %3 &#10004;</span>").arg(QLatin1String(Maquetador::kColorCorrecta), letra, t);
     return QStringLiteral("%1) %2").arg(letra, t);
@@ -348,7 +354,7 @@ QString explicacionHtml(const Pregunta &p, const DatosConvocatoria &d, int n)
             return;
         partes << QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2</span> %3")
                       .arg(QLatin1String(Maquetador::kColorCorrecta), Maquetador::escapar(tx(d, etiqueta)),
-                           Maquetador::escapar(texto.trimmed()).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
+                           Maquetador::textoHtml(texto.trimmed()).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
     };
     parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion);
     parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia);
@@ -488,6 +494,16 @@ QString Maquetador::escapar(const QString &texto)
     return texto.toHtmlEscaped();
 }
 
+QString Maquetador::textoHtml(const QString &texto)
+{
+    QString html;
+    for (const Enunciado::Trozo &t : Enunciado::trozos(texto))
+        html += t.codigo ? QStringLiteral("<span style=\"font-family:%1; font-style:normal\">%2</span>")
+                               .arg(QLatin1String(kFuenteCodigo), escapar(t.texto))
+                         : escapar(t.texto);
+    return html;
+}
+
 QString Maquetador::textoCorrectasPorLetra(const Modelo &modelo)
 {
     const std::array<int, 4> cuenta = modelo.correctasPorLetra();
@@ -547,7 +563,7 @@ QString Maquetador::enunciadoHtml(const QString &texto, const QString &prefijo)
         case Enunciado::Bloque::Parrafo: {
             QStringList lineas;
             for (const QString &linea : b.lineas)
-                lineas << escapar(linea);
+                lineas << textoHtml(linea);
             QString contenido = lineas.join(QStringLiteral("<br>"));
             if (!prefijoPuesto) {
                 contenido = prefijo + contenido;
@@ -562,7 +578,7 @@ QString Maquetador::enunciadoHtml(const QString &texto, const QString &prefijo)
             for (const QStringList &fila : b.filas) {
                 html += QStringLiteral("<tr>");
                 for (const QString &c : fila)
-                    html += QStringLiteral("<td style=\"border:1px solid #000\">%1</td>").arg(escapar(c));
+                    html += QStringLiteral("<td style=\"border:1px solid #000\">%1</td>").arg(textoHtml(c));
                 html += QStringLiteral("</tr>");
             }
             html += QStringLiteral("</table>");
@@ -613,7 +629,7 @@ QString Maquetador::fichaPreguntaHtml(const Pregunta &p, const QString &nombreTe
     if (conSolucion)
         html += tr("<p><b>Respuesta correcta:</b> %1. %2</p>").arg(Pregunta::letraMayuscula(p.correcta)).arg(escapar(p.referencia));
     if (conSolucion && !p.explicacion.isEmpty())
-        html += tr("<p><b>Explicación:</b> %1</p>").arg(escapar(p.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
+        html += tr("<p><b>Explicación:</b> %1</p>").arg(textoHtml(p.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
     if (!p.pseudoCon.isEmpty())
         html += tr("<p><b>Pseudorrepetida con:</b> %1 (no saldrán juntas en un examen)</p>").arg(escapar(p.pseudoCon));
     if (conSolucion && !p.notas.isEmpty())

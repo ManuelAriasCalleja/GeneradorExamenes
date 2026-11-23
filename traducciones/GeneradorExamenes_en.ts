@@ -1519,12 +1519,12 @@ Score: %4 out of %5</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+225"/>
+        <location line="+226"/>
         <source>Seguir editando</source>
         <translation>Continue editing</translation>
     </message>
     <message>
-        <location line="-215"/>
+        <location line="-216"/>
         <source>Identificación</source>
         <translation>Identification</translation>
     </message>
@@ -1610,12 +1610,12 @@ Score: %4 out of %5</translation>
     </message>
     <message>
         <location line="+6"/>
-        <source>Código entre líneas &lt;tt&gt;```&lt;/tt&gt;; filas de tabla como &lt;tt&gt;| celda | celda |&lt;/tt&gt;.</source>
-        <extracomment>«```» y «|» son marcas de los textos de las preguntas: no se traducen («celda» sí)</extracomment>
-        <translation>Code between &lt;tt&gt;```&lt;/tt&gt; lines; table rows as &lt;tt&gt;| cell | cell |&lt;/tt&gt;.</translation>
+        <source>Código entre líneas &lt;tt&gt;```&lt;/tt&gt;; filas de tabla como &lt;tt&gt;| celda | celda |&lt;/tt&gt;; código dentro del texto (también en las opciones), &lt;tt&gt;`nombre`&lt;/tt&gt;.</source>
+        <extracomment>«```», «|» y «`» son marcas de los textos de las preguntas: no se traducen («celda» y «nombre» sí)</extracomment>
+        <translation>Code between &lt;tt&gt;```&lt;/tt&gt; lines; table rows as &lt;tt&gt;| cell | cell |&lt;/tt&gt;; code within the text (in the options too), &lt;tt&gt;`name`&lt;/tt&gt;.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
         <source>Marque la respuesta correcta</source>
         <translation>Mark the correct answer</translation>
     </message>
@@ -2056,7 +2056,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>Enunciado</name>
     <message>
-        <location filename="../src/enunciado.cpp" line="+64"/>
+        <location filename="../src/enunciado.cpp" line="+123"/>
         <source>El código dice ser «%1», un lenguaje que el programa no resalta: saldrá sin resaltar. Los que resalta son %2.</source>
         <extracomment>%1 es el lenguaje que se ha escrito tras ``` y %2, la lista de los que conoce el programa</extracomment>
         <translation>The code claims to be “%1”, a language the program does not highlight: it will come out unhighlighted. The ones it highlights are %2.</translation>
@@ -2071,6 +2071,12 @@ Do you want to save it anyway?</translation>
         <location line="+3"/>
         <source>Un bloque de código no se cierra con otra línea ```: llega hasta el final del enunciado.</source>
         <translation>A code block is not closed with another ``` line: it runs to the end of the question text.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual. El código dentro del texto va entre dos, `así`.</source>
+        <extracomment>«`» es la comilla invertida (acento grave) que marca el código dentro de una línea de texto</extracomment>
+        <translation>There is a backtick (`) with no partner on its line: it will be shown as it is. Code within the text goes between two of them, `like this`.</translation>
     </message>
 </context>
 <context>
@@ -2238,9 +2244,9 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/latex.cpp" line="+265"/>
-        <location filename="../src/docx.cpp" line="+742"/>
-        <location filename="../src/maquetador.cpp" line="+353"/>
+        <location filename="../src/latex.cpp" line="+275"/>
+        <location filename="../src/docx.cpp" line="+758"/>
+        <location filename="../src/maquetador.cpp" line="+359"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
@@ -2286,7 +2292,7 @@ Do not hand in the question paper.</translation>
     <message>
         <location filename="../src/latex.cpp" line="-74"/>
         <location filename="../src/docx.cpp" line="-61"/>
-        <location filename="../src/maquetador.cpp" line="+272"/>
+        <location filename="../src/maquetador.cpp" line="+282"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
@@ -2322,12 +2328,12 @@ Do not hand in the question paper.</translation>
     <message>
         <location line="+35"/>
         <location filename="../src/docx.cpp" line="+34"/>
-        <location filename="../src/maquetador.cpp" line="-362"/>
+        <location filename="../src/maquetador.cpp" line="-372"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
     <message>
-        <location filename="../src/moodle.cpp" line="+156"/>
+        <location filename="../src/moodle.cpp" line="+165"/>
         <source>Respuesta correcta.</source>
         <translation>Correct answer.</translation>
     </message>
@@ -2441,7 +2447,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="+211"/>
+        <location filename="../src/maquetador.cpp" line="+221"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>

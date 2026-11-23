@@ -82,8 +82,13 @@ no hay coma detrás del último elemento de una lista ni del último campo; y no
 
 ## El enunciado
 
-Es texto normal, en uno o varios párrafos (separados por `\n`). No es Markdown: `**así**` o `` `así` `` salen tal
-cual. Admite además:
+Es texto normal, en uno o varios párrafos (separados por `\n`). No es Markdown: `**así**` sale tal cual. Admite
+además:
+
+**Código dentro del texto**, entre dos comillas invertidas en la misma línea: `` el método `leer()` ``. Sale en letra
+de ancho fijo y sin cursiva, para que no se confundan caracteres como la I mayúscula y la l minúscula. Úsalo para los
+nombres de variables, métodos, clases, órdenes y valores que se citan en una frase; vale también en las opciones, en
+la explicación y en las celdas de las tablas. Una comilla invertida sin pareja en su línea sale tal cual (y se avisa).
 
 **Tablas**, una fila por línea con las celdas entre barras:
 

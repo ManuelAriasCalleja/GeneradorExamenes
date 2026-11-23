@@ -18,6 +18,15 @@ namespace {
 
 // Enunciado en HTML sencillo, que el editor de Moodle conserva: párrafos, código en <pre> (en un recuadro gris) y
 // tablas con borde.
+// Texto con su código en línea (entre comillas invertidas: ver enunciado.h) en <code>.
+QString textoHtml(const QString &texto)
+{
+    QString html;
+    for (const Enunciado::Trozo &t : Enunciado::trozos(texto))
+        html += t.codigo ? QStringLiteral("<code>%1</code>").arg(Maquetador::escapar(t.texto)) : Maquetador::escapar(t.texto);
+    return html;
+}
+
 QString enunciadoHtml(const QString &texto)
 {
     QString html;
@@ -26,7 +35,7 @@ QString enunciadoHtml(const QString &texto)
         case Enunciado::Bloque::Parrafo: {
             QStringList lineas;
             for (const QString &linea : b.lineas)
-                lineas << Maquetador::escapar(linea);
+                lineas << textoHtml(linea);
             html += QStringLiteral("<p>%1</p>").arg(lineas.join(QStringLiteral("<br>")));
             break;
         }
@@ -49,7 +58,7 @@ QString enunciadoHtml(const QString &texto)
             for (const QStringList &fila : b.filas) {
                 html += QStringLiteral("<tr>");
                 for (const QString &celda : fila)
-                    html += QStringLiteral("<td>%1</td>").arg(Maquetador::escapar(celda));
+                    html += QStringLiteral("<td>%1</td>").arg(textoHtml(celda));
                 html += QStringLiteral("</tr>");
             }
             html += QStringLiteral("</table>");
@@ -65,7 +74,7 @@ QString nombrePregunta(const Pregunta &p)
     QString principio;
     for (const Enunciado::Bloque &b : Enunciado::bloques(p.enunciado)) {
         if (b.tipo == Enunciado::Bloque::Parrafo) {
-            principio = b.lineas.join(QLatin1Char(' ')).simplified();
+            principio = Enunciado::sinMarcas(b.lineas.join(QLatin1Char(' '))).simplified();
             break;
         }
     }
@@ -142,7 +151,7 @@ void escribirPregunta(QXmlStreamWriter &x, const Pregunta &p, const Opciones &op
     if (!p.referencia.isEmpty())
         realimentacion += QStringLiteral("<p>%1</p>").arg(Maquetador::escapar(p.referencia));
     if (!p.explicacion.isEmpty())
-        realimentacion += QStringLiteral("<p>%1</p>").arg(Maquetador::escapar(p.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
+        realimentacion += QStringLiteral("<p>%1</p>").arg(textoHtml(p.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
     escribirHtml(x, QStringLiteral("generalfeedback"), realimentacion);
 
     x.writeTextElement(QStringLiteral("defaultgrade"), QStringLiteral("1.0000000"));
@@ -164,7 +173,7 @@ void escribirPregunta(QXmlStreamWriter &x, const Pregunta &p, const Opciones &op
         x.writeAttribute(QStringLiteral("fraction"), i == p.correcta ? QStringLiteral("100") : erronea);
         x.writeAttribute(QStringLiteral("format"), QStringLiteral("html"));
         x.writeStartElement(QStringLiteral("text"));
-        x.writeCDATA(QStringLiteral("<p>%1</p>").arg(Maquetador::escapar(p.opciones.value(i))));
+        x.writeCDATA(QStringLiteral("<p>%1</p>").arg(textoHtml(p.opciones.value(i))));
         x.writeEndElement();
         escribirHtml(x, QStringLiteral("feedback"), QString());
         x.writeEndElement();

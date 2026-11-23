@@ -88,6 +88,9 @@ public:
     // Enunciado (texto con bloques ``` y tablas |) a HTML. 'prefijo' (ya en HTML) se pone al principio.
     static QString enunciadoHtml(const QString &texto, const QString &prefijo = QString());
     static QString escapar(const QString &texto);
+    // Texto de una pregunta (una línea del enunciado, una opción, la explicación) a HTML, con su código en línea
+    // (entre comillas invertidas: ver enunciado.h) en letra de ancho fijo y sin cursiva.
+    static QString textoHtml(const QString &texto);
 
     // Ficha de una pregunta (vista del banco de preguntas). Sin 'conSolucion', no dice cuál es la respuesta correcta ni
     // lo que la delata (la referencia, la explicación y las notas): para resolverla antes de verla, al verificar.
