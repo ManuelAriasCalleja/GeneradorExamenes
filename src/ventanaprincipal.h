@@ -10,6 +10,7 @@
 #include <QMap>
 #include <QSet>
 #include <QVector>
+#include <functional>
 
 class FiltroPreguntas;
 class ModeloPreguntas;
@@ -163,6 +164,16 @@ private:
         QWidget *control;
     };
     QVector<Ajuste> ajustes() const;
+    // Las opciones del recuadro «Opciones», en el orden en que se ven: la clave con que se guarda (vacía: no se
+    // guarda), su control y lo que dice el resumen del recuadro plegado cuando no está como viene de entrada (vacío
+    // si lo está; sin función, el resumen no la nombra).
+    struct Opcion
+    {
+        QString clave;
+        QWidget *control;
+        std::function<QString()> cambio;
+    };
+    QVector<Opcion> m_opciones;
     bool hayExamen() const;
     Pregunta preguntaSeleccionada(bool *ok);
     // Las preguntas de la lista del banco: las que cumplen los filtros, en el orden en que se ven.

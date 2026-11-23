@@ -1378,7 +1378,7 @@ Its questions will no longer count as used when generating exams, and it will no
         <translation>The new question is very similar to these in the bank. If it is the same idea (different data, the question the other way round or another aspect of the same concept), save it as a variant of the existing one: that way the two will never appear in the same exam. If it belongs to another topic, link them as pseudo-duplicates.</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+22"/>
         <source>Guardar como pregunta nueva</source>
         <translation>Save as a new question</translation>
     </message>
@@ -1519,12 +1519,12 @@ Score: %4 out of %5</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+222"/>
+        <location line="+225"/>
         <source>Seguir editando</source>
         <translation>Continue editing</translation>
     </message>
     <message>
-        <location line="-212"/>
+        <location line="-215"/>
         <source>Identificación</source>
         <translation>Identification</translation>
     </message>
@@ -1670,7 +1670,7 @@ Score: %4 out of %5</translation>
         <translation>Preview</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+15"/>
         <source>Si es la misma idea que una de ellas, guárdela como su variante (mismo número, otra letra) o, si es de otro tema, enlácela en «Pseudorrepetida con».</source>
         <extracomment>«Pseudorrepetida con» es la etiqueta de un campo de este diálogo: tradúzcase igual</extracomment>
         <translation>If it is the same idea as one of them, save it as its variant (same number, another letter) or, if it belongs to another topic, link it in “Pseudo-duplicate of”.</translation>
@@ -1838,7 +1838,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>DialogoVerificadores</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="+210"/>
+        <location filename="../src/verificacion.cpp" line="+215"/>
         <source>Verificadores</source>
         <translation>Verifiers</translation>
     </message>
@@ -1921,7 +1921,7 @@ Do you want to save it anyway?</translation>
         <translation>Verify questions</translation>
     </message>
     <message>
-        <location line="+28"/>
+        <location line="+26"/>
         <source>Verificación</source>
         <translation>Verification</translation>
     </message>
@@ -2607,7 +2607,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelVerificacion</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="-557"/>
+        <location filename="../src/verificacion.cpp" line="-555"/>
         <source>Verificada por humanos</source>
         <translation>Verified by humans</translation>
     </message>
@@ -2651,7 +2651,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>Utilidades</name>
     <message>
-        <location filename="../src/utilidades.h" line="+108"/>
+        <location filename="../src/utilidades.h" line="+95"/>
         <source>Sí</source>
         <extracomment>Botón para responder que sí a una pregunta.</extracomment>
         <translation>Yes</translation>
@@ -2684,7 +2684,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="+81"/>
+        <location line="+91"/>
         <source>Generar examen</source>
         <translation>Generate exam</translation>
     </message>
@@ -2870,17 +2870,17 @@ Double-click to change the name; drag to change the order.</translation>
         <translation>Wrong:</translation>
     </message>
     <message>
-        <location line="+61"/>
+        <location line="+46"/>
         <source>Opciones</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+10"/>
         <source>No repetir preguntas entre exámenes</source>
         <translation>Do not repeat questions between exams</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+4"/>
         <source>Evitar las preguntas de las últimas</source>
         <extracomment>Casilla seguida de un número y del sufijo « convocatorias»: «Evitar las preguntas de las últimas [3] convocatorias»</extracomment>
         <translation>Avoid questions from the last</translation>
@@ -2897,7 +2897,7 @@ Double-click to change the name; drag to change the order.</translation>
         <translation> exam sessions</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+19"/>
         <source>Evitar también las marcadas «old»</source>
         <extracomment>«old» es el nombre de la marca de las preguntas que ya salieron en exámenes anteriores al historial</extracomment>
         <translation>Also avoid those marked “old”</translation>
@@ -2908,12 +2908,12 @@ Double-click to change the name; drag to change the order.</translation>
         <translation>Leaves until last (though ahead of those from recorded exam sessions) the questions that already appeared in exams from before the history was kept</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+2"/>
         <source>Incluir preguntas marcadas para revisar</source>
         <translation>Include questions flagged for review</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+5"/>
         <source>Orden aleatorio (si no, por tema y número)</source>
         <translation>Random order (otherwise, by topic and number)</translation>
     </message>
@@ -2923,7 +2923,7 @@ Double-click to change the name; drag to change the order.</translation>
         <translation>Shuffle the options (correct answer spread across a)–d))</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>En cada examen, la correcta sale en a), b), c) y d) por igual y nunca tres veces seguidas en la misma letra (si se puede).
 No se barajan las preguntas con opciones del tipo «Todas las anteriores».</source>
         <translation>In each exam, the correct answer falls on a), b), c) and d) equally often and never three times in a row on the same letter (where possible).
@@ -2935,14 +2935,14 @@ Questions with options such as “All of the above” are not shuffled.</transla
         <translation>Fit on one page per 10 questions</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Compacta la maqueta (opciones en dos columnas, menos separación, letra menor) hasta que cada examen quepa en una página por cada 10 preguntas, y avisa si no se consigue.
 Sin marcar, los exámenes van con la maqueta normal y ocupan las páginas que necesiten.</source>
         <translation>Compacts the layout (options in two columns, less spacing, smaller font) until each exam fits on one page per 10 questions, and warns if it cannot.
 Unticked, exams use the normal layout and take as many pages as they need.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+10"/>
         <source>aleatoria</source>
         <extracomment>Lo que pone el campo «Semilla» cuando está vacío (la semilla será aleatoria)</extracomment>
         <translation>random</translation>
@@ -2955,13 +2955,13 @@ Vacía, cada vez salen otros.</source>
 If empty, different exams come out each time.</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+21"/>
         <source>Semilla:</source>
         <extracomment>Semilla del generador de números aleatorios</extracomment>
         <translation>Seed:</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+12"/>
         <source>Mostrar soluciones</source>
         <translation>Show solutions</translation>
     </message>
@@ -3111,7 +3111,7 @@ If empty, different exams come out each time.</translation>
     <message>
         <location line="-110"/>
         <location line="+112"/>
-        <location line="+1960"/>
+        <location line="+1959"/>
         <source>Editar…</source>
         <extracomment>Botón: abre en el editor esa pregunta del examen
 ----------
@@ -3119,7 +3119,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-2450"/>
+        <location line="-2454"/>
         <location line="+5"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -3182,38 +3182,37 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>correct +%1, wrong -%2</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+34"/>
         <source>se repiten entre exámenes</source>
         <translation>repeated between exams</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+18"/>
         <source>sin evitar las recientes</source>
         <translation>recent ones not avoided</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>evita las de las últimas %1</source>
-        <extracomment>Resumen de las opciones: %1 es el número de convocatorias</extracomment>
         <translation>avoids those of the last %1</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+9"/>
         <source>sin evitar las «old»</source>
         <translation>“old” ones not avoided</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>sin las de revisar</source>
         <translation>without those to review</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>solo verificadas</source>
         <translation>verified only</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+4"/>
         <source>orden aleatorio</source>
         <translation>random order</translation>
     </message>
@@ -3223,24 +3222,24 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>options shuffled</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+5"/>
         <source>sin ajustar las páginas</source>
         <translation>pages not fitted</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+23"/>
         <source>semilla %1</source>
         <extracomment>Resumen de las opciones: %1 es la semilla (un número)</extracomment>
         <translation>seed %1</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-85"/>
         <source>las habituales</source>
         <extracomment>Resumen de las opciones cuando están todas como vienen de entrada</extracomment>
         <translation>the usual ones</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+51"/>
         <source>Solo preguntas verificadas por humanos</source>
         <translation>Only questions verified by humans</translation>
     </message>
@@ -3250,7 +3249,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Unticked, all questions are used; ticked, only those someone has reviewed (“Verified by humans”). In the exam preview, each question says whether it is verified.</translation>
     </message>
     <message>
-        <location line="+57"/>
+        <location line="+59"/>
         <source>Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.
 Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-letra-grande» en el nombre.</source>
         <translation>Adapted version for visually impaired students: 16 pt font, one option per line (question text not in italics), more spacing and larger images, with no page limit.
@@ -3277,7 +3276,7 @@ You can also right-click the question.</translation>
     <message>
         <location line="+3"/>
         <location line="+110"/>
-        <location line="+1959"/>
+        <location line="+1958"/>
         <source>Verificar…</source>
         <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas
 ----------
@@ -3285,7 +3284,7 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="-2068"/>
+        <location line="-2067"/>
         <source>Recorre las preguntas del examen, desde esta, para marcarlas como verificadas por personas: «Verificada, siguiente» la marca con los mismos verificadores que la anterior.</source>
         <translation>Goes through the questions of the exam, from this one, to mark them as verified by people: “Verified, next” marks each with the same verifiers as the previous one.</translation>
     </message>
@@ -3569,13 +3568,13 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+997"/>
-        <location line="+625"/>
+        <location line="+992"/>
+        <location line="+629"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-1614"/>
+        <location line="-1613"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3763,7 +3762,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Distinct questions available (variants a, b, c... count as one)</translation>
     </message>
     <message>
-        <location line="+162"/>
+        <location line="+157"/>
         <source>Generador de exámenes</source>
         <translation>Exam Generator</translation>
     </message>
@@ -4209,7 +4208,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>Undo the last question change</translation>
     </message>
     <message>
-        <location line="+52"/>
+        <location line="+51"/>
         <source>0 preguntas</source>
         <translation>0 questions</translation>
     </message>
@@ -4235,7 +4234,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>Verified: %1% of the questions in the list</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+31"/>
         <source>&lt;p&gt;&lt;b&gt;Ha salido en:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</source>
         <translation>&lt;p&gt;&lt;b&gt;Appeared in:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</translation>
     </message>
@@ -4272,7 +4271,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>%1 already has variants from a to z.</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+39"/>
         <location line="+11"/>
         <source>Marcar como verificadas</source>
         <translation>Mark as verified</translation>
@@ -4341,7 +4340,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
 <context>
     <name>VisorAmpliable</name>
     <message>
-        <location filename="../src/visorampliable.cpp" line="+117"/>
+        <location filename="../src/visorampliable.cpp" line="+118"/>
         <source>Ampliar la vista</source>
         <extracomment>Acción de la vista del examen (Ctrl++): letra más grande, solo en pantalla</extracomment>
         <translation>Zoom in</translation>

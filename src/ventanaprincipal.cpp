@@ -519,81 +519,85 @@ void VentanaPrincipal::resumirPuntuacion()
     m_plegablePuntuacion->ponerResumen(resumen);
 }
 
-// Lo que se aparta de lo habitual (lo que viene marcado de entrada), que es lo que conviene tener presente: sobre todo
-// la semilla, con la que todas las generaciones salen iguales.
+// Lo que se aparta de lo habitual (ver m_opciones), que es lo que conviene tener presente: sobre todo la semilla, con
+// la que todas las generaciones salen iguales.
 void VentanaPrincipal::resumirOpciones()
 {
     if (!m_plegableOpciones)
         return;
     QStringList cambios;
-    if (!m_noRepetir->isChecked())
-        cambios << tr("se repiten entre exámenes");
-    if (!m_evitarRecientes->isChecked())
-        cambios << tr("sin evitar las recientes");
-    else if (m_numRecientes->value() != 3)
-        //: Resumen de las opciones: %1 es el número de convocatorias
-        cambios << tr("evita las de las últimas %1").arg(m_numRecientes->value());
-    if (!m_evitarOld->isChecked())
-        cambios << tr("sin evitar las «old»");
-    if (!m_incluirRevisar->isChecked())
-        cambios << tr("sin las de revisar");
-    if (m_soloVerificadas->isChecked())
-        cambios << tr("solo verificadas");
-    if (m_ordenAleatorio->isChecked())
-        cambios << tr("orden aleatorio");
-    if (m_barajarOpciones->isChecked())
-        cambios << tr("opciones barajadas");
-    if (!m_limitarPaginas->isChecked())
-        cambios << tr("sin ajustar las páginas");
-    if (!m_semilla->text().isEmpty())
-        //: Resumen de las opciones: %1 es la semilla (un número)
-        cambios << tr("semilla %1").arg(m_semilla->text());
+    for (const Opcion &o : m_opciones) {
+        const QString cambio = o.cambio ? o.cambio() : QString();
+        if (!cambio.isEmpty())
+            cambios << cambio;
+    }
     //: Resumen de las opciones cuando están todas como vienen de entrada
     m_plegableOpciones->ponerResumen(cambios.isEmpty() ? tr("las habituales") : cambios.join(QStringLiteral(", ")));
 }
 
+// Cada opción se apunta en m_opciones al crearla: de ahí salen su clave en la configuración (ajustes()) y lo que dice
+// de ella el resumen del recuadro plegado (resumirOpciones()).
 QWidget *VentanaPrincipal::crearGrupoOpciones()
 {
     auto *gOpc = new QGroupBox(tr("Opciones"));
     auto *fOpc = new QFormLayout(gOpc);
-    m_noRepetir = new QCheckBox(tr("No repetir preguntas entre exámenes"));
+    // Una casilla: su clave, su texto, si viene marcada y lo que dice el resumen cuando no está como viene.
+    auto casilla = [this](const char *clave, const QString &texto, bool habitual, const QString &cambio) {
+        auto *c = new QCheckBox(texto);
+        c->setChecked(habitual);
+        connect(c, &QCheckBox::toggled, this, &VentanaPrincipal::resumirOpciones);
+        m_opciones.append({QString::fromLatin1(clave), c, [c, habitual, cambio] { return c->isChecked() == habitual ? QString() : cambio; }});
+        return c;
+    };
+    m_noRepetir = casilla("examen/noRepetir", tr("No repetir preguntas entre exámenes"), true, tr("se repiten entre exámenes"));
+    // Las convocatorias recientes: la casilla y, a su lado, cuántas. El resumen las cuenta juntas.
+    constexpr int kRecientesHabituales = 3;
     //: Casilla seguida de un número y del sufijo « convocatorias»: «Evitar las preguntas de las últimas [3] convocatorias»
     m_evitarRecientes = new QCheckBox(tr("Evitar las preguntas de las últimas"));
     m_evitarRecientes->setToolTip(tr("Deja para el final las preguntas (y sus variantes) que salieron en las últimas "
                                      "convocatorias registradas, empezando por las más recientes"));
     m_numRecientes = new QSpinBox;
     m_numRecientes->setRange(1, 99);
-    m_numRecientes->setValue(3);
+    m_numRecientes->setValue(kRecientesHabituales);
     //: Sufijo del número: «Evitar las preguntas de las últimas [3] convocatorias» (con el espacio delante)
     m_numRecientes->setSuffix(tr(" convocatorias"));
     connect(m_evitarRecientes, &QCheckBox::toggled, m_numRecientes, &QWidget::setEnabled);
     m_evitarRecientes->setChecked(true);
-    //: «old» es el nombre de la marca de las preguntas que ya salieron en exámenes anteriores al historial
-    m_evitarOld = new QCheckBox(tr("Evitar también las marcadas «old»"));
-    m_evitarOld->setToolTip(tr("Deja para el final (aunque antes que las de las convocatorias registradas) las "
-                               "preguntas que ya salieron en exámenes anteriores al historial"));
-    m_evitarOld->setChecked(true);
+    connect(m_evitarRecientes, &QCheckBox::toggled, this, &VentanaPrincipal::resumirOpciones);
+    connect(m_numRecientes, &QSpinBox::valueChanged, this, &VentanaPrincipal::resumirOpciones);
+    m_opciones.append({QStringLiteral("examen/evitarRecientes"), m_evitarRecientes, [this]() {
+        if (!m_evitarRecientes->isChecked())
+            return tr("sin evitar las recientes");
+        if (m_numRecientes->value() != kRecientesHabituales)
+            //: Resumen de las opciones: %1 es el número de convocatorias
+            return tr("evita las de las últimas %1").arg(m_numRecientes->value());
+        return QString();
+    }});
+    m_opciones.append({QStringLiteral("examen/numRecientes"), m_numRecientes, nullptr});
     auto *filaRecientes = new QHBoxLayout;
     filaRecientes->addWidget(m_evitarRecientes);
     filaRecientes->addWidget(m_numRecientes);
     filaRecientes->addStretch();
-    m_noRepetir->setChecked(true);
-    m_incluirRevisar = new QCheckBox(tr("Incluir preguntas marcadas para revisar"));
-    m_incluirRevisar->setChecked(true);
-    m_soloVerificadas = new QCheckBox(tr("Solo preguntas verificadas por humanos"));
+    //: «old» es el nombre de la marca de las preguntas que ya salieron en exámenes anteriores al historial
+    m_evitarOld = casilla("examen/evitarOld", tr("Evitar también las marcadas «old»"), true, tr("sin evitar las «old»"));
+    m_evitarOld->setToolTip(tr("Deja para el final (aunque antes que las de las convocatorias registradas) las "
+                               "preguntas que ya salieron en exámenes anteriores al historial"));
+    m_incluirRevisar = casilla("examen/incluirRevisar", tr("Incluir preguntas marcadas para revisar"), true, tr("sin las de revisar"));
+    m_soloVerificadas = casilla("examen/soloVerificadas", tr("Solo preguntas verificadas por humanos"), false, tr("solo verificadas"));
     m_soloVerificadas->setToolTip(tr("Sin marcar, entran todas las preguntas; marcada, solo las que ha revisado alguien "
                                      "(«Verificada por humanos»). En la vista del examen, cada pregunta dice si está "
                                      "verificada."));
-    m_ordenAleatorio = new QCheckBox(tr("Orden aleatorio (si no, por tema y número)"));
-    m_barajarOpciones = new QCheckBox(tr("Barajar las opciones (la correcta, repartida entre a)–d))"));
+    m_ordenAleatorio = casilla("examen/ordenAleatorio", tr("Orden aleatorio (si no, por tema y número)"), false, tr("orden aleatorio"));
+    m_barajarOpciones = casilla("examen/barajarOpciones", tr("Barajar las opciones (la correcta, repartida entre a)–d))"), false,
+                                tr("opciones barajadas"));
     m_barajarOpciones->setToolTip(tr("En cada examen, la correcta sale en a), b), c) y d) por igual y nunca tres veces "
                                      "seguidas en la misma letra (si se puede).\nNo se barajan las preguntas con "
                                      "opciones del tipo «Todas las anteriores»."));
-    m_limitarPaginas = new QCheckBox(tr("Ajustar a una página por cada 10 preguntas"));
+    m_limitarPaginas = casilla("examen/limitarPaginas", tr("Ajustar a una página por cada 10 preguntas"), true,
+                               tr("sin ajustar las páginas"));
     m_limitarPaginas->setToolTip(tr("Compacta la maqueta (opciones en dos columnas, menos separación, letra menor) hasta "
                                     "que cada examen quepa en una página por cada 10 preguntas, y avisa si no se consigue.\n"
                                     "Sin marcar, los exámenes van con la maqueta normal y ocupan las páginas que necesiten."));
-    m_limitarPaginas->setChecked(true);
     connect(m_limitarPaginas, &QCheckBox::toggled, this, [this]() {
         if (hayExamen())
             actualizarMaqueta();
@@ -609,6 +613,12 @@ QWidget *VentanaPrincipal::crearGrupoOpciones()
     connect(m_semilla, &QLineEdit::textChanged, this, [this](const QString &texto) {
         m_semilla->setStyleSheet(texto.isEmpty() ? QString() : QStringLiteral("background: #fff3cd; color: #664d03"));
     });
+    connect(m_semilla, &QLineEdit::textChanged, this, &VentanaPrincipal::resumirOpciones);
+    // La semilla no se guarda (sin clave): es de cada generación.
+    m_opciones.append({QString(), m_semilla, [this]() {
+        //: Resumen de las opciones: %1 es la semilla (un número)
+        return m_semilla->text().isEmpty() ? QString() : tr("semilla %1").arg(m_semilla->text());
+    }});
     fOpc->addRow(m_noRepetir);
     fOpc->addRow(filaRecientes);
     fOpc->addRow(m_evitarOld);
@@ -619,11 +629,6 @@ QWidget *VentanaPrincipal::crearGrupoOpciones()
     fOpc->addRow(m_limitarPaginas);
     //: Semilla del generador de números aleatorios
     fOpc->addRow(tr("Semilla:"), m_semilla);
-    for (QCheckBox *c : {m_noRepetir, m_evitarRecientes, m_evitarOld, m_incluirRevisar, m_soloVerificadas, m_ordenAleatorio,
-                         m_barajarOpciones, m_limitarPaginas})
-        connect(c, &QCheckBox::toggled, this, &VentanaPrincipal::resumirOpciones);
-    connect(m_numRecientes, &QSpinBox::valueChanged, this, &VentanaPrincipal::resumirOpciones);
-    connect(m_semilla, &QLineEdit::textChanged, this, &VentanaPrincipal::resumirOpciones);
     return gOpc;
 }
 
@@ -1569,25 +1574,20 @@ void VentanaPrincipal::guardarEstadoBanco()
 QVector<VentanaPrincipal::Ajuste> VentanaPrincipal::ajustes() const
 {
     // En este orden se leen: la forma de puntuar antes que los puntos, para que se queden los guardados.
-    return {
+    QVector<Ajuste> ajustes{
         {QStringLiteral("examen/instrucciones"), m_instrucciones},
         {QStringLiteral("examen/asignaturaEnCabecera"), m_asignaturaEnCabecera},
         {QStringLiteral("examen/convocatoriaEnCabecera"), m_convocatoriaEnCabecera},
         {QStringLiteral("examen/asignaturaEnPie"), m_asignaturaEnPie},
         {QStringLiteral("examen/convocatoriaEnPie"), m_convocatoriaEnPie},
-        {QStringLiteral("examen/noRepetir"), m_noRepetir},
-        {QStringLiteral("examen/evitarRecientes"), m_evitarRecientes},
-        {QStringLiteral("examen/numRecientes"), m_numRecientes},
-        {QStringLiteral("examen/evitarOld"), m_evitarOld},
-        {QStringLiteral("examen/incluirRevisar"), m_incluirRevisar},
-        {QStringLiteral("examen/soloVerificadas"), m_soloVerificadas},
-        {QStringLiteral("examen/ordenAleatorio"), m_ordenAleatorio},
-        {QStringLiteral("examen/barajarOpciones"), m_barajarOpciones},
-        {QStringLiteral("examen/limitarPaginas"), m_limitarPaginas},
-        {kClavePuntuacion, m_puntuacion},
-        {QStringLiteral("examen/acierto"), m_acierto},
-        {QStringLiteral("examen/fallo"), m_fallo},
     };
+    for (const Opcion &o : m_opciones)
+        if (!o.clave.isEmpty())
+            ajustes.append({o.clave, o.control});
+    ajustes.append({kClavePuntuacion, m_puntuacion});
+    ajustes.append({QStringLiteral("examen/acierto"), m_acierto});
+    ajustes.append({QStringLiteral("examen/fallo"), m_fallo});
+    return ajustes;
 }
 
 void VentanaPrincipal::closeEvent(QCloseEvent *evento)
