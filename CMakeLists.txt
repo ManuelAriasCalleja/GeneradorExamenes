@@ -203,6 +203,59 @@ if(WIN32)
     )
 endif()
 
+# En macOS, una aplicación (.app) con su icono. «cmake --build build --target paquete» (en Release) deja
+# build/GeneradorExamenes-<versión>-macos.dmg, con la aplicación y todo lo que necesita (ver cmake/paquete_macos.cmake).
+if(APPLE)
+    set(iconset ${CMAKE_CURRENT_BINARY_DIR}/GeneradorExamenes.iconset)
+    set(icns ${CMAKE_CURRENT_BINARY_DIR}/GeneradorExamenes.icns)
+    set(copiar_iconos)
+    set(iconos_png)
+    foreach(par "16;16x16" "32;16x16@2x" "32;32x32" "64;32x32@2x" "128;128x128" "256;128x128@2x" "256;256x256")
+        list(GET par 0 lado)
+        list(GET par 1 nombre)
+        set(png ${CMAKE_CURRENT_SOURCE_DIR}/recursos/icono/icono_${lado}.png)
+        list(APPEND iconos_png ${png})
+        list(APPEND copiar_iconos COMMAND ${CMAKE_COMMAND} -E copy ${png} ${iconset}/icon_${nombre}.png)
+    endforeach()
+    add_custom_command(
+        OUTPUT ${icns}
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${iconset}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${iconset}
+        ${copiar_iconos}
+        COMMAND iconutil -c icns -o ${icns} ${iconset}
+        DEPENDS ${iconos_png}
+        VERBATIM
+    )
+    set_source_files_properties(${icns} PROPERTIES GENERATED TRUE MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(GeneradorExamenes PRIVATE ${icns})
+    set_target_properties(GeneradorExamenes PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_BUNDLE_NAME "Generador de exámenes"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.manuelariascalleja.GeneradorExamenes"
+        MACOSX_BUNDLE_ICON_FILE GeneradorExamenes.icns
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+    )
+
+    find_program(MACDEPLOYQT macdeployqt HINTS "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}")
+    if(NOT MACDEPLOYQT)
+        message(WARNING "No se encuentra macdeployqt: no se podrá preparar el paquete de macOS.")
+    endif()
+    add_custom_target(paquete
+        COMMAND ${CMAKE_COMMAND}
+                -DAPP=$<TARGET_BUNDLE_DIR:GeneradorExamenes>
+                -DMACDEPLOYQT=${MACDEPLOYQT}
+                -DTRADUCCIONES_QT=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_TRANSLATIONS}
+                -DLEEME=${CMAKE_CURRENT_SOURCE_DIR}/recursos/LEEME_macos.txt
+                -DPAQUETE=${CMAKE_BINARY_DIR}/paquete
+                -DDMG=${CMAKE_BINARY_DIR}/GeneradorExamenes-${PROJECT_VERSION}-macos.dmg
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/paquete_macos.cmake
+        DEPENDS GeneradorExamenes
+        COMMENT "Preparando GeneradorExamenes-${PROJECT_VERSION}-macos.dmg"
+        VERBATIM
+    )
+endif()
+
 # Instalación en Linux (la de compilar.sh, que instala en ~/.local): el ejecutable en bin/, el lanzador del menú del
 # escritorio en share/applications y el icono en el tema hicolor. El lanzador (recursos/GeneradorExamenes.desktop.in,
 # que usa también herramientas/instalar_lanzador.sh) se escribe al instalar, para que apunte al ejecutable del prefijo

@@ -64,9 +64,10 @@ está la carpeta.
 El repositorio es <https://github.com/ManuelAriasCalleja/GeneradorExamenes> (hasta la versión 1.0 se llamaba
 `GeneradorExamenesFI`, como el programa; GitHub redirige la dirección antigua, pero el remoto `origin` y los enlaces
 deben usar la nueva). Es **público**: cualquiera puede leer lo que se sube, también el historial y los mensajes
-de commit. Solo tiene un flujo de trabajo, `.github/workflows/windows.yml`, que prepara el paquete de Windows y pasa
-allí las pruebas; se lanza a mano o al subir una etiqueta `v*`, nunca con cada `push`. No añadir más flujos de
-trabajo ni otras comprobaciones automáticas, ni hacer que este se lance solo.
+de commit. Solo tiene un flujo de trabajo, `.github/workflows/windows.yml`, que prepara los paquetes de Windows y de
+macOS (este, sin la firma de Apple) y pasa allí las pruebas; se lanza a mano o al subir una etiqueta `v*`, nunca con
+cada `push`. El de macOS solo queda para descargar en la ejecución: no se publica en las versiones hasta que se haya
+probado en un Mac. No añadir más flujos de trabajo ni otras comprobaciones automáticas, ni hacer que este se lance solo.
 
 Los tres bancos **no deben mezclarse**: ni los dos de la primera asignatura entre sí (`datos` y `banco2`), ni
 ninguno de ellos con el de la otra asignatura (`BancoPreguntas`). Una pregunta, una opción o una frase de un banco no

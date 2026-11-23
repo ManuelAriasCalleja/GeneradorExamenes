@@ -1,0 +1,28 @@
+Generador de exámenes tipo test
+===============================
+
+Necesita macOS 12 o posterior, en un Mac con procesador Apple o Intel.
+
+1. Arrastre GeneradorExamenes a la carpeta Aplicaciones.
+
+2. Ábralo. Como el programa no lleva la firma de pago de Apple, la primera vez macOS no lo deja abrir: cierre el
+   aviso, vaya a Ajustes del Sistema → Privacidad y seguridad, baje hasta Seguridad y pulse «Abrir igualmente».
+   Solo hace falta una vez.
+
+3. El programa pregunta por el banco de preguntas (un fichero .db) o si quiere crear uno nuevo. Las preguntas
+   no vienen con el programa.
+
+4. Para ver cómo se usa, abra Ayuda → Manual de uso. El idioma del programa (castellano o inglés) se cambia en
+   Editar → Idioma. Los atajos de teclado usan la tecla Cmd donde el manual dice Ctrl.
+
+La ruta del último banco abierto y las opciones se guardan en ~/.config/UNED/GeneradorExamenes.ini.
+Para pasar a una versión nueva, sustituya la aplicación por la nueva: la configuración se conserva.
+
+English
+-------
+Requires macOS 12 or later, on an Apple or Intel Mac. Drag GeneradorExamenes to the Applications folder and open it.
+The program does not carry Apple's paid signature, so macOS blocks it the first time: close the warning, go to
+System Settings → Privacy & Security, scroll down to Security and click "Open Anyway". The program asks for a
+question bank (a .db file) or creates a new one; no questions come with it. It starts in the language of the system
+if it is English or Spanish; to change it, use Editar → Idioma (Edit → Language). Keyboard shortcuts use Cmd where
+the manual says Ctrl.

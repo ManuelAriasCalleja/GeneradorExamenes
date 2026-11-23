@@ -62,9 +62,10 @@ int main(int argc, char *argv[])
     // Para el diálogo «Acerca de» (VentanaPrincipal::versionYCompilacion()).
     app->setProperty("fechaCompilacion", QDateTime::fromString(QString::fromLatin1(kFechaCompilacion), Qt::ISODate));
     app->setProperty("commitCompilacion", QString::fromLatin1(kCommitCompilacion));
-#ifdef Q_OS_WIN
-    // La configuración (último banco de preguntas abierto y opciones) va en un fichero también en Windows
-    // (%APPDATA%\UNED\GeneradorExamenes.ini), no en el registro. En Linux ya es un fichero:
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+    // La configuración (último banco de preguntas abierto y opciones) va en un fichero que se puede ver y borrar también
+    // en Windows (%APPDATA%\UNED\GeneradorExamenes.ini), no en el registro, y en macOS
+    // (~/.config/UNED/GeneradorExamenes.ini), no en sus preferencias. En Linux ya es un fichero:
     // ~/.config/UNED/GeneradorExamenes.conf.
     QSettings::setDefaultFormat(QSettings::IniFormat);
 #endif

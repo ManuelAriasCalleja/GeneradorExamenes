@@ -961,6 +961,18 @@ private slots:
         QCOMPARE(guardadas, (QStringList{QStringLiteral("vease"), QString(), QStringLiteral("pag")}));
     }
 
+    // En macOS, Qt pasa al menú de la aplicación lo que tenga estos papeles; por su texto solo los reconocería en inglés.
+    void salirYAcercaDeVanAlMenuDeLaAplicacionEnMacOS()
+    {
+        VentanaPrincipal v;
+        QHash<QString, QAction::MenuRole> papeles;
+        for (QAction *menu : v.menuBar()->actions())
+            for (QAction *a : menu->menu()->actions())
+                papeles.insert(a->text(), a->menuRole());
+        QCOMPARE(papeles.value(QStringLiteral("&Salir")), QAction::QuitRole);
+        QCOMPARE(papeles.value(QStringLiteral("&Acerca de…")), QAction::AboutRole);
+    }
+
     void ventanaProponeLaProximaConvocatoria()
     {
         // Aunque la configuración tenga otra (la de una versión anterior, o una cargada del historial).

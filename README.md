@@ -31,8 +31,8 @@ Las preguntas no están en el repositorio (ver «Bancos de preguntas»). El prog
 preguntas que se abrió; la primera vez, o si se ha movido, pregunta cuál abrir o si crear uno nuevo. La ruta
 del último banco (los diálogos para abrir o crear un banco empiezan en su carpeta), el idioma de la interfaz, la
 duración de los exámenes de práctica y una copia de las opciones del último banco se guardan en un fichero de configuración:
-`~/.config/UNED/GeneradorExamenes.conf` en Linux y `%APPDATA%\UNED\GeneradorExamenes.ini` en Windows
-(el diálogo *Ayuda → Acerca de* dice cuál es). Hasta la versión 1.0 el programa se llamaba `GeneradorExamenesFI`
+`~/.config/UNED/GeneradorExamenes.conf` en Linux, `%APPDATA%\UNED\GeneradorExamenes.ini` en Windows y
+`~/.config/UNED/GeneradorExamenes.ini` en macOS (el diálogo *Ayuda → Acerca de* dice cuál es). Hasta la versión 1.0 el programa se llamaba `GeneradorExamenesFI`
 y la configuración estaba en `UNED-FI/GeneradorExamenesFI`: si la nueva está vacía, al arrancar se copia de allí.
 
 Para tenerlo en el menú del escritorio (Cinnamon, GNOME, KDE…) con su icono: `herramientas/instalar_lanzador.sh`
@@ -56,11 +56,17 @@ que necesita (las copia `windeployqt`, con las traducciones al castellano de los
 funciona sin instalar nada; no lleva preguntas. Desde Qt Creator: *Proyectos → Compilar → Pasos de compilación*,
 marcar el objetivo `paquete`. Para comprobar que no falta nada, conviene probarlo en un ordenador sin Qt.
 
-El paquete también se prepara en GitHub, sin un Windows a mano (`.github/workflows/windows.yml`): *Actions → Paquete
-para Windows → Run workflow*. Compila con Qt 6.8 y el MinGW del instalador de Qt (con Qt PDF), pasa las pruebas y deja
+El paquete también se prepara en GitHub, sin un Windows a mano (`.github/workflows/windows.yml`): *Actions → Paquetes
+para Windows y macOS → Run workflow*. Compila con Qt 6.8 y el MinGW del instalador de Qt (con Qt PDF), pasa las pruebas y deja
 el zip para descargar en la página de la ejecución, durante 30 días. Al subir una etiqueta de versión
 (`git tag v1.1 && git push origin v1.1`) se lanza solo y publica además una *release* con el zip. No se lanza con
 cada `push`.
+
+El mismo flujo prepara el paquete de macOS, `GeneradorExamenes-<versión>-macos.dmg`, para procesadores Apple e Intel
+(macOS 12 o posterior), con el objetivo `paquete` de CMake (`cmake/paquete_macos.cmake`) y un `LEEME.txt`
+(`recursos/LEEME_macos.txt`). No lleva la firma de pago de Apple, así que la primera vez hay que permitirlo en
+*Ajustes del Sistema → Privacidad y seguridad*. Queda para descargar en la ejecución y no se publica en las versiones
+hasta que se haya probado en un Mac.
 
 ### Compilar e instalar con un script
 
@@ -352,7 +358,8 @@ campos), los ejemplos, la ayuda y la guía `docs/redactar_preguntas.md`.
 |---|---|
 | `PENDIENTE.md` | Mejoras aceptadas que quedan por hacer. |
 | `compilar.sh`, `compilar.bat`, `compilar.ps1` | Compilan, pasan las pruebas e instalan el programa (Linux y Windows). |
-| `.github/workflows/windows.yml` | Prepara en GitHub el paquete de Windows (se lanza a mano o con una etiqueta `v*`). |
+| `.github/workflows/windows.yml` | Prepara en GitHub los paquetes de Windows y macOS (se lanza a mano o con una etiqueta `v*`). |
+| `cmake/paquete_macos.cmake` | Prepara el `.dmg` de macOS (objetivo `paquete`). |
 | `cmake/compilacion.cmake` | Apunta al compilar la fecha, la hora y el commit de git, que dice el diálogo *Ayuda → Acerca de* junto a la versión. Solo se actualizan cuando se recompila algo del programa. |
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `traducciones/` | Traducciones de la interfaz y de los textos de los exámenes (Qt Linguist), una por idioma. |

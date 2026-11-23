@@ -399,7 +399,9 @@ void VentanaPrincipal::crearMenus()
         ->setToolTip(tr("Registra en el historial los exámenes de una convocatoria hecha fuera del programa (de "
                         "sus PDF o su texto), para que se eviten sus preguntas al generar"));
     archivo->addSeparator();
-    archivo->addAction(tr("&Salir"), QKeySequence::Quit, this, &QWidget::close);
+    // En macOS, «Salir» y «Acerca de…» van en el menú de la aplicación. Qt los reconoce por su texto en inglés: en
+    // castellano hay que decírselo.
+    archivo->addAction(tr("&Salir"), QKeySequence::Quit, this, &QWidget::close)->setMenuRole(QAction::QuitRole);
 
     QMenu *editar = menuBar()->addMenu(tr("&Editar"));
     editar->addAction(tr("&Temas…"), this, &VentanaPrincipal::gestionarTemas);
@@ -428,7 +430,7 @@ void VentanaPrincipal::crearMenus()
     QMenu *ayuda = menuBar()->addMenu(tr("A&yuda"));
     ayuda->addAction(tr("&Manual de uso"), QKeySequence::HelpContents, this, &VentanaPrincipal::mostrarAyuda);
     ayuda->addSeparator();
-    ayuda->addAction(tr("&Acerca de…"), this, &VentanaPrincipal::acercaDe);
+    ayuda->addAction(tr("&Acerca de…"), this, &VentanaPrincipal::acercaDe)->setMenuRole(QAction::AboutRole);
 }
 
 // ---------------------------------------------------------------------------------------------

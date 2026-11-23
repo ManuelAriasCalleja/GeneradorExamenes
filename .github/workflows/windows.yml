@@ -1,8 +1,9 @@
-# Paquete para Windows (ver README, «Compilar en GitHub»). Solo se lanza a mano (Actions → Paquete para Windows →
-# Run workflow) o al subir una etiqueta de versión (v1.1…), nunca con cada push. Compila con el Qt y el MinGW del
-# instalador oficial de Qt, prepara el paquete (objetivo «paquete» de CMake), lo deja para descargar y pasa las
-# pruebas. Con una etiqueta, además, publica una versión (release) con el zip.
-name: Paquete para Windows
+# Paquetes para Windows y macOS (ver README). Solo se lanza a mano (Actions → Paquetes para Windows y macOS → Run
+# workflow) o al subir una etiqueta de versión (v1.1…), nunca con cada push. Compila con el Qt del instalador oficial
+# (en Windows, también su MinGW), prepara cada paquete (objetivo «paquete» de CMake), lo deja para descargar y pasa las
+# pruebas. Con una etiqueta, además, publica una versión (release) con el zip de Windows. El de macOS va sin la firma de
+# Apple y no se publica hasta que se haya probado en un Mac: solo queda para descargar en la ejecución.
+name: Paquetes para Windows y macOS
 
 on:
   workflow_dispatch:
@@ -85,3 +86,68 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: build/GeneradorExamenes-*-windows.zip
+
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      # El mismo Qt que en Windows, que para macOS sirve para procesadores Apple e Intel.
+      - name: Instalar Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: mac
+          target: desktop
+          arch: clang_64
+          modules: qtpdf
+          cache: true
+
+      - name: Configurar
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+
+      - name: Compilar
+        run: cmake --build build --parallel
+
+      - name: Preparar el paquete
+        run: cmake --build build --target paquete
+
+      - name: Guardar el paquete
+        uses: actions/upload-artifact@v7
+        with:
+          name: GeneradorExamenes-macos
+          path: build/GeneradorExamenes-*-macos.dmg
+          retention-days: 30
+          if-no-files-found: error
+
+      # La aplicación del paquete, sola: que tenga las dos arquitecturas, que no dependa del Qt de la máquina y que
+      # arranque y cree un banco (para lo que necesita el controlador de SQLite). Sin pantalla: no prueba los menús.
+      - name: Comprobar el paquete
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          app=build/paquete/GeneradorExamenes.app
+          programa=$app/Contents/MacOS/GeneradorExamenes
+          codesign --verify --deep --strict "$app"
+          lipo "$programa" -verify_arch arm64 x86_64
+          if otool -L "$programa" | grep -F "$QT_ROOT_DIR"; then
+            echo "El programa depende del Qt de la máquina" >&2
+            exit 1
+          fi
+          "$programa" --comprobar recursos/ejemplo_banco.json
+          banco="$RUNNER_TEMP/prueba.db"
+          "$programa" "$banco" &
+          pid=$!
+          for _ in $(seq 1 60); do
+            [ -s "$banco" ] && break
+            sleep 0.5
+          done
+          kill -0 "$pid"
+          kill "$pid"
+          test -s "$banco"
+
+      - name: Pruebas
+        run: ctest --test-dir build --output-on-failure

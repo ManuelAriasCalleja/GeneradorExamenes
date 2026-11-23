@@ -1457,7 +1457,7 @@ Its questions will no longer count as used when generating exams, and it will no
         <translation>Close</translation>
     </message>
     <message>
-        <location line="+75"/>
+        <location line="+95"/>
         <source>Dejar en blanco</source>
         <translation>Leave blank</translation>
     </message>
@@ -3733,7 +3733,7 @@ You can also right-click the question.</translation>
         <translation>Records in the history the exams of an exam session held outside the program (from their PDFs or their text), so that their questions are avoided when generating</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+5"/>
         <source>&amp;Salir</source>
         <translation>&amp;Quit</translation>
     </message>
@@ -4341,7 +4341,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>Exams for %1 recorded in the history</translation>
     </message>
     <message>
-        <location line="+34"/>
+        <location line="+36"/>
         <source>Registrada el %1</source>
         <extracomment>Origen de los exámenes cargados del historial: la convocatoria se registró el día %1</extracomment>
         <translation>Recorded on %1</translation>
@@ -4386,7 +4386,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>&amp;Verifiers…</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="+62"/>
         <source>Deshecho el cambio de la pregunta %1 de «%2»</source>
         <translation>Change to question %1 of “%2” undone</translation>
     </message>
@@ -4444,7 +4444,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
 </translation>
     </message>
     <message>
-        <location line="+49"/>
+        <location line="+50"/>
         <source>Comprueba los JSON de preguntas indicados, sin abrir el programa: escribe sus errores y avisos, con su línea, y sale con 1 si hay errores.</source>
         <translation>Checks the given JSON files of questions without opening the program: prints their errors and warnings, with their line, and exits with 1 if there are errors.</translation>
     </message>
