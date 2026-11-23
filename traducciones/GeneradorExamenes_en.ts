@@ -4057,17 +4057,27 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>Undo the last question change</translation>
     </message>
     <message>
-        <location line="+41"/>
-        <source>1 pregunta</source>
-        <translation>1 question</translation>
+        <location line="+52"/>
+        <source>0 preguntas</source>
+        <translation>0 questions</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>1 pregunta, verificada</source>
+        <translation>1 question, verified</translation>
     </message>
     <message>
         <location line="+0"/>
-        <source>%1 preguntas</source>
-        <translation>%1 questions</translation>
+        <source>1 pregunta, sin verificar</source>
+        <translation>1 question, not verified</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+2"/>
+        <source>%1 preguntas: %2 verificadas, %3 sin verificar</source>
+        <translation>%1 questions: %2 verified, %3 not verified</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>&lt;p&gt;&lt;b&gt;Ha salido en:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</source>
         <translation>&lt;p&gt;&lt;b&gt;Appeared in:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</translation>
     </message>

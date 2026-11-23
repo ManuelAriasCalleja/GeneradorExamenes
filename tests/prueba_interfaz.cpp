@@ -1299,6 +1299,21 @@ private slots:
         auto *tabla = v.findChild<QTableView *>();
         tabla->setCurrentIndex(tabla->model()->index(0, 0));
 
+        // Junto a los filtros, cuántas preguntas hay en la lista y cuántas de ellas están verificadas.
+        auto *cuenta = v.findChild<QLabel *>(QStringLiteral("cuentaBanco"));
+        QVERIFY(cuenta);
+        auto cuentaEsperada = [&] {
+            const int n = tabla->model()->rowCount();
+            int si = 0;
+            for (int f = 0; f < n; ++f)
+                si += tabla->model()->index(f, ModeloPreguntas::ColVerificada).data().toString().startsWith(QChar(0x2713)) ? 1 : 0;
+            return QStringLiteral("%1 preguntas: %2 verificadas, %3 sin verificar").arg(n).arg(si).arg(n - si);
+        };
+        QVERIFY(tabla->model()->rowCount() > 3);
+        QCOMPARE(cuenta->text(), cuentaEsperada());
+        const QString cuentaAlEmpezar = cuenta->text();
+        QString cuentaConElDialogo;
+
         // Desde la lista: la primera vez hay que decir quién; después, «Verificada, siguiente» basta (Intro).
         QString aviso, posicion, enLaLista;
         bool ampliada = false;
@@ -1320,6 +1335,7 @@ private slots:
             pulsar(d, QStringLiteral("&Verificada, siguiente"));
             // Se ve ya en la lista, con el diálogo abierto.
             enLaLista = tabla->model()->index(0, ModeloPreguntas::ColVerificada).data().toString();
+            cuentaConElDialogo = cuenta->text();
             QTest::keyClick(d, Qt::Key_Return);
             for (QLabel *l : d->findChildren<QLabel *>())
                 if (l->text().startsWith(QStringLiteral("Pregunta ")))
@@ -1335,6 +1351,10 @@ private slots:
         QVERIFY(QMetaObject::invokeMethod(&v, "verificarPregunta"));
         QVERIFY(ampliada);
         QCOMPARE(enLaLista, QStringLiteral("✓ Persona Uno"));
+        QVERIFY(cuentaConElDialogo != cuentaAlEmpezar);
+        QVERIFY2(cuentaConElDialogo.contains(QStringLiteral(": 1 verificadas,")), qPrintable(cuentaConElDialogo));
+        QCOMPARE(cuenta->text(), cuentaEsperada());
+        QVERIFY2(cuenta->text().contains(QStringLiteral(": 2 verificadas,")), qPrintable(cuenta->text()));
         QCOMPARE(aviso, QStringLiteral("Marque quién la ha verificado."));
         QVERIFY2(posicion.startsWith(QStringLiteral("Pregunta 3 de ")), qPrintable(posicion));
         QCOMPARE(verificadas(), (QStringList{QStringLiteral("T1-1:Persona Uno"), QStringLiteral("T1-2:Persona Uno")}));

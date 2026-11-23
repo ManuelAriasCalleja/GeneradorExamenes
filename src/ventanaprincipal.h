@@ -98,6 +98,7 @@ private slots:
 
     // Banco de preguntas
     void filtrar();
+    void ponerCuenta();
     void seleccionCambiada();
     void nuevaPregunta();
     void editarPregunta();

@@ -687,6 +687,7 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
     m_filtroTexto->setPlaceholderText(tr("Buscar texto o código (T1-22b)…"));
     m_filtroTexto->setClearButtonEnabled(true);
     m_cuenta = new QLabel;
+    m_cuenta->setObjectName(QStringLiteral("cuentaBanco"));
     filtros->addWidget(new QLabel(tr("Tema:")));
     filtros->addWidget(m_filtroTema, 1);
     //: Estado de las preguntas (activa, anulada, obsoleta…), para filtrar la tabla
@@ -2442,9 +2443,23 @@ void VentanaPrincipal::filtrar()
     m_filtro->setTema(m_filtroTema->currentData().toInt());
     m_filtro->setEstado(FiltroPreguntas::FiltroEstado(m_filtroEstado->currentData().toInt()));
     m_filtro->setTexto(m_filtroTexto->text());
-    const int n = m_filtro->rowCount();
-    m_cuenta->setText(n == 1 ? tr("1 pregunta") : tr("%1 preguntas").arg(n));
+    ponerCuenta();
     seleccionCambiada();
+}
+
+// Cuántas preguntas hay en la lista (las que cumplen los filtros) y cuántas de ellas están verificadas.
+void VentanaPrincipal::ponerCuenta()
+{
+    const int n = m_filtro->rowCount();
+    int verificadas = 0;
+    for (int f = 0; f < n; ++f)
+        verificadas += m_modelo->pregunta(m_filtro->mapToSource(m_filtro->index(f, 0)).row()).verificada ? 1 : 0;
+    if (n == 0)
+        m_cuenta->setText(tr("0 preguntas"));
+    else if (n == 1)
+        m_cuenta->setText(verificadas == 1 ? tr("1 pregunta, verificada") : tr("1 pregunta, sin verificar"));
+    else
+        m_cuenta->setText(tr("%1 preguntas: %2 verificadas, %3 sin verificar").arg(n).arg(verificadas).arg(n - verificadas));
 }
 
 Pregunta VentanaPrincipal::preguntaSeleccionada(bool *ok)
