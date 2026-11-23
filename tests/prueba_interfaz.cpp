@@ -417,6 +417,10 @@ private slots:
                 enunciado = true;
                 QVERIFY(l->text().startsWith(QStringLiteral("<div style=\"font-weight:bold\">")));
                 QVERIFY(!l->text().contains(QLatin1Char('`')));
+                // Va sobre papel, también con el tema oscuro: el código, las tablas y los dibujos son para blanco.
+                QVERIFY(l->autoFillBackground());
+                QCOMPARE(l->palette().color(QPalette::Window), QColor(Qt::white));
+                QCOMPARE(l->palette().color(QPalette::WindowText), QColor(Qt::black));
             }
         }
         QCOMPARE(opciones, 2);

@@ -119,6 +119,24 @@ void DialogoPractica::empezar()
     tic();
 }
 
+namespace {
+
+// El enunciado y el dibujo van sobre «papel», como en el examen (ver Paleta): el recuadro del código, los bordes de
+// las tablas y los dibujos de trazo negro están hechos para leerse sobre blanco, y con un tema oscuro no se verían.
+void ponerEnPapel(QLabel *etiqueta)
+{
+    QPalette papel = Paleta::papel(etiqueta->palette());
+    for (QPalette::ColorGroup grupo : {QPalette::Active, QPalette::Inactive, QPalette::Disabled}) {
+        papel.setColor(grupo, QPalette::Window, Qt::white);
+        papel.setColor(grupo, QPalette::WindowText, Qt::black);
+    }
+    etiqueta->setPalette(papel);
+    etiqueta->setAutoFillBackground(true);
+    etiqueta->setMargin(6);
+}
+
+} // namespace
+
 // Recuadro de una pregunta: enunciado, imagen, las cuatro opciones para marcar y «Dejar en blanco».
 QWidget *DialogoPractica::crearPregunta(int numero, const PreguntaExamen &pe)
 {
@@ -133,6 +151,7 @@ QWidget *DialogoPractica::crearPregunta(int numero, const PreguntaExamen &pe)
                                           Maquetador::enunciadoHtml(pe.pregunta.enunciado, QStringLiteral("%1.- ").arg(numero))));
     enunciado->setWordWrap(true);
     enunciado->setTextFormat(Qt::RichText);
+    ponerEnPapel(enunciado);
     g->addWidget(enunciado, 0, 0, 1, 3);
     int fila = 1;
     if (!pe.pregunta.imagen.isEmpty()) {
@@ -140,7 +159,8 @@ QWidget *DialogoPractica::crearPregunta(int numero, const PreguntaExamen &pe)
         if (img.loadFromData(pe.pregunta.imagen)) {
             auto *dibujo = new QLabel;
             dibujo->setPixmap(QPixmap::fromImage(img.scaledToHeight(qMin(img.height(), 150), Qt::SmoothTransformation)));
-            g->addWidget(dibujo, fila++, 1);
+            ponerEnPapel(dibujo);
+            g->addWidget(dibujo, fila++, 1, Qt::AlignLeft);
         }
     }
 
