@@ -1,5 +1,5 @@
-// Comprobaciones con los dos bancos de preguntas reales, que no están en git: se saltan si no está el enlace
-// «asignatura» al directorio de la asignatura (ver README.md). Se trabaja con una copia de cada base de datos.
+// Comprobaciones con los dos bancos de preguntas reales, que no están en git: se saltan si no están los enlaces
+// «datos» y «banco2» a sus carpetas (ver README.md). Se trabaja con una copia de cada base de datos.
 
 #include "basedatos.h"
 #include "comprobadorjson.h"
@@ -15,7 +15,7 @@
 
 namespace {
 
-const QString kBancos = QStringLiteral(RUTA_PROYECTO "/asignatura/");
+const QString kBancos = QStringLiteral(RUTA_PROYECTO "/");
 
 struct Banco
 {
@@ -67,9 +67,9 @@ private slots:
     {
         QTest::addColumn<QString>("ruta");
         QTest::addColumn<bool>("debenCaber");
-        QTest::newRow("ver11") << QStringLiteral("BancoPreguntas/preguntas.db") << true;
+        QTest::newRow("ver11") << QStringLiteral("datos/preguntas.db") << true;
         // El banco 2, pendiente de revisión, tiene preguntas el doble de largas: de él solo se informa.
-        QTest::newRow("banco 2") << QStringLiteral("BancoPreguntas2/preguntas_banco2.db") << false;
+        QTest::newRow("banco 2") << QStringLiteral("banco2/preguntas_banco2.db") << false;
     }
 
     void bancos()
@@ -77,7 +77,7 @@ private slots:
         QFETCH(QString, ruta);
         QFETCH(bool, debenCaber);
         if (!QFile::exists(kBancos + ruta))
-            QSKIP("No está el banco de preguntas (enlace «asignatura»).");
+            QSKIP("No está el banco de preguntas (enlaces «datos» y «banco2»).");
         const Banco b = cargar(ruta);
         QVERIFY(!b.preguntas.isEmpty());
         // Con el nombre de la asignatura, sus repartos y la forma de la referencia de los temas (los bancos de antes
@@ -137,9 +137,9 @@ private slots:
     // Las erratas corregidas el 2026-10-20 que volverían si se regenerase el JSON desde el .docx ver11 (ver CLAUDE.md).
     void erratasCorregidas()
     {
-        const QString ruta = QStringLiteral("BancoPreguntas/preguntas.db");
+        const QString ruta = QStringLiteral("datos/preguntas.db");
         if (!QFile::exists(kBancos + ruta))
-            QSKIP("No está el banco de preguntas (enlace «asignatura»).");
+            QSKIP("No está el banco de preguntas (enlaces «datos» y «banco2»).");
         const QStringList erratas{QStringLiteral("wearable"), QStringLiteral("rectas"), QStringLiteral("«¿»"),
                                   QStringLiteral("«?» de cierre"), QStringLiteral("concordancia")};
         const Banco b = cargar(ruta);
@@ -154,14 +154,14 @@ private slots:
     void jsonComprobados_data()
     {
         QTest::addColumn<QString>("ruta");
-        QTest::newRow("ver11") << QStringLiteral("BancoPreguntas/preguntas_fi.json");
-        QTest::newRow("banco 2") << QStringLiteral("BancoPreguntas2/preguntas_banco2.json");
+        QTest::newRow("ver11") << QStringLiteral("datos/preguntas_fi.json");
+        QTest::newRow("banco 2") << QStringLiteral("banco2/preguntas_banco2.json");
     }
     void jsonComprobados()
     {
         QFETCH(QString, ruta);
         if (!QFile::exists(kBancos + ruta))
-            QSKIP("No está el banco de preguntas (enlace «asignatura»).");
+            QSKIP("No está el banco de preguntas (enlaces «datos» y «banco2»).");
         const ComprobadorJson::Resultado r = ComprobadorJson::comprobarFichero(kBancos + ruta);
         QStringList problemas;
         for (const ComprobadorJson::Problema &p : r.problemas)

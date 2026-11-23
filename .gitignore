@@ -4,9 +4,12 @@ build-*/
 .cache/
 
 # Preguntas: el repositorio se publica y no puede contener ninguna pregunta de ningún banco. Los bancos están
-# en el directorio de la asignatura; «asignatura» es un enlace local a él (ver CLAUDE.md).
+# en el directorio de cada asignatura; «datos», «banco2» y «BancoPreguntas» son enlaces locales a ellos (ver
+# CLAUDE.md). Sin barra al final, para que valgan también para los enlaces.
+/datos
+/banco2
+/BancoPreguntas
 /asignatura
-datos/
 *.db
 *.docx
 preguntas*.json

@@ -248,7 +248,7 @@ if(TARGET Qt6::Pdf AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/presentacion/capturas.
 endif()
 
 # Pruebas automáticas (ctest --test-dir build --output-on-failure). Usan un banco inventado; la de los bancos
-# reales se salta si no está el enlace «asignatura» al directorio de la asignatura.
+# reales se salta si no están los enlaces «datos» y «banco2» a sus carpetas.
 option(PRUEBAS "Compilar las pruebas automáticas" ON)
 if(PRUEBAS AND Qt6Test_FOUND)
     enable_testing()

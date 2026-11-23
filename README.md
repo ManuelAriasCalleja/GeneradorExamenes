@@ -96,7 +96,7 @@ recorridos principales de la interfaz y la ayuda (que tenga los apartados a
 los que lleva cada ventana y que sus enlaces lleven a algún sitio), el comprobador de los JSON (errores con su línea,
 los ejemplos y que el esquema JSON diga lo mismo que él) y los idiomas (la interfaz en inglés, los exámenes y Moodle
 en el idioma del banco, las pautas de estilo de cada idioma y que la traducción esté completa). Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
-trabaja con una copia de cada uno y se salta si no está el enlace `asignatura`. Para no compilarlas:
+trabaja con una copia de cada uno y se salta si no están los enlaces `datos` y `banco2`. Para no compilarlas:
 `cmake -S . -B build -DPRUEBAS=OFF`.
 
 Para buscar errores de memoria y comportamiento indefinido, se compilan en otra carpeta con los detectores de GCC y
@@ -370,19 +370,20 @@ en el directorio de la asignatura, y se copian aparte de un ordenador a otro:
 
 | Carpeta | Contenido |
 |---|---|
-| `BancoPreguntas/` | El banco del equipo docente (ver11): `preguntas.db` (base de datos SQLite, con el historial de convocatorias), `preguntas_fi.json` (las preguntas extraídas del .docx), `imagenes/` (diagramas), `estilo_preguntas.md` (guía de redacción) y `copias/` (copias de seguridad de la base de datos que hace el programa antes de «Reemplazar todo»). |
-| `BancoPreguntas2/` | **Banco 2**: propuesta de 1500 preguntas nuevas, separada del banco actual y pendiente de revisión del equipo docente (base de datos propia, .docx para revisar e informes). Ver su `LEEME.md`. |
+| `datos/` | El banco del equipo docente (ver11): `preguntas.db` (base de datos SQLite, con el historial de convocatorias), `preguntas_fi.json` (las preguntas extraídas del .docx), `imagenes/` (diagramas) y `copias/` (copias de seguridad de la base de datos que hace el programa antes de «Reemplazar todo»). |
+| `datos/banco2/` | **Banco 2**: propuesta de 1500 preguntas nuevas, separada del banco actual y pendiente de revisión del equipo docente (base de datos propia, .docx para revisar e informes). Ver su `LEEME.md`. |
 
-`asignatura` es un enlace local (fuera de git) a ese directorio, para llegar a los bancos desde el proyecto:
-`ln -s "<directorio de la asignatura>" asignatura`. El `.gitignore` excluye además los `.db`, `.docx`, los JSON
+`datos` y `banco2` son enlaces locales (fuera de git) a esas carpetas, para llegar a los bancos desde el proyecto:
+`ln -s "<directorio de la asignatura>/datos" datos` y `ln -s "<directorio de la asignatura>/datos/banco2" banco2`.
+El `.gitignore` excluye además los `.db`, `.docx`, los JSON
 de preguntas, los exámenes exportados y los cuestionarios de Moodle (`.xml`), por si alguno se guarda dentro del
 proyecto.
 
 ## Actualizar desde una nueva versión del .docx
 
 ```sh
-python3 herramientas/importar_docx.py asignatura/FI_preguntas_..._ver12.docx asignatura/BancoPreguntas/preguntas_fi.json \
-        --imagenes asignatura/BancoPreguntas/imagenes
+python3 herramientas/importar_docx.py FI_preguntas_..._ver12.docx datos/preguntas_fi.json \
+        --imagenes datos/imagenes
 ```
 
 y en el programa *Archivo → Importar preguntas (JSON)…* (añadir/actualizar o reemplazar todo). El JSON del que

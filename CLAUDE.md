@@ -1,17 +1,24 @@
 # GeneradorExamenes
 
-Generador de exámenes tipo test de Fundamentos de Informática (Curso de Acceso, UNED) en C++/Qt 6.
+Generador de exámenes tipo test en C++/Qt 6, para cualquier asignatura.
 Compilación, uso y ficheros: ver `README.md`. Mejoras pendientes: ver `PENDIENTE.md`.
 
 ## Las preguntas no van en git
 El repositorio se publica en Internet y **no puede contener preguntas de ningún banco**, ni siquiera como
 ejemplo o fragmento de un enunciado o de una opción. Los bancos (bases de datos, JSON, imágenes, informes y la
-guía de estilo de redacción) están fuera del repositorio, en el directorio de la asignatura. Lo mismo vale
+guía de estilo de redacción) están fuera del repositorio, en el directorio de cada asignatura. Lo mismo vale
 para el README, los comentarios del código, los mensajes de commit y los datos de prueba. Los exámenes
 exportados (PDF, HTML, LaTeX) tampoco se guardan dentro del proyecto.
 
-`asignatura` es un enlace local (en `.gitignore`) al directorio de la asignatura, para llegar a los bancos
-desde aquí. Si falta: `ln -s "<directorio de la asignatura>" asignatura`. El programa no lo usa: abre el
+Para llegar a los bancos desde aquí hay tres enlaces locales (en `.gitignore`):
+
+| Enlace | Asignatura | Contenido |
+|---|---|---|
+| `datos` | la primera | su banco actual (ver11), del equipo docente: la base de datos `datos/preguntas.db` y su JSON |
+| `banco2` | la primera | el banco 2 (es `datos/banco2`): 1500 preguntas propuestas por Claude y pendientes de revisión del equipo docente. Ver `banco2/LEEME.md` |
+| `BancoPreguntas` | la segunda | su banco (la base de datos `preguntas.db` y su JSON) y su guía de estilo. Ver `BancoPreguntas/LEEME.md` |
+
+Si falta alguno: `ln -s "<carpeta>" <enlace>`. El programa no los usa: abre el
 último banco que se abrió, cuya ruta guarda en su fichero de configuración (`~/.config/UNED/GeneradorExamenes.conf`).
 
 ## Pruebas
@@ -61,17 +68,15 @@ de commit. Solo tiene un flujo de trabajo, `.github/workflows/windows.yml`, que 
 allí las pruebas; se lanza a mano o al subir una etiqueta `v*`, nunca con cada `push`. No añadir más flujos de
 trabajo ni otras comprobaciones automáticas, ni hacer que este se lance solo.
 
-Hay dos bancos de preguntas que **no deben mezclarse**:
-- el actual (ver11), hecho por el equipo docente: `asignatura/BancoPreguntas/preguntas.db` y
-  `asignatura/BancoPreguntas/preguntas_fi.json`;
-- el banco 2: `asignatura/BancoPreguntas2/`, 1500 preguntas propuestas por Claude y pendientes de revisión del
-  equipo docente. Ver `asignatura/BancoPreguntas2/LEEME.md`.
+Los tres bancos **no deben mezclarse**: ni los dos de la primera asignatura entre sí (`datos` y `banco2`), ni
+ninguno de ellos con el de la otra asignatura (`BancoPreguntas`). Una pregunta, una opción o una frase de un banco no
+pasa a otro.
 
 ## Estilo de redacción de las preguntas
-Está en `asignatura/BancoPreguntas/estilo_preguntas.md` (fuera de git porque cita preguntas reales). Seguirlo
-al escribir, corregir o proponer preguntas:
-
-@asignatura/BancoPreguntas/estilo_preguntas.md
+Cada asignatura tiene el suyo, fuera de git porque cita preguntas reales. Antes de escribir, corregir o proponer
+preguntas de un banco, leer el de su asignatura y seguirlo, y no aplicar el de una a la otra:
+- la segunda (`BancoPreguntas`): `BancoPreguntas/estilo_preguntas.md`;
+- la primera (`datos` y `banco2`): `banco2/criterios/criterios_redaccion.md` (y `criterios_revision.md`, para revisarlas).
 
 Las pautas que se pueden comprobar solas están programadas en `src/estilo.cpp` (avisos del editor de preguntas
 y del informe *Editar → Revisar el estilo del banco*). Si cambia la guía, hay que actualizarlas.
