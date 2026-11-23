@@ -5,6 +5,7 @@
 #include "estilo.h"
 #include "maquetador.h"
 #include "utilidades.h"
+#include "visorampliable.h"
 
 #include <QBuffer>
 #include <QButtonGroup>
@@ -26,7 +27,6 @@
 #include <QRegularExpressionValidator>
 #include <QSplitter>
 #include <QSpinBox>
-#include <QTextBrowser>
 #include <QTextDocument>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -243,7 +243,10 @@ QGroupBox *DialogoPregunta::crearVistaPrevia()
 {
     auto *gPrevia = new QGroupBox(tr("Vista previa"));
     auto *lp = new QVBoxLayout(gPrevia);
-    m_vistaPrevia = new QTextBrowser;
+    // Se amplía como las demás fichas (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0), y el tamaño se recuerda.
+    m_vistaPrevia = new VisorAmpliable;
+    m_vistaPrevia->recordarEscalaEn(QStringLiteral("editor/escalaVista"));
+    addActions(m_vistaPrevia->accionesEscala());
     lp->addWidget(m_vistaPrevia);
     m_avisosEstilo = new QLabel;
     m_avisosEstilo->setWordWrap(true);
@@ -355,7 +358,7 @@ void DialogoPregunta::actualizarVistaPrevia()
 {
     const Pregunta p = pregunta();
     QString nombreTema = m_tema->currentText();
-    ponerDocumento(m_vistaPrevia, Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema), {p}, m_vistaPrevia));
+    m_vistaPrevia->ponerDocumento(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema), {p}, m_vistaPrevia));
 
     // Pautas de estilo que no se cumplen (mientras se escribe; al guardar se vuelven a mostrar).
     QStringList avisos;

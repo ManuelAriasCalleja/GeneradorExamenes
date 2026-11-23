@@ -18,7 +18,7 @@ class QLineEdit;
 class QPlainTextEdit;
 class QRadioButton;
 class QSpinBox;
-class QTextBrowser;
+class VisorAmpliable;
 class QTimer;
 
 // Alta y edición de una pregunta, con vista previa, avisos de estilo y las preguntas más parecidas del banco
@@ -87,7 +87,7 @@ private:
     QPlainTextEdit *m_explicacion;
     QLineEdit *m_notas;
     QLabel *m_vistaImagen;
-    QTextBrowser *m_vistaPrevia;
+    VisorAmpliable *m_vistaPrevia;
     QLabel *m_avisosEstilo;
     QLabel *m_parecidas;
     QTimer *m_temporizadorParecidas;   // para no buscar en todo el banco con cada tecla

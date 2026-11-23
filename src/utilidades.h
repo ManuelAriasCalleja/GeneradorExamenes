@@ -8,23 +8,10 @@
 #include <QRegularExpression>
 #include <QSettings>
 #include <QStandardPaths>
-#include <QTextBrowser>
-#include <QTextDocument>
 
 // Recuadros de la interfaz: avisos (amarillo) e información (azul).
 constexpr const char *kEstiloAviso = "background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; padding: 6px";
 constexpr const char *kEstiloInformacion = "background: #e7f1fb; color: #0b3c6b; border: 1px solid #b6d4f2; padding: 6px";
-
-// Pone un documento en un visor. El documento inicial lo borra el propio visor al sustituirlo; los puestos con esta
-// función (creados como hijos del visor) se borran aquí al poner el siguiente.
-inline void ponerDocumento(QTextBrowser *visor, QTextDocument *doc)
-{
-    QTextDocument *anterior = visor->document();
-    const bool propio = anterior && anterior->parent() == visor;
-    visor->setDocument(doc);
-    if (propio)
-        anterior->deleteLater();
-}
 
 // Carpeta en la que se abren los diálogos para elegir un banco de preguntas: la del banco abierto o, si no hay ninguno
 // (al empezar, o si el último se ha movido), la del último banco que se abrió, o la más cercana a ella que siga

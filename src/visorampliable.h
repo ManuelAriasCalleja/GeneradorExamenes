@@ -22,7 +22,12 @@ public:
     qreal escala() const { return m_escala; }
     void ponerEscala(qreal escala);
 
-    // Pone un documento (como ponerDocumento() de utilidades.h) con la escala de la vista.
+    // La escala se recuerda de una vez a otra con esa clave de la configuración (QSettings): pone la guardada y
+    // guarda la que se elija.
+    void recordarEscalaEn(const QString &clave);
+
+    // Pone un documento con la escala de la vista. El documento inicial lo borra el propio visor al sustituirlo; los
+    // puestos con esta función (creados como hijos del visor) se borran aquí al poner el siguiente.
     void ponerDocumento(QTextDocument *doc);
 
     // Las escalas por las que se pasa al ampliar y al reducir, como en los navegadores: la siguiente y la anterior a

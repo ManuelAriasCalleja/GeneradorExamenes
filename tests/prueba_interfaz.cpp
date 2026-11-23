@@ -1787,6 +1787,25 @@ private slots:
         QSettings().clear();
     }
 
+    // La vista previa del editor de preguntas se amplía como las demás fichas, y su tamaño se recuerda.
+    void editorAmpliaLaVistaPrevia()
+    {
+        QSettings().clear();
+        {
+            DialogoPregunta d(temasInventados(2), bancoInventado(2, 5), nuevaEn(1, 6));
+            auto *vista = d.findChild<VisorAmpliable *>();
+            QVERIFY(vista);
+            QCOMPARE(vista->escala(), 1.0);
+            const QVector<qreal> normal = tamanos(vista->document());
+            vista->ampliar();
+            QCOMPARE(vista->escala(), 1.1);
+            QVERIFY(proporcionales(tamanos(vista->document()), normal, 1.1));
+        }
+        DialogoPregunta d(temasInventados(2), bancoInventado(2, 5), nuevaEn(1, 6));
+        QCOMPARE(d.findChild<VisorAmpliable *>()->escala(), 1.1);
+        QSettings().clear();
+    }
+
     void visorEscalaLaLetraYLasImagenes()
     {
         QTextDocument doc;

@@ -2,13 +2,13 @@
 #include "dialogoayuda.h"
 #include "maquetador.h"
 #include "utilidades.h"
+#include "visorampliable.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSplitter>
-#include <QTextBrowser>
 #include <QVBoxLayout>
 
 DialogoParecidas::DialogoParecidas(const Pregunta &nueva, const QVector<Parecidas::Parecida> &parecidas,
@@ -27,7 +27,10 @@ DialogoParecidas::DialogoParecidas(const Pregunta &nueva, const QVector<Parecida
     m_lista = new QListWidget;
     for (const Parecidas::Parecida &p : parecidas)
         m_lista->addItem(QStringLiteral("%1 · %2 %").arg(p.pregunta.codigoCompleto()).arg(qRound(p.parecido * 100)));
-    m_ficha = new QTextBrowser;
+    // Se amplía como las demás fichas (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0), y el tamaño se recuerda.
+    m_ficha = new VisorAmpliable;
+    m_ficha->recordarEscalaEn(QStringLiteral("parecidas/escala"));
+    addActions(m_ficha->accionesEscala());
     auto *divisor = new QSplitter;
     divisor->addWidget(m_lista);
     divisor->addWidget(m_ficha);
@@ -67,7 +70,7 @@ Pregunta DialogoParecidas::elegida() const
 void DialogoParecidas::mostrarElegida()
 {
     const Pregunta p = elegida();
-    ponerDocumento(m_ficha, Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema(m_temas, p.temaId)), {p}, m_ficha));
+    m_ficha->ponerDocumento(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema(m_temas, p.temaId)), {p}, m_ficha));
 
     // Una variante es del mismo tema; con una pregunta de otro tema, se enlazan como pseudorrepetidas.
     const bool mismoTema = p.temaNumero == m_nueva.temaNumero;

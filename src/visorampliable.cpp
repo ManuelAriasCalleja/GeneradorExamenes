@@ -5,6 +5,7 @@
 #include <QAbstractTextDocumentLayout>
 #include <QAction>
 #include <QScrollBar>
+#include <QSettings>
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTextDocument>
@@ -149,9 +150,19 @@ void VisorAmpliable::ponerEscala(qreal escala)
     emit escalaCambiada(m_escala);
 }
 
+void VisorAmpliable::recordarEscalaEn(const QString &clave)
+{
+    ponerEscala(QSettings().value(clave, 1.0).toDouble());
+    connect(this, &VisorAmpliable::escalaCambiada, this, [clave](qreal escala) { QSettings().setValue(clave, escala); });
+}
+
 void VisorAmpliable::ponerDocumento(QTextDocument *doc)
 {
-    ::ponerDocumento(this, doc);
+    QTextDocument *anterior = document();
+    const bool propio = anterior && anterior->parent() == this;
+    setDocument(doc);
+    if (propio)
+        anterior->deleteLater();
     if (m_escala != 1)
         escalarDocumento(doc, m_escala);
 }

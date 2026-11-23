@@ -366,9 +366,7 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     // El tamaño de la letra (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0) es el mismo en todas las preguntas, y se recuerda
     // de una vez a otra.
     m_ficha = new VisorAmpliable;
-    m_ficha->ponerEscala(QSettings().value(kClaveEscala, 1.0).toDouble());
-    connect(m_ficha, &VisorAmpliable::escalaCambiada, this,
-            [](qreal escala) { QSettings().setValue(kClaveEscala, escala); });
+    m_ficha->recordarEscalaEn(kClaveEscala);
     addActions(m_ficha->accionesEscala());
     l->addWidget(m_ficha, 1);
 

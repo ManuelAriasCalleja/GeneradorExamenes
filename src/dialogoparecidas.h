@@ -7,7 +7,7 @@
 
 class QListWidget;
 class QPushButton;
-class QTextBrowser;
+class VisorAmpliable;
 
 // Al guardar una pregunta nueva que se parece mucho a otras del banco: las muestra, con su ficha al lado para
 // compararlas, y deja guardarla como variante de la elegida (si es del mismo tema), enlazarla con ella como
@@ -33,7 +33,7 @@ private:
     QVector<Tema> m_temas;
     Decision m_decision = SeguirEditando;
     QListWidget *m_lista;
-    QTextBrowser *m_ficha;
+    VisorAmpliable *m_ficha;
     QPushButton *m_variante;
     QPushButton *m_pseudorrepetida;
 };
