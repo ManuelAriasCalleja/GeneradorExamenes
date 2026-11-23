@@ -33,6 +33,11 @@ DialogoAyuda::DialogoAyuda(QWidget *parent)
     auto *fila = new QHBoxLayout;
     fila->addWidget(new QLabel(tr("Buscar:")));
     fila->addWidget(m_buscar, 1);
+    //: Junto al campo de buscar de la ayuda, cuando lo escrito no aparece en el manual
+    m_noEsta = new QLabel(tr("No se encuentra"));
+    m_noEsta->setObjectName(QStringLiteral("noEsta"));
+    m_noEsta->hide();
+    fila->addWidget(m_noEsta);
 
     m_texto = new QTextBrowser;
     m_texto->setOpenExternalLinks(true);
@@ -173,4 +178,5 @@ void DialogoAyuda::buscar(bool siguiente)
         m_texto->setTextCursor(sinMarca);
     }
     m_buscar->setStyleSheet(encontrado >= 0 ? QString() : QStringLiteral("background: #f8d7da; color: #58151c"));
+    m_noEsta->setVisible(encontrado < 0);
 }

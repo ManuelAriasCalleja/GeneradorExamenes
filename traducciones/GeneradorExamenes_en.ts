@@ -925,7 +925,13 @@ Record them?</translation>
         <translation>Search:</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+3"/>
+        <source>No se encuentra</source>
+        <extracomment>Junto al campo de buscar de la ayuda, cuando lo escrito no aparece en el manual</extracomment>
+        <translation>Not found</translation>
+    </message>
+    <message>
+        <location line="+24"/>
         <source>Cerrar</source>
         <translation>Close</translation>
     </message>

@@ -818,6 +818,13 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
     botones->addStretch();
     l->addLayout(botones);
 
+    // Los filtros de tema y de estado se recuerdan de una vez a otra, para seguir donde se dejó («Tema 4, sin
+    // verificar»): los que elige el usuario, no los que pone el programa. El texto que se busca no se recuerda.
+    m_filtroEstado->setCurrentIndex(qMax(0, m_filtroEstado->findData(QSettings().value(QStringLiteral("banco/filtroEstado"), 0))));
+    connect(m_filtroTema, &QComboBox::activated, this,
+            [this]() { QSettings().setValue(QStringLiteral("banco/filtroTema"), m_filtroTema->currentData()); });
+    connect(m_filtroEstado, &QComboBox::activated, this,
+            [this]() { QSettings().setValue(QStringLiteral("banco/filtroEstado"), m_filtroEstado->currentData()); });
     connect(m_filtroTema, &QComboBox::currentIndexChanged, this, &VentanaPrincipal::filtrar);
     connect(m_filtroEstado, &QComboBox::currentIndexChanged, this, &VentanaPrincipal::filtrar);
     connect(m_filtroTexto, &QLineEdit::textChanged, this, &VentanaPrincipal::filtrar);
@@ -1345,7 +1352,12 @@ void VentanaPrincipal::recargarDatos(int seleccionarId)
     m_temas = m_bd.temas();
     m_preguntas = m_bd.preguntas();
 
-    const int temaFiltro = m_filtroTema->currentData().toInt();
+    int temaFiltro = m_filtroTema->currentData().toInt();
+    // La primera vez, el tema que se dejó elegido la última vez que se usó el programa (si el banco lo tiene).
+    if (!m_filtroTemaRecordado && !m_temas.isEmpty()) {
+        temaFiltro = QSettings().value(QStringLiteral("banco/filtroTema"), 0).toInt();
+        m_filtroTemaRecordado = true;
+    }
     m_filtroTema->blockSignals(true);
     m_filtroTema->clear();
     m_filtroTema->addItem(tr("Todos los temas"), 0);

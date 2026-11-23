@@ -3,6 +3,7 @@
 #include <QDialog>
 
 class QDialogButtonBox;
+class QLabel;
 class QLineEdit;
 class QTextBrowser;
 class QTreeWidget;
@@ -36,5 +37,6 @@ private:
     QTextBrowser *m_texto;
     QTreeWidget *m_indice;
     QLineEdit *m_buscar;
+    QLabel *m_noEsta;   // «No se encuentra», junto a lo que se busca: no solo con el color
     QString m_manual;   // el texto del manual como lo da paraBuscar(), para buscar en él
 };

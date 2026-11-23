@@ -1694,6 +1694,66 @@ private slots:
         QSettings().clear();
     }
 
+    // Los filtros de tema y de estado del banco que elige el usuario se recuerdan de una vez a otra; el texto, no.
+    void ventanaRecuerdaLosFiltrosDelBanco()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        QSettings().clear();
+        auto combos = [](VentanaPrincipal &v, QComboBox *&tema, QComboBox *&estado) {
+            tema = estado = nullptr;
+            for (QComboBox *c : v.findChildren<QComboBox *>()) {
+                if (c->itemText(0) == QStringLiteral("Todos los temas"))
+                    tema = c;
+                else if (c->findText(QStringLiteral("Sin verificar")) >= 0)
+                    estado = c;
+            }
+        };
+        int total = 0, filtradas = 0;
+        {
+            VentanaPrincipal v;
+            QVERIFY(v.abrirBancoInicial(ruta));
+            QComboBox *tema, *estado;
+            combos(v, tema, estado);
+            QVERIFY(tema && estado);
+            QCOMPARE(tema->currentIndex(), 0);
+            QCOMPARE(estado->currentIndex(), 0);
+            auto *tabla = v.findChild<QTableView *>();
+            total = tabla->model()->rowCount();
+            // Como al elegirlos con el ratón o el teclado.
+            tema->setCurrentIndex(2);
+            emit tema->activated(2);
+            estado->setCurrentIndex(estado->findText(QStringLiteral("Sin verificar")));
+            emit estado->activated(estado->currentIndex());
+            filtradas = tabla->model()->rowCount();
+            QVERIFY(filtradas > 0 && filtradas < total);
+            for (QLineEdit *l : v.findChildren<QLineEdit *>())
+                if (l->placeholderText().startsWith(QStringLiteral("Buscar texto")))
+                    l->setText(QStringLiteral("inventada"));
+        }
+        {
+            VentanaPrincipal v;
+            QVERIFY(v.abrirBancoInicial(ruta));
+            QComboBox *tema, *estado;
+            combos(v, tema, estado);
+            QCOMPARE(tema->currentIndex(), 2);
+            QCOMPARE(estado->currentText(), QStringLiteral("Sin verificar"));
+            QCOMPARE(v.findChild<QTableView *>()->model()->rowCount(), filtradas);
+            for (QLineEdit *l : v.findChildren<QLineEdit *>())
+                if (l->placeholderText().startsWith(QStringLiteral("Buscar texto")))
+                    QVERIFY(l->text().isEmpty());
+            // Lo que cambia el programa (no el usuario) no se guarda.
+            tema->setCurrentIndex(0);
+        }
+        VentanaPrincipal v;
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QComboBox *tema, *estado;
+        combos(v, tema, estado);
+        QCOMPARE(tema->currentIndex(), 2);
+        QSettings().clear();
+    }
+
     void visorEscalaLaLetraYLasImagenes()
     {
         QTextDocument doc;
@@ -2209,11 +2269,18 @@ private slots:
         QCOMPARE(texto->textCursor().selectedText().toLower(), QStringLiteral("semilla"));
         QVERIFY(texto->textCursor().position() > antes);
         // Si no está, no se mueve.
+        ayuda.show();
+        auto *noEsta = ayuda.findChild<QLabel *>(QStringLiteral("noEsta"));
+        QVERIFY(noEsta && !noEsta->isVisible());
         QTest::keyClicks(buscar, QStringLiteral("xyz"));
         QCOMPARE(texto->textCursor().position(), texto->textCursor().anchor());
+        // Y se dice con palabras, no solo con el color del campo.
+        QVERIFY(noEsta->isVisible());
+        QCOMPARE(noEsta->text(), QStringLiteral("No se encuentra"));
         // Sin distinguir tildes: «examenes» encuentra «exámenes».
         buscar->clear();
         QTest::keyClicks(buscar, QStringLiteral("examenes"));
+        QVERIFY(!noEsta->isVisible());
         QCOMPARE(texto->textCursor().selectedText().toLower(), QStringLiteral("exámenes"));
     }
 

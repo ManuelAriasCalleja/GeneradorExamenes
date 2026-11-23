@@ -251,6 +251,7 @@ private:
     // Si m_resultado se ha exportado (o impreso) y si está registrado tal como está: si se ha exportado y no está
     // registrado, se pregunta antes de descartarlo.
     bool m_exportados = false;
+    bool m_filtroTemaRecordado = false;     // ya se ha puesto en el filtro el tema de la última vez
     bool m_registrados = false;
     QString m_infoBase;                     // la línea gris, sin el aviso de que no está registrado
     // Para cambiar preguntas: la configuración con que se generó m_resultado (o, si viene del historial, la de la
