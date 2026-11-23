@@ -652,8 +652,20 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     lr->addWidget(m_infoGeneracion);
     m_avisos = new QLabel;
     m_avisos->setWordWrap(true);
+    m_avisos->setObjectName(QStringLiteral("avisosExamen"));
     m_avisos->setStyleSheet(QLatin1String(kEstiloAviso));
+    m_avisos->setTextFormat(Qt::RichText);
     m_avisos->hide();
+    // Lo que pide una decisión se queda aquí, junto al examen, hasta que se resuelve (en la barra de estado se va a
+    // los pocos segundos y es fácil no verlo), con el remedio a un clic cuando lo hay.
+    connect(m_avisos, &QLabel::linkActivated, this, [this](const QString &enlace) {
+        if (enlace == QLatin1String("quitar-semilla"))
+            m_semilla->clear();
+    });
+    connect(m_semilla, &QLineEdit::textChanged, this, [this]() {
+        if (hayExamen() && m_semillaFija)
+            actualizarMaqueta();
+    });
     lr->addWidget(m_avisos);
     m_visorExamen = new VisorAmpliable;
     m_visorExamen->setObjectName(QStringLiteral("visorExamen"));
@@ -1871,11 +1883,7 @@ void VentanaPrincipal::generar()
         return;
     config.usoReciente = usoReciente(config.nombresModelos);
     m_resultado = Generador::generar(m_preguntas, config);
-    m_semillaFija = config.semilla != 0;
-    if (m_semillaFija)
-        statusBar()->showMessage(tr("Generados con la semilla fija %1: cada vez salen los mismos exámenes. "
-                                    "Borre el campo «Semilla» para que salgan otros.").arg(config.semilla),
-                                 10000);
+    m_semillaFija = config.semilla != 0;   // se avisa en la franja de avisos (actualizarMaqueta())
     if (m_evitarRecientes->isChecked() && m_bd.examenesRegistrados().isEmpty())
         m_resultado.avisos << tr("No hay ninguna convocatoria registrada en el historial, así que no se evitan las "
                                  "preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con "
@@ -1944,8 +1952,24 @@ void VentanaPrincipal::actualizarMaqueta()
             //: Se añade a la línea de información del examen (con el separador delante)
             info += tr("  ·  Maqueta compacta (nivel %1 de %2)").arg(nivel).arg(Maquetador::numNiveles() - 1);
     }
-    m_avisos->setText(avisos.join(QLatin1Char('\n')));
-    m_avisos->setVisible(!avisos.isEmpty());
+    // Las preguntas que han dejado de estar activas (al editarlas desde el examen) siguen en él: hasta que se cambien.
+    for (const Modelo &m : m_resultado.modelos)
+        for (int i = 0; i < m.preguntas.size(); ++i)
+            if (!m.preguntas.at(i).pregunta.activa())
+                //: Aviso junto al examen; %1 es el nombre del examen, %2 el número de la pregunta en él y %3 su código (T2-15b)
+                avisos << tr("«%1», pregunta %2 (%3): ya no está activa. Si no debe salir, cámbiela por otra.")
+                              .arg(m.nombre).arg(i + 1).arg(m.preguntas.at(i).pregunta.codigoCompleto());
+    QStringList lineas;
+    // Mientras la semilla siga escrita: al generar otra vez saldrían los mismos.
+    if (hayExamen() && m_semillaFija && !m_semilla->text().isEmpty())
+        lineas << tr("Generados con la semilla fija %1: cada vez salen los mismos exámenes.").arg(m_resultado.semilla).toHtmlEscaped()
+                      + QStringLiteral(" <a href=\"quitar-semilla\">%1</a>")
+                            //: Enlace del aviso de la semilla fija: borra el campo «Semilla» de las opciones
+                            .arg(tr("Quitar la semilla").toHtmlEscaped());
+    for (const QString &aviso : std::as_const(avisos))
+        lineas << aviso.toHtmlEscaped().replace(QLatin1Char('\n'), QStringLiteral("<br>"));
+    m_avisos->setText(lineas.join(QStringLiteral("<br>")));
+    m_avisos->setVisible(!lineas.isEmpty());
     m_infoBase = info;
     actualizarRegistro();
     m_infoGeneracion->setToolTip(tr("Escriba esta semilla en Opciones para volver a obtener los mismos exámenes.\n"

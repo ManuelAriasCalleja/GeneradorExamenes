@@ -1754,6 +1754,67 @@ private slots:
         QSettings().clear();
     }
 
+    // Lo que pide una decisión se queda en la franja de avisos, junto al examen, hasta que se resuelve: la semilla
+    // fija (con un enlace para quitarla) y las preguntas del examen que han dejado de estar activas.
+    void avisosQueSeQuedanJuntoAlExamen()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        auto *avisos = v.findChild<QLabel *>(QStringLiteral("avisosExamen"));
+        auto *semilla = v.findChild<GrupoPlegable *>(QStringLiteral("plegableOpciones"))->findChild<QLineEdit *>();
+        QVERIFY(avisos && semilla);
+        // Sin lo de «no hay ninguna convocatoria registrada», para ver solo los de aquí.
+        for (QCheckBox *c : v.findChildren<QCheckBox *>())
+            if (c->text() == QStringLiteral("Evitar las preguntas de las últimas"))
+                c->setChecked(false);
+
+        // (Puede haber otros avisos de la generación, según cómo salgan los exámenes.)
+        auto dice = [avisos](const QString &texto) { return avisos->isVisible() && avisos->text().contains(texto); };
+        QMetaObject::invokeMethod(&v, "generar");
+        QVERIFY2(!dice(QStringLiteral("semilla")), qPrintable(avisos->text()));
+
+        // Con la semilla escrita: el aviso no se va solo, y su enlace la quita.
+        semilla->setText(QStringLiteral("42"));
+        QVERIFY(!dice(QStringLiteral("semilla")));   // los que se ven no se generaron con ella
+        QMetaObject::invokeMethod(&v, "generar");
+        QVERIFY(avisos->isVisible());
+        QVERIFY2(avisos->text().contains(QStringLiteral("Generados con la semilla fija 42")), qPrintable(avisos->text()));
+        QVERIFY(avisos->text().contains(QStringLiteral("<a href=\"quitar-semilla\">Quitar la semilla</a>")));
+        QTest::qWait(50);
+        QVERIFY(avisos->isVisible());
+        emit avisos->linkActivated(QStringLiteral("quitar-semilla"));
+        QVERIFY(semilla->text().isEmpty());
+        QVERIFY(!dice(QStringLiteral("semilla")));
+        QVERIFY(!dice(QStringLiteral("ya no está activa")));
+
+        // Una pregunta del examen que se anula al editarla: se dice cuál, y sigue dicho hasta que se cambie.
+        QTimer::singleShot(100, [&] {
+            auto *d = qobject_cast<DialogoPregunta *>(QApplication::activeModalWidget());
+            if (!d)
+                return;
+            for (QComboBox *c : d->findChildren<QComboBox *>())
+                if (c->findText(QStringLiteral("Anulada")) >= 0)
+                    c->setCurrentIndex(c->findText(QStringLiteral("Anulada")));
+            responder(QStringLiteral("Guardar así"));
+            for (QPushButton *b : d->findChildren<QPushButton *>())
+                if (b->text() == QStringLiteral("Guardar")) {
+                    b->click();
+                    break;
+                }
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "editarPreguntaExamen"));
+        QVERIFY(avisos->isVisible());
+        QVERIFY2(avisos->text().contains(QStringLiteral("pregunta 1 (")), qPrintable(avisos->text()));
+        QVERIFY2(avisos->text().contains(QStringLiteral("ya no está activa")), qPrintable(avisos->text()));
+        QVERIFY(!avisos->text().contains(QStringLiteral("semilla")));
+        QSettings().clear();
+    }
+
     void visorEscalaLaLetraYLasImagenes()
     {
         QTextDocument doc;

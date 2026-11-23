@@ -2983,7 +2983,7 @@ If empty, different exams come out each time.</translation>
         <translation>How many times each letter is correct in this exam</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+28"/>
         <source>&lt;p style=&quot;color:gray&quot;&gt;Elija cuántas preguntas quiere de cada tema y pulse &lt;b&gt;Generar exámenes&lt;/b&gt;.&lt;/p&gt;</source>
         <translation>&lt;p style=&quot;color:gray&quot;&gt;Choose how many questions you want from each topic and click &lt;b&gt;Generate exams&lt;/b&gt;.&lt;/p&gt;</translation>
     </message>
@@ -3111,7 +3111,7 @@ If empty, different exams come out each time.</translation>
     <message>
         <location line="-110"/>
         <location line="+112"/>
-        <location line="+1948"/>
+        <location line="+1960"/>
         <source>Editar…</source>
         <extracomment>Botón: abre en el editor esa pregunta del examen
 ----------
@@ -3119,7 +3119,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-2426"/>
+        <location line="-2450"/>
         <location line="+5"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -3257,7 +3257,7 @@ Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-le
 Applies to the preview, printing and exports; the files have “-letra-grande” in their name.</translation>
     </message>
     <message>
-        <location line="+59"/>
+        <location line="+71"/>
         <source>Exportar Word…</source>
         <extracomment>Botón: guarda los exámenes en un documento de Word (.docx)</extracomment>
         <translation>Export Word…</translation>
@@ -3277,7 +3277,7 @@ You can also right-click the question.</translation>
     <message>
         <location line="+3"/>
         <location line="+110"/>
-        <location line="+1947"/>
+        <location line="+1959"/>
         <source>Verificar…</source>
         <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas
 ----------
@@ -3285,7 +3285,7 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="-2056"/>
+        <location line="-2068"/>
         <source>Recorre las preguntas del examen, desde esta, para marcarlas como verificadas por personas: «Verificada, siguiente» la marca con los mismos verificadores que la anterior.</source>
         <translation>Goes through the questions of the exam, from this one, to mark them as verified by people: “Verified, next” marks each with the same verifiers as the previous one.</translation>
     </message>
@@ -3569,13 +3569,13 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+985"/>
+        <location line="+997"/>
         <location line="+625"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-1602"/>
+        <location line="-1614"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3916,11 +3916,6 @@ Replace it with this one?</translation>
     </message>
     <message>
         <location line="+11"/>
-        <source>Generados con la semilla fija %1: cada vez salen los mismos exámenes. Borre el campo «Semilla» para que salgan otros.</source>
-        <translation>Generated with the fixed seed %1: the same exams come out every time. Clear the “Seed” field to get different ones.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
         <source>No hay ninguna convocatoria registrada en el historial, así que no se evitan las preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con Archivo → Registrar exámenes anteriores…</source>
         <translation>There is no exam session recorded in the history, so questions from previous ones are not avoided. If they were held outside the program, record them with File → Record previous exams…</translation>
     </message>
@@ -3982,7 +3977,24 @@ Replace it with this one?</translation>
         <translation>  ·  Compact layout (level %1 of %2)</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
+        <source>«%1», pregunta %2 (%3): ya no está activa. Si no debe salir, cámbiela por otra.</source>
+        <extracomment>Aviso junto al examen; %1 es el nombre del examen, %2 el número de la pregunta en él y %3 su código (T2-15b)</extracomment>
+        <translation>“%1”, question %2 (%3): it is no longer active. If it should not be used, replace it with another.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Generados con la semilla fija %1: cada vez salen los mismos exámenes.</source>
+        <translation>Generated with the fixed seed %1: the same exams come out every time.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Quitar la semilla</source>
+        <extracomment>Enlace del aviso de la semilla fija: borra el campo «Semilla» de las opciones</extracomment>
+        <translation>Remove the seed</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>Escriba esta semilla en Opciones para volver a obtener los mismos exámenes.
 Si se han cambiado preguntas a mano, ya no los reproduce: regístrelos para conservarlos.
 Con «Ajustar a una página por cada 10 preguntas» (en Opciones), la maqueta se compacta (opciones en dos columnas, menos separación, letra menor) hasta que cada examen cabe en sus páginas; con «Letra grande» no se compacta.</source>
