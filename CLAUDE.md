@@ -54,7 +54,9 @@ fuera del repositorio: no se añade a git ni se menciona en el README. El objeti
 está la carpeta.
 
 ## GitHub
-El repositorio es **público** en GitHub: cualquiera puede leer lo que se sube, también el historial y los mensajes
+El repositorio es <https://github.com/ManuelAriasCalleja/GeneradorExamenes> (hasta la versión 1.0 se llamaba
+`GeneradorExamenesFI`, como el programa; GitHub redirige la dirección antigua, pero el remoto `origin` y los enlaces
+deben usar la nueva). Es **público**: cualquiera puede leer lo que se sube, también el historial y los mensajes
 de commit. Solo tiene un flujo de trabajo, `.github/workflows/windows.yml`, que prepara el paquete de Windows y pasa
 allí las pruebas; se lanza a mano o al subir una etiqueta `v*`, nunca con cada `push`. No añadir más flujos de
 trabajo ni otras comprobaciones automáticas, ni hacer que este se lance solo.
