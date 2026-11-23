@@ -626,10 +626,8 @@ QWidget *PanelConfiguracion::crearGrupoOpciones()
     m_semilla->setClearButtonEnabled(true);
     m_semilla->setToolTip(tr("Con la misma semilla y la misma configuración se obtienen los mismos exámenes.\n"
                              "Vacía, cada vez salen otros."));
-    // Con una semilla escrita, todas las generaciones salen iguales: que se note.
-    connect(m_semilla, &QLineEdit::textChanged, this, [this](const QString &texto) {
-        m_semilla->setStyleSheet(texto.isEmpty() ? QString() : Paleta::fondoAtencion());
-    });
+    // Con una semilla escrita, todas las generaciones salen iguales. Lo dicen el resumen del recuadro plegado y, al
+    // generar, el aviso junto al examen; el campo no lleva color, para que el de atención no esté en tres sitios a la vez.
     connect(m_semilla, &QLineEdit::textChanged, this, &PanelConfiguracion::resumirOpciones);
     connect(m_semilla, &QLineEdit::textChanged, this, &PanelConfiguracion::semillaCambiada);
     // La semilla no se guarda (sin clave): es de cada generación.

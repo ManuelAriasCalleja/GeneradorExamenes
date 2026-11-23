@@ -1401,7 +1401,7 @@ Its questions will no longer count as used when generating exams, and it will no
 <context>
     <name>DialogoPractica</name>
     <message>
-        <location filename="../src/dialogopractica.cpp" line="+28"/>
+        <location filename="../src/dialogopractica.cpp" line="+30"/>
         <source>Practicar: %1 - %2</source>
         <translation>Practice: %1 - %2</translation>
     </message>
@@ -1422,12 +1422,22 @@ Its questions will no longer count as used when generating exams, and it will no
         <translation>Start</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+7"/>
+        <source>Ocultar el reloj</source>
+        <translation>Hide the clock</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>El tiempo corre igual y, cuando se acaba, el examen se corrige solo; pero no se ve cuánto queda.</source>
+        <translation>Time keeps running and, when it runs out, the exam is marked automatically; but the time left is not shown.</translation>
+    </message>
+    <message>
+        <location line="+13"/>
         <source>Duración:</source>
         <translation>Duration:</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+17"/>
         <source>Terminar y corregir</source>
         <translation>Finish and mark</translation>
     </message>
@@ -3005,7 +3015,7 @@ Vacía, cada vez salen otros.</source>
 If empty, different exams come out each time.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+9"/>
         <source>semilla %1</source>
         <extracomment>Resumen de las opciones: %1 es la semilla (un número)</extracomment>
         <translation>seed %1</translation>
@@ -3445,7 +3455,7 @@ Replace it with this one?</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="-876"/>
+        <location filename="../src/panelconfiguracion.cpp" line="-874"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>

@@ -6,6 +6,7 @@
 #include <QDialog>
 #include <QVector>
 
+class QCheckBox;
 class QButtonGroup;
 class QLabel;
 class QPushButton;
@@ -49,6 +50,7 @@ private:
     QSpinBox *m_duracion;
     QPushButton *m_empezar;
     QLabel *m_reloj;
+    QCheckBox *m_ocultarReloj;   // el tiempo corre igual, pero no se ve
     QLabel *m_nota;
     QScrollArea *m_preguntas;
     QPushButton *m_corregir;

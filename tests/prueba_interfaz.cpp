@@ -412,6 +412,23 @@ private slots:
             if (l->text() == QStringLiteral("50:00"))
                 reloj = l->text();
         QCOMPARE(reloj, QStringLiteral("50:00"));
+        // El reloj se puede ocultar (y se recuerda): el tiempo corre igual.
+        {
+            QLabel *etiquetaReloj = nullptr;
+            for (QLabel *l : p.findChildren<QLabel *>())
+                if (l->text() == QStringLiteral("50:00"))
+                    etiquetaReloj = l;
+            auto *ocultar = p.findChild<QCheckBox *>(QStringLiteral("ocultarReloj"));
+            QVERIFY(ocultar && !ocultar->isChecked());
+            QVERIFY(etiquetaReloj->isVisible());
+            ocultar->setChecked(true);
+            QVERIFY(!etiquetaReloj->isVisible());
+            QVERIFY(QSettings().value(QStringLiteral("practica/ocultarReloj")).toBool());
+            DialogoPractica otra(m, DatosConvocatoria(), 45);
+            QVERIFY(otra.findChild<QCheckBox *>(QStringLiteral("ocultarReloj"))->isChecked());
+            ocultar->setChecked(false);
+            QVERIFY(etiquetaReloj->isVisible());
+        }
         // Bien las cuatro primeras, mal la quinta; la sexta se marca y se deja después en blanco.
         for (int i = 0; i < 6; ++i) {
             const int correcta = m.preguntas.at(i).correcta();
@@ -2222,7 +2239,7 @@ private slots:
             return false;
         };
         semilla->setText(QStringLiteral("123"));
-        QVERIFY(!semilla->styleSheet().isEmpty());
+        QVERIFY(semilla->styleSheet().isEmpty());   // sin color: lo dicen el resumen de las opciones y el aviso
         QMetaObject::invokeMethod(&v, "generar");
         for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
             if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))

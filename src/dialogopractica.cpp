@@ -5,6 +5,7 @@
 
 #include <QAbstractButton>
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QEvent>
 #include <QFrame>
@@ -17,6 +18,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
+#include <QSettings>
 #include <QSpinBox>
 #include <QTimer>
 #include <QToolButton>
@@ -45,6 +47,16 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
     m_reloj = new QLabel;
     m_reloj->setStyleSheet(QStringLiteral("font-size: 16pt; font-weight: bold"));
     m_reloj->hide();
+    // Ver correr el tiempo pone nervioso a quien va justo: se puede ocultar (y se recuerda).
+    m_ocultarReloj = new QCheckBox(tr("Ocultar el reloj"));
+    m_ocultarReloj->setObjectName(QStringLiteral("ocultarReloj"));
+    m_ocultarReloj->setToolTip(tr("El tiempo corre igual y, cuando se acaba, el examen se corrige solo; pero no se ve "
+                                  "cuánto queda."));
+    m_ocultarReloj->setChecked(QSettings().value(QStringLiteral("practica/ocultarReloj"), false).toBool());
+    connect(m_ocultarReloj, &QCheckBox::toggled, this, [this](bool ocultar) {
+        QSettings().setValue(QStringLiteral("practica/ocultarReloj"), ocultar);
+        m_reloj->setVisible(m_empezado && !ocultar);
+    });
     m_nota = new QLabel;
     m_nota->setStyleSheet(QStringLiteral("font-size: 14pt; font-weight: bold; ") + Paleta::css(Paleta::Informacion));
     auto *cabecera = new QHBoxLayout;
@@ -55,6 +67,7 @@ DialogoPractica::DialogoPractica(const Modelo &modelo, const DatosConvocatoria &
     cabecera->addWidget(m_duracion);
     cabecera->addWidget(m_empezar);
     cabecera->addWidget(m_reloj);
+    cabecera->addWidget(m_ocultarReloj);
 
     auto *contenido = new QWidget;
     auto *lc = new QVBoxLayout(contenido);
@@ -98,7 +111,7 @@ void DialogoPractica::empezar()
     m_segundosRestantes = m_duracion->value() * 60;
     m_duracion->setEnabled(false);
     m_empezar->hide();
-    m_reloj->show();
+    m_reloj->setVisible(!m_ocultarReloj->isChecked());
     m_preguntas->setEnabled(true);
     m_corregir->setEnabled(true);
     m_corregir->setDefault(true);
