@@ -778,17 +778,29 @@ private slots:
         QCOMPARE(botones.size(), 4);
 
         // Cada botón tiene su atajo (Alt y una letra), distinto del de los otros y de los de los menús, y lo dice su
-        // descripción emergente.
+        // descripción emergente. En macOS no existen estos atajos: los botones se pulsan.
+        const bool conAtajos = !QKeySequence::mnemonic(QStringLiteral("&a")).isEmpty();
         QSet<QString> atajos;
         for (QAction *menu : v.menuBar()->actions())
             atajos << QKeySequence::mnemonic(menu->text()).toString();
         for (QPushButton *b : botones) {
+            if (!conAtajos)
+                break;
             const QString atajo = b->shortcut().toString();
             QVERIFY2(atajo.startsWith(QStringLiteral("Alt+")), qPrintable(b->text()));
             QVERIFY2(!atajos.contains(atajo), qPrintable(atajo));
             atajos << atajo;
             QVERIFY2(b->toolTip().contains(b->shortcut().toString(QKeySequence::NativeText)), qPrintable(b->toolTip()));
         }
+        auto usar = [&](Qt::Key tecla) {
+            if (conAtajos) {
+                QTest::keyClick(&v, tecla, Qt::AltModifier);
+                return;
+            }
+            for (QPushButton *b : botones)
+                if (b->text().contains(QStringLiteral("&") + QChar(int(tecla)), Qt::CaseInsensitive))
+                    QTimer::singleShot(0, b, &QPushButton::click);
+        };
 
         // Y funcionan: Ninguno, Todos, Añadir y Quitar (el botón se pulsa un momento después de la tecla).
         auto marcados = [lista]() {
@@ -805,15 +817,15 @@ private slots:
                                  : QStringLiteral("Exámenes: %1 modelos de %2 seleccionados.").arg(marcados).arg(total);
         };
         QCOMPARE(grupo->title(), titulo(marcados(), examenes));
-        QTest::keyClick(&v, Qt::Key_N, Qt::AltModifier);
+        usar(Qt::Key_N);
         QTRY_COMPARE(marcados(), 0);
         QCOMPARE(grupo->title(), titulo(0, examenes));
         lista->item(0)->setCheckState(Qt::Checked);
         QCOMPARE(grupo->title(), titulo(1, examenes));
-        QTest::keyClick(&v, Qt::Key_T, Qt::AltModifier);
+        usar(Qt::Key_T);
         QTRY_COMPARE(marcados(), examenes);
         QCOMPARE(grupo->title(), titulo(examenes, examenes));
-        QTest::keyClick(&v, Qt::Key_D, Qt::AltModifier);
+        usar(Qt::Key_D);
         QTRY_COMPARE(lista->count(), examenes + 1);
         QCOMPARE(grupo->title(), titulo(examenes + 1, examenes + 1));
         QTest::keyClick(QApplication::focusWidget(), Qt::Key_Escape);   // deja el nombre que se propone
@@ -827,7 +839,7 @@ private slots:
             }
         });
         espera.start(20);
-        QTest::keyClick(&v, Qt::Key_Q, Qt::AltModifier);
+        usar(Qt::Key_Q);
         QTRY_COMPARE(lista->count(), examenes);
         QCOMPARE(grupo->title(), titulo(examenes, examenes));
         v.close();
@@ -2080,8 +2092,9 @@ private slots:
 
         // Las acciones están también en el menú del botón derecho, con sus teclas escritas (las atiende la ventana,
         // que amplía la zona en la que está el puntero), y la ventana recuerda la escala.
+        const QString ctrl = QKeySequence(Qt::CTRL | Qt::Key_A).toString(QKeySequence::NativeText).chopped(1);   // «Ctrl+», «⌘» en macOS
         for (QAction *a : visor->accionesEscala())
-            QVERIFY2(a->shortcuts().isEmpty() && a->text().contains(QStringLiteral("\tCtrl+")), qPrintable(a->text()));
+            QVERIFY2(a->shortcuts().isEmpty() && a->text().contains(QStringLiteral("\t") + ctrl), qPrintable(a->text()));
         VentanaPrincipal otra;
         QCOMPARE(otra.findChild<VisorAmpliable *>(QStringLiteral("visorExamen"))->escala(), 1.5);
         QSettings().clear();
