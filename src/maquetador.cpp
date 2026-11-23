@@ -700,7 +700,7 @@ QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &
         html += QStringLiteral("<div style=\"margin-top:%1px; font-weight:bold%3\">%2</div>")
                     .arg(i == 0 ? separacion + 4 : separacion)
                     .arg(enunciadoHtml(pe.pregunta.enunciado, prefijo),
-                         n == Maquetador::kLetraGrande ? QString() : QStringLiteral("; font-style:italic"));
+                         n == Maquetador::kLetraGrande || !d.enunciadoEnCursiva ? QString() : QStringLiteral("; font-style:italic"));
         if (imagenAlLado(pe, n)) {
             html += opcionesConImagenHtml(pe, soluciones, n);
         } else {

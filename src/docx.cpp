@@ -754,7 +754,7 @@ QVector<Parrafo> explicacion(const Pregunta &p, const DatosConvocatoria &d, int 
 QVector<Bloque> pregunta(Documento &doc, const PreguntaExamen &pe, int indice, const DatosConvocatoria &d, bool soluciones, int n)
 {
     // Con letra grande, el enunciado va en negrita sin cursiva, que cuesta más de leer.
-    const Letra enunciado = letra(0, true, n != Maquetador::kLetraGrande);
+    const Letra enunciado = letra(0, true, n != Maquetador::kLetraGrande && d.enunciadoEnCursiva);
     QString prefijo = trozo(QStringLiteral("%1.- ").arg(indice + 1), enunciado);
     if (soluciones)
         prefijo += trozo(QStringLiteral("[%1] ").arg(pe.pregunta.codigoCompleto()), letra(0, true, false, verde()));

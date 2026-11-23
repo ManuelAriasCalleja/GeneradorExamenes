@@ -170,6 +170,7 @@ private:
     QCheckBox *m_ordenAleatorio;
     QCheckBox *m_barajarOpciones;
     QCheckBox *m_limitarPaginas;            // compactar la maqueta para que quepa en una página por cada 10 preguntas
+    QCheckBox *m_enunciadoEnCursiva;        // si no, los enunciados van solo en negrita
     QLineEdit *m_semilla;
     GrupoPlegable *m_plegablePuntuacion = nullptr;
     GrupoPlegable *m_plegableOpciones = nullptr;

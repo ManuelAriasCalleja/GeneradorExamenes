@@ -165,6 +165,7 @@ DatosConvocatoria PanelConfiguracion::datos() const
     d.asignaturaEnCabecera = m_asignaturaEnCabecera->isChecked();
     d.convocatoriaEnCabecera = m_convocatoriaEnCabecera->isChecked();
     d.asignaturaEnPie = m_asignaturaEnPie->isChecked();
+    d.enunciadoEnCursiva = m_enunciadoEnCursiva->isChecked();
     d.convocatoriaEnPie = m_convocatoriaEnPie->isChecked();
     return d;
 }
@@ -613,6 +614,11 @@ QWidget *PanelConfiguracion::crearGrupoOpciones()
                                     "que cada examen quepa en una página por cada 10 preguntas, y avisa si no se consigue.\n"
                                     "Sin marcar, los exámenes van con la maqueta normal y ocupan las páginas que necesiten."));
     connect(m_limitarPaginas, &QCheckBox::toggled, this, &PanelConfiguracion::maquetaCambiada);
+    m_enunciadoEnCursiva = casilla("examen/enunciadoEnCursiva", tr("Enunciados en cursiva"), true, tr("enunciados sin cursiva"));
+    m_enunciadoEnCursiva->setToolTip(tr("Marcada, los enunciados van en negrita cursiva, como siempre. Sin marcar, solo en "
+                                        "negrita, que se lee algo mejor en los enunciados largos.\n"
+                                        "Con «Letra grande» nunca van en cursiva."));
+    connect(m_enunciadoEnCursiva, &QCheckBox::toggled, this, &PanelConfiguracion::maquetaCambiada);
     m_semilla = new QLineEdit;
     m_semilla->setValidator(new QIntValidator(0, 2147483647, m_semilla));
     //: Lo que pone el campo «Semilla» cuando está vacío (la semilla será aleatoria)
@@ -639,6 +645,7 @@ QWidget *PanelConfiguracion::crearGrupoOpciones()
     fOpc->addRow(m_ordenAleatorio);
     fOpc->addRow(m_barajarOpciones);
     fOpc->addRow(m_limitarPaginas);
+    fOpc->addRow(m_enunciadoEnCursiva);
     //: Semilla del generador de números aleatorios
     fOpc->addRow(tr("Semilla:"), m_semilla);
     return gOpc;

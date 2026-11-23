@@ -506,7 +506,7 @@ QString Latex::examenes(const QVector<Modelo> &modelos, const DatosConvocatoria 
     // Nivel de compactación: separación entre preguntas y letra. Con letra grande, enunciados sin cursiva.
     tex += QStringLiteral("\\setlength{\\seppregunta}{%1pt}\\renewcommand{\\letraexamen}{%2}\n")
                .arg(QLatin1String(nivel(n).separacionLatex), QLatin1String(nivel(n).letraLatex));
-    if (n == Maquetador::kLetraGrande)
+    if (n == Maquetador::kLetraGrande || !d.enunciadoEnCursiva)
         tex += QStringLiteral("\\renewcommand{\\enunciado}[1]{{\\raggedright\\bfseries #1\\par}}\n");
     if (soluciones) {
         tex += QStringLiteral("\n\\empezarmodelo{") + Latex::escapar(textoPie(tx(d, QT_TRANSLATE_NOOP("Examen", "Soluciones")), d))

@@ -2572,7 +2572,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>Verified by %1</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+27"/>
         <source>Tema</source>
         <translation>Topic</translation>
     </message>
@@ -2607,7 +2607,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelConfiguracion</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="+323"/>
+        <location filename="../src/panelconfiguracion.cpp" line="+324"/>
         <source>Convocatoria</source>
         <extracomment>Convocatoria de examen (Febrero, Junio, Septiembre…): datos de la cabecera de los exámenes</extracomment>
         <translation>Exam session</translation>
@@ -2969,6 +2969,23 @@ Sin marcar, los exámenes van con la maqueta normal y ocupan las páginas que ne
 Unticked, exams use the normal layout and take as many pages as they need.</translation>
     </message>
     <message>
+        <location line="+4"/>
+        <source>Enunciados en cursiva</source>
+        <translation>Question text in italics</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>enunciados sin cursiva</source>
+        <translation>question text not in italics</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Marcada, los enunciados van en negrita cursiva, como siempre. Sin marcar, solo en negrita, que se lee algo mejor en los enunciados largos.
+Con «Letra grande» nunca van en cursiva.</source>
+        <translation>Ticked, the question text is in bold italics, as always. Unticked, in bold only, which is somewhat easier to read in long questions.
+With “Large print” it is never in italics.</translation>
+    </message>
+    <message>
         <location line="+7"/>
         <source>aleatoria</source>
         <extracomment>Lo que pone el campo «Semilla» cuando está vacío (la semilla será aleatoria)</extracomment>
@@ -2988,7 +3005,7 @@ If empty, different exams come out each time.</translation>
         <translation>seed %1</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Semilla:</source>
         <extracomment>Semilla del generador de números aleatorios</extracomment>
         <translation>Seed:</translation>
@@ -3422,7 +3439,7 @@ Replace it with this one?</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="-869"/>
+        <location filename="../src/panelconfiguracion.cpp" line="-876"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>

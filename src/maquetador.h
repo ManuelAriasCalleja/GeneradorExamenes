@@ -27,6 +27,9 @@ struct DatosConvocatoria
     bool convocatoriaEnCabecera = true;
     bool asignaturaEnPie = true;
     bool convocatoriaEnPie = true;
+    // Si los enunciados van en cursiva además de en negrita, como han ido siempre. Con letra grande nunca van en
+    // cursiva, que cuesta más de leer.
+    bool enunciadoEnCursiva = true;
     // Semilla con la que se generaron los exámenes (0: no se sabe) y si después se han cambiado preguntas a mano, con
     // lo que ya no los reproduce. Va en la hoja de soluciones y en las propiedades de los ficheros, no en los exámenes.
     quint32 semilla = 0;

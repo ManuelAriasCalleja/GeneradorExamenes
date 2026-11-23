@@ -243,6 +243,12 @@ private slots:
         QVERIFY(!QString::fromUtf8(Docx::partes(modelos, convocatoria(), false, Maquetador::kLetraGrande)
                                        .value(QStringLiteral("word/document.xml")))
                      .contains(QStringLiteral("<w:i/><w:iCs/></w:rPr><w:t xml:space=\"preserve\">1.- ")));
+        // Y con la letra normal, si se pide (la casilla «Enunciados en cursiva», desmarcada).
+        DatosConvocatoria sinCursiva = convocatoria();
+        sinCursiva.enunciadoEnCursiva = false;
+        const QString documento = QString::fromUtf8(Docx::partes(modelos, sinCursiva, false).value(QStringLiteral("word/document.xml")));
+        QVERIFY(!documento.contains(enunciado));
+        QVERIFY(documento.contains(QStringLiteral("<w:b/><w:bCs/></w:rPr><w:t xml:space=\"preserve\">1.- ")));
     }
 
     void fichero()

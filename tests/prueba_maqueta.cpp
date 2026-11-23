@@ -245,6 +245,15 @@ private slots:
         QVERIFY(grande.contains(QStringLiteral("width=\"61\"")));      // 40 · 16 / 10,5
         QVERIFY(normal.contains(QStringLiteral("font-style:italic")));   // los enunciados, sin cursiva
         QVERIFY(!grande.contains(QStringLiteral("font-style:italic")));
+        // Y sin cursiva también en la maqueta normal si se pide (la casilla «Enunciados en cursiva», desmarcada).
+        DatosConvocatoria sinCursiva = d;
+        sinCursiva.enunciadoEnCursiva = false;
+        QVERIFY(!Maquetador::examenHtml(m, sinCursiva, false).contains(QStringLiteral("font-style:italic")));
+        QVERIFY(Maquetador::examenHtml(m, sinCursiva, false).contains(QStringLiteral("font-weight:bold")));
+        const QString redefinido = QStringLiteral("\\renewcommand{\\enunciado}[1]{{\\raggedright\\bfseries #1\\par}}");
+        QVERIFY(Latex::examenes({m}, sinCursiva, false, QStringLiteral("img")).contains(redefinido));
+        QVERIFY(!Latex::examenes({m}, d, false, QStringLiteral("img")).contains(redefinido));
+        QVERIFY(Latex::examenes({m}, d, false, QStringLiteral("img"), Maquetador::kLetraGrande).contains(redefinido));
 
         // En LaTeX: \LARGE para todo el modelo, más separación y una opción por línea.
         const QString tex = Latex::examenes({m}, d, false, QStringLiteral("img"), Maquetador::kLetraGrande);
