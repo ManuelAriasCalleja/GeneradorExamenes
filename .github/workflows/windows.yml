@@ -88,7 +88,8 @@ jobs:
           files: build/GeneradorExamenes-*-windows.zip
 
   macos:
-    runs-on: macos-latest
+    # No macos-latest: Qt 6.8.3 enlaza con el framework AGL, que ya no está en el SDK de las versiones siguientes.
+    runs-on: macos-15
     timeout-minutes: 40
     permissions:
       contents: read
