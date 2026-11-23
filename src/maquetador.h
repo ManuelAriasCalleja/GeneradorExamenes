@@ -85,8 +85,9 @@ public:
     static QString enunciadoHtml(const QString &texto, const QString &prefijo = QString());
     static QString escapar(const QString &texto);
 
-    // Ficha de una pregunta (vista del banco de preguntas).
-    static QString fichaPreguntaHtml(const Pregunta &p, const QString &nombreTema);
+    // Ficha de una pregunta (vista del banco de preguntas). Sin 'conSolucion', no dice cuál es la respuesta correcta ni
+    // lo que la delata (la referencia, la explicación y las notas): para resolverla antes de verla, al verificar.
+    static QString fichaPreguntaHtml(const Pregunta &p, const QString &nombreTema, bool conSolucion = true);
 
     // Un modelo de examen. Con 'soluciones' marca la respuesta correcta y el código de cada pregunta, y pone debajo de
     // cada una su explicación y su referencia (si las tiene); con 'conPlantilla', además, su plantilla de corrección

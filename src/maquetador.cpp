@@ -585,7 +585,7 @@ QString Maquetador::enunciadoHtml(const QString &texto, const QString &prefijo)
     return html;
 }
 
-QString Maquetador::fichaPreguntaHtml(const Pregunta &p, const QString &nombreTema)
+QString Maquetador::fichaPreguntaHtml(const Pregunta &p, const QString &nombreTema, bool conSolucion)
 {
     // La ficha se ve en el programa: va en el idioma de la interfaz.
     const auto tr = [](const char *texto) { return QCoreApplication::translate("Maquetador", texto); };
@@ -617,13 +617,14 @@ QString Maquetador::fichaPreguntaHtml(const Pregunta &p, const QString &nombreTe
     html += imagenHtml(p);
     PreguntaExamen pe;
     pe.pregunta = p;
-    html += opcionesHtml(pe, true, 0);
-    html += tr("<p><b>Respuesta correcta:</b> %1. %2</p>").arg(Pregunta::letraMayuscula(p.correcta)).arg(escapar(p.referencia));
-    if (!p.explicacion.isEmpty())
+    html += opcionesHtml(pe, conSolucion, 0);
+    if (conSolucion)
+        html += tr("<p><b>Respuesta correcta:</b> %1. %2</p>").arg(Pregunta::letraMayuscula(p.correcta)).arg(escapar(p.referencia));
+    if (conSolucion && !p.explicacion.isEmpty())
         html += tr("<p><b>Explicación:</b> %1</p>").arg(escapar(p.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
     if (!p.pseudoCon.isEmpty())
         html += tr("<p><b>Pseudorrepetida con:</b> %1 (no saldrán juntas en un examen)</p>").arg(escapar(p.pseudoCon));
-    if (!p.notas.isEmpty())
+    if (conSolucion && !p.notas.isEmpty())
         html += tr("<p><b>Notas:</b> %1</p>").arg(escapar(p.notas));
     return html + QStringLiteral("</body></html>");
 }

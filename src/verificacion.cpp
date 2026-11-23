@@ -5,7 +5,9 @@
 #include "utilidades.h"
 #include "visorampliable.h"
 
+#include <QButtonGroup>
 #include <QCheckBox>
+#include <QRadioButton>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -382,6 +384,33 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     connect(m_avisos, &QCheckBox::toggled, this,
             [](bool marcada) { QSettings().setValue(QStringLiteral("verificar/avisos"), marcada); });
     lg->addWidget(m_avisos);
+
+    m_resolver = new QCheckBox(tr("Resolverla antes de ver la solución"));
+    m_resolver->setObjectName(QStringLiteral("resolverVerificar"));
+    m_resolver->setToolTip(tr("Las preguntas sin verificar se muestran sin la respuesta correcta ni la explicación: se "
+                              "resuelve la pregunta y, al mostrar la solución, se compara con la del banco. Viéndola "
+                              "desde el principio es más fácil dar por buena una respuesta equivocada."));
+    m_resolver->setChecked(QSettings().value(QStringLiteral("verificar/resolver"), false).toBool());
+    lg->addWidget(m_resolver);
+    m_filaRespuesta = new QWidget;
+    auto *lr = new QHBoxLayout(m_filaRespuesta);
+    lr->setContentsMargins(0, 0, 0, 0);
+    //: En el diálogo de verificar, delante de las casillas a), b), c) y d) para decir cuál se cree que es la correcta
+    lr->addWidget(new QLabel(tr("Su respuesta:")));
+    m_respuesta = new QButtonGroup(this);
+    for (int i = 0; i < 4; ++i) {
+        auto *r = new QRadioButton(QStringLiteral("%1)").arg(Pregunta::letra(i)));
+        m_respuesta->addButton(r, i);
+        lr->addWidget(r);
+    }
+    lr->addStretch();
+    lg->addWidget(m_filaRespuesta);
+    connect(m_resolver, &QCheckBox::toggled, this, [this](bool marcada) {
+        QSettings().setValue(QStringLiteral("verificar/resolver"), marcada);
+        // En la pregunta que se ve, si aún no se ha tocado su verificación.
+        if (m_actual >= 0 && (!marcada || (!m_preguntas.at(m_actual).verificada && m_panel->sinCambios())))
+            ponerOculta(marcada);
+    });
     l->addWidget(grupo);
     m_sinParar.start();
     connect(m_panel, &PanelVerificacion::cambiado, m_aviso, &QWidget::hide);
@@ -428,16 +457,54 @@ void DialogoVerificar::mostrar(int indice)
     const Pregunta &p = m_preguntas.at(indice);
     //: Arriba del diálogo de verificar: «Pregunta 3 de 20: T1-7a»
     m_posicion->setText(tr("Pregunta %1 de %2: %3").arg(indice + 1).arg(m_preguntas.size()).arg(p.codigoCompleto()));
-    m_ficha->ponerDocumento(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema(m_temas, p.temaId)), {p}, m_ficha));
     m_panel->ponerPregunta(p);
     ponerProgreso();
     m_aviso->hide();
     m_anterior->setEnabled(indice > 0);
     m_siguiente->setEnabled(indice + 1 < m_preguntas.size());
+    m_respuesta->setExclusive(false);
+    for (QAbstractButton *b : m_respuesta->buttons())
+        b->setChecked(false);
+    m_respuesta->setExclusive(true);
+    // Las que ya están verificadas se ven enteras: ya se revisaron.
+    ponerOculta(m_resolver->isChecked() && !p.verificada);
+}
+
+void DialogoVerificar::ponerOculta(bool oculta)
+{
+    m_oculta = oculta;
+    const Pregunta &p = m_preguntas.at(m_actual);
+    m_ficha->ponerDocumento(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema(m_temas, p.temaId), !oculta),
+                                                       {p}, m_ficha));
+    // Sin ver la solución no se puede dar por verificada.
+    m_panel->setEnabled(!oculta);
+    m_filaRespuesta->setVisible(oculta);
+    if (oculta) {
+        //: Botón (Intro) del diálogo de verificar cuando la solución está oculta: la enseña
+        m_verificarYSeguir->setText(tr("&Mostrar la solución"));
+        return;
+    }
     //: Botón (Intro): marca la pregunta como verificada y pasa a la siguiente
-    m_verificarYSeguir->setText(indice + 1 < m_preguntas.size() ? tr("&Verificada, siguiente")
-                                                                 //: Botón (Intro) en la última pregunta: la marca como verificada
-                                                                 : tr("&Verificada"));
+    m_verificarYSeguir->setText(m_actual + 1 < m_preguntas.size() ? tr("&Verificada, siguiente")
+                                                                   //: Botón (Intro) en la última pregunta: la marca como verificada
+                                                                   : tr("&Verificada"));
+}
+
+void DialogoVerificar::mostrarSolucion()
+{
+    const int respuesta = m_respuesta->checkedId();
+    const int correcta = m_preguntas.at(m_actual).correcta;
+    ponerOculta(false);
+    if (respuesta < 0)
+        return;
+    if (respuesta == correcta)
+        //: Al mostrar la solución en el diálogo de verificar; %1 es la letra de la opción, «c)»
+        m_aviso->setText(tr("Su respuesta, la %1, coincide con la del banco.").arg(QStringLiteral("%1)").arg(Pregunta::letra(respuesta))));
+    else
+        //: Al mostrar la solución en el diálogo de verificar; %1 y %2 son letras de opciones, «b)» y «c)»
+        m_aviso->setText(tr("Ha respondido la %1 y la respuesta del banco es la %2: revísela con cuidado.")
+                             .arg(QStringLiteral("%1)").arg(Pregunta::letra(respuesta)), QStringLiteral("%1)").arg(Pregunta::letra(correcta))));
+    m_aviso->show();
 }
 
 bool DialogoVerificar::conAvisos() const
@@ -497,6 +564,10 @@ void DialogoVerificar::verificarYSeguir()
 {
     if (m_actual < 0)
         return;
+    if (m_oculta) {
+        mostrarSolucion();
+        return;
+    }
     // Marcada antes de que haya dado tiempo a leerla: se avisa una vez, y hay que pulsar de nuevo.
     if (conAvisos() && !m_preguntas.at(m_actual).verificada && m_avisadaDePrisa != m_actual
         && m_vista.elapsed() < tiempoParaLeer(m_preguntas.at(m_actual))) {

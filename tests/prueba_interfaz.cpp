@@ -1535,6 +1535,106 @@ private slots:
         QSettings().clear();
     }
 
+    // Al verificar, «Resolverla antes de ver la solución»: la ficha de las que están sin verificar sale sin la
+    // respuesta ni la explicación, Intro enseña la solución y se compara con la respuesta que se haya dado.
+    void verificarSinVerLaSolucion()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        BaseDatos bd;
+        QVERIFY(bd.abrir(ruta));
+        QSettings().clear();
+        QSettings().setValue(QStringLiteral("verificar/avisos"), false);
+        const QVector<Pregunta> preguntas = bd.preguntas();
+        QVERIFY(preguntas.size() > 4);
+
+        // La ficha sin solución no dice la respuesta ni lo que la delata.
+        Pregunta inventada = preguntas.first();
+        inventada.explicacion = QStringLiteral("Explicación inventada.");
+        inventada.notas = QStringLiteral("Nota inventada.");
+        const QString sin = Maquetador::fichaPreguntaHtml(inventada, QString(), false);
+        const QString con = Maquetador::fichaPreguntaHtml(inventada, QString());
+        for (const QString &texto : {QStringLiteral("Respuesta correcta"), QStringLiteral("Explicación inventada"), QStringLiteral("Nota inventada")}) {
+            QVERIFY2(con.contains(texto), qPrintable(texto));
+            QVERIFY2(!sin.contains(texto), qPrintable(texto));
+        }
+        QVERIFY(sin.contains(QStringLiteral("opción inventada")));
+        QVERIFY(sin.size() < con.size());
+
+        DialogoVerificar d(&bd, preguntas, 0, bd.temas());
+        d.show();
+        auto *ficha = d.findChild<VisorAmpliable *>();
+        auto *resolver = d.findChild<QCheckBox *>(QStringLiteral("resolverVerificar"));
+        auto *aviso = d.findChild<QLabel *>(QStringLiteral("avisoVerificar"));
+        auto *panel = d.findChild<PanelVerificacion *>();
+        QVERIFY(ficha && resolver && aviso && panel);
+        const QList<QRadioButton *> letras = d.findChildren<QRadioButton *>();
+        QCOMPARE(letras.size(), 4);
+        auto boton = [&d]() {
+            for (QPushButton *b : d.findChildren<QPushButton *>())
+                if (b->isDefault())
+                    return b;
+            return static_cast<QPushButton *>(nullptr);
+        };
+        QVERIFY(boton());
+
+        // Por defecto, como siempre: con la solución y sin las casillas de la respuesta.
+        QVERIFY(!resolver->isChecked());
+        QVERIFY(ficha->toPlainText().contains(QStringLiteral("Respuesta correcta")));
+        QVERIFY(!letras.first()->isVisible());
+        QCOMPARE(boton()->text(), QStringLiteral("&Verificada, siguiente"));
+
+        // Al marcarla, se oculta ya en la que se ve, y no se puede dar por verificada sin verla.
+        resolver->setChecked(true);
+        QVERIFY(QSettings().value(QStringLiteral("verificar/resolver")).toBool());
+        QVERIFY(!ficha->toPlainText().contains(QStringLiteral("Respuesta correcta")));
+        QVERIFY(letras.first()->isVisible());
+        QVERIFY(!panel->isEnabled());
+        QCOMPARE(boton()->text(), QStringLiteral("&Mostrar la solución"));
+
+        // Con una respuesta distinta de la del banco: se dice al mostrarla, y no se ha marcado nada.
+        const int correcta = preguntas.at(0).correcta;
+        letras.at((correcta + 1) % 4)->setChecked(true);
+        boton()->click();
+        QCOMPARE(d.actual(), 0);
+        QVERIFY(ficha->toPlainText().contains(QStringLiteral("Respuesta correcta")));
+        QVERIFY(aviso->isVisible());
+        QVERIFY2(aviso->text().contains(QStringLiteral("revísela con cuidado")), qPrintable(aviso->text()));
+        QVERIFY(panel->isEnabled());
+        QVERIFY(!letras.first()->isVisible());
+        QVERIFY(!bd.preguntas().first().verificada);
+        QCOMPARE(boton()->text(), QStringLiteral("&Verificada, siguiente"));
+
+        // Ya a la vista, se verifica y se pasa a la siguiente, que sale oculta y sin respuesta marcada.
+        boton()->click();
+        QCOMPARE(d.actual(), 1);
+        QVERIFY(bd.preguntas().first().verificada);
+        QVERIFY(!ficha->toPlainText().contains(QStringLiteral("Respuesta correcta")));
+        for (QRadioButton *r : letras)
+            QVERIFY(!r->isChecked());
+        letras.at(preguntas.at(1).correcta)->setChecked(true);
+        boton()->click();
+        QVERIFY2(aviso->text().contains(QStringLiteral("coincide con la del banco")), qPrintable(aviso->text()));
+
+        // Sin responder, solo la enseña. Y las que ya están verificadas se ven enteras.
+        for (QPushButton *b : d.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("&Siguiente"))
+                b->click();
+        QCOMPARE(d.actual(), 2);
+        boton()->click();
+        QVERIFY(ficha->toPlainText().contains(QStringLiteral("Respuesta correcta")));
+        QVERIFY(!aviso->isVisible());
+        for (QPushButton *b : d.findChildren<QPushButton *>())
+            if (b->text() == QStringLiteral("&Anterior"))
+                b->click(), b->click();
+        QCOMPARE(d.actual(), 0);
+        QVERIFY(ficha->toPlainText().contains(QStringLiteral("Respuesta correcta")));
+        QVERIFY(panel->isEnabled());
+        d.reject();
+        QSettings().clear();
+    }
+
     void visorEscalaLaLetraYLasImagenes()
     {
         QTextDocument doc;

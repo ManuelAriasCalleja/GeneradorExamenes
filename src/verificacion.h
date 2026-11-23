@@ -11,6 +11,7 @@
 #include <functional>
 
 class BaseDatos;
+class QButtonGroup;
 class QCheckBox;
 class QGridLayout;
 class QLabel;
@@ -143,6 +144,10 @@ private:
     // Cuántas de las preguntas que se recorren están ya verificadas, en número y en la barra.
     void ponerProgreso();
     bool conAvisos() const;
+    // Con la solución oculta o a la vista: la ficha, el botón de Intro y lo que se puede marcar.
+    void ponerOculta(bool oculta);
+    // Enseña la solución y la compara con la respuesta que se haya dado.
+    void mostrarSolucion();
 
     BaseDatos *m_bd;
     QVector<Pregunta> m_preguntas;
@@ -157,6 +162,11 @@ private:
     int m_avisadaDePrisa = -1;     // índice de la pregunta de la que ya se ha avisado que se marcaba muy deprisa
     int m_pausaCada = 25 * 60 * 1000;
     QCheckBox *m_avisos;
+    // Resolver la pregunta antes de ver la solución: si se ve desde el principio, se tiende a darla por buena.
+    bool m_oculta = false;         // la solución de la pregunta actual
+    QCheckBox *m_resolver;
+    QWidget *m_filaRespuesta;
+    QButtonGroup *m_respuesta;
 
     QLabel *m_posicion;
     QLabel *m_progreso;

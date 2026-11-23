@@ -1832,7 +1832,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>DialogoVerificadores</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="+208"/>
+        <location filename="../src/verificacion.cpp" line="+210"/>
         <source>Verificadores</source>
         <translation>Verifiers</translation>
     </message>
@@ -1930,7 +1930,23 @@ Do you want to save it anyway?</translation>
         <translation>Warns you if a question is marked as verified before there has been time to read it (you have to click again) and suggests a break after every 25 minutes of verifying without stopping.</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+7"/>
+        <source>Resolverla antes de ver la solución</source>
+        <translation>Solve it before seeing the answer</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Las preguntas sin verificar se muestran sin la respuesta correcta ni la explicación: se resuelve la pregunta y, al mostrar la solución, se compara con la del banco. Viéndola desde el principio es más fácil dar por buena una respuesta equivocada.</source>
+        <translation>Unverified questions are shown without the correct answer or the explanation: you solve the question and, when the answer is shown, it is compared with the one in the bank. Seeing it from the start makes it easier to accept a wrong answer.</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Su respuesta:</source>
+        <extracomment>En el diálogo de verificar, delante de las casillas a), b), c) y d) para decir cuál se cree que es la correcta</extracomment>
+        <translation>Your answer:</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>&amp;Anterior</source>
         <extracomment>Botón: pasa a la pregunta anterior de la lista (guarda lo que se haya marcado)</extracomment>
         <translation>&amp;Previous</translation>
@@ -1968,7 +1984,13 @@ Do you want to save it anyway?</translation>
         <translation>Question %1 of %2: %3</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+25"/>
+        <source>&amp;Mostrar la solución</source>
+        <extracomment>Botón (Intro) del diálogo de verificar cuando la solución está oculta: la enseña</extracomment>
+        <translation>&amp;Show the answer</translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>&amp;Verificada, siguiente</source>
         <extracomment>Botón (Intro): marca la pregunta como verificada y pasa a la siguiente</extracomment>
         <translation>&amp;Verified, next</translation>
@@ -1979,7 +2001,19 @@ Do you want to save it anyway?</translation>
         <translation>&amp;Verified</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+12"/>
+        <source>Su respuesta, la %1, coincide con la del banco.</source>
+        <extracomment>Al mostrar la solución en el diálogo de verificar; %1 es la letra de la opción, «c)»</extracomment>
+        <translation>Your answer, %1, matches the one in the bank.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Ha respondido la %1 y la respuesta del banco es la %2: revísela con cuidado.</source>
+        <extracomment>Al mostrar la solución en el diálogo de verificar; %1 y %2 son letras de opciones, «b)» y «c)»</extracomment>
+        <translation>You answered %1 and the answer in the bank is %2: review it carefully.</translation>
+    </message>
+    <message>
+        <location line="+26"/>
         <source>Verificadas: %1 de %2</source>
         <extracomment>Arriba del diálogo de verificar, junto a la barra de avance: «Verificadas: 12 de 20»</extracomment>
         <translation>Verified: %1 of %2</translation>
@@ -1992,7 +2026,7 @@ Do you want to save it anyway?</translation>
 %1</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+33"/>
         <source>Apenas ha habido tiempo para leerla. Si ya la ha revisado, pulse otra vez.</source>
         <translation>There has hardly been time to read it. If you have already reviewed it, click again.</translation>
     </message>
@@ -2200,26 +2234,26 @@ Do you want to save it anyway?</translation>
     <message>
         <location filename="../src/docx.cpp" line="+742"/>
         <location filename="../src/maquetador.cpp" line="+361"/>
-        <location line="+884"/>
+        <location line="+885"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location filename="../src/maquetador.cpp" line="-883"/>
-        <location line="+884"/>
+        <location filename="../src/maquetador.cpp" line="-884"/>
+        <location line="+885"/>
         <source>Referencia:</source>
         <translation>Reference:</translation>
     </message>
     <message>
         <location line="+134"/>
-        <location filename="../src/maquetador.cpp" line="-873"/>
-        <location line="+1110"/>
+        <location filename="../src/maquetador.cpp" line="-874"/>
+        <location line="+1111"/>
         <source>Plantilla de corrección: %1</source>
         <translation>Answer key: %1</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="-1322"/>
+        <location filename="../src/maquetador.cpp" line="-1323"/>
         <source>Respuesta correcta: +%1 puntos · incorrecta: −%2 puntos · en blanco: 0 puntos</source>
         <extracomment>Puntuación del examen, en una línea bajo las instrucciones. %1 son los puntos de un acierto (1,00) y %2 los que resta un fallo (0,30); el signo menos es «−» (U+2212)</extracomment>
         <translation>Correct answer: +%1 points · incorrect: −%2 points · blank: 0 points</translation>
@@ -2245,7 +2279,7 @@ Do not hand in the question paper.</translation>
     </message>
     <message>
         <location filename="../src/docx.cpp" line="-61"/>
-        <location filename="../src/maquetador.cpp" line="+271"/>
+        <location filename="../src/maquetador.cpp" line="+272"/>
         <location line="+729"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
@@ -2281,8 +2315,8 @@ Do not hand in the question paper.</translation>
     </message>
     <message>
         <location line="+34"/>
-        <location filename="../src/maquetador.cpp" line="-1078"/>
-        <location line="+1113"/>
+        <location filename="../src/maquetador.cpp" line="-1079"/>
+        <location line="+1114"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
@@ -2392,7 +2426,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Maquetador</name>
     <message>
-        <location filename="../src/maquetador.cpp" line="-902"/>
+        <location filename="../src/maquetador.cpp" line="-903"/>
         <source>Activa</source>
         <translation>Active</translation>
     </message>
@@ -2418,7 +2452,7 @@ Do not hand in the question paper.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+45"/>
+        <location line="+46"/>
         <source>verificada</source>
         <extracomment>En la ficha de una pregunta: la han revisado personas; %1 son sus nombres
 ----------
@@ -2426,13 +2460,13 @@ Marca de la vista del examen tras el número de una pregunta revisada por person
         <translation>verified</translation>
     </message>
     <message>
-        <location line="-45"/>
+        <location line="-46"/>
         <source>verificada por %1</source>
         <translation>verified by %1</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+40"/>
+        <location line="+41"/>
         <source>sin verificar</source>
         <extracomment>En la ficha de una pregunta: no la han revisado personas
 ----------
@@ -2558,7 +2592,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelVerificacion</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="-488"/>
+        <location filename="../src/verificacion.cpp" line="-557"/>
         <source>Verificada por humanos</source>
         <translation>Verified by humans</translation>
     </message>
