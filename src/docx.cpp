@@ -751,12 +751,15 @@ QVector<Parrafo> explicacion(const Pregunta &p, const DatosConvocatoria &d, int 
     const Letra normal = letra(puntosExplicacion(n));
     const Letra etiqueta = letra(puntosExplicacion(n), true, false, verde());
     QStringList partes;
-    auto parte = [&](const char *nombre, const QString &texto) {
-        if (!texto.trimmed().isEmpty())
-            partes << trozo(tx(d, nombre), etiqueta) + textoPregunta(QStringLiteral(" ") + texto.trimmed(), normal);
+    // La explicación admite código en línea (entre comillas invertidas); la referencia, no: es texto tal cual.
+    auto parte = [&](const char *nombre, const QString &texto, bool conCodigo) {
+        if (texto.trimmed().isEmpty())
+            return;
+        const QString contenido = QStringLiteral(" ") + texto.trimmed();
+        partes << trozo(tx(d, nombre), etiqueta) + (conCodigo ? textoPregunta(contenido, normal) : trozo(contenido, normal));
     };
-    parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion);
-    parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia);
+    parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion, true);
+    parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia, false);
     if (partes.isEmpty())
         return {};
     Parrafo par = parrafo(partes.join(kSalto));

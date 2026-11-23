@@ -263,17 +263,18 @@ QString codigoLatex(const Enunciado::Bloque &b)
 QString explicacionLatex(const Pregunta &p, const DatosConvocatoria &d, int n)
 {
     QStringList partes;
-    auto parte = [&](const char *etiqueta, const QString &texto) {
+    // La explicación admite código en línea (entre comillas invertidas); la referencia, no: es texto tal cual.
+    auto parte = [&](const char *etiqueta, const QString &texto, bool conCodigo) {
         if (texto.trimmed().isEmpty())
             return;
         QStringList lineas;
         for (const QString &linea : texto.trimmed().split(QLatin1Char('\n')))
-            lineas << textoLatex(linea);
+            lineas << (conCodigo ? textoLatex(linea) : Latex::escapar(linea));
         partes << QStringLiteral("\\textcolor{verde}{\\textbf{%1}} %2")
                       .arg(Latex::escapar(tx(d, etiqueta)), lineas.join(QStringLiteral("\\newline ")));
     };
-    parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion);
-    parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia);
+    parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion, true);
+    parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia, false);
     if (partes.isEmpty())
         return QString();
     return QStringLiteral("\\par\\vspace{2pt}{%1\\leftskip=8mm\\noindent %2\\par}\n")

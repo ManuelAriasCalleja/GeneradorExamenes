@@ -1,4 +1,5 @@
 #include "modelopreguntas.h"
+#include "enunciado.h"
 #include "paleta.h"
 #include "utilidades.h"
 
@@ -68,9 +69,10 @@ QVariant ModeloPreguntas::data(const QModelIndex &index, int role) const
             //: Columna «Verificada» de la lista de preguntas: la han revisado personas (sin decir quiénes)
             return p.verificadores.isEmpty() ? tr("sí") : QStringLiteral("✓ ") + p.verificadores.join(QStringLiteral(", "));
         case ColEnunciado: {
+            // Sin las marcas: ni las ``` de los bloques de código ni las comillas invertidas del código en línea.
             QString t = p.enunciado;
             t.replace(QLatin1String("```"), QString());
-            return t.simplified();
+            return Enunciado::sinMarcas(t).simplified();
         }
         case ColCorrecta:
             return QString(Pregunta::letraMayuscula(p.correcta));

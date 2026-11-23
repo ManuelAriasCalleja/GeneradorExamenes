@@ -349,15 +349,17 @@ QString opcionesConImagenHtml(const PreguntaExamen &pe, bool soluciones, int n)
 QString explicacionHtml(const Pregunta &p, const DatosConvocatoria &d, int n)
 {
     QStringList partes;
-    auto parte = [&](const char *etiqueta, const QString &texto) {
+    // La explicación admite código en línea (entre comillas invertidas); la referencia, no: es texto tal cual.
+    auto parte = [&](const char *etiqueta, const QString &texto, bool conCodigo) {
         if (texto.trimmed().isEmpty())
             return;
+        const QString html = conCodigo ? Maquetador::textoHtml(texto.trimmed()) : Maquetador::escapar(texto.trimmed());
         partes << QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2</span> %3")
                       .arg(QLatin1String(Maquetador::kColorCorrecta), Maquetador::escapar(tx(d, etiqueta)),
-                           Maquetador::textoHtml(texto.trimmed()).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
+                           QString(html).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
     };
-    parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion);
-    parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia);
+    parte(QT_TRANSLATE_NOOP("Examen", "Explicación:"), p.explicacion, true);
+    parte(QT_TRANSLATE_NOOP("Examen", "Referencia:"), p.referencia, false);
     if (partes.isEmpty())
         return QString();
     return QStringLiteral("<p style=\"margin-left:26px; margin-top:3px; margin-bottom:0px; font-size:%1\">%2</p>")

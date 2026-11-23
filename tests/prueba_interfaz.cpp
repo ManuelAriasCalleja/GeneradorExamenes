@@ -386,6 +386,57 @@ private slots:
         QCOMPARE(arbol->topLevelItemCount(), banco.size() - 3);
     }
 
+    // En la práctica, los textos salen como en el examen: las opciones con «&» o «>» no enseñan sus entidades de HTML,
+    // el código en línea va sin sus comillas invertidas (también en la explicación) y el enunciado sigue la casilla
+    // «Enunciados en cursiva».
+    void practicaEnsenaLosTextosComoElExamen()
+    {
+        Modelo m;
+        PreguntaExamen pe;
+        pe.pregunta = bancoInventado(1, 1).first();
+        pe.pregunta.enunciado = QStringLiteral("Enunciado inventado con `nombre`:");
+        pe.pregunta.opciones = QStringList{QStringLiteral("x > 3 && y."), QStringLiteral("El valor de `uno`."), QStringLiteral("Dos."), QStringLiteral("Tres.")};
+        pe.pregunta.explicacion = QStringLiteral("Porque `uno` es inventado.");
+        m.preguntas << pe;
+        DatosConvocatoria datos;
+        datos.enunciadoEnCursiva = false;
+        DialogoPractica p(m, datos, 45);
+        p.show();
+        int opciones = 0;
+        bool enunciado = false;
+        for (const QLabel *l : p.findChildren<QLabel *>()) {
+            if (l->text().contains(QStringLiteral("x &gt; 3 &amp;&amp; y."))) {
+                QCOMPARE(l->textFormat(), Qt::RichText);
+                ++opciones;
+            }
+            if (l->text().contains(QStringLiteral("El valor de <span"))) {
+                QCOMPARE(l->textFormat(), Qt::RichText);
+                ++opciones;
+            }
+            if (l->text().contains(QStringLiteral("Enunciado inventado con"))) {
+                enunciado = true;
+                QVERIFY(l->text().startsWith(QStringLiteral("<div style=\"font-weight:bold\">")));
+                QVERIFY(!l->text().contains(QLatin1Char('`')));
+            }
+        }
+        QCOMPARE(opciones, 2);
+        QVERIFY(enunciado);
+        pulsar(&p, QStringLiteral("Empezar"));
+        QTimer::singleShot(100, [] {
+            if (QWidget *d = QApplication::activeModalWidget())
+                d->close();
+        });
+        QMetaObject::invokeMethod(&p, "corregir");
+        bool explicacion = false;
+        for (const QLabel *l : p.findChildren<QLabel *>())
+            if (l->text().contains(QStringLiteral("es inventado."))) {
+                explicacion = true;
+                QVERIFY2(!l->text().contains(QLatin1Char('`')), qPrintable(l->text()));
+                QVERIFY(l->text().contains(QStringLiteral("font-style:normal\">uno</span>")));
+            }
+        QVERIFY(explicacion);
+    }
+
     void practicaCorrige()
     {
         ConfigExamen c;

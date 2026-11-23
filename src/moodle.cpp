@@ -74,7 +74,7 @@ QString nombrePregunta(const Pregunta &p)
     QString principio;
     for (const Enunciado::Bloque &b : Enunciado::bloques(p.enunciado)) {
         if (b.tipo == Enunciado::Bloque::Parrafo) {
-            principio = Enunciado::sinMarcas(b.lineas.join(QLatin1Char(' '))).simplified();
+            principio = Enunciado::sinMarcas(b.lineas.join(QLatin1Char('\n'))).simplified();
             break;
         }
     }

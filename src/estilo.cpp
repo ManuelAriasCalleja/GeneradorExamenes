@@ -108,8 +108,9 @@ void revisarEnunciado(const Pregunta &p, bool castellano, QVector<Aviso> &avisos
     auto avisar = [&](const QString &texto) { avisos.append({Aviso::Enunciado, texto}); };
     const Partes partes = partesDe(p.enunciado);
     // Lo que se lee, sin las comillas invertidas del código en línea, para la longitud; y sin ese código, para lo demás.
-    const QString conCodigo = partes.texto.join(QLatin1Char(' '));
-    const QString texto = sinCodigo(conCodigo);
+    // (El código en línea se busca línea a línea, como al maquetar: las comillas de dos líneas no hacen pareja.)
+    const QString conCodigo = partes.texto.join(QLatin1Char('\n'));
+    const QString texto = sinCodigo(conCodigo).replace(QLatin1Char('\n'), QLatin1Char(' '));
     const int largo = int(Enunciado::sinMarcas(conCodigo).size());
 
     if (castellano && !partes.texto.isEmpty()) {
@@ -169,7 +170,7 @@ void revisarOpciones(const Pregunta &p, bool castellano, QVector<Aviso> &avisos)
             avisar(QCoreApplication::translate("Estilo", "La opción %1) debe terminar en punto.").arg(letra));
         if (empiezaPorMinuscula(o))
             avisar(QCoreApplication::translate("Estilo", "La opción %1) debe empezar por mayúscula.").arg(letra));
-        if (opcionDependiente(Enunciado::sinMarcas(entera)))
+        if (opcionDependiente(entera))
             //: %1 es la letra de la opción (a, b, c o d). «Todas las anteriores» es un ejemplo de opción de las que busca la regla.
             avisar(QCoreApplication::translate("Estilo", "La opción %1) remite a las demás («Todas las anteriores»…): conviene evitarlo, porque "
                                                          "impide barajar las opciones.").arg(letra));
@@ -282,7 +283,7 @@ QVector<Aviso> revisar(const Pregunta &p, const QVector<Tema> &temas, const QStr
     revisarOpciones(p, castellano, avisos);
     revisarReferencia(p, formato, castellano, avisos);
     if (Enunciado::comillaSinPareja(p.explicacion))
-        avisos.append({Aviso::Explicacion, QCoreApplication::translate("Estilo", "Hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual.")});
+        avisos.append({Aviso::Explicacion, QCoreApplication::translate("Estilo", "En la explicación hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual.")});
     for (const auto &errata : kErratas) {
         if (p.enunciado.contains(errata.first, Qt::CaseInsensitive))
             //: %1 es una palabra mal escrita y %2, cómo se escribe.
@@ -311,7 +312,9 @@ bool opcionDependiente(const QString &opcion)
                        "|^ *[a-d]\\)? and [a-d]\\)?( (are|is) (correct|true|false))? *\\.? *$"
                        "|\\b(options|answers) [a-d]\\)? and [a-d]\\b"),
         QRegularExpression::CaseInsensitiveOption | kUnicode);
-    return re.match(opcion).hasMatch() || ingles.match(opcion).hasMatch();
+    // Sin el código en línea, que no es redacción: «`a` y `b`» son dos variables, no las opciones a) y b).
+    const QString texto = sinCodigo(opcion);
+    return re.match(texto).hasMatch() || ingles.match(texto).hasMatch();
 }
 
 bool tieneOpcionesDependientes(const Pregunta &p)

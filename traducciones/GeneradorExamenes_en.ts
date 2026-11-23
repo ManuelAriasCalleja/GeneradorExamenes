@@ -1457,7 +1457,7 @@ Its questions will no longer count as used when generating exams, and it will no
         <translation>Close</translation>
     </message>
     <message>
-        <location line="+72"/>
+        <location line="+75"/>
         <source>Dejar en blanco</source>
         <translation>Leave blank</translation>
     </message>
@@ -2102,7 +2102,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>Estilo</name>
     <message>
-        <location filename="../src/estilo.cpp" line="+118"/>
+        <location filename="../src/estilo.cpp" line="+119"/>
         <source>Las preguntas acaban en «?:», con los dos puntos detrás.</source>
         <translation>Questions end in “?:”, with the colon after the question mark.</translation>
     </message>
@@ -2262,8 +2262,8 @@ Do you want to save it anyway?</translation>
     </message>
     <message>
         <location line="+17"/>
-        <source>Hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual.</source>
-        <translation>There is a backtick (`) with no partner on its line: it will be shown as it is.</translation>
+        <source>En la explicación hay una comilla invertida (`) sin pareja en su línea: saldrá tal cual.</source>
+        <translation>In the explanation there is a backtick (`) with no partner on its line: it will be shown as it is.</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -2281,9 +2281,9 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/latex.cpp" line="+275"/>
-        <location filename="../src/docx.cpp" line="+758"/>
-        <location filename="../src/maquetador.cpp" line="+359"/>
+        <location filename="../src/latex.cpp" line="+276"/>
+        <location filename="../src/docx.cpp" line="+761"/>
+        <location filename="../src/maquetador.cpp" line="+361"/>
         <source>Explicación:</source>
         <translation>Explanation:</translation>
     </message>
@@ -2302,7 +2302,7 @@ Do you want to save it anyway?</translation>
         <translation>Answer key: %1</translation>
     </message>
     <message>
-        <location filename="../src/maquetador.cpp" line="-204"/>
+        <location filename="../src/maquetador.cpp" line="-206"/>
         <source>Respuesta correcta: +%1 puntos · incorrecta: −%2 puntos · en blanco: 0 puntos</source>
         <extracomment>Puntuación del examen, en una línea bajo las instrucciones. %1 son los puntos de un acierto (1,00) y %2 los que resta un fallo (0,30); el signo menos es «−» (U+2212)</extracomment>
         <translation>Correct answer: +%1 points · incorrect: −%2 points · blank: 0 points</translation>
@@ -2320,7 +2320,7 @@ Do you want to save it anyway?</translation>
         <translation> (with questions changed by hand)</translation>
     </message>
     <message>
-        <location line="+228"/>
+        <location line="+230"/>
         <source>Seleccione la respuesta correcta, exclusivamente, en la hoja de respuestas.
 No entregue el enunciado.</source>
         <translation>Mark the correct answer on the answer sheet only.
@@ -2560,7 +2560,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>ModeloPreguntas</name>
     <message>
-        <location filename="../src/modelopreguntas.cpp" line="+48"/>
+        <location filename="../src/modelopreguntas.cpp" line="+49"/>
         <source> (old)</source>
         <extracomment>Tras el código de las preguntas que ya han salido en exámenes</extracomment>
         <translation> (old)</translation>
@@ -2600,7 +2600,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>yes</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Sin verificar: ninguna persona la ha revisado</source>
         <translation>Not verified: nobody has reviewed it</translation>
     </message>

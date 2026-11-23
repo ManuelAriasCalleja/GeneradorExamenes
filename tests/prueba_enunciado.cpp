@@ -275,6 +275,13 @@ private slots:
         QVERIFY(vista.contains(QStringLiteral("font-style:normal\">suma_1</span>?")));
         QVERIFY(vista.contains(QStringLiteral("font-style:normal\">cero</span>")));
         QVERIFY(vista.contains(QStringLiteral("Porque <span style=")));
+        // La referencia no lleva código en línea: sale tal cual, igual en todos los formatos.
+        pe.pregunta.referencia = QStringLiteral("Véase `algo` inventado.");
+        m.preguntas[0] = pe;
+        QVERIFY(Maquetador::examenHtml(m, DatosConvocatoria(), true).contains(QStringLiteral("Véase `algo` inventado.")));
+        QVERIFY(!Latex::examenes({m}, DatosConvocatoria(), true, QStringLiteral("img")).contains(QStringLiteral("\\texttt{\\upshape algo}")));
+        pe.pregunta.referencia.clear();
+        m.preguntas[0] = pe;
         QVERIFY(!vista.contains(QLatin1Char('`')));
         const QString tex = Latex::examenes({m}, DatosConvocatoria(), true, QStringLiteral("img"));
         QVERIFY2(tex.contains(QStringLiteral("\\texttt{\\upshape suma\\_1}?")), qPrintable(tex));

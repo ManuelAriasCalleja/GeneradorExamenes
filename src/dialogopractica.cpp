@@ -127,8 +127,10 @@ QWidget *DialogoPractica::crearPregunta(int numero, const PreguntaExamen &pe)
     auto *g = new QGridLayout(marco);
     g->setColumnStretch(1, 1);
 
-    auto *enunciado = new QLabel(QStringLiteral("<div style=\"font-weight:bold; font-style:italic\">%1</div>")
-                                     .arg(Maquetador::enunciadoHtml(pe.pregunta.enunciado, QStringLiteral("%1.- ").arg(numero))));
+    // Como en el examen: en negrita y, si no se ha quitado en las opciones, en cursiva.
+    auto *enunciado = new QLabel(QStringLiteral("<div style=\"font-weight:bold%1\">%2</div>")
+                                     .arg(m_datos.enunciadoEnCursiva ? QStringLiteral("; font-style:italic") : QString(),
+                                          Maquetador::enunciadoHtml(pe.pregunta.enunciado, QStringLiteral("%1.- ").arg(numero))));
     enunciado->setWordWrap(true);
     enunciado->setTextFormat(Qt::RichText);
     g->addWidget(enunciado, 0, 0, 1, 3);
@@ -148,6 +150,7 @@ QWidget *DialogoPractica::crearPregunta(int numero, const PreguntaExamen &pe)
         auto *radio = new QRadioButton(QStringLiteral("%1)").arg(Pregunta::letra(k)));
         f.grupo->addButton(radio, k);
         f.opciones[k] = new QLabel(Maquetador::textoHtml(pe.opcion(k)));
+        f.opciones[k]->setTextFormat(Qt::RichText);   // siempre: escapado, sin etiquetas, Qt lo tomaría por texto normal
         f.opciones[k]->setWordWrap(true);
         f.opciones[k]->setProperty("radio", QVariant::fromValue<QObject *>(radio));
         f.opciones[k]->installEventFilter(this);
@@ -236,7 +239,7 @@ void DialogoPractica::corregir()
         texto += QStringLiteral(" <small>[%1] %2</small>").arg(Maquetador::escapar(pe.pregunta.codigoCompleto()),
                                                                   Maquetador::escapar(pe.pregunta.referencia));
         if (!pe.pregunta.explicacion.isEmpty())
-            texto += QStringLiteral("<br><small>%1</small>").arg(Maquetador::escapar(pe.pregunta.explicacion));
+            texto += QStringLiteral("<br><small>%1</small>").arg(Maquetador::textoHtml(pe.pregunta.explicacion).replace(QLatin1Char('\n'), QStringLiteral("<br>")));
         f.resultado->setText(texto);
         f.resultado->show();
     }

@@ -79,6 +79,9 @@ private slots:
         QTest::newRow("opción que es código y punto") << conOpcion(2, "`total = 1;`.") << QString();
         QTest::newRow("opción con código y sin punto") << conOpcion(2, "El valor de `total`") << "terminar en punto";
         QTest::newRow("opción con comillas rectas en código") << conOpcion(2, "Lo que escribe `print(\"x\")`.") << QString();
+        // Dos comillas de líneas distintas no hacen pareja: lo de en medio sigue siendo texto, y se revisa.
+        QTest::newRow("comillas invertidas en dos líneas") << conEnunciado("Si se escribe ` aquí \"hola\"\ny otra ` en lo inventado:") << "tipográficas";
+        QTest::newRow("opción con dos variables") << conOpcion(2, "`a` y `b`.") << QString();
         QTest::newRow("opción con comilla invertida sin pareja") << conOpcion(2, "El valor de `total.") << "opción c) hay una comilla invertida";
         QTest::newRow("comillas rectas en el texto") << conEnunciado("Si se escribe \"hola\" en lo inventado:") << "tipográficas";
         QTest::newRow("comillas rectas en una fórmula") << conEnunciado("En la celda se escribe =A1&\"x\", y el resultado:") << QString();
@@ -144,7 +147,7 @@ private slots:
         const QVector<Estilo::Aviso> avisos = Estilo::revisar(p, temasInventados());
         QCOMPARE(avisos.size(), 1);
         QCOMPARE(avisos.first().parte, Estilo::Aviso::Explicacion);
-        QVERIFY(avisos.first().texto.contains(QStringLiteral("sin pareja")));
+        QVERIFY(avisos.first().texto.contains(QStringLiteral("En la explicación hay una comilla invertida")));
         QVERIFY(!Estilo::nombreParte(Estilo::Aviso::Explicacion).isEmpty());
     }
 
@@ -152,6 +155,10 @@ private slots:
     {
         QTest::addColumn<QString>("opcion");
         QTest::addColumn<bool>("dependiente");
+        // El código en línea no es redacción: dos variables no son las opciones a) y b). Lo ven igual el aviso de
+        // estilo y el generador, que no baraja las que remiten a otras.
+        QTest::newRow("dos variables en código") << "`a` y `b`." << false;
+        QTest::newRow("a y b, sin código") << "a y b." << true;
         // Una por cada forma que reconoce el detector.
         for (const char *o : {"Todas las anteriores.", "Ninguna de las opciones anteriores.", "Para todos los anteriores.",
                               "Ninguno de los anteriores.", "Todas las respuestas anteriores valen.",

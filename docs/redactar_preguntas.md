@@ -143,7 +143,8 @@ En el JSON, el enunciado de arriba es `"¿Qué escribe este método?:\n```java n
 ## Las opciones
 
 - Exactamente cuatro, sin la letra delante («Mercurio.», no «a) Mercurio.»).
-- Empiezan por mayúscula y terminan en punto.
+- Empiezan por mayúscula y terminan en punto. La que es solo código (`` `total = 1;` ``) no tiene que hacer ni lo uno
+  ni lo otro.
 - Todas distintas, y la correcta no mucho más larga que las demás, porque se delataría.
 - Sin opciones que remitan a las otras («Todas las anteriores.», «Las opciones a y b.»): el programa baraja el orden
   de las opciones en cada examen, y esas preguntas no se pueden barajar.
