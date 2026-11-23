@@ -16,6 +16,7 @@
 #include "utilidades.h"
 #include "visorampliable.h"
 #include "zonaampliable.h"
+#include "grupoplegable.h"
 
 #include <QAction>
 #include <QActionGroup>
@@ -249,8 +250,18 @@ QWidget *VentanaPrincipal::crearPestanaExamen()
     lc->addWidget(crearGrupoConvocatoria());
     lc->addWidget(crearGrupoExamenes());
     lc->addWidget(crearGrupoTemas());
-    lc->addWidget(crearGrupoPuntuacion());
-    lc->addWidget(crearGrupoOpciones());
+    // La puntuación y las opciones se eligen una vez y casi nunca se cambian: plegadas, con lo elegido en el título,
+    // dejan a la vista lo que se decide cada vez (la convocatoria, los exámenes y las preguntas por tema).
+    m_plegablePuntuacion = new GrupoPlegable(qobject_cast<QGroupBox *>(crearGrupoPuntuacion()),
+                                             QStringLiteral("vista/plegadoPuntuacion"), true);
+    m_plegablePuntuacion->setObjectName(QStringLiteral("plegablePuntuacion"));
+    m_plegableOpciones = new GrupoPlegable(qobject_cast<QGroupBox *>(crearGrupoOpciones()),
+                                           QStringLiteral("vista/plegadoOpciones"), true);
+    m_plegableOpciones->setObjectName(QStringLiteral("plegableOpciones"));
+    lc->addWidget(m_plegablePuntuacion);
+    lc->addWidget(m_plegableOpciones);
+    resumirPuntuacion();
+    resumirOpciones();
     lc->addStretch();
 
     auto *scroll = new ZonaVertical;
@@ -480,7 +491,55 @@ QWidget *VentanaPrincipal::crearGrupoPuntuacion()
         if (marcado)
             actualizarPuntuacion();
     });
+    connect(m_formasPuntuacion, &QButtonGroup::idToggled, this, &VentanaPrincipal::resumirPuntuacion);
+    connect(m_acierto, &QDoubleSpinBox::valueChanged, this, &VentanaPrincipal::resumirPuntuacion);
+    connect(m_fallo, &QDoubleSpinBox::valueChanged, this, &VentanaPrincipal::resumirPuntuacion);
     return gPunt;
+}
+
+void VentanaPrincipal::resumirPuntuacion()
+{
+    if (!m_plegablePuntuacion)
+        return;
+    const QAbstractButton *forma = m_formasPuntuacion->checkedButton();
+    QString resumen = forma ? forma->text() : QString();
+    if (m_formasPuntuacion->checkedId() == DatosConvocatoria::Personalizada)
+        //: Resumen de la puntuación personalizada: %1 y %2 son los puntos de cada acierto y de cada fallo
+        resumen = tr("acierto +%1, fallo -%2").arg(QLocale().toString(m_acierto->value(), 'f', 2), QLocale().toString(m_fallo->value(), 'f', 2));
+    m_plegablePuntuacion->ponerResumen(resumen);
+}
+
+// Lo que se aparta de lo habitual (lo que viene marcado de entrada), que es lo que conviene tener presente: sobre todo
+// la semilla, con la que todas las generaciones salen iguales.
+void VentanaPrincipal::resumirOpciones()
+{
+    if (!m_plegableOpciones)
+        return;
+    QStringList cambios;
+    if (!m_noRepetir->isChecked())
+        cambios << tr("se repiten entre exámenes");
+    if (!m_evitarRecientes->isChecked())
+        cambios << tr("sin evitar las recientes");
+    else if (m_numRecientes->value() != 3)
+        //: Resumen de las opciones: %1 es el número de convocatorias
+        cambios << tr("evita las de las últimas %1").arg(m_numRecientes->value());
+    if (!m_evitarOld->isChecked())
+        cambios << tr("sin evitar las «old»");
+    if (!m_incluirRevisar->isChecked())
+        cambios << tr("sin las de revisar");
+    if (m_soloVerificadas->isChecked())
+        cambios << tr("solo verificadas");
+    if (m_ordenAleatorio->isChecked())
+        cambios << tr("orden aleatorio");
+    if (m_barajarOpciones->isChecked())
+        cambios << tr("opciones barajadas");
+    if (!m_limitarPaginas->isChecked())
+        cambios << tr("sin ajustar las páginas");
+    if (!m_semilla->text().isEmpty())
+        //: Resumen de las opciones: %1 es la semilla (un número)
+        cambios << tr("semilla %1").arg(m_semilla->text());
+    //: Resumen de las opciones cuando están todas como vienen de entrada
+    m_plegableOpciones->ponerResumen(cambios.isEmpty() ? tr("las habituales") : cambios.join(QStringLiteral(", ")));
 }
 
 QWidget *VentanaPrincipal::crearGrupoOpciones()
@@ -550,6 +609,11 @@ QWidget *VentanaPrincipal::crearGrupoOpciones()
     fOpc->addRow(m_limitarPaginas);
     //: Semilla del generador de números aleatorios
     fOpc->addRow(tr("Semilla:"), m_semilla);
+    for (QCheckBox *c : {m_noRepetir, m_evitarRecientes, m_evitarOld, m_incluirRevisar, m_soloVerificadas, m_ordenAleatorio,
+                         m_barajarOpciones, m_limitarPaginas})
+        connect(c, &QCheckBox::toggled, this, &VentanaPrincipal::resumirOpciones);
+    connect(m_numRecientes, &QSpinBox::valueChanged, this, &VentanaPrincipal::resumirOpciones);
+    connect(m_semilla, &QLineEdit::textChanged, this, &VentanaPrincipal::resumirOpciones);
     return gOpc;
 }
 

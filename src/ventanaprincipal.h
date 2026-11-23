@@ -33,6 +33,7 @@ class QTableView;
 class QTextBrowser;
 class VisorAmpliable;
 class ZonaAmpliable;
+class GrupoPlegable;
 class QProgressBar;
 
 class VentanaPrincipal : public QMainWindow
@@ -326,6 +327,11 @@ private:
     VisorAmpliable *m_ficha;
     // Lo que se amplía con Ctrl + rueda, Ctrl++, Ctrl+- y Ctrl+0, cada cosa con su tamaño: la vista del examen
     // (m_visorExamen), el panel izquierdo de «Generar examen» y el banco de preguntas (la lista y la ficha).
+    // Lo que casi nunca se cambia va plegado, con un resumen de lo elegido en la cabecera.
+    GrupoPlegable *m_plegablePuntuacion = nullptr;
+    GrupoPlegable *m_plegableOpciones = nullptr;
+    void resumirPuntuacion();
+    void resumirOpciones();
     ZonaAmpliable *m_zonaPanel = nullptr;
     ZonaAmpliable *m_zonaBanco = nullptr;
 };

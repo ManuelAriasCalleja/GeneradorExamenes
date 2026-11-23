@@ -34,6 +34,8 @@
 #include <QKeySequence>
 #include <QLabel>
 #include <QProgressBar>
+#include <QToolButton>
+#include "grupoplegable.h"
 #include <QLineEdit>
 #include <QInputDialog>
 #include <QListWidget>
@@ -751,8 +753,8 @@ private slots:
         ventana->show();
         QVERIFY(ventana->abrirBancoInicial(ruta));
         auto controles = [](VentanaPrincipal &v, QMap<QString, QRadioButton *> &formas, QDoubleSpinBox *&acierto, QDoubleSpinBox *&fallo) {
-            for (QGroupBox *g : v.findChildren<QGroupBox *>())
-                if (g->title() == QStringLiteral("Puntuación")) {
+            for (GrupoPlegable *g : v.findChildren<GrupoPlegable *>())
+                if (g->objectName() == QStringLiteral("plegablePuntuacion")) {
                     for (QRadioButton *r : g->findChildren<QRadioButton *>())
                         formas.insert(r->text(), r);
                     const QList<QDoubleSpinBox *> puntos = g->findChildren<QDoubleSpinBox *>();
@@ -1632,6 +1634,63 @@ private slots:
         QVERIFY(ficha->toPlainText().contains(QStringLiteral("Respuesta correcta")));
         QVERIFY(panel->isEnabled());
         d.reject();
+        QSettings().clear();
+    }
+
+    // «Puntuación» y «Opciones» vienen plegadas, con lo elegido en la cabecera; se despliegan al pulsarla, y cómo
+    // están se recuerda.
+    void ventanaPliegaLoQueNoCambia()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        QSettings().clear();
+        {
+            VentanaPrincipal v;
+            v.resize(1200, 800);
+            v.show();
+            QVERIFY(v.abrirBancoInicial(ruta));
+            auto *puntuacion = v.findChild<GrupoPlegable *>(QStringLiteral("plegablePuntuacion"));
+            auto *opciones = v.findChild<GrupoPlegable *>(QStringLiteral("plegableOpciones"));
+            QVERIFY(puntuacion && opciones);
+            auto *cabecera = opciones->findChild<QToolButton *>();
+            QVERIFY(cabecera);
+            QMap<QString, QAbstractButton *> botones;
+            for (GrupoPlegable *g : {puntuacion, opciones})
+                for (QAbstractButton *b : g->findChildren<QAbstractButton *>())
+                    botones.insert(b->text(), b);
+            auto *semilla = opciones->findChild<QLineEdit *>();
+            QVERIFY(semilla);
+
+            // De entrada, plegadas: no se ven los controles, sí el resumen.
+            QVERIFY(puntuacion->plegado() && opciones->plegado());
+            QVERIFY(!botones.value(QStringLiteral("Los fallos no restan"))->isVisible());
+            QVERIFY(!semilla->isVisible());
+            QCOMPARE(puntuacion->resumen(), QStringLiteral("Cada fallo resta el 30 %"));
+            QCOMPARE(opciones->resumen(), QStringLiteral("las habituales"));
+            QCOMPARE(cabecera->toolTip(), QStringLiteral("Opciones: las habituales"));
+
+            // El resumen sigue a lo que se elige: solo lo que se aparta de lo habitual, y la semilla.
+            botones.value(QStringLiteral("Los fallos no restan"))->setChecked(true);
+            QCOMPARE(puntuacion->resumen(), QStringLiteral("Los fallos no restan"));
+            botones.value(QStringLiteral("Personalizada"))->setChecked(true);
+            QVERIFY2(puntuacion->resumen().startsWith(QStringLiteral("acierto +")), qPrintable(puntuacion->resumen()));
+            botones.value(QStringLiteral("Solo preguntas verificadas por humanos"))->setChecked(true);
+            botones.value(QStringLiteral("No repetir preguntas entre exámenes"))->setChecked(false);
+            semilla->setText(QStringLiteral("42"));
+            QCOMPARE(opciones->resumen(), QStringLiteral("se repiten entre exámenes, solo verificadas, semilla 42"));
+
+            // Al pulsar la cabecera se despliega (y el título queda sin resumen); otra vez, se pliega.
+            cabecera->click();
+            QVERIFY(!opciones->plegado());
+            QVERIFY(semilla->isVisible());
+            QCOMPARE(cabecera->toolTip(), QStringLiteral("Opciones"));
+            QVERIFY(puntuacion->plegado());
+        }
+        // Se recuerda cómo estaba cada una.
+        VentanaPrincipal otra;
+        QVERIFY(!otra.findChild<GrupoPlegable *>(QStringLiteral("plegableOpciones"))->plegado());
+        QVERIFY(otra.findChild<GrupoPlegable *>(QStringLiteral("plegablePuntuacion"))->plegado());
         QSettings().clear();
     }
 

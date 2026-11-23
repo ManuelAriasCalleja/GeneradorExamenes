@@ -2424,6 +2424,15 @@ Do not hand in the question paper.</translation>
     </message>
 </context>
 <context>
+    <name>GrupoPlegable</name>
+    <message>
+        <location filename="../src/grupoplegable.cpp" line="+53"/>
+        <source>%1: %2</source>
+        <extracomment>Cabecera de un grupo plegado: %1 es su título («Puntuación») y %2, el resumen de lo elegido dentro</extracomment>
+        <translation>%1: %2</translation>
+    </message>
+</context>
+<context>
     <name>Maquetador</name>
     <message>
         <location filename="../src/maquetador.cpp" line="-903"/>
@@ -2663,7 +2672,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+117"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+118"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
@@ -2684,7 +2693,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>Open the folder</translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+50"/>
         <source>Generar exámenes</source>
         <translation>Generate exams</translation>
     </message>
@@ -2855,7 +2864,7 @@ Double-click to change the name; drag to change the order.</translation>
         <translation>Wrong:</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+61"/>
         <source>Opciones</source>
         <translation>Options</translation>
     </message>
@@ -2946,7 +2955,7 @@ If empty, different exams come out each time.</translation>
         <translation>Seed:</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+17"/>
         <source>Mostrar soluciones</source>
         <translation>Show solutions</translation>
     </message>
@@ -3096,7 +3105,7 @@ If empty, different exams come out each time.</translation>
     <message>
         <location line="-110"/>
         <location line="+112"/>
-        <location line="+1936"/>
+        <location line="+1948"/>
         <source>Editar…</source>
         <extracomment>Botón: abre en el editor esa pregunta del examen
 ----------
@@ -3104,7 +3113,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-2361"/>
+        <location line="-2426"/>
         <location line="+5"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -3161,7 +3170,71 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Exams: %1 models of %2 selected.</translation>
     </message>
     <message>
-        <location line="+110"/>
+        <location line="+93"/>
+        <source>acierto +%1, fallo -%2</source>
+        <extracomment>Resumen de la puntuación personalizada: %1 y %2 son los puntos de cada acierto y de cada fallo</extracomment>
+        <translation>correct +%1, wrong -%2</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>se repiten entre exámenes</source>
+        <translation>repeated between exams</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>sin evitar las recientes</source>
+        <translation>recent ones not avoided</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>evita las de las últimas %1</source>
+        <extracomment>Resumen de las opciones: %1 es el número de convocatorias</extracomment>
+        <translation>avoids those of the last %1</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>sin evitar las «old»</source>
+        <translation>“old” ones not avoided</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>sin las de revisar</source>
+        <translation>without those to review</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>solo verificadas</source>
+        <translation>verified only</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>orden aleatorio</source>
+        <translation>random order</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>opciones barajadas</source>
+        <translation>options shuffled</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>sin ajustar las páginas</source>
+        <translation>pages not fitted</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>semilla %1</source>
+        <extracomment>Resumen de las opciones: %1 es la semilla (un número)</extracomment>
+        <translation>seed %1</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>las habituales</source>
+        <extracomment>Resumen de las opciones cuando están todas como vienen de entrada</extracomment>
+        <translation>the usual ones</translation>
+    </message>
+    <message>
+        <location line="+31"/>
         <source>Solo preguntas verificadas por humanos</source>
         <translation>Only questions verified by humans</translation>
     </message>
@@ -3171,7 +3244,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Unticked, all questions are used; ticked, only those someone has reviewed (“Verified by humans”). In the exam preview, each question says whether it is verified.</translation>
     </message>
     <message>
-        <location line="+52"/>
+        <location line="+57"/>
         <source>Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.
 Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-letra-grande» en el nombre.</source>
         <translation>Adapted version for visually impaired students: 16 pt font, one option per line (question text not in italics), more spacing and larger images, with no page limit.
@@ -3198,7 +3271,7 @@ You can also right-click the question.</translation>
     <message>
         <location line="+3"/>
         <location line="+110"/>
-        <location line="+1935"/>
+        <location line="+1947"/>
         <source>Verificar…</source>
         <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas
 ----------
@@ -3206,7 +3279,7 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="-2044"/>
+        <location line="-2056"/>
         <source>Recorre las preguntas del examen, desde esta, para marcarlas como verificadas por personas: «Verificada, siguiente» la marca con los mismos verificadores que la anterior.</source>
         <translation>Goes through the questions of the exam, from this one, to mark them as verified by people: “Verified, next” marks each with the same verifiers as the previous one.</translation>
     </message>
@@ -3234,7 +3307,7 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>Delete</translation>
     </message>
     <message>
-        <location line="+34"/>
+        <location line="+41"/>
         <source>Tamaño de la letra al %1 %</source>
         <extracomment>En la barra de estado, al ampliar o reducir un panel de la ventana; %1 es el porcentaje (125)</extracomment>
         <translation>Text size at %1%</translation>
@@ -3490,13 +3563,13 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+980"/>
+        <location line="+985"/>
         <location line="+625"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-1597"/>
+        <location line="-1602"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3663,7 +3736,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>&lt;h3&gt;Exam Generator&lt;/h3&gt;&lt;p&gt;Version %1&lt;/p&gt;&lt;p&gt;Developed by Manuel Arias Calleja&lt;/p&gt;&lt;p&gt;Generates multiple-choice exams by picking questions from the database at random, with the number of questions specified for each topic.&lt;/p&gt;&lt;p&gt;It never puts two variants of a question (3a/3b) or pseudo-duplicates in the same exam, and it can avoid repeating questions between exams.&lt;/p&gt;&lt;p&gt;Database: &lt;tt&gt;%2&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Settings: &lt;tt&gt;%3&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Qt %4&lt;/p&gt;</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+36"/>
         <source>Todos los temas</source>
         <translation>All topics</translation>
     </message>
