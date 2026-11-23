@@ -14,6 +14,7 @@ class QCheckBox;
 class QGridLayout;
 class QLabel;
 class QListWidget;
+class QProgressBar;
 class QPushButton;
 class VisorAmpliable;
 
@@ -130,6 +131,8 @@ private:
     void ir(int indice);
     void verificarYSeguir();
     void editarActual();
+    // Cuántas de las preguntas que se recorren están ya verificadas, en número y en la barra.
+    void ponerProgreso();
 
     BaseDatos *m_bd;
     QVector<Pregunta> m_preguntas;
@@ -140,6 +143,8 @@ private:
     bool m_editadas = false;
 
     QLabel *m_posicion;
+    QLabel *m_progreso;
+    QProgressBar *m_barra;
     VisorAmpliable *m_ficha;
     PanelVerificacion *m_panel;
     QLabel *m_aviso;

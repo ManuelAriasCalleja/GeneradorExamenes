@@ -33,6 +33,7 @@
 #include <QImage>
 #include <QKeySequence>
 #include <QLabel>
+#include <QProgressBar>
 #include <QLineEdit>
 #include <QInputDialog>
 #include <QListWidget>
@@ -1312,7 +1313,12 @@ private slots:
         QVERIFY(tabla->model()->rowCount() > 3);
         QCOMPARE(cuenta->text(), cuentaEsperada());
         const QString cuentaAlEmpezar = cuenta->text();
-        QString cuentaConElDialogo;
+        QString cuentaConElDialogo, progresoAlAbrir, progresoDespues;
+        auto *barra = v.findChild<QProgressBar *>(QStringLiteral("barraBanco"));
+        QVERIFY(barra);
+        QCOMPARE(barra->maximum(), tabla->model()->rowCount());
+        QCOMPARE(barra->value(), 0);
+        int barraDelDialogo = -1;
 
         // Desde la lista: la primera vez hay que decir quién; después, «Verificada, siguiente» basta (Intro).
         QString aviso, posicion, enLaLista;
@@ -1321,6 +1327,8 @@ private slots:
             auto *d = qobject_cast<DialogoVerificar *>(QApplication::activeModalWidget());
             if (!d)
                 return;
+            auto *progreso = d->findChild<QLabel *>(QStringLiteral("progresoVerificar"));
+            progresoAlAbrir = progreso->text();
             // La ficha se amplía (Ctrl++), y las preguntas siguientes salen igual de grandes.
             auto *ficha = d->findChild<VisorAmpliable *>();
             if (ficha)
@@ -1336,6 +1344,8 @@ private slots:
             // Se ve ya en la lista, con el diálogo abierto.
             enLaLista = tabla->model()->index(0, ModeloPreguntas::ColVerificada).data().toString();
             cuentaConElDialogo = cuenta->text();
+            progresoDespues = progreso->text();
+            barraDelDialogo = d->findChild<QProgressBar *>()->value();
             QTest::keyClick(d, Qt::Key_Return);
             for (QLabel *l : d->findChildren<QLabel *>())
                 if (l->text().startsWith(QStringLiteral("Pregunta ")))
@@ -1352,6 +1362,11 @@ private slots:
         QVERIFY(ampliada);
         QCOMPARE(enLaLista, QStringLiteral("✓ Persona Uno"));
         QVERIFY(cuentaConElDialogo != cuentaAlEmpezar);
+        // El avance, en el diálogo (sobre las preguntas que se recorren) y en la barra del banco.
+        QCOMPARE(progresoAlAbrir, QStringLiteral("Verificadas: 0 de %1").arg(tabla->model()->rowCount()));
+        QCOMPARE(progresoDespues, QStringLiteral("Verificadas: 1 de %1").arg(tabla->model()->rowCount()));
+        QCOMPARE(barraDelDialogo, 1);
+        QCOMPARE(barra->value(), 2);
         QVERIFY2(cuentaConElDialogo.contains(QStringLiteral(": 1 verificadas,")), qPrintable(cuentaConElDialogo));
         QCOMPARE(cuenta->text(), cuentaEsperada());
         QVERIFY2(cuenta->text().contains(QStringLiteral(": 2 verificadas,")), qPrintable(cuenta->text()));

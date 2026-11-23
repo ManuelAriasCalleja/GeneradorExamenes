@@ -33,6 +33,7 @@ class QTableView;
 class QTextBrowser;
 class VisorAmpliable;
 class ZonaAmpliable;
+class QProgressBar;
 
 class VentanaPrincipal : public QMainWindow
 {
@@ -318,6 +319,7 @@ private:
     QComboBox *m_filtroEstado;
     QLineEdit *m_filtroTexto;
     QLabel *m_cuenta;
+    QProgressBar *m_barraVerificadas;   // de las preguntas de la lista, cuántas están verificadas
     QTableView *m_tabla;
     ModeloPreguntas *m_modelo;
     FiltroPreguntas *m_filtro;

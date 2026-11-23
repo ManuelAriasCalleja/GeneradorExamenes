@@ -1832,7 +1832,7 @@ Do you want to save it anyway?</translation>
 <context>
     <name>DialogoVerificadores</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="+206"/>
+        <location filename="../src/verificacion.cpp" line="+207"/>
         <source>Verificadores</source>
         <translation>Verifiers</translation>
     </message>
@@ -1915,7 +1915,7 @@ Do you want to save it anyway?</translation>
         <translation>Verify questions</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+28"/>
         <source>Verificación</source>
         <translation>Verification</translation>
     </message>
@@ -1958,7 +1958,7 @@ Do you want to save it anyway?</translation>
         <translation>Question %1 of %2: %3</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
         <source>&amp;Verificada, siguiente</source>
         <extracomment>Botón (Intro): marca la pregunta como verificada y pasa a la siguiente</extracomment>
         <translation>&amp;Verified, next</translation>
@@ -1970,13 +1970,19 @@ Do you want to save it anyway?</translation>
     </message>
     <message>
         <location line="+9"/>
+        <source>Verificadas: %1 de %2</source>
+        <extracomment>Arriba del diálogo de verificar, junto a la barra de avance: «Verificadas: 12 de 20»</extracomment>
+        <translation>Verified: %1 of %2</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>No se pudo guardar la verificación:
 %1</source>
         <translation>The verification could not be saved:
 %1</translation>
     </message>
     <message>
-        <location line="+26"/>
+        <location line="+27"/>
         <source>Marque quién la ha verificado.</source>
         <translation>Tick who has verified it.</translation>
     </message>
@@ -2531,7 +2537,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelVerificacion</name>
     <message>
-        <location filename="../src/verificacion.cpp" line="-415"/>
+        <location filename="../src/verificacion.cpp" line="-439"/>
         <source>Verificada por humanos</source>
         <translation>Verified by humans</translation>
     </message>
@@ -2602,7 +2608,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+116"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+117"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
@@ -3027,15 +3033,15 @@ If empty, different exams come out each time.</translation>
         <translation>Status:</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+51"/>
         <source>Nueva…</source>
         <extracomment>Botón: nueva pregunta</extracomment>
         <translation>New…</translation>
     </message>
     <message>
-        <location line="-103"/>
-        <location line="+105"/>
-        <location line="+1930"/>
+        <location line="-110"/>
+        <location line="+112"/>
+        <location line="+1936"/>
         <source>Editar…</source>
         <extracomment>Botón: abre en el editor esa pregunta del examen
 ----------
@@ -3043,7 +3049,7 @@ Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-2348"/>
+        <location line="-2361"/>
         <location line="+5"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -3136,8 +3142,8 @@ You can also right-click the question.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+103"/>
-        <location line="+1929"/>
+        <location line="+110"/>
+        <location line="+1935"/>
         <source>Verificar…</source>
         <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas
 ----------
@@ -3145,7 +3151,7 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="-2031"/>
+        <location line="-2044"/>
         <source>Recorre las preguntas del examen, desde esta, para marcarlas como verificadas por personas: «Verificada, siguiente» la marca con los mismos verificadores que la anterior.</source>
         <translation>Goes through the questions of the exam, from this one, to mark them as verified by people: “Verified, next” marks each with the same verifiers as the previous one.</translation>
     </message>
@@ -3162,7 +3168,7 @@ Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas
         <translation>Verified</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+65"/>
         <source>Duplicar como variante…</source>
         <translation>Duplicate as variant…</translation>
     </message>
@@ -3430,12 +3436,12 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     <message>
         <location line="+1"/>
         <location line="+980"/>
-        <location line="+619"/>
+        <location line="+625"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-1591"/>
+        <location line="-1597"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -4077,7 +4083,13 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>%1 questions: %2 verified, %3 not verified</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+5"/>
+        <source>Verificadas: el %1 % de las preguntas de la lista</source>
+        <extracomment>Al dejar el ratón sobre la barra de avance del banco de preguntas; %1 es el porcentaje (40)</extracomment>
+        <translation>Verified: %1% of the questions in the list</translation>
+    </message>
+    <message>
+        <location line="+22"/>
         <source>&lt;p&gt;&lt;b&gt;Ha salido en:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</source>
         <translation>&lt;p&gt;&lt;b&gt;Appeared in:&lt;/b&gt; %1&lt;/p&gt;&lt;/body&gt;</translation>
     </message>

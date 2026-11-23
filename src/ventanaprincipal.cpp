@@ -40,6 +40,7 @@
 #include <QIntValidator>
 #include <QKeySequence>
 #include <QLabel>
+#include <QProgressBar>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QDateTime>
@@ -695,6 +696,13 @@ QWidget *VentanaPrincipal::crearPestanaBanco()
     filtros->addWidget(m_filtroEstado);
     filtros->addWidget(m_filtroTexto, 2);
     filtros->addWidget(m_cuenta);
+    // La proporción de verificadas, de un vistazo: con el filtro de tema, el avance de ese tema.
+    m_barraVerificadas = new QProgressBar;
+    m_barraVerificadas->setObjectName(QStringLiteral("barraBanco"));
+    m_barraVerificadas->setTextVisible(false);
+    m_barraVerificadas->setFixedWidth(120);
+    m_barraVerificadas->setMaximumHeight(12);
+    filtros->addWidget(m_barraVerificadas);
     l->addLayout(filtros);
 
     m_modelo = new ModeloPreguntas(this);
@@ -2460,6 +2468,12 @@ void VentanaPrincipal::ponerCuenta()
         m_cuenta->setText(verificadas == 1 ? tr("1 pregunta, verificada") : tr("1 pregunta, sin verificar"));
     else
         m_cuenta->setText(tr("%1 preguntas: %2 verificadas, %3 sin verificar").arg(n).arg(verificadas).arg(n - verificadas));
+    m_barraVerificadas->setVisible(n > 0);
+    m_barraVerificadas->setRange(0, qMax(1, n));
+    m_barraVerificadas->setValue(verificadas);
+    //: Al dejar el ratón sobre la barra de avance del banco de preguntas; %1 es el porcentaje (40)
+    m_barraVerificadas->setToolTip(n > 0 ? tr("Verificadas: el %1 % de las preguntas de la lista").arg(verificadas * 100 / n)
+                                         : QString());
 }
 
 Pregunta VentanaPrincipal::preguntaSeleccionada(bool *ok)

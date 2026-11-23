@@ -13,6 +13,7 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QLabel>
+#include <QProgressBar>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
@@ -342,7 +343,18 @@ DialogoVerificar::DialogoVerificar(BaseDatos *bd, const QVector<Pregunta> &pregu
     QFont negrita = m_posicion->font();
     negrita.setBold(true);
     m_posicion->setFont(negrita);
-    l->addWidget(m_posicion);
+    // Arriba, a la derecha, el avance: cuántas de las que se recorren están ya verificadas.
+    auto *arriba = new QHBoxLayout;
+    arriba->addWidget(m_posicion, 1);
+    m_progreso = new QLabel;
+    m_progreso->setObjectName(QStringLiteral("progresoVerificar"));
+    arriba->addWidget(m_progreso);
+    m_barra = new QProgressBar;
+    m_barra->setTextVisible(false);
+    m_barra->setFixedWidth(160);
+    m_barra->setMaximumHeight(12);
+    arriba->addWidget(m_barra);
+    l->addLayout(arriba);
     // El tamaño de la letra (Ctrl + rueda, Ctrl++, Ctrl+-, Ctrl+0) es el mismo en todas las preguntas, y se recuerda
     // de una vez a otra.
     m_ficha = new VisorAmpliable;
@@ -406,6 +418,7 @@ void DialogoVerificar::mostrar(int indice)
     m_posicion->setText(tr("Pregunta %1 de %2: %3").arg(indice + 1).arg(m_preguntas.size()).arg(p.codigoCompleto()));
     m_ficha->ponerDocumento(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema(m_temas, p.temaId)), {p}, m_ficha));
     m_panel->ponerPregunta(p);
+    ponerProgreso();
     m_aviso->hide();
     m_anterior->setEnabled(indice > 0);
     m_siguiente->setEnabled(indice + 1 < m_preguntas.size());
@@ -413,6 +426,17 @@ void DialogoVerificar::mostrar(int indice)
     m_verificarYSeguir->setText(indice + 1 < m_preguntas.size() ? tr("&Verificada, siguiente")
                                                                  //: Botón (Intro) en la última pregunta: la marca como verificada
                                                                  : tr("&Verificada"));
+}
+
+void DialogoVerificar::ponerProgreso()
+{
+    int verificadas = 0;
+    for (const Pregunta &p : m_preguntas)
+        verificadas += p.verificada ? 1 : 0;
+    //: Arriba del diálogo de verificar, junto a la barra de avance: «Verificadas: 12 de 20»
+    m_progreso->setText(tr("Verificadas: %1 de %2").arg(verificadas).arg(m_preguntas.size()));
+    m_barra->setRange(0, qMax(1, int(m_preguntas.size())));
+    m_barra->setValue(verificadas);
 }
 
 bool DialogoVerificar::guardar()
@@ -429,6 +453,7 @@ bool DialogoVerificar::guardar()
     m_cambiadas.insert(p.id, m_actual);
     m_panel->recordar();
     m_panel->ponerPregunta(p);
+    ponerProgreso();
     emit verificacionGuardada(p.id);
     return true;
 }
