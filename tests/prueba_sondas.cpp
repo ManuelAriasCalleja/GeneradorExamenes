@@ -209,7 +209,7 @@ QString diferencia(const QString &a, const QString &b)
     auto visible = [](QString t) {
         QString r;
         for (const QChar c : t)
-            r += c.unicode() < 0x20 || c.unicode() == 0x7F ? QStringLiteral("\\x%1").arg(c.unicode(), 2, 16, QLatin1Char('0')) : QString(c);
+            r += c.unicode() < 0x20 || c.unicode() == 0x7F ? QStringLiteral("\\x%1").arg(int(c.unicode()), 2, 16, QLatin1Char('0')) : QString(c);
         return r;
     };
     return QStringLiteral("en la posición %1: «%2» y «%3»").arg(i).arg(visible(a.mid(qMax(0, i - 15), 40)), visible(b.mid(qMax(0, i - 15), 40)));
