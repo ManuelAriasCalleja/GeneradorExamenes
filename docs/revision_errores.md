@@ -8,8 +8,8 @@ cualquier ordenador.
 
 | Paso | Estado |
 |---|---|
-| 1. Herramientas automáticas | Hecho: ningún fallo en el código; un descuido en `.gitignore` (arreglado) |
-| 2. Sondas dirigidas | Casi hecho: sondas en `tests/prueba_sondas.cpp`, pasadas a fondo (×20) y con los detectores; seis fallos arreglados. Falta: volver a pasar la de pdflatex a fondo (`SONDAS=5 SONDAS_PDFLATEX=1`) tras el último arreglo, y cerrar el paso |
+| 1. Herramientas automáticas | Hecho: ningún fallo en el código; un descuido en `.gitignore` (arreglado). Repetido el 23 de noviembre, tras partir `VentanaPrincipal` y otros cambios: sin nada nuevo |
+| 2. Sondas dirigidas | Hecho: sondas en `tests/prueba_sondas.cpp`, pasadas a fondo (×20) y con los detectores; seis fallos arreglados. Repetidas el 23 de noviembre, también la de pdflatex: sin nada |
 | 3. Revisión del código por partes | Sugerencia, para cuando acaben 1 y 2 |
 
 ## 1. Herramientas automáticas
@@ -41,6 +41,25 @@ Sin apenas falsos positivos:
   - `src/basedatos.cpp`: una variable que tapaba a otra del mismo nombre en `diferenciasConJson()`; renombrada.
   - Sin importancia: conversiones a `qsizetype` que en 64 bits no cambian nada, inicializadores de campos que se
     quedan con su valor por defecto y nombres repetidos dentro de lambdas de las pruebas.
+
+### Repetición (23 de noviembre de 2026)
+
+Tras los cambios de esos días: `VentanaPrincipal` partida en `PestanaBanco` y `PanelConfiguracion`, el diálogo de
+verificar en una clase por fichero, el LaTeX en `latex.cpp`, la paleta de colores (`paleta.h`) y el código dentro del
+texto de las preguntas (entre comillas invertidas).
+
+- **Detectores (ASan + UBSan + fugas)**, en `build-sanitizadores` en modo Debug (comprobado antes que están enlazados
+  y que el de fugas funciona en el equipo): las 14 pruebas, sin ningún error. La herramienta de las capturas no se ha
+  pasado: en este equipo no está la carpeta `presentacion/`.
+- **clang-tidy 19**, con las mismas comprobaciones (sin `bugprone-easily-swappable-parameters`,
+  `bugprone-narrowing-conversions` ni `bugprone-implicit-widening-of-multiplication-result`, que son de estilo) sobre
+  todo `src/`: los dos `switch` sin `default` de `ModeloPreguntas` de la otra vez, y nada más.
+- **Avisos de GCC 14**, con las mismas opciones: 13, todos de los que ya se dieron por sin importancia (conversiones a
+  `qsizetype`, inicializadores de campos con su valor por defecto y nombres repetidos en las pruebas). Ninguno en el
+  código nuevo.
+- **cppcheck 2.17** (`--enable=warning,portability`), que no se había pasado: un solo aviso, falso.
+  `DialogoExportar::ofrecerSoluciones()` crea una casilla sin borrar la anterior, pero se llama una vez por diálogo y
+  la casilla es del diálogo, que la destruye.
 
 ## 2. Sondas dirigidas
 
@@ -82,9 +101,12 @@ Se pasan con las demás pruebas (unos 2 segundos). Para buscar más a fondo, con
 Pasadas hechas el 18 de noviembre: todas con `SONDAS=20` y con los detectores (ASan + UBSan + fugas), sin nada; la de
 pdflatex con `SONDAS=5` (60 documentos) compila tras los arreglos 6 y 7.
 
+Repetidas el 23 de noviembre: todas con `SONDAS=20` y con los detectores, sin nada, y la de pdflatex con `SONDAS=5`
+(60 documentos, ya con código dentro del texto: las sondas ponen comillas invertidas al azar), que compila.
+
 ## 3. Revisión del código por partes (sugerencia)
 
-Cuando acaben 1 y 2: revisar el código a mano por partes (base de datos, generador, maqueta y exportaciones,
+Acabados 1 y 2, es lo que queda: revisar el código a mano por partes (base de datos, generador, maqueta y exportaciones,
 interfaz), buscando errores de lógica que las herramientas y las sondas no ven. Cada hallazgo se intenta reproducir
 con una prueba antes de darlo por bueno, para descartar los falsos. Se puede hacer con varios agentes en paralelo
 (uno por parte, y otro que comprueba cada hallazgo), lo que gasta bastantes más tokens: antes de lanzarlo, estimar
