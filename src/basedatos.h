@@ -181,7 +181,7 @@ private:
     // nombre de la asignatura, sus repartos y la forma de la referencia de cada tema; a los bancos de antes, que
     // eran todos de Fundamentos de la informática (los que tienen temas), se les ponen los de esa asignatura. En la 2,
     // las preguntas dicen si están verificadas (ninguna lo está). En la 3, los exámenes registrados dicen su versión
-    // (ninguno tiene).
+    // (ninguno tiene), y en la 4, si se barajaron sus opciones (ninguno: lo que diga la ventana, como antes).
     bool actualizarEsquema();
     // Sentencia con sus valores (los «?», en orden); si falla, deja el error en m_error. En 'id' deja el de la fila
     // insertada.

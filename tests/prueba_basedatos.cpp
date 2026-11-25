@@ -837,7 +837,13 @@ private slots:
         QCOMPARE(m.at(1).version, QStringLiteral("B"));
         QCOMPARE(m.at(1).base, QStringLiteral("Uno"));
         QVERIFY(m.at(1).barajadas);   // las B van con las opciones barajadas
-        QVERIFY(m.at(2).version.isEmpty() && m.at(2).base.isEmpty());
+        QVERIFY(!m.at(0).barajadas);  // la A, como el examen, sin «Barajar las opciones»…
+        QVERIFY(m.at(2).version.isEmpty() && m.at(2).base.isEmpty() && !m.at(2).barajadas);
+        // … aunque lleve alguna pregunta barajada por haber salido ya (las «old» del banco).
+        bool algunaBarajada = false;
+        for (const PreguntaExamen &pe : m.at(0).preguntas)
+            algunaBarajada = algunaBarajada || pe.orden != std::array<int, 4>{{0, 1, 2, 3}};
+        QVERIFY(algunaBarajada);
         ResultadoGeneracion cargado;
         cargado.modelos = m;
         QCOMPARE(Generador::versionesDe(cargado, 1), (QVector<int>{0, 1}));
@@ -851,13 +857,14 @@ private slots:
             QVERIFY(db.open());
             QSqlQuery q(db);
             QVERIFY2(q.exec(QStringLiteral("ALTER TABLE examenes_registrados DROP COLUMN version")), qPrintable(q.lastError().text()));
+            QVERIFY2(q.exec(QStringLiteral("ALTER TABLE examenes_registrados DROP COLUMN barajadas")), qPrintable(q.lastError().text()));
             QVERIFY(q.exec(QStringLiteral("PRAGMA user_version = 2")));
         }
         QSqlDatabase::removeDatabase(QStringLiteral("version2"));
         QVERIFY2(bd.abrir(ruta), qPrintable(bd.ultimoError()));
         m = cargados();
         QCOMPARE(m.size(), 3);
-        QVERIFY(m.at(1).version.isEmpty());   // los de antes no dicen su versión
+        QVERIFY(m.at(1).version.isEmpty() && !m.at(1).barajadas);   // los de antes no lo dicen
         QCOMPARE(m.at(1).nombre, QStringLiteral("Uno B"));
         QVERIFY(bd.registrarExamenes(r.modelos, d, r.semilla));   // y se pueden volver a registrar con ella
         QCOMPARE(cargados().at(1).version, QStringLiteral("B"));
