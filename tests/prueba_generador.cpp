@@ -625,6 +625,29 @@ private slots:
         QVERIFY(r.modelos.at(0).preguntas.at(indice).correcta() != 3);
     }
 
+    // Al cambiar una pregunta, no se elige una que no se puede barajar si su correcta va a caer en una letra en que ya
+    // estuvo (la T2-6, marcada «old»: en la de su banco), habiendo otras.
+    void cambiarEvitaUnaFijaQueYaSalio()
+    {
+        const QVector<Pregunta> banco = bancoInventado(2, 6);
+        int veces = 0;
+        for (quint32 semilla = 1; semilla <= 60; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            c.preguntasPorTema = {{2, 4}};
+            c.nombresModelos = {QStringLiteral("Uno")};
+            ResultadoGeneracion r = Generador::generar(banco, c);
+            bool estaLaT26 = false;
+            for (const PreguntaExamen &pe : r.modelos.at(0).preguntas)
+                estaLaT26 = estaLaT26 || pe.pregunta.codigoCompleto() == QStringLiteral("T2-6");
+            if (estaLaT26)
+                continue;
+            ++veces;
+            QVERIFY(Generador::cambiarPregunta(banco, c, r, 0, 0, {}));
+            QVERIFY(r.modelos.at(0).preguntas.at(0).pregunta.codigoCompleto() != QStringLiteral("T2-6"));
+        }
+        QVERIFY(veces > 10);
+    }
+
     // Al cambiar una pregunta por otra que ya ha salido, también se barajan sus opciones, aunque no se pida.
     void cambiarPorUnaYaSalida()
     {

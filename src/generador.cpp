@@ -301,14 +301,18 @@ Pregunta Seleccion::sustituta(const QVector<Modelo> &modelos, int modelo, int in
 
     // Coste de cada candidata, de lo que más pesa a lo que menos: ya quitada de este examen; repetida en otro
     // examen (si no se quieren repetir); uso anterior de su grupo; variante ya usada en otro examen; uso anterior
-    // de la variante; y, si se barajan las opciones, correcta fija en otra letra que la de la quitada.
+    // de la variante; correcta fija (sus opciones no se barajan) en una letra en que ya estuvo; y, si se barajan las
+    // opciones, correcta fija en otra letra que la de la quitada.
     const int letra = quitada.correcta();
-    using Coste = std::array<int, 6>;
+    const bool barajadas = m_config.barajarOpciones || modelos.at(modelo).barajadas;
+    using Coste = std::array<int, 7>;
     auto coste = [&](const Pregunta &v) {
         const QString r = raiz(tema, v.numero);
+        const bool fija = Estilo::tieneOpcionesDependientes(v);
         return Coste{quitados.contains(r) ? 1 : 0, m_config.noRepetirEntreModelos ? enOtros.value(r) : 0,
                      m_usoAnteriorGrupo.value(r), m_idsUsados.contains(v.id) ? 1 : 0, usoAnterior(v),
-                     m_config.barajarOpciones && Estilo::tieneOpcionesDependientes(v) && v.correcta != letra ? 1 : 0};
+                     fija && !(letrasPermitidas(v, m_config) & (1 << v.correcta)) ? 1 : 0,
+                     barajadas && fija && v.correcta != letra ? 1 : 0};
     };
     // Las mejores variantes de cada grupo y, de los grupos, los de menor coste: se elige un grupo al azar (todos con
     // la misma probabilidad, tengan las variantes que tengan) y una de sus mejores variantes.
