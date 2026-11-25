@@ -27,6 +27,8 @@ struct DatosConvocatoria
     bool convocatoriaEnCabecera = true;
     bool asignaturaEnPie = true;
     bool convocatoriaEnPie = true;
+    // Si va la versión del examen («Versión B») arriba a la derecha de la primera página, si tiene (Modelo::version).
+    bool versionEnCabecera = false;
     // Si los enunciados van en cursiva además de en negrita, como han ido siempre. Con letra grande nunca van en
     // cursiva, que cuesta más de leer.
     bool enunciadoEnCursiva = true;
@@ -88,6 +90,8 @@ public:
     // Enunciado (texto con bloques ``` y tablas |) a HTML. 'prefijo' (ya en HTML) se pone al principio.
     static QString enunciadoHtml(const QString &texto, const QString &prefijo = QString());
     static QString escapar(const QString &texto);
+    // «Versión B», en el idioma del examen, si 'd' la pone en la cabecera y el examen tiene versión; si no, vacío.
+    static QString textoVersion(const Modelo &modelo, const DatosConvocatoria &d);
     // Texto de una pregunta (una línea del enunciado, una opción, la explicación) a HTML, con su código en línea
     // (entre comillas invertidas: ver enunciado.h) en letra de ancho fijo y sin cursiva.
     static QString textoHtml(const QString &texto);

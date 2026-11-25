@@ -361,9 +361,12 @@ QString cabeceraLatex(const DatosConvocatoria &d, const QString &derecha, int n 
 QString cuerpoExamenLatex(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones,
                           const QString &carpetaImagenes, int n)
 {
-    QString derecha;
+    QStringList derechas;
+    if (!Maquetador::textoVersion(modelo, d).isEmpty())
+        derechas << QStringLiteral("{\\large\\bfseries %1}").arg(Latex::escapar(Maquetador::textoVersion(modelo, d)));
     if (soluciones)
-        derecha = QStringLiteral("\\textcolor{verde}{\\bfseries %1}").arg(Latex::escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "CON SOLUCIONES"))));
+        derechas << QStringLiteral("\\textcolor{verde}{\\bfseries %1}").arg(Latex::escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "CON SOLUCIONES"))));
+    const QString derecha = derechas.join(QStringLiteral("\\\\ "));
     // Con letra grande, todo el modelo (cabecera e instrucciones incluidas) va en \letraexamen.
     QString tex = n == Maquetador::kLetraGrande ? QStringLiteral("{\\letraexamen\n") : QString();
     tex += cabeceraLatex(d, derecha, n);

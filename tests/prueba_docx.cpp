@@ -230,6 +230,20 @@ private slots:
         QVERIFY(cuerpo.section(QStringLiteral("</w:tbl>"), 0, 0).contains(QStringLiteral("Seleccione")));
     }
 
+    // La versión del examen («Versión B»), arriba a la derecha, si se pide.
+    void versionEnLaCabecera()
+    {
+        QVector<Modelo> modelos = examenes(bancoInventado(), 1);
+        modelos[0].base = modelos[0].nombre;
+        modelos[0].version = QStringLiteral("B");
+        DatosConvocatoria d = convocatoria();
+        QString doc = QString::fromUtf8(Docx::partes(modelos, d, false).value(QStringLiteral("word/document.xml")));
+        QVERIFY(!doc.contains(QStringLiteral("Versión B")));
+        d.versionEnCabecera = true;
+        doc = QString::fromUtf8(Docx::partes(modelos, d, false).value(QStringLiteral("word/document.xml")));
+        QVERIFY(doc.contains(QStringLiteral(">Versión B<")));
+    }
+
     // El código dentro del texto (entre comillas invertidas): con la letra de ancho fijo y sin cursiva, en el enunciado
     // (que sigue en negrita) y en las opciones.
     void codigoEnLinea()

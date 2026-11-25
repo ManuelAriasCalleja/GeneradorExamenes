@@ -30,6 +30,7 @@
 #include <QSettings>
 #include <QSignalBlocker>
 #include <QSpinBox>
+#include <QStyledItemDelegate>
 #include <QVBoxLayout>
 #include <algorithm>
 
@@ -114,6 +115,32 @@ const QString kClavePuntuacion = QStringLiteral("examen/puntuacion");
 const QString kClavePuntuacionAntigua = QStringLiteral("examen/puntuacionAuto");
 const QString kClaveExamenes = QStringLiteral("examenes/nombres");        // la lista de exámenes y los marcados
 const QString kClaveExamenesMarcados = QStringLiteral("examenes/marcados");
+const QString kClaveExamenesVersiones = QStringLiteral("examenes/versiones");   // nombre -> versiones (si más de una)
+constexpr int kRolVersiones = Qt::UserRole + 1;   // de cada examen de la lista
+
+// Cada examen de la lista: su nombre y, si tiene varias versiones, cuáles («Nacional Original (A–C)»). Solo al verlo:
+// al cambiarle el nombre se edita el nombre.
+class DelegadoExamenes : public QStyledItemDelegate
+{
+public:
+    DelegadoExamenes(std::function<bool()> conNumeros, QObject *parent)
+        : QStyledItemDelegate(parent), m_conNumeros(std::move(conNumeros))
+    {
+    }
+
+protected:
+    void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
+    {
+        QStyledItemDelegate::initStyleOption(option, index);
+        const int n = index.data(kRolVersiones).toInt();
+        if (n > 1)
+            option->text += QStringLiteral("  (%1–%2)").arg(Generador::etiquetaVersion(0, m_conNumeros()),
+                                                            Generador::etiquetaVersion(n - 1, m_conNumeros()));
+    }
+
+private:
+    std::function<bool()> m_conNumeros;
+};
 const QString kClaveTemasAntiguos = QStringLiteral("examen/temas");       // de versiones anteriores: va en el banco
 
 QString puntuacionAntigua(const QVariant &automatica)
@@ -164,6 +191,7 @@ DatosConvocatoria PanelConfiguracion::datos() const
     d.puntosFallo = m_fallo->value();
     d.asignaturaEnCabecera = m_asignaturaEnCabecera->isChecked();
     d.convocatoriaEnCabecera = m_convocatoriaEnCabecera->isChecked();
+    d.versionEnCabecera = m_versionEnCabecera->isChecked();
     d.asignaturaEnPie = m_asignaturaEnPie->isChecked();
     d.enunciadoEnCursiva = m_enunciadoEnCursiva->isChecked();
     d.convocatoriaEnPie = m_convocatoriaEnPie->isChecked();
@@ -261,8 +289,9 @@ void PanelConfiguracion::leerConfiguracion()
         ponerAjuste(m_puntuacion, puntuacionAntigua(s.value(kClavePuntuacionAntigua)));
     const QStringList examenes = s.value(kClaveExamenes, kExamenesPorDefecto).toStringList();
     const QStringList marcados = s.value(kClaveExamenesMarcados, examenes).toStringList();
+    const QVariantMap versiones = s.value(kClaveExamenesVersiones).toMap();
     for (const QString &nombre : examenes)
-        anadirExamen(nombre, marcados.contains(nombre));
+        anadirExamen(nombre, marcados.contains(nombre), versiones.value(nombre, 1).toInt());
     connect(m_incluirRevisar, &QCheckBox::toggled, this, &PanelConfiguracion::reconstruirTemas);
     connect(m_soloVerificadas, &QCheckBox::toggled, this, &PanelConfiguracion::reconstruirTemas);
     actualizarPuntuacion();
@@ -276,6 +305,7 @@ void PanelConfiguracion::guardarConfiguracion()
     QStringList marcados;
     s.setValue(kClaveExamenes, examenes(&marcados));
     s.setValue(kClaveExamenesMarcados, marcados);
+    s.setValue(kClaveExamenesVersiones, versionesDeLaLista());
     s.remove(QStringLiteral("examen/asignatura"));   // de las versiones anteriores: ahora va en el banco
     s.remove(kClavePuntuacionAntigua);
 }
@@ -288,6 +318,7 @@ QVariantMap PanelConfiguracion::opciones() const
     QStringList marcados;
     opciones.insert(kClaveExamenes, examenes(&marcados));
     opciones.insert(kClaveExamenesMarcados, marcados);
+    opciones.insert(kClaveExamenesVersiones, versionesDeLaLista());
     return opciones;
 }
 
@@ -301,9 +332,10 @@ void PanelConfiguracion::aplicarOpciones(const QVariantMap &opciones)
         ponerAjuste(m_puntuacion, puntuacionAntigua(opciones.value(kClavePuntuacionAntigua)));
     if (opciones.contains(kClaveExamenes)) {
         const QStringList marcados = opciones.value(kClaveExamenesMarcados).toStringList();
+        const QVariantMap versiones = opciones.value(kClaveExamenesVersiones).toMap();
         m_listaExamenes->clear();
         for (const QString &nombre : opciones.value(kClaveExamenes).toStringList())
-            anadirExamen(nombre, marcados.contains(nombre));
+            anadirExamen(nombre, marcados.contains(nombre), versiones.value(nombre, 1).toInt());
     }
     actualizarPuntuacion();
 }
@@ -361,14 +393,18 @@ QWidget *PanelConfiguracion::crearGrupoConvocatoria()
     //: Casilla: la convocatoria y el año («Junio 2026») van en la cabecera (o en el pie) de los exámenes
     m_convocatoriaEnCabecera = casilla(tr("Convocatoria y año"), tr("Pone la convocatoria y el año arriba, en la cabecera "
                                                                     "de los exámenes y de la hoja de soluciones."));
+    //: Casilla: la versión del examen («Versión B») va en la cabecera, en los exámenes con varias versiones
+    m_versionEnCabecera = casilla(tr("Versión"), tr("En los exámenes con varias versiones, pone la versión («Versión B») "
+                                                    "arriba a la derecha de la primera página."));
+    m_versionEnCabecera->setChecked(false);
     m_asignaturaEnPie = casilla(tr("Asignatura"), tr("Pone el nombre de la asignatura abajo, en el pie de cada página "
                                                      "(en el PDF, el LaTeX y el Word)."));
     m_convocatoriaEnPie = casilla(tr("Convocatoria y año"), tr("Pone la convocatoria y el año abajo, en el pie de cada "
                                                                "página (en el PDF, el LaTeX y el Word)."));
-    auto fila = [](QCheckBox *a, QCheckBox *b) {
+    auto fila = [](std::initializer_list<QCheckBox *> casillas) {
         auto *l = new QHBoxLayout;
-        l->addWidget(a);
-        l->addWidget(b);
+        for (QCheckBox *c : casillas)
+            l->addWidget(c);
         l->addStretch();
         return l;
     };
@@ -378,9 +414,9 @@ QWidget *PanelConfiguracion::crearGrupoConvocatoria()
     fConv->addRow(tr("Año:"), m_anio);
     fConv->addRow(tr("Instrucciones:"), m_instrucciones);
     //: Delante de las casillas de lo que va en la cabecera de los exámenes (arriba de la primera página)
-    fConv->addRow(tr("Cabecera:"), fila(m_asignaturaEnCabecera, m_convocatoriaEnCabecera));
+    fConv->addRow(tr("Cabecera:"), fila({m_asignaturaEnCabecera, m_convocatoriaEnCabecera, m_versionEnCabecera}));
     //: Delante de las casillas de lo que va en el pie de cada página de los exámenes
-    fConv->addRow(tr("Pie de página:"), fila(m_asignaturaEnPie, m_convocatoriaEnPie));
+    fConv->addRow(tr("Pie de página:"), fila({m_asignaturaEnPie, m_convocatoriaEnPie}));
     return gConv;
 }
 
@@ -389,34 +425,82 @@ QWidget *PanelConfiguracion::crearGrupoExamenes()
     auto *gExamenes = m_grupoExamenes = new QGroupBox;
     auto *le = new QVBoxLayout(gExamenes);
     m_listaExamenes = new QListWidget;
-    m_listaExamenes->setToolTip(tr("Se genera un examen por cada nombre marcado, en este orden.\n"
-                                   "Doble clic para cambiar el nombre; arrastre para cambiar el orden."));
+    m_listaExamenes->setToolTip(tr("Se genera un examen por cada nombre marcado (o uno por cada versión), en este orden.\n"
+                                   "Doble clic para cambiar el nombre; arrastre, o Subir y Bajar, para cambiar el orden."));
     m_listaExamenes->setDragDropMode(QAbstractItemView::InternalMove);
+    m_listaExamenes->setItemDelegate(new DelegadoExamenes([this] { return versionesConNumeros(); }, m_listaExamenes));
     m_listaExamenes->setMaximumHeight(150);
     le->addWidget(m_listaExamenes);
     // Cada botón tiene su atajo, Alt y la letra subrayada (sin las de los menús), que dice su descripción emergente.
-    auto *botonesExamenes = new QHBoxLayout;
-    auto botonExamenes = [&](const QString &texto, const QString &descripcion, auto accion) {
+    auto botonExamenes = [this](QHBoxLayout *fila, const QString &texto, const QString &descripcion, auto accion) {
         auto *b = new QPushButton(texto);
         const QString atajo = QKeySequence::mnemonic(texto).toString(QKeySequence::NativeText);
         b->setToolTip(atajo.isEmpty() ? descripcion : QStringLiteral("%1 (%2)").arg(descripcion, atajo));
         connect(b, &QPushButton::clicked, this, accion);
-        botonesExamenes->addWidget(b);
+        fila->addWidget(b);
     };
     auto marcarTodos = [this](bool marcar) {
         for (int i = 0; i < m_listaExamenes->count(); ++i)
             m_listaExamenes->item(i)->setCheckState(marcar ? Qt::Checked : Qt::Unchecked);
     };
+    auto *botonesExamenes = new QHBoxLayout;
     //: Botón: añade un examen a la lista de exámenes que se generan. El & marca la letra del atajo (Alt+letra):
-    //: no puede ser la de un menú ni la de otro de estos cuatro botones.
-    botonExamenes(tr("Aña&dir"), tr("Añade un examen a la lista"), &PanelConfiguracion::nuevoExamen);
+    //: no puede ser la de un menú ni la de otro de estos seis botones.
+    botonExamenes(botonesExamenes, tr("Aña&dir"), tr("Añade un examen a la lista"), &PanelConfiguracion::nuevoExamen);
     //: Botón: quita de la lista el examen seleccionado. El & marca la letra del atajo (Alt+letra).
-    botonExamenes(tr("&Quitar"), tr("Quita de la lista el examen seleccionado"), &PanelConfiguracion::quitarExamen);
+    botonExamenes(botonesExamenes, tr("&Quitar"), tr("Quita de la lista el examen seleccionado"), &PanelConfiguracion::quitarExamen);
     //: Botón: marca todos los exámenes de la lista. El & marca la letra del atajo (Alt+letra).
-    botonExamenes(tr("&Todos"), tr("Marca todos los exámenes de la lista"), [marcarTodos]() { marcarTodos(true); });
+    botonExamenes(botonesExamenes, tr("&Todos"), tr("Marca todos los exámenes de la lista"), [marcarTodos]() { marcarTodos(true); });
     //: Botón: desmarca todos los exámenes de la lista. El & marca la letra del atajo (Alt+letra).
-    botonExamenes(tr("&Ninguno"), tr("Desmarca todos los exámenes de la lista"), [marcarTodos]() { marcarTodos(false); });
+    botonExamenes(botonesExamenes, tr("&Ninguno"), tr("Desmarca todos los exámenes de la lista"), [marcarTodos]() { marcarTodos(false); });
     le->addLayout(botonesExamenes);
+
+    // El orden de la lista, también sin ratón, y las versiones de cada examen.
+    auto *fila = new QHBoxLayout;
+    //: Botón: sube en la lista el examen seleccionado. El & marca la letra del atajo (Alt+letra): no puede ser la de un
+    //: menú ni la de otro de estos seis botones.
+    botonExamenes(fila, tr("&Subir"), tr("Sube en la lista el examen seleccionado"), [this]() { moverExamen(-1); });
+    //: Botón: baja en la lista el examen seleccionado. El & marca la letra del atajo (Alt+letra).
+    botonExamenes(fila, tr("&Bajar"), tr("Baja en la lista el examen seleccionado"), [this]() { moverExamen(1); });
+    fila->addStretch();
+    m_versiones = new QSpinBox;
+    m_versiones->setRange(1, Generador::kMaxVersiones);
+    m_versiones->setEnabled(false);
+    m_versiones->setToolTip(tr("Versiones del examen seleccionado. Con varias, cada una es un examen más, con las mismas "
+                               "preguntas en otro orden (siempre por temas: las del tema 1, luego las del 2…) y las "
+                               "opciones barajadas."));
+    //: Delante del número de versiones del examen seleccionado en la lista
+    auto *etiqueta = new QLabel(tr("Versiones:"));
+    etiqueta->setBuddy(m_versiones);
+    fila->addWidget(etiqueta);
+    fila->addWidget(m_versiones);
+    m_numeracion = new QWidget;
+    auto *ln = new QHBoxLayout(m_numeracion);
+    ln->setContentsMargins(0, 0, 0, 0);
+    //: Numeración de las versiones de un examen: con letras
+    auto *letras = new QRadioButton(tr("A, B, C…"));
+    letras->setProperty("valor", QStringLiteral("letras"));
+    letras->setChecked(true);
+    //: Numeración de las versiones de un examen: con números
+    auto *numeros = new QRadioButton(tr("1, 2, 3…"));
+    numeros->setProperty("valor", QStringLiteral("numeros"));
+    for (QRadioButton *r : {letras, numeros}) {
+        r->setToolTip(tr("Cómo se llaman las versiones de los exámenes: «Nacional Original A», «… B»… o "
+                         "«Nacional Original 1», «… 2»…"));
+        ln->addWidget(r);
+        connect(r, &QRadioButton::toggled, m_listaExamenes->viewport(), qOverload<>(&QWidget::update));
+    }
+    fila->addWidget(m_numeracion);
+    le->addLayout(fila);
+    connect(m_listaExamenes, &QListWidget::currentItemChanged, this, [this](QListWidgetItem *item) {
+        const QSignalBlocker bloqueo(m_versiones);
+        m_versiones->setEnabled(item != nullptr);
+        m_versiones->setValue(item ? qMax(1, item->data(kRolVersiones).toInt()) : 1);
+    });
+    connect(m_versiones, &QSpinBox::valueChanged, this, [this](int n) {
+        if (QListWidgetItem *item = m_listaExamenes->currentItem())
+            item->setData(kRolVersiones, n);
+    });
     // El título dice cuántos hay marcados: se pone al día al marcar o desmarcar, añadir, quitar o cargar la lista.
     const QAbstractItemModel *modelo = m_listaExamenes->model();
     connect(modelo, &QAbstractItemModel::dataChanged, this, &PanelConfiguracion::actualizarCuentaExamenes);
@@ -434,10 +518,16 @@ void PanelConfiguracion::actualizarCuentaExamenes()
     for (int i = 0; i < total; ++i)
         marcados += m_listaExamenes->item(i)->checkState() == Qt::Checked ? 1 : 0;
     //: Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay
-    m_grupoExamenes->setTitle(marcados == 1 ? tr("Exámenes: 1 modelo de %1 seleccionado.").arg(total)
-                                            //: Título del recuadro de la lista de exámenes (modelos): cuántos están
-                                            //: marcados, los que se generan, de cuántos hay
-                                            : tr("Exámenes: %1 modelos de %2 seleccionados.").arg(marcados).arg(total));
+    QString titulo = marcados == 1 ? tr("Exámenes: 1 modelo de %1 seleccionado.").arg(total)
+                                   //: Título del recuadro de la lista de exámenes (modelos): cuántos están
+                                   //: marcados, los que se generan, de cuántos hay
+                                   : tr("Exámenes: %1 modelos de %2 seleccionados.").arg(marcados).arg(total);
+    // Con versiones, cuántos exámenes salen.
+    const int examenes = int(Generador::nombresExamenes(configuracionExamenes()).size());
+    if (examenes != marcados)
+        //: Se añade al título del recuadro de la lista de exámenes (con el espacio delante) si alguno tiene versiones
+        titulo += tr(" Con sus versiones, %1 exámenes.").arg(examenes);
+    m_grupoExamenes->setTitle(titulo);
 }
 
 QWidget *PanelConfiguracion::crearGrupoTemas()
@@ -714,6 +804,8 @@ QVector<PanelConfiguracion::Ajuste> PanelConfiguracion::ajustes() const
         {QStringLiteral("examen/convocatoriaEnCabecera"), m_convocatoriaEnCabecera},
         {QStringLiteral("examen/asignaturaEnPie"), m_asignaturaEnPie},
         {QStringLiteral("examen/convocatoriaEnPie"), m_convocatoriaEnPie},
+        {QStringLiteral("examen/versionEnCabecera"), m_versionEnCabecera},
+        {QStringLiteral("examenes/numeracion"), m_numeracion},
     };
     for (const Opcion &o : m_opciones)
         if (!o.clave.isEmpty())
@@ -902,13 +994,42 @@ void PanelConfiguracion::actualizarPuntuacion()
     m_fallo->setValue(d.puntosFallo);
 }
 
-QListWidgetItem *PanelConfiguracion::anadirExamen(const QString &nombre, bool marcado)
+QListWidgetItem *PanelConfiguracion::anadirExamen(const QString &nombre, bool marcado, int versiones)
 {
     auto *item = new QListWidgetItem(nombre, m_listaExamenes);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable
                    | Qt::ItemIsDragEnabled);
     item->setCheckState(marcado ? Qt::Checked : Qt::Unchecked);
+    item->setData(kRolVersiones, qBound(1, versiones, Generador::kMaxVersiones));
     return item;
+}
+
+void PanelConfiguracion::moverExamen(int desplazamiento)
+{
+    const int fila = m_listaExamenes->currentRow();
+    const int destino = fila + desplazamiento;
+    if (fila < 0 || destino < 0 || destino >= m_listaExamenes->count())
+        return;
+    QListWidgetItem *item = m_listaExamenes->takeItem(fila);
+    m_listaExamenes->insertItem(destino, item);
+    m_listaExamenes->setCurrentItem(item);
+}
+
+QVariantMap PanelConfiguracion::versionesDeLaLista() const
+{
+    QVariantMap versiones;
+    for (int i = 0; i < m_listaExamenes->count(); ++i) {
+        const QListWidgetItem *item = m_listaExamenes->item(i);
+        const int n = item->data(kRolVersiones).toInt();
+        if (n > 1 && !item->text().trimmed().isEmpty())
+            versiones.insert(item->text().trimmed(), n);
+    }
+    return versiones;
+}
+
+bool PanelConfiguracion::versionesConNumeros() const
+{
+    return valorAjuste(m_numeracion).toString() == QLatin1String("numeros");
 }
 
 void PanelConfiguracion::nuevoExamen()
@@ -926,13 +1047,26 @@ void PanelConfiguracion::quitarExamen()
         delete item;
 }
 
+ConfigExamen PanelConfiguracion::configuracionExamenes() const
+{
+    ConfigExamen c;
+    for (int i = 0; i < m_listaExamenes->count(); ++i)
+        if (m_listaExamenes->item(i)->checkState() == Qt::Checked) {
+            c.nombresModelos << m_listaExamenes->item(i)->text().trimmed();
+            c.versiones << qMax(1, m_listaExamenes->item(i)->data(kRolVersiones).toInt());
+        }
+    c.versionesConNumeros = versionesConNumeros();
+    return c;
+}
+
 ConfigExamen PanelConfiguracion::configuracion() const
 {
     ConfigExamen c;
     c.preguntasPorTema = repartoActual();
-    for (int i = 0; i < m_listaExamenes->count(); ++i)
-        if (m_listaExamenes->item(i)->checkState() == Qt::Checked)
-            c.nombresModelos << m_listaExamenes->item(i)->text().trimmed();
+    const ConfigExamen examenes = configuracionExamenes();
+    c.nombresModelos = examenes.nombresModelos;
+    c.versiones = examenes.versiones;
+    c.versionesConNumeros = examenes.versionesConNumeros;
     c.noRepetirEntreModelos = m_noRepetir->isChecked();
     c.incluirParaRevisar = m_incluirRevisar->isChecked();
     c.soloVerificadas = m_soloVerificadas->isChecked();

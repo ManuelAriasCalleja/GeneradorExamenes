@@ -681,14 +681,26 @@ QString Maquetador::examenesHtml(const QVector<Modelo> &modelos, const DatosConv
     return html + QStringLiteral("</body></html>");
 }
 
+QString Maquetador::textoVersion(const Modelo &modelo, const DatosConvocatoria &d)
+{
+    if (!d.versionEnCabecera || modelo.version.isEmpty())
+        return QString();
+    //: Arriba a la derecha de la primera página de un examen con versiones: %1 es la versión («B» o «2»)
+    return tx(d, QT_TRANSLATE_NOOP("Examen", "Versión %1")).arg(modelo.version);
+}
+
 QString Maquetador::cuerpoExamen(const Modelo &modelo, const DatosConvocatoria &d, bool soluciones, int n, bool conPlantilla,
                                  bool marcarVerificadas)
 {
     QString html;
-    QString derecha;
+    QStringList derechas;
+    if (!textoVersion(modelo, d).isEmpty())
+        derechas << QStringLiteral("<span style=\"font-size:%1; font-weight:bold\">%2</span>")
+                        .arg(pt(14 * escala(n)), escapar(textoVersion(modelo, d)));
     if (soluciones)
-        derecha = QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2</span>")
-                      .arg(QLatin1String(Maquetador::kColorCorrecta), escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "CON SOLUCIONES"))));
+        derechas << QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2</span>")
+                        .arg(QLatin1String(Maquetador::kColorCorrecta), escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "CON SOLUCIONES"))));
+    const QString derecha = derechas.join(QStringLiteral("<br>"));
     html += cabeceraHtml(d, derecha, n);
 
     // Recuadro de instrucciones: el texto y, justo debajo, la puntuación en una línea (sin líneas en blanco, para que

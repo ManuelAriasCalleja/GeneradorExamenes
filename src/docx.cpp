@@ -831,6 +831,8 @@ QVector<Bloque> pregunta(Documento &doc, const PreguntaExamen &pe, int indice, c
 void examen(Documento &doc, const Modelo &m, const DatosConvocatoria &d, bool soluciones, int n)
 {
     QVector<Parrafo> derecha;
+    if (!Maquetador::textoVersion(m, d).isEmpty())
+        derecha << parrafo(trozo(Maquetador::textoVersion(m, d), letra(14 * escala(n), true)));
     if (soluciones)
         derecha << parrafo(trozo(tx(d, QT_TRANSLATE_NOOP("Examen", "CON SOLUCIONES")), letra(0, true, false, verde())));
     QVector<Bloque> inicio;

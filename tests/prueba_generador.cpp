@@ -592,6 +592,131 @@ private slots:
                 QVERIFY2(nueva.correcta() != nueva.pregunta.correcta, qPrintable(nueva.pregunta.codigoCompleto()));
         }
     }
+
+    // Versiones de un examen: cada una es un examen más, con las mismas preguntas, siempre por temas. La A, como el
+    // examen sin versiones; las demás, con las de cada tema en otro orden y las opciones barajadas (repartida la
+    // correcta). Los exámenes sin versiones salen igual que si ningún otro las tuviera.
+    void versionesConLasMismasPreguntasPorTemas()
+    {
+        QVector<Pregunta> banco = bancoInventado();
+        for (Pregunta &p : banco)
+            p.old = false;   // sin preguntas que ya hayan salido: así la correcta siempre se puede repartir por igual
+        auto ids = [](const Modelo &m) {
+            QVector<int> res;
+            for (const PreguntaExamen &pe : m.preguntas)
+                res << pe.pregunta.id;
+            return res;
+        };
+        for (quint32 semilla = 1; semilla <= 30; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            const ResultadoGeneracion sinVersiones = Generador::generar(banco, c);
+            c.versiones = {3, 1, 2};
+            c.versionesConNumeros = semilla % 2;
+            const ResultadoGeneracion r = Generador::generar(banco, c);
+            const QString a = Generador::etiquetaVersion(0, c.versionesConNumeros);
+            const QString b = Generador::etiquetaVersion(1, c.versionesConNumeros);
+            const QString cc = Generador::etiquetaVersion(2, c.versionesConNumeros);
+            QStringList nombres;
+            for (const Modelo &m : r.modelos)
+                nombres << m.nombre;
+            const QStringList esperados{QStringLiteral("Uno ") + a, QStringLiteral("Uno ") + b, QStringLiteral("Uno ") + cc,
+                                        QStringLiteral("Dos"), QStringLiteral("Tres ") + a, QStringLiteral("Tres ") + b};
+            QCOMPARE(nombres, esperados);
+            QCOMPARE(Generador::nombresExamenes(c), esperados);
+            QCOMPARE(r.modelos.at(1).base, QStringLiteral("Uno"));
+            QCOMPARE(r.modelos.at(1).version, b);
+            QVERIFY(r.modelos.at(3).version.isEmpty() && r.modelos.at(3).base.isEmpty());
+            QCOMPARE(Generador::versionesDe(r, 1), (QVector<int>{0, 1, 2}));
+            QCOMPARE(Generador::versionesDe(r, 3), QVector<int>{3});
+            QCOMPARE(Generador::versionesDe(r, 5), (QVector<int>{4, 5}));
+            // La A y el examen sin versiones, como sin versiones.
+            for (auto [conVersiones, sin] : {std::pair{0, 0}, std::pair{3, 1}, std::pair{4, 2}}) {
+                QCOMPARE(ids(r.modelos.at(conVersiones)), ids(sinVersiones.modelos.at(sin)));
+                for (int i = 0; i < r.modelos.at(conVersiones).preguntas.size(); ++i)
+                    QCOMPARE(r.modelos.at(conVersiones).preguntas.at(i).orden, sinVersiones.modelos.at(sin).preguntas.at(i).orden);
+            }
+            for (const QVector<int> &grupo : {QVector<int>{0, 1, 2}, QVector<int>{4, 5}}) {
+                QVector<int> deLaA = ids(r.modelos.at(grupo.first()));
+                std::sort(deLaA.begin(), deLaA.end());
+                QVector<QVector<int>> ordenes;
+                for (int v : grupo) {
+                    const Modelo &m = r.modelos.at(v);
+                    QVector<int> estas = ids(m);
+                    QVERIFY2(!ordenes.contains(estas), qPrintable(m.nombre + QStringLiteral(": el mismo orden que otra versión")));
+                    ordenes << estas;
+                    std::sort(estas.begin(), estas.end());
+                    QCOMPARE(estas, deLaA);   // las mismas preguntas
+                    QVERIFY2(std::is_sorted(m.preguntas.begin(), m.preguntas.end(), [](const PreguntaExamen &x, const PreguntaExamen &y) {
+                                 return x.pregunta.temaNumero < y.pregunta.temaNumero;
+                             }),
+                             qPrintable(m.nombre + QStringLiteral(": no va por temas")));
+                    bool hayFijas = false;
+                    for (const PreguntaExamen &pe : m.preguntas) {
+                        QCOMPARE(pe.opcion(pe.correcta()), pe.pregunta.opciones.at(pe.pregunta.correcta));
+                        hayFijas = hayFijas || Estilo::tieneOpcionesDependientes(pe.pregunta);
+                    }
+                    if (v != grupo.first() && !hayFijas) {
+                        QVERIFY(m.barajadas);
+                        const std::array<int, 4> cuenta = m.correctasPorLetra();
+                        QVERIFY(*std::max_element(cuenta.begin(), cuenta.end()) - *std::min_element(cuenta.begin(), cuenta.end()) <= 1);
+                    }
+                }
+            }
+            // Con la misma semilla, las mismas versiones.
+            QCOMPARE(firma(Generador::generar(banco, c)), firma(r));
+        }
+    }
+
+    // Con orden aleatorio, las versiones siguen yendo por temas, y también la A se desordena dentro de cada tema y
+    // lleva las opciones barajadas, aunque no se pida.
+    void versionesConOrdenAleatorio()
+    {
+        QVector<Pregunta> banco = bancoInventado();
+        for (Pregunta &p : banco)
+            p.old = false;
+        bool algunaDesordenada = false;
+        for (quint32 semilla = 1; semilla <= 30; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            c.nombresModelos = {QStringLiteral("Uno")};
+            c.versiones = {3};
+            c.ordenAleatorio = true;
+            for (const Modelo &m : Generador::generar(banco, c).modelos) {
+                QVERIFY(std::is_sorted(m.preguntas.begin(), m.preguntas.end(), [](const PreguntaExamen &x, const PreguntaExamen &y) {
+                    return x.pregunta.temaNumero < y.pregunta.temaNumero;
+                }));
+                QVERIFY(m.barajadas);
+                algunaDesordenada = algunaDesordenada
+                                    || !std::is_sorted(m.preguntas.begin(), m.preguntas.end(), [](const PreguntaExamen &x, const PreguntaExamen &y) {
+                                           return x.pregunta.antesQue(y.pregunta);
+                                       });
+            }
+        }
+        QVERIFY(algunaDesordenada);   // dentro de los temas, no por número
+    }
+
+    // Al cambiar una pregunta de una versión, se cambia en todas, cada una en su sitio.
+    void cambiarEnUnaVersionCambiaEnTodas()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        for (quint32 semilla = 1; semilla <= 20; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            c.versiones = {3};
+            ResultadoGeneracion r = Generador::generar(banco, c);
+            const int indice = int(semilla % r.modelos.at(1).preguntas.size());
+            const Pregunta quitada = r.modelos.at(1).preguntas.at(indice).pregunta;
+            QVERIFY(Generador::cambiarPregunta(banco, c, r, 1, indice, {}));
+            const Pregunta nueva = r.modelos.at(1).preguntas.at(indice).pregunta;
+            QVERIFY(nueva.id != quitada.id);
+            for (int v : {0, 1, 2}) {
+                int veces = 0;
+                for (const PreguntaExamen &pe : r.modelos.at(v).preguntas) {
+                    QVERIFY(pe.pregunta.id != quitada.id);
+                    veces += pe.pregunta.id == nueva.id ? 1 : 0;
+                }
+                QCOMPARE(veces, 1);
+            }
+        }
+    }
 };
 
 QTEST_MAIN(PruebaGenerador)

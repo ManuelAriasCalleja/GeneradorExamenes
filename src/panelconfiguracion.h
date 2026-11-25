@@ -45,6 +45,8 @@ public:
     DatosConvocatoria datos() const;
     // Con qué generar: el reparto, los exámenes marcados y las opciones. Sin el uso reciente de las preguntas.
     ConfigExamen configuracion() const;
+    // Solo los exámenes marcados, con sus versiones (los campos de ConfigExamen de los exámenes).
+    ConfigExamen configuracionExamenes() const;
     QString idiomaExamen() const;
     // Los nombres de la lista de exámenes y, en 'marcados', los marcados.
     QStringList examenes(QStringList *marcados = nullptr) const;
@@ -109,9 +111,14 @@ private:
     void guardarReparto();        // el del panel, como un reparto del banco con nombre (un botón más)
     void actualizarTotal();
     void actualizarPuntuacion();
-    QListWidgetItem *anadirExamen(const QString &nombre, bool marcado);
+    QListWidgetItem *anadirExamen(const QString &nombre, bool marcado, int versiones = 1);
     void nuevoExamen();
     void quitarExamen();
+    // Sube (-1) o baja (+1) en la lista el examen elegido.
+    void moverExamen(int desplazamiento);
+    // Las versiones de los exámenes de la lista que tienen más de una: nombre -> cuántas.
+    QVariantMap versionesDeLaLista() const;
+    bool versionesConNumeros() const;   // las versiones, «1, 2, 3…»; si no, «A, B, C…»
     // El título del recuadro de la lista de exámenes: «Exámenes: 2 modelos de 3 seleccionados.».
     void actualizarCuentaExamenes();
     // Lo que casi nunca se cambia va plegado, con un resumen de lo elegido en la cabecera.
@@ -145,10 +152,13 @@ private:
     QSpinBox *m_anio;
     QListWidget *m_listaExamenes;           // nombres de los exámenes; se generan los marcados
     QGroupBox *m_grupoExamenes;             // su recuadro, que dice cuántos hay marcados
+    QSpinBox *m_versiones;                  // las del examen elegido en la lista
+    QWidget *m_numeracion;                  // «A, B, C…» o «1, 2, 3…»: un botón de opción por forma (con su «valor»)
     QPlainTextEdit *m_instrucciones;
     // Si van la asignatura y la convocatoria en la cabecera y en el pie de página de los exámenes.
     QCheckBox *m_asignaturaEnCabecera;
     QCheckBox *m_convocatoriaEnCabecera;
+    QCheckBox *m_versionEnCabecera;         // «Versión B», en los exámenes con versiones
     QCheckBox *m_asignaturaEnPie;
     QCheckBox *m_convocatoriaEnPie;
     QGridLayout *m_rejillaTemas;

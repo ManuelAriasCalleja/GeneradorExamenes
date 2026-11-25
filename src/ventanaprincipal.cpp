@@ -982,21 +982,28 @@ void VentanaPrincipal::generar()
         QMessageBox::information(this, windowTitle(), tr("Indique cuántas preguntas quiere de cada tema."));
         return;
     }
+    // Los exámenes que salen, con las versiones de cada uno («Nacional Original A», «… B»).
+    const QStringList examenes = Generador::nombresExamenes(config);
+    QString repetido;
+    for (int i = 0; i < examenes.size() && repetido.isEmpty(); ++i)
+        if (examenes.indexOf(examenes.at(i), i + 1) > 0)
+            repetido = examenes.at(i);
     QString error;
     if (config.nombresModelos.isEmpty())
         error = tr("Marque en la lista los exámenes que quiere generar.");
     else if (config.nombresModelos.contains(QString()))
         error = tr("Hay un examen marcado sin nombre.");
-    else if (QSet<QString>(config.nombresModelos.cbegin(), config.nombresModelos.cend()).size() != config.nombresModelos.size())
-        error = tr("Hay dos exámenes marcados con el mismo nombre.");
+    else if (!repetido.isEmpty())
+        //: %1 es el nombre de un examen, con su versión si tiene («Nacional Original B»)
+        error = tr("Hay dos exámenes marcados con el mismo nombre: «%1».").arg(repetido);
     if (!error.isEmpty()) {
         QMessageBox::information(this, windowTitle(), error);
         return;
     }
     if (!puedenDescartarse())
         return;
-    config.usoReciente = usoReciente(config.nombresModelos);
-    config.salidas = salidasAnteriores(config.nombresModelos);
+    config.usoReciente = usoReciente(examenes);
+    config.salidas = salidasAnteriores(examenes);
     m_resultado = Generador::generar(m_preguntas, config);
     m_semillaFija = config.semilla != 0;   // se avisa en la franja de avisos (actualizarMaqueta())
     if (m_panel->evitaRecientes() && m_bd.examenesRegistrados().isEmpty())
@@ -1403,7 +1410,8 @@ void VentanaPrincipal::cambiar(int indice)
     }
     m_cambios << CambioPregunta{antes, modelo, indice};
     m_registrados = false;   // ya no son como los registrados
-    m_quitadas[modelo].insert(quitada.grupo());
+    for (int version : Generador::versionesDe(m_resultado, modelo))   // se ha cambiado en todas
+        m_quitadas[version].insert(quitada.grupo());
     m_deshacerCambio->setEnabled(true);
     actualizarMaqueta();
     m_preguntaACambiar->setValue(indice + 1);

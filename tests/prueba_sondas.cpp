@@ -563,6 +563,10 @@ private slots:
                     for (int k = 0, n = 1 + rngSalidas.bounded(4); k < n; ++k)
                         salida.letras << rngSalidas.bounded(4);
                 }
+            // Y algunos exámenes tienen varias versiones.
+            for (int m = 0; m < c.nombresModelos.size(); ++m)
+                c.versiones << (rngSalidas.bounded(3) == 0 ? 2 + rngSalidas.bounded(3) : 1);
+            c.versionesConNumeros = rngSalidas.bounded(2);
             // Letras en que puede ir la correcta de una que ya ha salido: las que no tuvo o, si las tuvo todas, otra que
             // la última vez; de las «old», otra que en el banco.
             auto permitidas = [&c](const Pregunta &p) {
@@ -587,14 +591,32 @@ private slots:
                 return f;
             };
             QVERIFY2(firma(r) == firma(otra), qPrintable(contexto + QStringLiteral(": con la misma semilla salen otros")));
-            QCOMPARE(r.modelos.size(), c.nombresModelos.size());
+            QCOMPARE(r.modelos.size(), Generador::nombresExamenes(c).size());
 
             auto comprobar = [&](const ResultadoGeneracion &res, const QString &cuando) {
                 const QString aviso = res.avisos.join(QLatin1Char('\n'));
                 QHash<QString, QSet<int>> modelosDelGrupo;
                 for (int mi = 0; mi < res.modelos.size(); ++mi) {
                     const Modelo &m = res.modelos.at(mi);
-                    QCOMPARE(m.nombre, c.nombresModelos.at(mi));
+                    QCOMPARE(m.nombre, Generador::nombresExamenes(c).at(mi));
+                    // Las versiones de un examen: las mismas preguntas que la primera, por temas.
+                    const int primera = Generador::versionesDe(res, mi).first();
+                    if (primera != mi) {
+                        auto ids = [](const Modelo &x) {
+                            QVector<int> v;
+                            for (const PreguntaExamen &pe : x.preguntas)
+                                v << pe.pregunta.id;
+                            std::sort(v.begin(), v.end());
+                            return v;
+                        };
+                        QVERIFY2(ids(m) == ids(res.modelos.at(primera)),
+                                 qPrintable(contexto + cuando + QStringLiteral(", %1: otras preguntas que su primera versión").arg(m.nombre)));
+                    }
+                    if (!m.version.isEmpty())
+                        QVERIFY2(std::is_sorted(m.preguntas.begin(), m.preguntas.end(), [](const PreguntaExamen &x, const PreguntaExamen &y) {
+                                     return x.pregunta.temaNumero < y.pregunta.temaNumero;
+                                 }),
+                                 qPrintable(contexto + cuando + QStringLiteral(", %1: la versión no va por temas").arg(m.nombre)));
                     QSet<QString> grupos;
                     QMap<int, int> porTema;
                     std::array<int, 4> letras{};
@@ -607,7 +629,7 @@ private slots:
                                  qPrintable(donde + QStringLiteral(": no debería salir")));
                         QVERIFY2(!grupos.contains(p.grupo()), qPrintable(donde + QStringLiteral(": dos variantes en el examen")));
                         grupos.insert(p.grupo());
-                        modelosDelGrupo[p.grupo()].insert(mi);
+                        modelosDelGrupo[p.grupo()].insert(Generador::versionesDe(res, mi).first());   // las versiones, como uno
                         ++porTema[p.temaNumero];
                         std::array<int, 4> orden = pe.orden;
                         std::sort(orden.begin(), orden.end());
@@ -646,7 +668,7 @@ private slots:
                         QVERIFY2(c.preguntasPorTema.contains(it.key()), qPrintable(contexto + QStringLiteral(": sale un tema que no se pidió")));
                     // Barajadas, la correcta repartida por igual (como mucho, una de diferencia). Con preguntas que ya
                     // salieron, puede no poder ser (si ninguna otra puede darle su letra): lo comprueba prueba_generador.
-                    if (c.barajarOpciones && todasBarajables && !yaSalidas && !m.preguntas.isEmpty())
+                    if ((c.barajarOpciones || m.barajadas) && todasBarajables && !yaSalidas && !m.preguntas.isEmpty())
                         QVERIFY2(*std::max_element(letras.begin(), letras.end()) - *std::min_element(letras.begin(), letras.end()) <= 1,
                                  qPrintable(contexto + cuando + QStringLiteral(", %1: la correcta no está repartida (A %2 · B %3 · C %4 · D %5)")
                                                                  .arg(m.nombre).arg(letras[0]).arg(letras[1]).arg(letras[2]).arg(letras[3])));
@@ -686,7 +708,8 @@ private slots:
                     for (int l = 0; l < 4; ++l)
                         if (validas & (1 << l))
                             menos = qMin(menos, resto[l]);
-                    if ((c.barajarOpciones || validas != 0b1111) && !Estilo::tieneOpcionesDependientes(nueva.pregunta)) {
+                    if ((c.barajarOpciones || r.modelos.at(mi).barajadas || validas != 0b1111)
+                        && !Estilo::tieneOpcionesDependientes(nueva.pregunta)) {
                         const bool vale = (validas & (1 << letra)) && resto[letra] == menos;
                         QVERIFY2(vale ? nueva.correcta() == letra
                                       : (validas & (1 << nueva.correcta())) && resto[nueva.correcta()] == menos,

@@ -14,7 +14,7 @@
         <translation>Invalid JSON: %1</translation>
     </message>
     <message>
-        <location line="+471"/>
+        <location line="+478"/>
         <source>Ya existe una pregunta %1 en ese tema.</source>
         <translation>A question %1 already exists in that topic.</translation>
     </message>
@@ -2304,8 +2304,8 @@ Do you want to save it anyway?</translation>
         <translation>Reference:</translation>
     </message>
     <message>
-        <location line="+163"/>
-        <location filename="../src/docx.cpp" line="+134"/>
+        <location line="+166"/>
+        <location filename="../src/docx.cpp" line="+136"/>
         <location filename="../src/maquetador.cpp" line="+11"/>
         <source>Plantilla de corrección: %1</source>
         <translation>Answer key: %1</translation>
@@ -2336,18 +2336,24 @@ No entregue el enunciado.</source>
 Do not hand in the question paper.</translation>
     </message>
     <message>
-        <location filename="../src/latex.cpp" line="-74"/>
+        <location line="+280"/>
+        <source>Versión %1</source>
+        <extracomment>Arriba a la derecha de la primera página de un examen con versiones: %1 es la versión («B» o «2»)</extracomment>
+        <translation>Version %1</translation>
+    </message>
+    <message>
+        <location filename="../src/latex.cpp" line="-75"/>
         <location filename="../src/docx.cpp" line="-61"/>
-        <location filename="../src/maquetador.cpp" line="+282"/>
+        <location filename="../src/maquetador.cpp" line="+13"/>
         <source>CON SOLUCIONES</source>
         <translation>WITH SOLUTIONS</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+44"/>
         <location line="+114"/>
         <location filename="../src/docx.cpp" line="+18"/>
         <location line="+88"/>
-        <location filename="../src/maquetador.cpp" line="+54"/>
+        <location filename="../src/maquetador.cpp" line="+55"/>
         <location line="+210"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+18"/>
         <location line="+1"/>
@@ -2374,7 +2380,7 @@ Do not hand in the question paper.</translation>
     <message>
         <location line="+35"/>
         <location filename="../src/docx.cpp" line="+34"/>
-        <location filename="../src/maquetador.cpp" line="-372"/>
+        <location filename="../src/maquetador.cpp" line="-384"/>
         <source>Respuestas correctas: %1</source>
         <translation>Correct answers: %1</translation>
     </message>
@@ -2442,7 +2448,7 @@ Do not hand in the question paper.</translation>
         <translation>Topic %1: there are not enough questions left without the “old” mark; some (or their variants) are used.</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+81"/>
         <source>«%1»: </source>
         <extracomment>Comienzo de un aviso sobre un examen entero: %1 es su nombre. Detrás va el aviso («la respuesta correcta es…»).</extracomment>
         <translation>“%1”: </translation>
@@ -2478,7 +2484,7 @@ Do not hand in the question paper.</translation>
         <translation>“%1”, question %2: </translation>
     </message>
     <message>
-        <location line="+194"/>
+        <location line="+252"/>
         <source>Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas verificadas disponibles.</source>
         <translation>Topic %1: %2 questions were requested but there are only %3 different verified ones available.</translation>
     </message>
@@ -2671,7 +2677,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelConfiguracion</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="+324"/>
+        <location filename="../src/panelconfiguracion.cpp" line="+356"/>
         <source>Convocatoria</source>
         <extracomment>Convocatoria de examen (Febrero, Junio, Septiembre…): datos de la cabecera de los exámenes</extracomment>
         <translation>Exam session</translation>
@@ -2693,30 +2699,41 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
     </message>
     <message>
         <location line="+25"/>
-        <location line="+5"/>
+        <location line="+9"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
         <translation>Subject</translation>
     </message>
     <message>
-        <location line="-5"/>
+        <location line="-9"/>
         <source>Pone el nombre de la asignatura arriba, en la cabecera de los exámenes y de la hoja de soluciones.</source>
         <translation>Puts the subject name at the top, in the header of the exams and of the solutions sheet.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+4"/>
+        <location line="+8"/>
         <source>Convocatoria y año</source>
         <extracomment>Casilla: la convocatoria y el año («Junio 2026») van en la cabecera (o en el pie) de los exámenes</extracomment>
         <translation>Exam session and year</translation>
     </message>
     <message>
-        <location line="-4"/>
+        <location line="-8"/>
         <source>Pone la convocatoria y el año arriba, en la cabecera de los exámenes y de la hoja de soluciones.</source>
         <translation>Puts the exam session and the year at the top, in the header of the exams and of the solutions sheet.</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
+        <source>Versión</source>
+        <extracomment>Casilla: la versión del examen («Versión B») va en la cabecera, en los exámenes con varias versiones</extracomment>
+        <translation>Version</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>En los exámenes con varias versiones, pone la versión («Versión B») arriba a la derecha de la primera página.</source>
+        <translation>In exams with several versions, puts the version (“Version B”) at the top right of the first page.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Pone el nombre de la asignatura abajo, en el pie de cada página (en el PDF, el LaTeX y el Word).</source>
         <translation>Puts the subject name at the bottom, in the footer of each page (in the PDF, LaTeX and Word files).</translation>
     </message>
@@ -2764,15 +2781,15 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
     </message>
     <message>
         <location line="+9"/>
-        <source>Se genera un examen por cada nombre marcado, en este orden.
-Doble clic para cambiar el nombre; arrastre para cambiar el orden.</source>
-        <translation>One exam is generated for each ticked name, in this order.
-Double-click to change the name; drag to change the order.</translation>
+        <source>Se genera un examen por cada nombre marcado (o uno por cada versión), en este orden.
+Doble clic para cambiar el nombre; arrastre, o Subir y Bajar, para cambiar el orden.</source>
+        <translation>One exam is generated for each ticked name (or one for each version), in this order.
+Double-click to change the name; drag, or use Move up and Move down, to change the order.</translation>
     </message>
     <message>
-        <location line="+20"/>
+        <location line="+21"/>
         <source>Aña&amp;dir</source>
-        <extracomment>Botón: añade un examen a la lista de exámenes que se generan. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de un menú ni la de otro de estos cuatro botones.</extracomment>
+        <extracomment>Botón: añade un examen a la lista de exámenes que se generan. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de un menú ni la de otro de estos seis botones.</extracomment>
         <translation>A&amp;dd</translation>
     </message>
     <message>
@@ -2814,7 +2831,57 @@ Double-click to change the name; drag to change the order.</translation>
         <translation>Unticks all the exams in the list</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+7"/>
+        <source>&amp;Subir</source>
+        <extracomment>Botón: sube en la lista el examen seleccionado. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de un menú ni la de otro de estos seis botones.</extracomment>
+        <translation>Move &amp;up</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Sube en la lista el examen seleccionado</source>
+        <translation>Moves the selected exam up the list</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Bajar</source>
+        <extracomment>Botón: baja en la lista el examen seleccionado. El &amp; marca la letra del atajo (Alt+letra).</extracomment>
+        <translation>Move do&amp;wn</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Baja en la lista el examen seleccionado</source>
+        <translation>Moves the selected exam down the list</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Versiones del examen seleccionado. Con varias, cada una es un examen más, con las mismas preguntas en otro orden (siempre por temas: las del tema 1, luego las del 2…) y las opciones barajadas.</source>
+        <translation>Versions of the selected exam. With several, each one is one more exam, with the same questions in a different order (always by topic: those of topic 1, then those of topic 2…) and the options shuffled.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Versiones:</source>
+        <extracomment>Delante del número de versiones del examen seleccionado en la lista</extracomment>
+        <translation>Versions:</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>A, B, C…</source>
+        <extracomment>Numeración de las versiones de un examen: con letras</extracomment>
+        <translation>A, B, C…</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>1, 2, 3…</source>
+        <extracomment>Numeración de las versiones de un examen: con números</extracomment>
+        <translation>1, 2, 3…</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Cómo se llaman las versiones de los exámenes: «Nacional Original A», «… B»… o «Nacional Original 1», «… 2»…</source>
+        <translation>How the versions of the exams are named: “Nacional Original A”, “… B”… or “Nacional Original 1”, “… 2”…</translation>
+    </message>
+    <message>
+        <location line="+33"/>
         <source>Exámenes: 1 modelo de %1 seleccionado.</source>
         <extracomment>Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay</extracomment>
         <translation>Exams: 1 model of %1 selected.</translation>
@@ -2822,10 +2889,17 @@ Double-click to change the name; drag to change the order.</translation>
     <message>
         <location line="+3"/>
         <source>Exámenes: %1 modelos de %2 seleccionados.</source>
+        <extracomment>Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay</extracomment>
         <translation>Exams: %1 models of %2 selected.</translation>
     </message>
     <message>
         <location line="+5"/>
+        <source> Con sus versiones, %1 exámenes.</source>
+        <extracomment>Se añade al título del recuadro de la lista de exámenes (con el espacio delante) si alguno tiene versiones</extracomment>
+        <translation> With their versions, %1 exams.</translation>
+    </message>
+    <message>
+        <location line="+6"/>
         <source>Preguntas por tema</source>
         <translation>Questions per topic</translation>
     </message>
@@ -3086,7 +3160,7 @@ If empty, different exams come out each time.</translation>
         <translation>Distinct questions available (variants a, b, c... count as one)</translation>
     </message>
     <message>
-        <location line="+54"/>
+        <location line="+56"/>
         <source>No se pudo guardar el nombre de la asignatura en el banco:
 %1</source>
         <translation>Could not save the subject name in the bank:
@@ -3181,7 +3255,7 @@ Replace it with this one?</translation>
         <translation>&lt;b&gt;Total: %1 questions&lt;/b&gt;</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+62"/>
         <source>Nuevo examen</source>
         <extracomment>Nombre que se propone para un examen nuevo de la lista (se cambia en el momento)</extracomment>
         <translation>New exam</translation>
@@ -3505,7 +3579,7 @@ Replace it with this one?</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="-874"/>
+        <location filename="../src/panelconfiguracion.cpp" line="-994"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
@@ -3919,12 +3993,12 @@ Choose where it is or create a new one.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+659"/>
+        <location line="+666"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-650"/>
+        <location line="-657"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3936,7 +4010,13 @@ Choose where it is or create a new one.</translation>
         <translation>%1 questions have been imported.</translation>
     </message>
     <message>
-        <location line="-31"/>
+        <location line="+405"/>
+        <source>Hay dos exámenes marcados con el mismo nombre: «%1».</source>
+        <extracomment>%1 es el nombre de un examen, con su versión si tiene («Nacional Original B»)</extracomment>
+        <translation>Two ticked exams have the same name: “%1”.</translation>
+    </message>
+    <message>
+        <location line="-436"/>
         <source>¿Cómo quiere importar las preguntas?
 
 Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.
@@ -4213,7 +4293,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Specify how many questions you want from each topic.</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+11"/>
         <source>Marque en la lista los exámenes que quiere generar.</source>
         <translation>Tick the exams you want to generate in the list.</translation>
     </message>
@@ -4223,12 +4303,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>A ticked exam has no name.</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Hay dos exámenes marcados con el mismo nombre.</source>
-        <translation>Two ticked exams have the same name.</translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+15"/>
         <source>No hay ninguna convocatoria registrada en el historial, así que no se evitan las preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con Archivo → Registrar exámenes anteriores…</source>
         <translation>There is no exam session recorded in the history, so questions from previous ones are not avoided. If they were held outside the program, record them with File → Record previous exams…</translation>
     </message>
@@ -4461,7 +4536,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>There is no other question from topic %1 that can replace question %2 (%3): the others are variants or pseudo-duplicates of other questions in the exam.</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>«%1», pregunta %2: %3 en lugar de %4</source>
         <extracomment>%1 es el nombre del examen, %2 el número de la pregunta en él, %3 y %4 los códigos de la nueva y de la quitada (T2-15b)</extracomment>
         <translation>“%1”, question %2: %3 instead of %4</translation>

@@ -384,6 +384,66 @@ void ordenar(QVector<PreguntaExamen> &preguntas, bool alAzar, QRandomGenerator &
                   [](const PreguntaExamen &a, const PreguntaExamen &b) { return a.pregunta.antesQue(b.pregunta); });
 }
 
+// «Nacional Original B»: el nombre de una versión.
+QString nombreConVersion(const QString &base, const QString &version)
+{
+    return base + QLatin1Char(' ') + version;
+}
+
+// Cambia el orden de las preguntas dentro de cada tema, sin mezclar los temas (van seguidas las de cada uno).
+void barajarDentroDeCadaTema(QVector<PreguntaExamen> &preguntas, QRandomGenerator &rng)
+{
+    for (int inicio = 0; inicio < preguntas.size();) {
+        int fin = inicio + 1;
+        while (fin < preguntas.size() && preguntas.at(fin).pregunta.temaNumero == preguntas.at(inicio).pregunta.temaNumero)
+            ++fin;
+        std::shuffle(preguntas.begin() + inicio, preguntas.begin() + fin, rng);
+        inicio = fin;
+    }
+}
+
+// Las 'n' versiones de 'modelo' (ver ConfigExamen::versiones), con sus preguntas ya elegidas, ordenadas y barajadas
+// como las de un examen sin versiones. Siempre por temas: las del tema 1, las del 2… La A, como el modelo; con orden
+// aleatorio, con las de cada tema en el orden al azar en que ya estaban y las opciones barajadas. Las demás, con las
+// de cada tema en otro orden (si se puede, distinto del de las otras versiones) y las opciones barajadas.
+QVector<Modelo> versionesDelModelo(const Modelo &modelo, int n, const ConfigExamen &config, QRandomGenerator &rng)
+{
+    Modelo a = modelo;
+    a.base = modelo.nombre;
+    if (config.ordenAleatorio) {
+        std::stable_sort(a.preguntas.begin(), a.preguntas.end(), [](const PreguntaExamen &x, const PreguntaExamen &y) {
+            return x.pregunta.temaNumero < y.pregunta.temaNumero;
+        });
+        repartirCorrectas(a.preguntas, rng, config, true);
+        a.barajadas = true;
+    }
+    auto orden = [](const Modelo &m) {
+        QVector<int> ids;
+        for (const PreguntaExamen &pe : m.preguntas)
+            ids << pe.pregunta.id;
+        return ids;
+    };
+    QVector<Modelo> versiones;
+    QVector<QVector<int>> ordenes;
+    for (int v = 0; v < n; ++v) {
+        Modelo m = a;
+        m.version = Generador::etiquetaVersion(v, config.versionesConNumeros);
+        m.nombre = nombreConVersion(a.base, m.version);
+        if (v > 0) {
+            for (int intento = 0; intento < 50; ++intento) {
+                barajarDentroDeCadaTema(m.preguntas, rng);
+                if (!ordenes.contains(orden(m)))
+                    break;
+            }
+            repartirCorrectas(m.preguntas, rng, config, true);
+            m.barajadas = true;
+        }
+        ordenes << orden(m);
+        versiones << m;
+    }
+    return versiones;
+}
+
 // Comienzo de los avisos sobre un examen entero («Nacional Original»: …). Con él se reconocen al cambiar una de sus
 // preguntas, así que el aviso y la búsqueda lo toman de aquí, en el idioma que sea.
 QString inicioAvisoExamen(const QString &nombre)
@@ -441,35 +501,27 @@ QString avisoReparto(const Modelo &modelo, bool barajadas)
         .arg(barajadas ? QString() : Generador::tr("; marque «Barajar las opciones» para repartirla"));
 }
 
-} // namespace
-
-bool Generador::cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExamen &config, ResultadoGeneracion &resultado,
-                                int modelo, int indice, const QSet<QString> &descartados)
+// Pone 'nueva' en lugar de la pregunta 'indice' de 'm' (ver Generador::cambiarPregunta()) y pone al día los avisos de
+// ese examen que pueden haber cambiado: el del reparto de la correcta («Nacional Original»: …) y los de ese sitio
+// («Nacional Original», pregunta 7: …), con 'aviso' si no está vacío.
+void ponerEnSuSitio(Modelo &m, int indice, const Pregunta &nueva, const QString &aviso, const ConfigExamen &config,
+                    QStringList &avisos, QRandomGenerator &rng)
 {
-    if (modelo < 0 || modelo >= resultado.modelos.size() || indice < 0 || indice >= resultado.modelos.at(modelo).preguntas.size())
-        return false;
-    QRandomGenerator rng(QRandomGenerator::global()->generate());
-    Seleccion seleccion(banco, config, rng);
-    QString aviso;
-    const Pregunta nueva = seleccion.sustituta(resultado.modelos, modelo, indice, descartados, aviso);
-    if (nueva.id == 0)
-        return false;
-
-    Modelo &m = resultado.modelos[modelo];
     PreguntaExamen &pe = m.preguntas[indice];
     int letra = pe.correcta();
     // Barajadas, la correcta va a la letra de la quitada, que deja el reparto como estaba (si estaba bien repartida,
     // es una de las que menos salen en el resto del examen). Si no lo es (la quitada tenía la correcta fija, porque sus
     // opciones remiten a otras), a una de las que menos salen: la letra de la nueva no cambia nada más del examen.
     // Si la nueva ya ha salido, se barajan aunque no se pida, y la correcta va a una de sus letras permitidas.
-    const bool barajar = !Estilo::tieneOpcionesDependientes(nueva) && (config.barajarOpciones || yaSalio(nueva, config));
+    const bool barajadas = config.barajarOpciones || m.barajadas;
+    const bool barajar = !Estilo::tieneOpcionesDependientes(nueva) && (barajadas || yaSalio(nueva, config));
     if (barajar) {
         std::array<int, 4> cuenta{};
         for (int i = 0; i < m.preguntas.size(); ++i)
             if (i != indice)
                 ++cuenta[m.preguntas.at(i).correcta()];
         const int permitidas = letrasPermitidas(nueva, config);
-        int minimo = m.preguntas.size();
+        int minimo = int(m.preguntas.size());
         for (int l = 0; l < 4; ++l)
             if (permitidas & (1 << l))
                 minimo = qMin(minimo, cuenta[l]);
@@ -486,19 +538,82 @@ bool Generador::cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExam
     if (barajar)
         ponerCorrectaEn(pe, letra, rng);
 
-    // Los avisos de este examen que pueden haber cambiado: el del reparto de la correcta («Nacional Original»: …)
-    // y los de la pregunta de este sitio («Nacional Original», pregunta 7: …).
     const QString delReparto = inicioAvisoExamen(m.nombre);
     const QString delSitio = inicioAvisoPregunta(m.nombre, indice);
-    resultado.avisos.removeIf([&](const QString &a) { return a.startsWith(delReparto) || a.startsWith(delSitio); });
+    avisos.removeIf([&](const QString &a) { return a.startsWith(delReparto) || a.startsWith(delSitio); });
     if (!aviso.isEmpty())
-        resultado.avisos << delSitio + aviso;
+        avisos << delSitio + aviso;
     const QString noBarajable = avisoNoBarajable(m, indice, config);
     if (!noBarajable.isEmpty())
-        resultado.avisos << noBarajable;
-    const QString reparto = avisoReparto(m, config.barajarOpciones);
+        avisos << noBarajable;
+    const QString reparto = avisoReparto(m, barajadas);
     if (!reparto.isEmpty())
-        resultado.avisos << reparto;
+        avisos << reparto;
+}
+
+} // namespace
+
+int ConfigExamen::numVersiones(int modelo) const
+{
+    return qBound(1, versiones.value(modelo, 1), Generador::kMaxVersiones);
+}
+
+QString Generador::etiquetaVersion(int indice, bool conNumeros)
+{
+    return conNumeros ? QString::number(indice + 1) : QString(QChar(QLatin1Char('A').unicode() + indice));
+}
+
+QStringList Generador::nombresExamenes(const ConfigExamen &config)
+{
+    QStringList nombres;
+    for (int i = 0; i < config.nombresModelos.size(); ++i) {
+        const int n = config.numVersiones(i);
+        if (n == 1)
+            nombres << config.nombresModelos.at(i);
+        else
+            for (int v = 0; v < n; ++v)
+                nombres << nombreConVersion(config.nombresModelos.at(i), etiquetaVersion(v, config.versionesConNumeros));
+    }
+    return nombres;
+}
+
+QVector<int> Generador::versionesDe(const ResultadoGeneracion &resultado, int modelo)
+{
+    if (modelo < 0 || modelo >= resultado.modelos.size())
+        return {};
+    const Modelo &m = resultado.modelos.at(modelo);
+    if (m.version.isEmpty())
+        return {modelo};
+    QVector<int> res;
+    for (int i = 0; i < resultado.modelos.size(); ++i)
+        if (!resultado.modelos.at(i).version.isEmpty() && resultado.modelos.at(i).base == m.base)
+            res << i;
+    return res;
+}
+
+bool Generador::cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExamen &config, ResultadoGeneracion &resultado,
+                                int modelo, int indice, const QSet<QString> &descartados)
+{
+    if (modelo < 0 || modelo >= resultado.modelos.size() || indice < 0 || indice >= resultado.modelos.at(modelo).preguntas.size())
+        return false;
+    QRandomGenerator rng(QRandomGenerator::global()->generate());
+    Seleccion seleccion(banco, config, rng);
+    QString aviso;
+    const Pregunta nueva = seleccion.sustituta(resultado.modelos, modelo, indice, descartados, aviso);
+    if (nueva.id == 0)
+        return false;
+
+    // En este examen y, si tiene versiones, en todas, cada una en el sitio en que la tenga.
+    const Pregunta quitada = resultado.modelos.at(modelo).preguntas.at(indice).pregunta;
+    for (int v : versionesDe(resultado, modelo)) {
+        Modelo &m = resultado.modelos[v];
+        int sitio = v == modelo ? indice : -1;
+        for (int i = 0; sitio < 0 && i < m.preguntas.size(); ++i)
+            if (m.preguntas.at(i).pregunta.id == quitada.id && m.preguntas.at(i).pregunta.codigoCompleto() == quitada.codigoCompleto())
+                sitio = i;
+        if (sitio >= 0)
+            ponerEnSuSitio(m, sitio, nueva, aviso, config, resultado.avisos, rng);
+    }
     return true;
 }
 
@@ -514,7 +629,7 @@ int Generador::ponerCorregida(ResultadoGeneracion &resultado, const ConfigExamen
             if (pe.pregunta.id != antes.id || pe.pregunta.codigoCompleto() != antes.codigoCompleto())
                 continue;
             const int letra = pe.correcta();
-            const bool barajadas = config.barajarOpciones || pe.orden != std::array<int, 4>{{0, 1, 2, 3}};
+            const bool barajadas = config.barajarOpciones || m.barajadas || pe.orden != std::array<int, 4>{{0, 1, 2, 3}};
             const bool otraCorrecta = corregida.correcta != pe.pregunta.correcta;
             pe.pregunta = corregida;
             if (dependientes)
@@ -528,7 +643,7 @@ int Generador::ponerCorregida(ResultadoGeneracion &resultado, const ConfigExamen
             continue;
         const QString delReparto = inicioAvisoExamen(m.nombre);
         resultado.avisos.removeIf([&](const QString &a) { return a.startsWith(delReparto); });
-        const QString reparto = avisoReparto(m, config.barajarOpciones);
+        const QString reparto = avisoReparto(m, config.barajarOpciones || m.barajadas);
         if (!reparto.isEmpty())
             resultado.avisos << reparto;
     }
@@ -573,12 +688,15 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
     // serie de números al azar, sacada de la misma semilla: así 'rng', y con ella las preguntas que se eligen con cada
     // semilla, sigue como antes.
     QRandomGenerator rngExtra(res.semilla ^ 0x9e3779b9u);
+    // Y otra para las versiones: así, con una semilla, los exámenes sin versiones salen igual tengan o no versiones
+    // los demás.
+    QRandomGenerator rngVersiones(res.semilla ^ 0x7f4a7c15u);
     Seleccion seleccion(banco, config, rng);
     QSet<int> temasAvisoRepeticion, temasAvisoFaltan;
 
-    for (const QString &nombre : config.nombresModelos) {
+    for (int k = 0; k < config.nombresModelos.size(); ++k) {
         Modelo modelo;
-        modelo.nombre = nombre;
+        modelo.nombre = config.nombresModelos.at(k);
         QSet<QString> usadosModelo;
         for (auto it = config.preguntasPorTema.cbegin(); it != config.preguntasPorTema.cend(); ++it) {
             const int tema = it.key();
@@ -607,15 +725,19 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
             repartirCorrectas(modelo.preguntas, rng, config, true);
         else
             repartirCorrectas(modelo.preguntas, rngExtra, config, false);   // solo las que ya han salido
-        const QString aviso = avisoReparto(modelo, config.barajarOpciones);
-        if (!aviso.isEmpty())
-            res.avisos << aviso;
-        for (int i = 0; i < modelo.preguntas.size(); ++i) {
-            const QString noBarajable = avisoNoBarajable(modelo, i, config);
-            if (!noBarajable.isEmpty())
-                res.avisos << noBarajable;
+        modelo.barajadas = config.barajarOpciones;
+        const int n = config.numVersiones(k);
+        for (const Modelo &m : n > 1 ? versionesDelModelo(modelo, n, config, rngVersiones) : QVector<Modelo>{modelo}) {
+            const QString aviso = avisoReparto(m, m.barajadas);
+            if (!aviso.isEmpty())
+                res.avisos << aviso;
+            for (int i = 0; i < m.preguntas.size(); ++i) {
+                const QString noBarajable = avisoNoBarajable(m, i, config);
+                if (!noBarajable.isEmpty())
+                    res.avisos << noBarajable;
+            }
+            res.modelos.append(m);
         }
-        res.modelos.append(modelo);
     }
     res.avisos << seleccion.avisosUsoAnterior();
     return res;

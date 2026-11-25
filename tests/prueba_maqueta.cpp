@@ -407,6 +407,31 @@ private slots:
         QVERIFY(Exportacion::pdf(dir.filePath(QStringLiteral("sin.pdf")), {m}, d, true, 0));
     }
 
+    // La versión del examen («Versión B»), arriba a la derecha de la primera página si se pide y el examen tiene, en la
+    // vista, el PDF y el LaTeX; con soluciones, encima de «CON SOLUCIONES».
+    void versionEnLaCabecera()
+    {
+        Modelo m = examenes(bancoInventado(), 3, 1).first();
+        DatosConvocatoria d = convocatoria();
+        m.base = m.nombre;
+        m.version = QStringLiteral("B");
+        m.nombre += QStringLiteral(" B");
+        QVERIFY(!Maquetador::examenHtml(m, d, false).contains(QStringLiteral("Versión B")));   // no se pide
+        QVERIFY(!Latex::examenes({m}, d, false, QStringLiteral("img")).contains(QStringLiteral("Versión B")));
+        d.versionEnCabecera = true;
+        QCOMPARE(Maquetador::textoVersion(m, d), QStringLiteral("Versión B"));
+        QString html = Maquetador::examenHtml(m, d, false);
+        QVERIFY2(html.contains(QStringLiteral("font-weight:bold\">Versión B</span></td>")), qPrintable(html.left(1500)));
+        html = Maquetador::examenHtml(m, d, true);
+        QVERIFY(html.contains(QStringLiteral("Versión B</span><br><span")));
+        QVERIFY(Latex::examenes({m}, d, false, QStringLiteral("img")).contains(QStringLiteral("{\\large\\bfseries Versión B}")));
+        d.idioma = QStringLiteral("en");
+        QCOMPARE(Maquetador::textoVersion(m, d), QStringLiteral("Version B"));
+        // Sin versión, nada, aunque se pida.
+        m.version.clear();
+        QVERIFY(Maquetador::textoVersion(m, d).isEmpty());
+    }
+
     // La vista del examen no tiene páginas: el pie va al final, como sale en la última página, con lo elegido.
     void pieEnLaVista()
     {

@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSqlDatabase>
+#include <QSqlError>
 #include <QSqlQuery>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -806,6 +807,60 @@ private slots:
         const QHash<QString, int> sinSeptiembre = bd.usoReciente(1, 2026, QStringLiteral("Septiembre"), {QStringLiteral("Uno")});
         for (const PreguntaExamen &pe : junio.preguntas)
             QCOMPARE(sinSeptiembre.value(pe.pregunta.codigoCompleto()), 1);
+    }
+
+    // Las versiones de un examen se registran como exámenes, cada una con su versión, y se cargan con ella (y con su
+    // nombre de la lista). Un banco de la versión 2 del esquema, sin la columna, se pone al día.
+    void historialConVersiones()
+    {
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd), qPrintable(bd.ultimoError()));
+        ConfigExamen c;
+        c.preguntasPorTema = {{1, 3}, {2, 2}};
+        c.nombresModelos = {QStringLiteral("Uno"), QStringLiteral("Dos")};
+        c.versiones = {2, 1};
+        c.semilla = 9;
+        const ResultadoGeneracion r = Generador::generar(bd.preguntas(), c);
+        DatosConvocatoria d;
+        d.convocatoria = QStringLiteral("Junio");
+        d.anio = 2026;
+        QVERIFY(bd.registrarExamenes(r.modelos, d, r.semilla));
+        auto cargados = [&bd]() {
+            QVector<Modelo> res;
+            for (const ExamenRegistrado &e : bd.examenesRegistrados())
+                res << bd.modeloRegistrado(e.id);
+            return res;
+        };
+        QVector<Modelo> m = cargados();
+        QCOMPARE(m.size(), 3);
+        QCOMPARE(m.at(1).nombre, QStringLiteral("Uno B"));
+        QCOMPARE(m.at(1).version, QStringLiteral("B"));
+        QCOMPARE(m.at(1).base, QStringLiteral("Uno"));
+        QVERIFY(m.at(1).barajadas);   // las B van con las opciones barajadas
+        QVERIFY(m.at(2).version.isEmpty() && m.at(2).base.isEmpty());
+        ResultadoGeneracion cargado;
+        cargado.modelos = m;
+        QCOMPARE(Generador::versionesDe(cargado, 1), (QVector<int>{0, 1}));
+
+        // La versión 2 del esquema no tenía la columna.
+        const QString ruta = bd.ruta();
+        bd.cerrar();
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("version2"));
+            db.setDatabaseName(ruta);
+            QVERIFY(db.open());
+            QSqlQuery q(db);
+            QVERIFY2(q.exec(QStringLiteral("ALTER TABLE examenes_registrados DROP COLUMN version")), qPrintable(q.lastError().text()));
+            QVERIFY(q.exec(QStringLiteral("PRAGMA user_version = 2")));
+        }
+        QSqlDatabase::removeDatabase(QStringLiteral("version2"));
+        QVERIFY2(bd.abrir(ruta), qPrintable(bd.ultimoError()));
+        m = cargados();
+        QCOMPARE(m.size(), 3);
+        QVERIFY(m.at(1).version.isEmpty());   // los de antes no dicen su versión
+        QCOMPARE(m.at(1).nombre, QStringLiteral("Uno B"));
+        QVERIFY(bd.registrarExamenes(r.modelos, d, r.semilla));   // y se pueden volver a registrar con ella
+        QCOMPARE(cargados().at(1).version, QStringLiteral("B"));
     }
 
     // Cómo salió cada pregunta en todos los exámenes registrados: la letra de la correcta cada vez, de la convocatoria

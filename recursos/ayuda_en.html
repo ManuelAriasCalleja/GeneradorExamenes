@@ -153,24 +153,54 @@ line. If an exam does not fit on its page, shortening the instructions helps.</l
 header of each exam (and of the solutions sheet), and at the bottom, in the footer of each page, next to the exam name
 and the page number (in the PDF, LaTeX and Word files): “Subject · Nacional Original · June 2026: 1 / 2”. They are
 ticked unless you untick them, and they are saved in the bank. With nothing at the top, the exam starts with the
-instructions box; at the bottom, the exam name and the page are always there.</li>
+instructions box; at the bottom, the exam name and the page are always there. The <b>Version</b> checkbox, unticked
+by default, puts “Version B” at the top right in exams with several versions (see <a href="#versiones">Versions of an
+exam</a>).</li>
 </ul>
 
 <h3><a name="lista-examenes"></a>List of exams</h3>
-<p>One exam is generated for each ticked name, in the order of the list. The title of the box says how many are
-ticked out of those in the list: “Exams: 2 models of 3 selected.”. The footer of each page carries the name of the
+<p>One exam is generated for each ticked name (or one for each version: see <a href="#versiones">Versions of an
+exam</a>), in the order of the list. The title of the box says how many are ticked out of those in the list: “Exams:
+2 models of 3 selected.”. The footer of each page carries the name of the
 exam and, if wanted, the subject and the exam session with the year (see <a href="#convocatoria">Exam session</a>):
 “Subject · Nacional Original · June 2026: 1 / 2”.</p>
 <ul>
 <li><b>Add</b> (Alt+D): adds a new name, which you type in at that moment.</li>
 <li><b>Remove</b> (Alt+R): removes the selected name from the list (it asks for confirmation).</li>
 <li><b>All</b> (Alt+A) and <b>None</b> (Alt+N): tick or untick all the names.</li>
-<li>Double-click a name to change it; drag it to change its position.</li>
+<li><b>Move up</b> (Alt+U) and <b>Move down</b> (Alt+W): move the selected name one position up or down. You can
+also drag it.</li>
+<li>Double-click a name to change it.</li>
 </ul>
 <p>The shortcut letter of each button is underlined on it (on some desktops, only while Alt is held down). These
 shortcuts do not exist on macOS: click the buttons with the mouse.</p>
 <p>The list is saved in the bank, so each subject has its own, and it is kept from one year to the next. There cannot
-be two ticked exams with the same name, nor one without a name.</p>
+be two ticked exams with the same name, counting their versions, nor one without a name.</p>
+
+<h3><a name="versiones"></a>Versions of an exam</h3>
+<p>Each exam in the list can have several versions, with the same questions in a different order, so that people
+sitting next to each other do not have the same exam. Select the exam in the list and set how many in
+<b>Versions</b> (from 1 to 26; with 1, no versions). The list shows it next to the name, “Nacional Original (A–C)”,
+and the title of the box, how many exams come out with them.</p>
+<ul>
+<li>Each version is one more exam: “Nacional Original A”, “Nacional Original B”…, or “Nacional Original 1”, “… 2”…
+if you choose <b>1, 2, 3…</b> instead of <b>A, B, C…</b> (the numbering is the same for the whole list). It is
+previewed, exported, printed, practised and recorded in the history like any exam, with its answer key.</li>
+<li>They all have the same questions and are always ordered by topic: first those of topic 1, then those of topic 2,
+and so on.</li>
+<li>Version A comes out as the exam would without versions. The others have the questions of each topic in a different
+order (if possible, different from that of the other versions) and the options shuffled, with the correct answer
+spread across a)–d) (see <a href="#correctas">Distribution of the correct answer</a>).</li>
+<li>With <b>Random order</b>, version A also shuffles the questions within each topic and shuffles the options.</li>
+<li>“Do not repeat questions between exams” does not count the versions of the same exam against each other, but it
+does against the other exams.</li>
+<li>When a question of a version is replaced, it is replaced in all the versions of that exam, each in its own
+place.</li>
+<li>With the <b>Version</b> checkbox of the header (see <a href="#convocatoria">Exam session</a>), each version has
+“Version B” at the top right of the first page, so that it can be seen when it is written on the answer sheet. The
+name of the exam, with its version, always goes in the footer.</li>
+</ul>
+<p>The versions of each exam and the numbering are saved in the bank, with the list.</p>
 
 <h3><a name="reparto"></a>Questions per topic</h3>
 <p>There is one box per topic with the number of questions you want from it. Next to it, in grey, “of N” shows how
@@ -238,7 +268,8 @@ it, a topic has fewer than are requested, the ones available are requested, and 
 numbers come back.</td></tr>
 <tr><td><b>Random order</b></td>
 <td>Shuffles the questions of the exam. If unticked, they are ordered by topic and number, as in the official
-exams.</td></tr>
+exams. In an exam with several versions, only within each topic, and it also shuffles the options (see
+<a href="#versiones">Versions of an exam</a>).</td></tr>
 <tr><td><b>Shuffle the options</b></td>
 <td>Changes the order of the options to spread the correct answer across a), b), c) and d) (see
 <a href="#correctas">Distribution of the correct answer</a>). The options of questions that have already been used are

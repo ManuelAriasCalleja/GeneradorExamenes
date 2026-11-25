@@ -180,7 +180,8 @@ private:
     // Pone al día un banco de una versión anterior del programa (PRAGMA user_version). En la 1, el banco lleva el
     // nombre de la asignatura, sus repartos y la forma de la referencia de cada tema; a los bancos de antes, que
     // eran todos de Fundamentos de la informática (los que tienen temas), se les ponen los de esa asignatura. En la 2,
-    // las preguntas dicen si están verificadas (ninguna lo está).
+    // las preguntas dicen si están verificadas (ninguna lo está). En la 3, los exámenes registrados dicen su versión
+    // (ninguno tiene).
     bool actualizarEsquema();
     // Sentencia con sus valores (los «?», en orden); si falla, deja el error en m_error. En 'id' deja el de la fila
     // insertada.

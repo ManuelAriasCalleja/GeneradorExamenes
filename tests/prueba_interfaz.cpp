@@ -820,7 +820,7 @@ private slots:
                 botones = g->findChildren<QPushButton *>();
             }
         QVERIFY(lista);
-        QCOMPARE(botones.size(), 4);
+        QCOMPARE(botones.size(), 6);   // Añadir, Quitar, Todos, Ninguno, Subir y Bajar
 
         // Cada botón tiene su atajo (Alt y una letra), distinto del de los otros y de los de los menús, y lo dice su
         // descripción emergente. En macOS no existen estos atajos: los botones se pulsan.
@@ -887,6 +887,23 @@ private slots:
         usar(Qt::Key_Q);
         QTRY_COMPARE(lista->count(), examenes);
         QCOMPARE(grupo->title(), titulo(examenes, examenes));
+
+        // Bajar y Subir mueven el elegido (en el primero no sube y en el último no baja). Los atajos solo van con la
+        // ventana activa, y la confirmación de Quitar se ha llevado la activación.
+        v.activateWindow();
+        QVERIFY(QTest::qWaitForWindowActive(&v));
+        const QString primero = lista->item(0)->text(), segundo = lista->item(1)->text();
+        lista->setCurrentRow(0);
+        usar(Qt::Key_S);
+        QTest::qWait(50);
+        QCOMPARE(lista->item(0)->text(), primero);
+        usar(Qt::Key_B);
+        QTRY_COMPARE(lista->item(1)->text(), primero);
+        QCOMPARE(lista->item(0)->text(), segundo);
+        QCOMPARE(lista->currentRow(), 1);
+        usar(Qt::Key_S);
+        QTRY_COMPARE(lista->item(0)->text(), primero);
+        QCOMPARE(lista->currentRow(), 0);
         v.close();
         QSettings().clear();
     }
@@ -1744,6 +1761,77 @@ private slots:
         QTest::keyClick(arbol, Qt::Key_Return);
         QCOMPARE(d.result(), int(QDialog::Accepted));
         QCOMPARE(d.examenesElegidos().size(), 1);
+    }
+
+    // Las versiones de un examen se eligen en la lista (el elegido), se generan como exámenes («Nacional Original A»…), la
+    // versión va en la cabecera si se marca la casilla, y todo se recuerda con el banco.
+    void ventanaConVersiones()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        auto controles = [](VentanaPrincipal &v, QListWidget *&lista, QSpinBox *&versiones, QGroupBox *&grupo) {
+            for (QGroupBox *g : v.findChildren<QGroupBox *>())
+                if (g->title().startsWith(QStringLiteral("Exámenes:"))) {
+                    grupo = g;
+                    lista = g->findChild<QListWidget *>();
+                }
+            for (QLabel *l : v.findChildren<QLabel *>())
+                if (l->text() == QStringLiteral("Versiones:"))
+                    versiones = qobject_cast<QSpinBox *>(l->buddy());
+        };
+        {
+            VentanaPrincipal v;
+            v.show();
+            QVERIFY(v.abrirBancoInicial(ruta));
+            QListWidget *lista = nullptr;
+            QSpinBox *versiones = nullptr;
+            QGroupBox *grupo = nullptr;
+            controles(v, lista, versiones, grupo);
+            QVERIFY(lista && versiones && grupo);
+            QCOMPARE(lista->item(0)->text(), QStringLiteral("Nacional Original"));
+            lista->setCurrentRow(0);
+            QVERIFY(versiones->isEnabled());
+            QCOMPARE(versiones->value(), 1);
+            versiones->setValue(3);
+            QVERIFY2(grupo->title().endsWith(QStringLiteral(" Con sus versiones, 4 exámenes.")), qPrintable(grupo->title()));
+            lista->setCurrentRow(1);
+            QCOMPARE(versiones->value(), 1);   // el de cada examen
+            QVERIFY(marcar(&v, QStringLiteral("Versión")));
+            QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
+            QComboBox *selector = nullptr;
+            for (QComboBox *c : v.findChildren<QComboBox *>())
+                if (c->count() == 4 && c->itemText(0) == QStringLiteral("Nacional Original A"))
+                    selector = c;
+            QVERIFY(selector);
+            QCOMPARE(selector->itemText(2), QStringLiteral("Nacional Original C"));
+            QCOMPARE(selector->itemText(3), QStringLiteral("Nacional Reserva"));
+            selector->setCurrentIndex(1);
+            QTextBrowser *visor = nullptr;
+            for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
+                if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
+                    visor = t;
+            QVERIFY(visor);
+            QVERIFY(visor->toPlainText().contains(QStringLiteral("Versión B")));
+            selector->setCurrentIndex(3);
+            QVERIFY(!visor->toPlainText().contains(QStringLiteral("Versión")));   // sin versiones
+            v.close();
+        }
+        // Con el banco se recuerdan las versiones de cada examen y la casilla.
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QListWidget *lista = nullptr;
+        QSpinBox *versiones = nullptr;
+        QGroupBox *grupo = nullptr;
+        controles(v, lista, versiones, grupo);
+        QVERIFY(lista && versiones);
+        lista->setCurrentRow(0);
+        QCOMPARE(versiones->value(), 3);
+        QVERIFY(conTexto<QCheckBox>(&v, QStringLiteral("Versión"))->isChecked());
+        v.close();
+        QSettings().clear();
     }
 
     // Al generar, la ventana tiene en cuenta cómo salieron las preguntas en el historial: las que ya salieron llevan las

@@ -133,12 +133,21 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
 - Cabecera y pie de página: dos casillas para cada uno, «Asignatura» y «Convocatoria y año», marcadas salvo que se
   desmarquen y guardadas en cada banco, deciden si la asignatura y la convocatoria van arriba (en la cabecera de cada
   examen y de la hoja de soluciones) y abajo (en el pie de cada página, en el PDF, el LaTeX y el Word). Sin nada
-  arriba, el examen empieza por el recuadro de las instrucciones.
+  arriba, el examen empieza por el recuadro de las instrucciones. Una tercera casilla de la cabecera, «Versión»
+  (desmarcada al principio), pone «Versión B» arriba a la derecha en los exámenes con varias versiones.
 - Lista de exámenes de la convocatoria (Nacional Original, Nacional Reserva…) con casillas: se genera un examen
   por cada nombre marcado, en el orden de la lista. La lista se mantiene de un año a otro; los nombres se
-  añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando); cada banco tiene la suya. Los botones
-  tienen atajo: Añadir (Alt+D), Quitar (Alt+Q), Todos (Alt+T) y Ninguno (Alt+N). El pie de cada página lleva la
-  asignatura, el nombre del examen, la convocatoria y el año: «Asignatura · Nacional Original · Junio 2026: 1 / 2».
+  añaden, se quitan, se cambian (doble clic) y se ordenan (arrastrando, o con Subir y Bajar); cada banco tiene la
+  suya. Los botones tienen atajo: Añadir (Alt+D), Quitar (Alt+Q), Todos (Alt+T), Ninguno (Alt+N), Subir (Alt+S) y
+  Bajar (Alt+B). El pie de cada página lleva la asignatura, el nombre del examen, la convocatoria y el año:
+  «Asignatura · Nacional Original · Junio 2026: 1 / 2».
+- Versiones de cada examen de la lista (de 1 a 26, con una numeración para toda la lista: «A, B, C…» o «1, 2,
+  3…»): cada versión es un examen más («Nacional Original A», «… B»), con las mismas preguntas y siempre por temas.
+  La A sale como el examen sin versiones; las demás, con las preguntas de cada tema en otro orden y las opciones
+  barajadas. Con «Orden aleatorio», también la A se desordena dentro de cada tema y baraja las opciones. Las versiones
+  de un examen no cuentan entre sí para «No repetir preguntas entre exámenes»; al cambiar una pregunta de una
+  versión, se cambia en todas. En el historial, cada examen registrado guarda su versión (columna `version`, desde la
+  versión 3 del esquema).
 - Número de preguntas de cada tema. Junto a cada tema se ve cuántas preguntas distintas hay. Los botones de reparto
   son los del banco (por ejemplo, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3) más «Ninguna»;
   «Guardar reparto…» guarda los números de ese momento como un reparto nuevo, con nombre, y con el botón derecho

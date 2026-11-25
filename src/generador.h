@@ -22,6 +22,13 @@ struct ConfigExamen
 {
     QMap<int, int> preguntasPorTema;    // número de tema -> número de preguntas
     QStringList nombresModelos;         // un modelo por nombre (p. ej. "Nacional Original"), en este orden
+    // Versiones de cada modelo de nombresModelos (las que falten: 1, sin versiones). Con varias, cada versión es un
+    // examen más («Nacional Original A», «… B»…), con las mismas preguntas, siempre por temas (las del tema 1, las del
+    // 2…): la A, como saldría el modelo; las demás, con las preguntas de cada tema en otro orden y las opciones
+    // barajadas. Con ordenAleatorio, también la A se desordena dentro de cada tema y lleva las opciones barajadas.
+    QVector<int> versiones;
+    bool versionesConNumeros = false;   // las versiones, «A, B, C…» o «1, 2, 3…»
+    int numVersiones(int modelo) const;
     bool noRepetirEntreModelos = true;  // dentro de una misma convocatoria
     bool incluirParaRevisar = true;     // preguntas marcadas MEJORAR/REFINAR...
     bool soloVerificadas = false;       // solo las verificadas por personas (Pregunta::verificada)
@@ -58,7 +65,12 @@ struct PreguntaExamen
 
 struct Modelo
 {
-    QString nombre;                     // p. ej. "Nacional Original"
+    QString nombre;                     // p. ej. "Nacional Original"; con versiones, «Nacional Original B»
+    // Con versiones (ConfigExamen::versiones), el nombre del examen de la lista («Nacional Original») y la etiqueta de
+    // esta («B», «2»); vacíos si no tiene.
+    QString base;
+    QString version;
+    bool barajadas = false;             // las opciones de todas sus preguntas se barajaron (salvo las que no se puede)
     QVector<PreguntaExamen> preguntas;
 
     // Cuántas veces es correcta cada letra (a, b, c, d) tal como se muestran las opciones.
@@ -95,7 +107,8 @@ public:
     // los grupos 'descartados' («T2-5», ya quitados de ese examen) solo vuelven si no queda otra. La nueva va en el
     // mismo sitio y, si se barajan las opciones, con la correcta en la misma letra (o en una de las que menos salen en
     // el examen, si la quitada no se barajaba y su letra no es de esas), así que el resto no cambia.
-    // Pone al día los avisos de ese examen. Devuelve false, sin cambiar nada, si no hay ninguna que pueda ir.
+    // Si el examen tiene versiones, la cambia en todas, cada una en el sitio en que la tenga. Pone al día los avisos de
+    // esos exámenes. Devuelve false, sin cambiar nada, si no hay ninguna que pueda ir.
     static bool cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExamen &config, ResultadoGeneracion &resultado,
                                 int modelo, int indice, const QSet<QString> &descartados);
 
@@ -110,6 +123,14 @@ public:
     // Pone en los exámenes la verificación de 'p' (en cada sitio en que esté la misma pregunta: el mismo id y el mismo
     // código), sin cambiar nada más. Devuelve en cuántos sitios estaba.
     static int ponerVerificacion(ResultadoGeneracion &resultado, const Pregunta &p);
+
+    // Versiones: como mucho, una por letra; su etiqueta (la 0, «A» o «1») y los nombres de los exámenes que salen de
+    // 'config', con sus versiones («Uno A», «Uno B», «Dos»).
+    static constexpr int kMaxVersiones = 26;
+    static QString etiquetaVersion(int indice, bool conNumeros);
+    static QStringList nombresExamenes(const ConfigExamen &config);
+    // Los exámenes de 'resultado' que son versiones del mismo que 'modelo' (él incluido), en orden; solo él si no tiene.
+    static QVector<int> versionesDe(const ResultadoGeneracion &resultado, int modelo);
 
     // Número de preguntas distintas (sin contar variantes) disponibles por tema.
     static QMap<int, int> gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar, bool soloVerificadas = false);

@@ -18,7 +18,7 @@
 
 namespace {
 // Versión del esquema de la base de datos (PRAGMA user_version): ver BaseDatos::actualizarEsquema().
-constexpr int kVersionEsquema = 2;
+constexpr int kVersionEsquema = 3;
 
 QString nombreConexion(const BaseDatos *bd)
 {
@@ -357,6 +357,7 @@ bool BaseDatos::crearEsquema()
                " duracion INTEGER NOT NULL,"   // ya no se usa (la duración es del diálogo de práctica); se guarda 0
                " puntos_acierto REAL NOT NULL,"
                " puntos_fallo REAL NOT NULL,"
+               " version TEXT NOT NULL DEFAULT '',"   // la de un examen con versiones («B»); vacía si no
                " UNIQUE (anio, convocatoria, nombre))"))
         && ejecutar(QStringLiteral(
                "CREATE TABLE IF NOT EXISTS preguntas_registradas ("
@@ -374,6 +375,7 @@ bool BaseDatos::actualizarEsquema()
     int version = 0;
     bool tieneFormato = false;
     bool tieneVerificada = false;
+    bool tieneVersion = false;
     {   // Las consultas se cierran antes de la transacción.
         QSqlQuery q = consultar(QStringLiteral("PRAGMA user_version"));
         if (q.next())
@@ -384,6 +386,9 @@ bool BaseDatos::actualizarEsquema()
         q = consultar(QStringLiteral("PRAGMA table_info(preguntas)"));
         while (q.next())
             tieneVerificada = tieneVerificada || q.value(1).toString() == QLatin1String("verificada");
+        q = consultar(QStringLiteral("PRAGMA table_info(examenes_registrados)"));
+        while (q.next())
+            tieneVersion = tieneVersion || q.value(1).toString() == QLatin1String("version");
     }
     if (version >= kVersionEsquema)
         return true;
@@ -391,6 +396,8 @@ bool BaseDatos::actualizarEsquema()
     if (!tieneFormato && !ejecutar(QStringLiteral("ALTER TABLE temas ADD COLUMN formato_referencia TEXT NOT NULL DEFAULT ''")))
         return false;
     if (!tieneVerificada && !ejecutar(QStringLiteral("ALTER TABLE preguntas ADD COLUMN verificada INTEGER NOT NULL DEFAULT 0")))
+        return false;
+    if (!tieneVersion && !ejecutar(QStringLiteral("ALTER TABLE examenes_registrados ADD COLUMN version TEXT NOT NULL DEFAULT ''")))
         return false;
     // Lo que el programa daba por hecho cuando solo era para Fundamentos de la informática: el nombre, los repartos
     // de sus exámenes (la primera parte, la segunda y las dos juntas) y la forma de la referencia según el autor de
@@ -1170,10 +1177,11 @@ bool BaseDatos::registrarExamenes(const QVector<Modelo> &modelos, const DatosCon
         if (!ejecutar(QStringLiteral("DELETE FROM examenes_registrados WHERE anio = ? AND convocatoria = ? AND nombre = ?"),
                       {datos.anio, texto(datos.convocatoria), texto(m.nombre)})
             || !ejecutar(QStringLiteral("INSERT INTO examenes_registrados (anio, convocatoria, nombre, registrado, semilla,"
-                                        " asignatura, instrucciones, duracion, puntos_acierto, puntos_fallo)"
-                                        " VALUES (?,?,?,?,?,?,?,?,?,?)"),
+                                        " asignatura, instrucciones, duracion, puntos_acierto, puntos_fallo, version)"
+                                        " VALUES (?,?,?,?,?,?,?,?,?,?,?)"),
                          {datos.anio, texto(datos.convocatoria), texto(m.nombre), ahora, qint64(semilla), texto(datos.asignatura),
-                          texto(datos.instrucciones), 0 /* duracion: columna antigua, ya sin uso */, datos.puntosAcierto, datos.puntosFallo},
+                          texto(datos.instrucciones), 0 /* duracion: columna antigua, ya sin uso */, datos.puntosAcierto, datos.puntosFallo,
+                          texto(m.version)},
                          &examenId))
             return false;
         for (int i = 0; i < m.preguntas.size(); ++i) {
@@ -1237,9 +1245,16 @@ QVector<ExamenRegistrado> BaseDatos::examenesRegistrados()
 Modelo BaseDatos::modeloRegistrado(int examenId)
 {
     Modelo m;
-    QSqlQuery q = consultar(QStringLiteral("SELECT nombre FROM examenes_registrados WHERE id = ?"), {examenId});
-    if (q.next())
+    QSqlQuery q = consultar(QStringLiteral("SELECT nombre, version FROM examenes_registrados WHERE id = ?"), {examenId});
+    if (q.next()) {
         m.nombre = q.value(0).toString();
+        // El nombre de una versión es el del examen de la lista y su etiqueta: «Nacional Original B».
+        const QString version = q.value(1).toString();
+        if (!version.isEmpty() && m.nombre.endsWith(QLatin1Char(' ') + version)) {
+            m.version = version;
+            m.base = m.nombre.chopped(version.size() + 1);
+        }
+    }
     q = consultar(QStringLiteral("SELECT orden, pregunta FROM preguntas_registradas WHERE examen_id = ? ORDER BY posicion"), {examenId});
     while (q.next()) {
         const QJsonObject jp = QJsonDocument::fromJson(q.value(1).toString().toUtf8()).object();
@@ -1251,6 +1266,8 @@ Modelo BaseDatos::modeloRegistrado(int examenId)
         for (int k = 0; k < 4 && k < orden.size(); ++k)
             pe.orden[k] = qBound(0, orden.at(k).digitValue(), 3);
         m.preguntas.append(pe);
+        // Si salió con las opciones barajadas, las que se pongan al cambiar una pregunta, también.
+        m.barajadas = m.barajadas || pe.orden != std::array<int, 4>{{0, 1, 2, 3}};
     }
     return m;
 }
