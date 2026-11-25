@@ -1834,6 +1834,60 @@ private slots:
         QSettings().clear();
     }
 
+    // Si un examen de una convocatoria ya registrada se genera de nuevo con versiones (o sin ellas), al registrarlo se
+    // sustituyen sus copias de antes, aunque se llamen de otra forma («Nacional Original» y «Nacional Original A»).
+    void registrarConOtrasVersionesSustituye()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QListWidget *lista = nullptr;
+        for (QGroupBox *g : v.findChildren<QGroupBox *>())
+            if (g->title().startsWith(QStringLiteral("Exámenes:")))
+                lista = g->findChild<QListWidget *>();
+        QSpinBox *versiones = nullptr;
+        for (QLabel *l : v.findChildren<QLabel *>())
+            if (l->text() == QStringLiteral("Versiones:"))
+                versiones = qobject_cast<QSpinBox *>(l->buddy());
+        QVERIFY(lista && versiones);
+        auto registrados = [&ruta]() {
+            BaseDatos bd;
+            QStringList res;
+            if (bd.abrir(ruta))
+                for (const ExamenRegistrado &e : bd.examenesRegistrados())
+                    res << e.nombre;
+            res.sort();
+            return res;
+        };
+        auto generarYRegistrar = [&v](QString *texto) {
+            QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
+            responder(QStringLiteral("Sí"), texto);
+            QVERIFY(QMetaObject::invokeMethod(&v, "registrarConvocatoria"));
+        };
+        QString texto;
+        generarYRegistrar(&texto);
+        QCOMPARE(registrados(), (QStringList{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")}));
+
+        lista->setCurrentRow(0);
+        versiones->setValue(2);
+        generarYRegistrar(&texto);
+        QVERIFY2(texto.contains(QStringLiteral("se sustituirán: Nacional Reserva, Nacional Original.")), qPrintable(texto));
+        QCOMPARE(registrados(), (QStringList{QStringLiteral("Nacional Original A"), QStringLiteral("Nacional Original B"),
+                                             QStringLiteral("Nacional Reserva")}));
+
+        lista->setCurrentRow(0);
+        versiones->setValue(1);
+        generarYRegistrar(&texto);
+        QVERIFY2(texto.contains(QStringLiteral("Nacional Original A, Nacional Original B")), qPrintable(texto));
+        QCOMPARE(registrados(), (QStringList{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")}));
+        v.close();
+        QSettings().clear();
+    }
+
     // Al generar, la ventana tiene en cuenta cómo salieron las preguntas en el historial: las que ya salieron llevan las
     // opciones barajadas, aunque no esté marcado «Barajar las opciones», con la correcta en otra letra.
     void ventanaBarajaLasQueYaSalieron()

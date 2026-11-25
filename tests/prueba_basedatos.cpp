@@ -847,6 +847,20 @@ private slots:
         ResultadoGeneracion cargado;
         cargado.modelos = m;
         QCOMPARE(Generador::versionesDe(cargado, 1), (QVector<int>{0, 1}));
+        const ExamenRegistrado b = bd.examenesRegistrados().at(1);
+        QCOMPARE(b.version, QStringLiteral("B"));
+        QCOMPARE(b.base(), QStringLiteral("Uno"));
+        QCOMPARE(bd.examenesRegistrados().at(2).base(), QStringLiteral("Dos"));
+        // Registrar el examen sin versiones sustituye a los que tenía con ellas, si se dice.
+        ConfigExamen sinVersiones = c;
+        sinVersiones.versiones.clear();
+        const QVector<Modelo> nuevos = Generador::generar(bd.preguntas(), sinVersiones).modelos;
+        QVERIFY(bd.registrarExamenes(nuevos, d, 9, {QStringLiteral("Uno A"), QStringLiteral("Uno B")}));
+        QStringList nombres;
+        for (const ExamenRegistrado &e : bd.examenesRegistrados())
+            nombres << e.nombre;
+        QCOMPARE(nombres, (QStringList{QStringLiteral("Uno"), QStringLiteral("Dos")}));
+        QVERIFY(bd.registrarExamenes(r.modelos, d, r.semilla, {QStringLiteral("Uno")}));
 
         // La versión 2 del esquema no tenía la columna.
         const QString ruta = bd.ruta();

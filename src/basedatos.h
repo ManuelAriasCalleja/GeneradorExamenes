@@ -18,11 +18,18 @@ class QSqlQuery;
 struct ExamenRegistrado
 {
     int id = 0;
-    QString nombre;                  // p. ej. "Nacional Original"
+    QString nombre;                  // p. ej. "Nacional Original"; con versiones, «Nacional Original B»
+    QString version;                 // la de un examen con versiones («B»); vacía si no
     QDateTime registrado;
     quint32 semilla = 0;
     DatosConvocatoria datos;         // convocatoria, año, asignatura, instrucciones y puntuación
     int numPreguntas = 0;
+
+    // El nombre del examen de la lista: sin la versión, si tiene («Nacional Original»).
+    QString base() const
+    {
+        return !version.isEmpty() && nombre.endsWith(QLatin1Char(' ') + version) ? nombre.chopped(version.size() + 1) : nombre;
+    }
 };
 
 // Lo que ha pasado con la verificación de las preguntas al importar un JSON (ver BaseDatos::importarJson() e
@@ -158,8 +165,10 @@ public:
     // Historial de convocatorias. Cada examen registrado guarda una copia de sus preguntas tal como salieron (con
     // el orden de las opciones), para poder volver a exportarlo aunque después se corrijan. Las preguntas se
     // enlazan con el banco por su código (T1-7a), que no cambia al reimportar el JSON.
-    // Registra los exámenes; sustituye los que ya haya con el mismo año, convocatoria y nombre.
-    bool registrarExamenes(const QVector<Modelo> &modelos, const DatosConvocatoria &datos, quint32 semilla);
+    // Registra los exámenes; sustituye los que ya haya con el mismo año, convocatoria y nombre, y también los de esa
+    // convocatoria que se llamen como alguno de 'sustituidos' (de los mismos exámenes de la lista, con o sin versiones).
+    bool registrarExamenes(const QVector<Modelo> &modelos, const DatosConvocatoria &datos, quint32 semilla,
+                           const QStringList &sustituidos = {});
     // Todos los exámenes registrados, de la convocatoria más reciente a la más antigua.
     QVector<ExamenRegistrado> examenesRegistrados();
     Modelo modeloRegistrado(int examenId);

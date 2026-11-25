@@ -1175,10 +1175,15 @@ bool BaseDatos::exportarJson(const QString &ruta)
 // ---------------------------------------------------------------------------------------------
 // Historial de convocatorias
 
-bool BaseDatos::registrarExamenes(const QVector<Modelo> &modelos, const DatosConvocatoria &datos, quint32 semilla)
+bool BaseDatos::registrarExamenes(const QVector<Modelo> &modelos, const DatosConvocatoria &datos, quint32 semilla,
+                                  const QStringList &sustituidos)
 {
     const QString ahora = QDateTime::currentDateTime().toString(Qt::ISODate);
     Transaccion transaccion(m_db);
+    for (const QString &nombre : sustituidos)
+        if (!ejecutar(QStringLiteral("DELETE FROM examenes_registrados WHERE anio = ? AND convocatoria = ? AND nombre = ?"),
+                      {datos.anio, texto(datos.convocatoria), texto(nombre)}))
+            return false;
     for (const Modelo &m : modelos) {
         int examenId = 0;
         if (!ejecutar(QStringLiteral("DELETE FROM examenes_registrados WHERE anio = ? AND convocatoria = ? AND nombre = ?"),
@@ -1219,7 +1224,7 @@ QVector<ExamenRegistrado> BaseDatos::examenesRegistrados()
     QSqlQuery q = consultar(QStringLiteral(
         "SELECT e.id, e.nombre, e.registrado, e.semilla, e.anio, e.convocatoria, e.asignatura, e.instrucciones,"
         " e.puntos_acierto, e.puntos_fallo,"
-        " (SELECT COUNT(*) FROM preguntas_registradas p WHERE p.examen_id = e.id)"
+        " (SELECT COUNT(*) FROM preguntas_registradas p WHERE p.examen_id = e.id), e.version"
         " FROM examenes_registrados e ORDER BY e.id"));
     while (q.next()) {
         ExamenRegistrado e;
@@ -1234,6 +1239,7 @@ QVector<ExamenRegistrado> BaseDatos::examenesRegistrados()
         e.datos.puntosAcierto = q.value(8).toDouble();
         e.datos.puntosFallo = q.value(9).toDouble();
         e.numPreguntas = q.value(10).toInt();
+        e.version = q.value(11).toString();
         ultimoId[ClaveConvocatoria(e.datos.anio, e.datos.convocatoria)] = e.id;
         res.append(e);
     }

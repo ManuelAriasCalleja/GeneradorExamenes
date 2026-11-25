@@ -1002,8 +1002,10 @@ void VentanaPrincipal::generar()
     }
     if (!puedenDescartarse())
         return;
-    config.usoReciente = usoReciente(examenes);
-    config.salidas = salidasAnteriores(examenes);
+    // Los registrados de estos exámenes no cuentan como salidos: se generan de nuevo, aunque ahora tengan otras versiones.
+    const QStringList excluidos = examenes + registradosDe(config.nombresModelos);
+    config.usoReciente = usoReciente(excluidos);
+    config.salidas = salidasAnteriores(excluidos);
     m_resultado = Generador::generar(m_preguntas, config);
     m_semillaFija = config.semilla != 0;   // se avisa en la franja de avisos (actualizarMaqueta())
     if (m_panel->evitaRecientes() && m_bd.examenesRegistrados().isEmpty())
@@ -1013,6 +1015,16 @@ void VentanaPrincipal::generar()
     m_configResultado = config;
     guardarConfiguracion();
     presentarResultado();
+}
+
+QStringList VentanaPrincipal::registradosDe(const QStringList &deLaLista)
+{
+    const DatosConvocatoria d = m_panel->datos();
+    QStringList res;
+    for (const ExamenRegistrado &e : m_bd.examenesRegistrados())
+        if (e.datos.anio == d.anio && e.datos.convocatoria == d.convocatoria && deLaLista.contains(e.base()))
+            res << e.nombre;
+    return res;
 }
 
 QHash<QString, SalidaAnterior> VentanaPrincipal::salidasAnteriores(const QStringList &examenes)
@@ -1140,6 +1152,17 @@ QString VentanaPrincipal::nombreBaseFichero() const
     // «2026-Junio-letra-grande», para no pisar la normal.
     const QString base = limpiarNombreFichero(QStringLiteral("%1 %2").arg(m_panel->datos().anio).arg(m_panel->datos().convocatoria));
     return m_letraGrande->isChecked() ? base + QStringLiteral("-letra-grande") : base;
+}
+
+QStringList VentanaPrincipal::nombresDeLaLista() const
+{
+    QStringList nombres;
+    for (const Modelo &m : m_resultado.modelos) {
+        const QString nombre = m.version.isEmpty() ? m.nombre : m.base;
+        if (!nombres.contains(nombre))
+            nombres << nombre;
+    }
+    return nombres;
 }
 
 QStringList VentanaPrincipal::nombresModelos() const
@@ -1310,20 +1333,24 @@ void VentanaPrincipal::registrarConvocatoria()
         return;
     }
     const QStringList nombres = nombresModelos();
+    // Los ya registrados de estos exámenes: con el mismo nombre o, con versiones o sin ellas, del mismo de la lista.
     QStringList yaRegistrados;
     for (const ExamenRegistrado &e : m_bd.examenesRegistrados())
         if (e.datos.anio == d.anio && e.datos.convocatoria == d.convocatoria && nombres.contains(e.nombre))
             yaRegistrados << e.nombre;
+    for (const QString &nombre : registradosDe(nombresDeLaLista()))
+        if (!yaRegistrados.contains(nombre))
+            yaRegistrados << nombre;
     QString texto = tr("Se guardarán en el historial los exámenes de %1: %2.\n\n"
                        "Al generar, se evitarán sus preguntas, y desde Archivo → Historial de convocatorias "
                        "se podrán volver a cargar tal como están.")
                         .arg(d.convocatoriaYAnio(), nombres.join(QStringLiteral(", ")));
     if (!yaRegistrados.isEmpty())
-        texto += tr("\n\nYa había registrados con el mismo nombre, y se sustituirán: %1.")
-                     .arg(yaRegistrados.join(QStringLiteral(", ")));
+        texto += tr("\n\nYa había registrados de estos exámenes (con el mismo nombre, o con otras versiones), y se "
+                    "sustituirán: %1.").arg(yaRegistrados.join(QStringLiteral(", ")));
     if (!confirmar(this, tr("Registrar convocatoria"), texto))
         return;
-    if (!m_bd.registrarExamenes(m_resultado.modelos, d, m_resultado.semilla)) {
+    if (!m_bd.registrarExamenes(m_resultado.modelos, d, m_resultado.semilla, yaRegistrados)) {
         QMessageBox::warning(this, windowTitle(), tr("No se pudo registrar la convocatoria:\n%1").arg(m_bd.ultimoError()));
         return;
     }
@@ -1380,8 +1407,9 @@ void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)
     m_semillaFija = false;
     m_configResultado = m_panel->configuracion();
     m_configResultado.nombresModelos = nombresModelos();
-    m_configResultado.usoReciente = usoReciente(m_configResultado.nombresModelos);
-    m_configResultado.salidas = salidasAnteriores(m_configResultado.nombresModelos);
+    const QStringList excluidos = m_configResultado.nombresModelos + registradosDe(nombresDeLaLista());
+    m_configResultado.usoReciente = usoReciente(excluidos);
+    m_configResultado.salidas = salidasAnteriores(excluidos);
     if (auto *pestanas = qobject_cast<QTabWidget *>(centralWidget()))
         pestanas->setCurrentIndex(0);
     //: Origen de los exámenes cargados del historial: la convocatoria se registró el día %1

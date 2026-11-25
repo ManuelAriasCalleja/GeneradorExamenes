@@ -14,7 +14,7 @@
         <translation>Invalid JSON: %1</translation>
     </message>
     <message>
-        <location line="+478"/>
+        <location line="+485"/>
         <source>Ya existe una pregunta %1 en ese tema.</source>
         <translation>A question %1 already exists in that topic.</translation>
     </message>
@@ -3993,12 +3993,12 @@ Choose where it is or create a new one.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+666"/>
+        <location line="+689"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-657"/>
+        <location line="-680"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -4303,12 +4303,12 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>A ticked exam has no name.</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+17"/>
         <source>No hay ninguna convocatoria registrada en el historial, así que no se evitan las preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con Archivo → Registrar exámenes anteriores…</source>
         <translation>There is no exam session recorded in the history, so questions from previous ones are not avoided. If they were held outside the program, record them with File → Record previous exams…</translation>
     </message>
     <message>
-        <location line="+47"/>
+        <location line="+57"/>
         <source>Semilla: %1</source>
         <extracomment>Línea de información del examen generado: semilla del generador de números aleatorios</extracomment>
         <translation>Seed: %1</translation>
@@ -4397,7 +4397,7 @@ With “Fit on one page per 10 questions” (in Options), the layout is compacte
         <translation>Correct: %1</translation>
     </message>
     <message>
-        <location line="+50"/>
+        <location line="+61"/>
         <source>No se pudieron escribir estos ficheros:
 %1</source>
         <translation>Could not write these files:
@@ -4489,7 +4489,7 @@ If they are the final ones, record them first.</translation>
         <translation>Enter the exam session (February, June…).</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+12"/>
         <source>Se guardarán en el historial los exámenes de %1: %2.
 
 Al generar, se evitarán sus preguntas, y desde Archivo → Historial de convocatorias se podrán volver a cargar tal como están.</source>
@@ -4501,10 +4501,10 @@ Their questions will be avoided when generating, and they can be loaded again ex
         <location line="+5"/>
         <source>
 
-Ya había registrados con el mismo nombre, y se sustituirán: %1.</source>
+Ya había registrados de estos exámenes (con el mismo nombre, o con otras versiones), y se sustituirán: %1.</source>
         <translation>
 
-Some with the same name had already been recorded and will be replaced: %1.</translation>
+Some of these exams were already recorded (with the same name, or with other versions), and they will be replaced: %1.</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -4525,7 +4525,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>Exams for %1 recorded in the history</translation>
     </message>
     <message>
-        <location line="+37"/>
+        <location line="+38"/>
         <source>Registrada el %1</source>
         <extracomment>Origen de los exámenes cargados del historial: la convocatoria se registró el día %1</extracomment>
         <translation>Recorded on %1</translation>

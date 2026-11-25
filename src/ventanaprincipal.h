@@ -165,10 +165,15 @@ private:
     // Cómo salieron las preguntas en los exámenes registrados (ConfigExamen::salidas), sin contar los de la
     // convocatoria del panel que se llamen como 'examenes'.
     QHash<QString, SalidaAnterior> salidasAnteriores(const QStringList &examenes);
+    // Los exámenes registrados de la convocatoria del panel que son de los exámenes 'deLaLista' (sus nombres, sin las
+    // versiones), con versiones o sin ellas: «Nacional Original», «Nacional Original A»… Son los que se generan de nuevo
+    // y, al registrar, se sustituyen.
+    QStringList registradosDe(const QStringList &deLaLista);
     DatosConvocatoria datosConvocatoria() const;
     QSet<QString> gruposDelBanco() const;   // «T1-7» de las preguntas del banco abierto
     QString nombreBaseFichero() const;
     QStringList nombresModelos() const;
+    QStringList nombresDeLaLista() const;   // los de los exámenes que se ven, sin las versiones (sin repetir)
     QVector<Modelo> modelosDe(const QVector<int> &indices) const;
     // Nivel de la maqueta: el de letra grande si está marcada la casilla; si no, el de compactación con el que los
     // modelos generados caben en sus páginas (ver Maquetador), o el normal si no hay que ajustarlos a ellas.
