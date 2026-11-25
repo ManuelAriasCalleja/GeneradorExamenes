@@ -576,6 +576,49 @@ private slots:
         QVERIFY(!avisoQueContiene(Generador::generar(banco, c), QStringLiteral("T2-6")));
     }
 
+    // Al corregir una pregunta que ya ha salido, su correcta no vuelve a una letra en que estuvo; y si ya no se puede
+    // barajar y queda donde estuvo, se avisa.
+    void corregirUnaYaSalida()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        ConfigExamen c = configuracion(6);
+        ResultadoGeneracion r = Generador::generar(banco, c);
+        // Una con las opciones como en el banco (ni «old» ni que remita a otras).
+        int indice = -1;
+        for (int i = 0; i < r.modelos.at(0).preguntas.size() && indice < 0; ++i) {
+            const PreguntaExamen &pe = r.modelos.at(0).preguntas.at(i);
+            if (!pe.pregunta.old && !Estilo::tieneOpcionesDependientes(pe.pregunta))
+                indice = i;
+        }
+        QVERIFY(indice >= 0);
+        const Pregunta antes = r.modelos.at(0).preguntas.at(indice).pregunta;
+        QCOMPARE(r.modelos.at(0).preguntas.at(indice).orden, (std::array<int, 4>{{0, 1, 2, 3}}));
+        // Salió con la correcta en la c), y se corrige para que la correcta sea la tercera opción.
+        Pregunta corregida = antes;
+        corregida.correcta = 2;
+        if (antes.correcta == 2)
+            corregida.correcta = 1;
+        c.salidas.insert(antes.codigoCompleto(), {QStringLiteral("Junio 2025"), {corregida.correcta}});
+        QCOMPARE(Generador::ponerCorregida(r, c, antes, corregida), 1);
+        const PreguntaExamen &pe = r.modelos.at(0).preguntas.at(indice);
+        QVERIFY(pe.correcta() != corregida.correcta);
+        QCOMPARE(pe.opcion(pe.correcta()), corregida.opciones.at(corregida.correcta));
+        QVERIFY(!avisoQueContiene(r, antes.codigoCompleto() + QStringLiteral(" ya salió")));
+
+        // Corregida para que remita a las demás: ya no se baraja, queda donde estuvo, y se avisa.
+        Pregunta dependiente = corregida;
+        dependiente.opciones[3] = QStringLiteral("Todas las anteriores.");
+        dependiente.correcta = 3;
+        c.salidas.insert(antes.codigoCompleto(), {QStringLiteral("Junio 2025"), {3}});
+        QCOMPARE(Generador::ponerCorregida(r, c, corregida, dependiente), 1);
+        QCOMPARE(r.modelos.at(0).preguntas.at(indice).orden, (std::array<int, 4>{{0, 1, 2, 3}}));
+        QVERIFY(avisoQueContiene(r, antes.codigoCompleto() + QStringLiteral(" ya salió en Junio 2025 con la correcta en la d)")));
+        // Y si se corrige otra vez para que no remita, el aviso se va.
+        QCOMPARE(Generador::ponerCorregida(r, c, dependiente, corregida), 1);
+        QVERIFY(!avisoQueContiene(r, antes.codigoCompleto() + QStringLiteral(" ya salió")));
+        QVERIFY(r.modelos.at(0).preguntas.at(indice).correcta() != 3);
+    }
+
     // Al cambiar una pregunta por otra que ya ha salido, también se barajan sus opciones, aunque no se pida.
     void cambiarPorUnaYaSalida()
     {

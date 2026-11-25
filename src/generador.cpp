@@ -622,12 +622,15 @@ int Generador::ponerCorregida(ResultadoGeneracion &resultado, const ConfigExamen
 {
     QRandomGenerator rng(QRandomGenerator::global()->generate());
     const bool dependientes = Estilo::tieneOpcionesDependientes(corregida);
+    const int permitidas = letrasPermitidas(corregida, config);
     int sitios = 0;
     for (Modelo &m : resultado.modelos) {
         bool enEste = false;
-        for (PreguntaExamen &pe : m.preguntas) {
+        for (int i = 0; i < m.preguntas.size(); ++i) {
+            PreguntaExamen &pe = m.preguntas[i];
             if (pe.pregunta.id != antes.id || pe.pregunta.codigoCompleto() != antes.codigoCompleto())
                 continue;
+            const QString avisoAntes = avisoNoBarajable(m, i, config);
             const int letra = pe.correcta();
             const bool barajadas = config.barajarOpciones || m.barajadas || pe.orden != std::array<int, 4>{{0, 1, 2, 3}};
             const bool otraCorrecta = corregida.correcta != pe.pregunta.correcta;
@@ -636,6 +639,29 @@ int Generador::ponerCorregida(ResultadoGeneracion &resultado, const ConfigExamen
                 pe.orden = {{0, 1, 2, 3}};
             else if (otraCorrecta && barajadas)
                 ponerCorrectaEn(pe, letra, rng);
+            // Si ya ha salido, la correcta, en una de sus letras permitidas: la de antes, si lo es, o la que menos sale
+            // en el resto del examen.
+            if (!dependientes && !(permitidas & (1 << pe.correcta()))) {
+                int nueva = letra;
+                if (!(permitidas & (1 << nueva))) {
+                    std::array<int, 4> cuenta{};
+                    for (int k = 0; k < m.preguntas.size(); ++k)
+                        if (k != i)
+                            ++cuenta[m.preguntas.at(k).correcta()];
+                    nueva = -1;
+                    for (int l = 0; l < 4; ++l)
+                        if ((permitidas & (1 << l)) && (nueva < 0 || cuenta[l] < cuenta[nueva]))
+                            nueva = l;
+                }
+                ponerCorrectaEn(pe, nueva, rng);
+            }
+            // El aviso de si no se puede barajar y va donde ya estuvo, al día.
+            const QString avisoAhora = avisoNoBarajable(m, i, config);
+            if (avisoAhora != avisoAntes) {
+                resultado.avisos.removeAll(avisoAntes);
+                if (!avisoAhora.isEmpty())
+                    resultado.avisos << avisoAhora;
+            }
             enEste = true;
             ++sitios;
         }
