@@ -88,6 +88,8 @@ Moodle::Opciones DialogoMoodle::opciones() const
 
 void DialogoMoodle::elegirFichero()
 {
+    // El foco vuelve al campo del fichero: si se quedara en «Elegir…», Intro lo pediría otra vez en vez de exportar.
+    m_ruta->setFocus();
     const QString ruta = QFileDialog::getSaveFileName(this, windowTitle(), m_ruta->text(), tr("Moodle XML (*.xml)"));
     if (!ruta.isEmpty())
         m_ruta->setText(ruta);

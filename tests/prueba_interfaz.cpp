@@ -2073,6 +2073,55 @@ private slots:
         }
     }
 
+    // Después de «Elegir…» (Exportar, Moodle), «Añadir PDF…» o «Pegar texto…» (Registrar exámenes anteriores), el foco
+    // vuelve al campo o a la lista: si se quedara en el botón, Intro lo pulsaría otra vez en vez de exportar o registrar.
+    void elegirDevuelveElFoco()
+    {
+        QTemporaryDir dir;
+        BaseDatos bd;
+        QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+        QVERIFY(llenarBaseDatos(bd, 2, bancoInventado(2, 3)));
+        // Pulsa el botón como con el ratón (se lleva el foco) y cierra el diálogo que abre.
+        auto pulsarYCerrar = [](QDialog &d, const QString &texto) {
+            QPushButton *b = conTexto<QPushButton>(&d, texto);
+            if (!b || !b->isEnabled())
+                return false;
+            b->setFocus(Qt::MouseFocusReason);
+            QTimer::singleShot(200, [] {
+                if (QWidget *w = QApplication::activeModalWidget())
+                    w->close();
+            });
+            b->click();
+            return true;
+        };
+        {
+            DialogoExportar d(QStringLiteral("Exportar"), {QStringLiteral("Uno")}, QStringLiteral("examen"),
+                              QStringLiteral("pdf"), true);
+            d.show();
+            QVERIFY(QTest::qWaitForWindowActive(&d));
+            QVERIFY(pulsarYCerrar(d, QStringLiteral("Elegir…")));
+            QVERIFY(qobject_cast<QLineEdit *>(d.focusWidget()));
+            QCOMPARE(botonDeIntro(&d), QStringLiteral("Exportar"));
+        }
+        {
+            DialogoMoodle d(bd.preguntas(), QStringLiteral("Asignatura inventada"));
+            d.show();
+            QVERIFY(QTest::qWaitForWindowActive(&d));
+            QVERIFY(pulsarYCerrar(d, QStringLiteral("Elegir…")));
+            QVERIFY(qobject_cast<QLineEdit *>(d.focusWidget()));
+            QCOMPARE(botonDeIntro(&d), QStringLiteral("Exportar"));
+        }
+        for (const QString &boton : {QStringLiteral("Añadir PDF…"), QStringLiteral("Pegar texto…")}) {
+            DialogoAnteriores d(&bd, bd.preguntas(), DatosConvocatoria(), {});
+            d.show();
+            QVERIFY(QTest::qWaitForWindowActive(&d));
+            if (!pulsarYCerrar(d, boton))
+                continue;   // sin PDF en esta compilación
+            QVERIFY2(qobject_cast<QTableWidget *>(d.focusWidget()), qPrintable(boton));
+            QCOMPARE(botonDeIntro(&d), QStringLiteral("Registrar"));
+        }
+    }
+
     // En cada diálogo, Intro pulsa el botón que debe, al abrirlo y después de que el foco pase por los otros botones.
     // Si el botón por defecto se marca antes de meter los botones en el diálogo, Qt no se entera y le da Intro al
     // primer botón que encuentra (en Exportar, «Elegir…»; en Temas, «Añadir tema»).

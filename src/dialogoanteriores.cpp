@@ -191,6 +191,8 @@ bool DialogoAnteriores::anadirExamen(const QString &texto, const QString &ficher
 
 void DialogoAnteriores::anadirPdf()
 {
+    // El foco vuelve a la lista: si se quedara en el botón, Intro pediría otro PDF en vez de registrar.
+    m_lista->setFocus();
     QSettings ajustes;
     const QStringList rutas = QFileDialog::getOpenFileNames(this, tr("Exámenes anteriores (PDF)"),
                                                             ajustes.value(QLatin1String(kClaveCarpeta)).toString(),
@@ -210,6 +212,7 @@ void DialogoAnteriores::anadirPdf()
 
 void DialogoAnteriores::pegarTexto()
 {
+    m_lista->setFocus();   // como en anadirPdf()
     QInputDialog d(this);
     d.setWindowTitle(tr("Pegar el texto de un examen"));
     d.setLabelText(tr("Abra el examen (en Word o en un visor de PDF), seleccione todo su texto, cópielo y péguelo aquí:"));

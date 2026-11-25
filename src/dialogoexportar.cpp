@@ -153,6 +153,8 @@ QVector<DialogoExportar::Fichero> DialogoExportar::ficheros() const
 
 void DialogoExportar::elegirCarpeta()
 {
+    // El foco vuelve al campo de la carpeta: si se quedara en «Elegir…», Intro la pediría otra vez en vez de exportar.
+    m_carpeta->setFocus();
     const QString ruta = QFileDialog::getExistingDirectory(this, tr("Carpeta donde guardar los exámenes"), carpeta());
     if (!ruta.isEmpty())
         m_carpeta->setText(QDir::toNativeSeparators(ruta));
