@@ -36,10 +36,10 @@
         <translation>Cannot create the folder %1</translation>
     </message>
     <message>
-        <location line="+62"/>
-        <source>No se ha podido guardar la copia de seguridad del banco, así que no se ha borrado nada:
+        <location line="+77"/>
+        <source>No se ha podido guardar la copia de seguridad del banco, así que no se ha importado nada:
 %1</source>
-        <translation>The backup of the bank could not be saved, so nothing has been deleted:
+        <translation>The bank backup could not be saved, so nothing has been imported:
 %1</translation>
     </message>
     <message>
@@ -48,7 +48,7 @@
         <translation>Topic %1, question %2: %3</translation>
     </message>
     <message>
-        <location line="+153"/>
+        <location line="+201"/>
         <source>pregunta distinta</source>
         <translation>question that differs</translation>
     </message>
@@ -3691,7 +3691,18 @@ You can also right-click the question.</translation>
         <translation>&amp;Import questions (JSON)…</translation>
     </message>
     <message>
+        <location line="+2"/>
+        <source>Importar las &amp;verificaciones (JSON)…</source>
+        <extracomment>Menú Archivo. El &amp; marca la letra del atajo: no puede ser la de otra orden del menú.</extracomment>
+        <translation>Import &amp;verifications (JSON)…</translation>
+    </message>
+    <message>
         <location line="+1"/>
+        <source>Añade las verificaciones de un JSON (exportado de otra copia del banco, en otro ordenador) a las preguntas que son iguales en este banco, sin cambiar nada más ni quitar ninguna</source>
+        <translation>Adds the verifications of a JSON file (exported from another copy of the bank, on another computer) to the questions that are the same in this bank, without changing anything else or removing any</translation>
+    </message>
+    <message>
+        <location line="+2"/>
         <source>&amp;Comprobar un JSON…</source>
         <translation>&amp;Check a JSON file…</translation>
     </message>
@@ -3897,18 +3908,7 @@ Choose where it is or create a new one.</translation>
         <translation>Import questions</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>¿Cómo quiere importar las preguntas?
-
-Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.
-Reemplazar todo: se borran antes todos los temas y preguntas (antes de borrarlos se guarda una copia de seguridad de la base de datos en la carpeta «copias», junto a ella).</source>
-        <translation>How do you want to import the questions?
-
-Add/update: questions with the same topic, number and variant are overwritten; the rest are kept.
-Replace all: all topics and questions are deleted first (before deleting them, a backup of the database is saved in the “copias” folder next to it).</translation>
-    </message>
-    <message>
-        <location line="+5"/>
+        <location line="+18"/>
         <source>Añadir/actualizar</source>
         <translation>Add/update</translation>
     </message>
@@ -3919,12 +3919,12 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+618"/>
+        <location line="+659"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-610"/>
+        <location line="-650"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -3936,18 +3936,104 @@ Replace all: all topics and questions are deleted first (before deleting them, a
         <translation>%1 questions have been imported.</translation>
     </message>
     <message>
+        <location line="-31"/>
+        <source>¿Cómo quiere importar las preguntas?
+
+Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.
+Reemplazar todo: se borran antes todos los temas y preguntas.
+
+La verificación de las preguntas que no cambian se conserva, aunque el JSON no la tenga. Antes de importar se guarda una copia de seguridad de la base de datos en la carpeta «copias», junto a ella.</source>
+        <translation>How do you want to import the questions?
+
+Add/update: questions with the same topic, number and variant are overwritten; the rest are kept.
+Replace all: all topics and questions are deleted first.
+
+The verification of the questions that do not change is kept, even if the JSON does not have it. Before importing, a backup of the database is saved in the “copias” folder next to it.</translation>
+    </message>
+    <message>
+        <location line="+33"/>
+        <source>
+
+Verificaciones conservadas (el JSON las da por no verificadas, pero no han cambiado): %1.</source>
+        <translation>
+
+Verifications kept (the JSON says they are not verified, but they have not changed): %1.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>
+
+Preguntas con verificaciones nuevas del JSON: %1.</source>
+        <translation>
+
+Questions with new verifications from the JSON: %1.</translation>
+    </message>
+    <message>
         <location line="+2"/>
         <source>
 
-Antes de borrar el banco se ha guardado una copia de seguridad en:
+Verificaciones quitadas porque la pregunta ha cambiado: %1.</source>
+        <translation>
+
+Verifications removed because the question has changed: %1.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>
+
+Antes de importar se ha guardado una copia de seguridad del banco en:
 %1</source>
         <translation>
 
-Before the bank was cleared, a backup was saved in:
+Before importing, a backup of the bank was saved in:
 %1</translation>
     </message>
     <message>
         <location line="+7"/>
+        <source>Importar las verificaciones de un JSON</source>
+        <translation>Import the verifications of a JSON file</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>No se pudieron importar las verificaciones:
+%1</source>
+        <translation>The verifications could not be imported:
+%1</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Preguntas con verificaciones nuevas: %1.</source>
+        <translation>Questions with new verifications: %1.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>
+
+Ya tenían esas verificaciones: %1.</source>
+        <translation>
+
+Already had those verifications: %1.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>
+
+No se han tocado porque en el banco no son iguales que en el JSON (%1): %2.</source>
+        <translation>
+
+Not touched because they are not the same in the bank as in the JSON (%1): %2.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>
+
+No están en el banco (%1): %2.</source>
+        <translation>
+
+Not in the bank (%1): %2.</translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Comprobar un JSON de preguntas</source>
         <translation>Check a JSON file of questions</translation>
     </message>

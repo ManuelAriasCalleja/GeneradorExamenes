@@ -260,8 +260,12 @@ añaden, se renombran y se quitan en *Editar → Verificadores…* (al quitar a 
 En la vista del examen, tras el número de cada pregunta, una marca azul («✓ verificada: …») o naranja («● sin
 verificar») que no sale al imprimir ni al exportar. En la lista del banco, la columna «Verificada» y los filtros
 «Verificadas» y «Sin verificar». Va en la base de datos (tablas `verificadores` y `verificaciones` y la columna
-`verificada`, desde la versión 2 del esquema) y en el JSON (`verificada` y `verificadores`, que escribe el programa);
-al importar un JSON que no la dice, cada pregunta conserva la suya si no ha cambiado lo que se ve de ella.
+`verificada`, desde la versión 2 del esquema) y en el JSON (`verificada` y `verificadores`, que escribe el programa).
+Importar un JSON nunca quita la verificación de una pregunta que no ha cambiado lo que se ve de ella, aunque el JSON la
+dé por no verificada (puede ser de antes de verificarla), y le suma las personas del JSON; si ha cambiado, se queda con
+la del JSON o sin verificar. *Archivo → Importar las verificaciones (JSON)…* solo añade las verificaciones de un JSON
+(de otra copia del banco, en otro ordenador) a las preguntas iguales, sin cambiar nada más. Antes de importar un JSON
+se guarda una copia de seguridad de la base de datos en `copias/`.
 
 **Banco de preguntas**: buscar (sin distinguir tildes ni mayúsculas), filtrar, crear, editar, duplicar como variante
 y eliminar preguntas. El editor tiene «Guardar y siguiente» (la siguiente de la tabla, con su filtro y su orden) y, al
@@ -381,7 +385,7 @@ en el directorio de la asignatura, y se copian aparte de un ordenador a otro:
 
 | Carpeta | Contenido |
 |---|---|
-| `datos/` | El banco del equipo docente (ver11): `preguntas.db` (base de datos SQLite, con el historial de convocatorias), `preguntas_fi.json` (las preguntas extraídas del .docx), `imagenes/` (diagramas) y `copias/` (copias de seguridad de la base de datos que hace el programa antes de «Reemplazar todo»). |
+| `datos/` | El banco del equipo docente (ver11): `preguntas.db` (base de datos SQLite, con el historial de convocatorias), `preguntas_fi.json` (las preguntas extraídas del .docx), `imagenes/` (diagramas) y `copias/` (copias de seguridad de la base de datos que hace el programa antes de importar un JSON). |
 | `datos/banco2/` | **Banco 2**: propuesta de 1500 preguntas nuevas, separada del banco actual y pendiente de revisión del equipo docente (base de datos propia, .docx para revisar e informes). Ver su `LEEME.md`. |
 
 `datos` y `banco2` son enlaces locales (fuera de git) a esas carpetas, para llegar a los bancos desde el proyecto:
@@ -407,7 +411,7 @@ primera vez, si no hay ninguno enlazado, pide cuál). Con *Archivo → Mantener 
 el programa lo reescribe él solo tras cada cambio del banco; nunca toca un JSON que ya no coincida con la base
 de datos (por ejemplo, uno recién generado desde el .docx y aún sin importar), solo avisa. El enlace y esta
 opción se guardan dentro de la base de datos, con la ruta del JSON relativa a ella. Antes de
-reemplazar todo, el programa guarda una copia de seguridad de la base de datos en la carpeta `copias/` junto a
+importar un JSON (también al añadir o actualizar), el programa guarda una copia de seguridad de la base de datos en la carpeta `copias/` junto a
 ella, con la fecha y la hora en el nombre (`copias/preguntas_2026-10-22_153045.db`), y al terminar dice dónde la
 ha dejado; si la importación falla, la base de datos no cambia y la copia se quita. Para volver atrás, basta con
 abrir esa copia (*Archivo → Abrir banco de preguntas…*) o copiarla sobre `preguntas.db`.

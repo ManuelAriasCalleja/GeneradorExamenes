@@ -60,6 +60,8 @@ private slots:
     void abrirOtraBaseDatos();
     void nuevaBaseDatos();
     void importarJson();
+    // Las verificaciones de un JSON (de otra copia del banco), sin cambiar nada más (BaseDatos::importarVerificaciones()).
+    void importarVerificaciones();
     void comprobarFicheroJson();   // Archivo → Comprobar un JSON…
     void guardarJsonEjemplo();
     void exportarJson();

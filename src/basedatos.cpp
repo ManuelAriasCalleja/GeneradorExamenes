@@ -783,7 +783,7 @@ QString BaseDatos::copiaSeguridad()
     return destino;
 }
 
-int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia)
+int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia, ResumenVerificacion *verificacion)
 {
     if (copia)
         copia->clear();
@@ -804,23 +804,38 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
             t.autor = antes.value(t.numero).autor;
     }
 
-    // La verificación de las que no la dicen: la que tenían en el banco, si no ha cambiado lo que se ve de ellas.
+    // La verificación. Si lo que se ve de la pregunta no ha cambiado, la que tenía en el banco, con las personas que
+    // añada el JSON: importar nunca la quita, porque el JSON puede ser de antes de verificarla (uno exportado hace
+    // tiempo, o de otra copia del banco). Si ha cambiado, o es nueva, la del JSON, si la dice.
     QHash<QString, Pregunta> enElBanco;   // código (T1-7a) -> pregunta
     for (const Pregunta &p : preguntas())
         enElBanco.insert(p.codigoCompleto(), p);
+    ResumenVerificacion resumen;
     for (Pregunta &p : contenido.preguntas) {
-        if (!contenido.sinVerificacion.contains(p.codigoCompleto()))
-            continue;
         const auto it = enElBanco.constFind(p.codigoCompleto());
-        const bool mantener = it != enElBanco.constEnd() && it->mismoContenido(p);
-        p.verificada = mantener && it->verificada;
-        p.verificadores = mantener ? it->verificadores : QStringList();
+        const bool igual = it != enElBanco.constEnd() && it->mismoContenido(p);
+        const bool antes = it != enElBanco.constEnd() && it->verificada;
+        const bool diceQueNo = !contenido.sinVerificacion.contains(p.codigoCompleto()) && !p.verificada;
+        if (p.verificada && (!antes || !igual || !std::all_of(p.verificadores.cbegin(), p.verificadores.cend(),
+                                                              [&](const QString &n) { return it->verificadores.contains(n); })))
+            ++resumen.anadidas;
+        if (antes && igual) {
+            resumen.conservadas += diceQueNo ? 1 : 0;
+            QStringList juntas = it->verificadores;
+            for (const QString &n : std::as_const(p.verificadores))
+                if (!juntas.contains(n))
+                    juntas << n;
+            p.verificada = true;
+            p.verificadores = juntas;
+        } else if (antes && !p.verificada) {
+            ++resumen.quitadas;   // ha cambiado: lo verificado era otro texto
+        }
     }
 
-    // Antes de borrar el banco, copia de seguridad (si hay algo que borrar: las preguntas van con sus temas). Si
-    // la copia falla, no se toca nada.
+    // Antes de tocar el banco, copia de seguridad (si tiene algo: las preguntas van con sus temas). Si la copia
+    // falla, no se toca nada.
     QString rutaCopia;
-    if (reemplazar) {
+    {
         bool hayTemas = true;
         {   // La consulta se cierra antes de la copia: VACUUM no admite sentencias a medias.
             QSqlQuery q = consultar(QStringLiteral("SELECT COUNT(*) FROM temas"));
@@ -829,7 +844,7 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
         if (hayTemas) {
             rutaCopia = copiaSeguridad();
             if (rutaCopia.isEmpty()) {
-                m_error = tr("No se ha podido guardar la copia de seguridad del banco, así que no se ha borrado nada:\n%1").arg(m_error);
+                m_error = tr("No se ha podido guardar la copia de seguridad del banco, así que no se ha importado nada:\n%1").arg(m_error);
                 return -1;
             }
         }
@@ -881,7 +896,55 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
     }
     if (copia)
         *copia = rutaCopia;
+    if (verificacion)
+        *verificacion = resumen;
     return n;
+}
+
+int BaseDatos::importarVerificaciones(const QString &ruta, ResumenVerificacion *resumen)
+{
+    ContenidoJson contenido;
+    if (!leerJson(ruta, &contenido, &m_error))
+        return -1;
+    QHash<QString, Pregunta> enElBanco;   // código (T1-7a) -> pregunta
+    for (const Pregunta &p : preguntas())
+        enElBanco.insert(p.codigoCompleto(), p);
+    ResumenVerificacion r;
+    QVector<Pregunta> cambiadas;
+    for (const Pregunta &p : std::as_const(contenido.preguntas)) {
+        if (!p.verificada)
+            continue;
+        const auto it = enElBanco.constFind(p.codigoCompleto());
+        if (it == enElBanco.constEnd()) {
+            r.noEstan << p.codigoCompleto();
+            continue;
+        }
+        if (!it->mismoContenido(p)) {   // lo verificado en el JSON es otro texto
+            r.distintas << p.codigoCompleto();
+            continue;
+        }
+        Pregunta q = *it;
+        QStringList juntas = q.verificada ? q.verificadores : QStringList();
+        bool algoNuevo = !q.verificada;
+        for (const QString &n : p.verificadores)
+            if (!juntas.contains(n)) {
+                juntas << n;
+                algoNuevo = true;
+            }
+        if (!algoNuevo) {
+            ++r.yaEstaban;
+            continue;
+        }
+        q.verificada = true;
+        q.verificadores = juntas;
+        cambiadas << q;
+    }
+    r.anadidas = int(cambiadas.size());
+    if (!cambiadas.isEmpty() && !guardarVerificaciones(cambiadas))
+        return -1;
+    if (resumen)
+        *resumen = r;
+    return r.anadidas;
 }
 
 QString BaseDatos::ajuste(const QString &clave, const QString &porDefecto)

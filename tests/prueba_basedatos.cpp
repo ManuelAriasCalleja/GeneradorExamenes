@@ -397,13 +397,109 @@ private slots:
             QCOMPARE(despues.at(1).verificada, reemplazar);
             QVERIFY(!despues.at(2).verificada);
         }
-        // Si el JSON dice que no está verificada, no lo está.
+        // Un JSON de antes de verificar una pregunta (dice que no lo está): si no ha cambiado, la verificación se
+        // conserva. Importar nunca la quita.
         QVERIFY(destino.guardarVerificacion(destino.preguntas().at(1).id, true, {}));
         QVERIFY(destino.exportarJson(json));
         QVERIFY(destino.guardarVerificacion(destino.preguntas().at(2).id, true, {QStringLiteral("Persona Uno")}));
         QCOMPARE(destino.diferenciasConJson(json), QStringList{QStringLiteral("1 pregunta distinta: T1-3")});
-        QVERIFY(destino.importarJson(json, false) > 0);
+        for (bool reemplazar : {false, true}) {
+            ResumenVerificacion resumen;
+            QVERIFY(destino.importarJson(json, reemplazar, nullptr, &resumen) > 0);
+            QVERIFY2(destino.preguntas().at(2).verificada, reemplazar ? "reemplazando" : "actualizando");
+            QCOMPARE(destino.preguntas().at(2).verificadores, QStringList{QStringLiteral("Persona Uno")});
+            QCOMPARE(resumen.conservadas, 1);
+            QCOMPARE(resumen.anadidas, 0);
+            QCOMPARE(resumen.quitadas, 0);
+        }
+        // Si el JSON la da por verificada por otra persona, se juntan las dos.
+        QVERIFY(cambiarJson(json, [](QJsonObject &raiz) {
+            QJsonArray temas = raiz.value(QStringLiteral("temas")).toArray();
+            QJsonObject tema = temas.at(0).toObject();
+            QJsonArray preguntas = tema.value(QStringLiteral("preguntas")).toArray();
+            QJsonObject tercera = preguntas.at(2).toObject();
+            tercera[QStringLiteral("verificada")] = true;
+            tercera[QStringLiteral("verificadores")] = QJsonArray{QStringLiteral("Otra Persona")};
+            preguntas[2] = tercera;
+            tema[QStringLiteral("preguntas")] = preguntas;
+            temas[0] = tema;
+            raiz[QStringLiteral("temas")] = temas;
+        }));
+        ResumenVerificacion resumen;
+        QVERIFY(destino.importarJson(json, false, nullptr, &resumen) > 0);
+        QCOMPARE(destino.preguntas().at(2).verificadores, (QStringList{QStringLiteral("Otra Persona"), QStringLiteral("Persona Uno")}));
+        QCOMPARE(resumen.anadidas, 1);
+        // Si la pregunta ha cambiado y el JSON no la da por verificada, queda sin verificar: lo verificado era otro texto.
+        QVERIFY(cambiarJson(json, [](QJsonObject &raiz) {
+            QJsonArray temas = raiz.value(QStringLiteral("temas")).toArray();
+            QJsonObject tema = temas.at(0).toObject();
+            QJsonArray preguntas = tema.value(QStringLiteral("preguntas")).toArray();
+            QJsonObject tercera = preguntas.at(2).toObject();
+            tercera[QStringLiteral("verificada")] = false;
+            tercera.remove(QStringLiteral("verificadores"));
+            tercera[QStringLiteral("enunciado")] = QStringLiteral("Enunciado inventado, corregido después:");
+            preguntas[2] = tercera;
+            tema[QStringLiteral("preguntas")] = preguntas;
+            temas[0] = tema;
+            raiz[QStringLiteral("temas")] = temas;
+        }));
+        QVERIFY(destino.importarJson(json, false, nullptr, &resumen) > 0);
         QVERIFY(!destino.preguntas().at(2).verificada);
+        QCOMPARE(resumen.quitadas, 1);
+        QCOMPARE(resumen.conservadas, 0);
+    }
+
+    // Solo las verificaciones de un JSON (de otra copia del banco): se añaden a las preguntas iguales, juntando las
+    // personas, sin cambiar nada más ni quitar ninguna.
+    void importarSoloLasVerificaciones()
+    {
+        BaseDatos casa;
+        QVERIFY2(abrirConBanco(casa, 2, 3), qPrintable(casa.ultimoError()));
+        BaseDatos trabajo;
+        QVERIFY(trabajo.abrir(m_dir.filePath(QStringLiteral("trabajo.db"))));
+        const QString json = m_dir.filePath(QStringLiteral("casa.json"));
+        QVERIFY(casa.exportarJson(json));
+        QVERIFY(trabajo.importarJson(json, false) > 0);
+        // En casa se verifican tres; una de ellas se corrige allí, y otra se verifica también en el trabajo, por otra
+        // persona. En el trabajo se corrige otra y se verifica una que en casa no.
+        const QVector<Pregunta> enCasa = casa.preguntas();
+        for (int i : {0, 1, 2})
+            QVERIFY(casa.guardarVerificacion(enCasa.at(i).id, true, {QStringLiteral("Persona Uno")}));
+        Pregunta corregida = casa.preguntas().at(2);
+        corregida.enunciado = QStringLiteral("Enunciado inventado, corregido en casa:");
+        QVERIFY(casa.guardarPregunta(corregida));
+        QVERIFY(trabajo.guardarVerificacion(trabajo.preguntas().at(1).id, true, {QStringLiteral("Otra Persona")}));
+        QVERIFY(trabajo.guardarVerificacion(trabajo.preguntas().at(4).id, true, {QStringLiteral("Otra Persona")}));
+        QVERIFY(casa.exportarJson(json));
+        Pregunta nueva = casa.preguntas().at(0);
+        nueva.id = 0;
+        nueva.variante = QStringLiteral("z");
+        QVERIFY(casa.guardarPregunta(nueva));   // verificada, y no está en el trabajo
+        QVERIFY(casa.exportarJson(json));
+        const QStringList contenidoAntes = [&] {
+            QStringList res;
+            for (const Pregunta &p : trabajo.preguntas())
+                res << p.codigoCompleto() + p.enunciado;
+            return res;
+        }();
+
+        ResumenVerificacion resumen;
+        QCOMPARE(trabajo.importarVerificaciones(json, &resumen), 2);
+        const QVector<Pregunta> despues = trabajo.preguntas();
+        QCOMPARE(despues.at(0).verificadores, QStringList{QStringLiteral("Persona Uno")});
+        QCOMPARE(despues.at(1).verificadores, (QStringList{QStringLiteral("Otra Persona"), QStringLiteral("Persona Uno")}));
+        QVERIFY(!despues.at(2).verificada);   // corregida en casa: lo verificado allí es otro texto
+        QVERIFY(despues.at(4).verificada);    // la del trabajo se queda
+        QCOMPARE(resumen.distintas, QStringList{QStringLiteral("T1-3")});
+        QCOMPARE(resumen.noEstan, QStringList{QStringLiteral("T1-1z")});
+        QStringList contenidoDespues;
+        for (const Pregunta &p : despues)
+            contenidoDespues << p.codigoCompleto() + p.enunciado;
+        QCOMPARE(contenidoDespues, contenidoAntes);   // nada más cambia
+        // Otra vez: ya las tiene.
+        QCOMPARE(trabajo.importarVerificaciones(json, &resumen), 0);
+        QCOMPARE(resumen.yaEstaban, 2);
+        QCOMPARE(trabajo.importarVerificaciones(m_dir.filePath(QStringLiteral("no-existe.json"))), -1);
     }
 
     void bancoSinVerificacionSePoneAlDia()
@@ -519,7 +615,7 @@ private slots:
         QCOMPARE(QDir(m_dir.filePath(QStringLiteral("copias"))).entryList(QDir::Files).size(), copiasAntes);
     }
 
-    void reemplazarTodoHaceCopiaDeSeguridad()
+    void importarHaceCopiaDeSeguridad()
     {
         BaseDatos bd;
         QVERIFY2(abrirConBanco(bd, 3, 10), qPrintable(bd.ultimoError()));
@@ -553,10 +649,11 @@ private slots:
         QVERIFY(copia2 != copia);
         QVERIFY(QFileInfo::exists(copia) && QFileInfo::exists(copia2));
 
-        // Añadir/actualizar no borra nada y no hace copia; reemplazar un banco sin temas, tampoco.
+        // Añadir/actualizar también hace copia (cambia preguntas); en un banco sin temas no hace falta.
         copia = QStringLiteral("x");
         QCOMPARE(bd.importarJson(json, false, &copia), nuevas.size());
-        QVERIFY(copia.isEmpty());
+        QVERIFY(!copia.isEmpty() && copia != copia2);
+        QVERIFY(QFileInfo::exists(copia));
         BaseDatos vacia;
         QVERIFY(vacia.abrir(m_dir.filePath(QStringLiteral("vacia.db"))));
         copia = QStringLiteral("x");

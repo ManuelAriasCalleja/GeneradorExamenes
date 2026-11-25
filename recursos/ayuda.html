@@ -801,10 +801,17 @@ y se recuerda de una vez a otra.</li>
 en el examen, detrás del diálogo. Al generar, la opción <b>Solo preguntas
 verificadas por humanos</b> deja fuera las demás (ver <a href="#opciones">Opciones</a>), y en la vista del examen cada
 pregunta lleva una marca que dice si está verificada (ver <a href="#vista">La vista del examen</a>).</p>
-<p>La verificación va en el JSON del banco (ver <a href="#formatojson">Formato del JSON</a>). Al importar uno que no la
-dice, como uno escrito a mano o por una IA, cada pregunta conserva la que tenía si no ha cambiado lo que se ve de ella
-(el enunciado, las opciones, la correcta, la referencia, la explicación o la imagen); si ha cambiado, queda sin
-verificar.</p>
+<p>La verificación va en el JSON del banco (ver <a href="#formatojson">Formato del JSON</a>). Al importar un JSON, cada
+pregunta que no ha cambiado lo que se ve de ella (el enunciado, las opciones, la correcta, la referencia, la
+explicación o la imagen) conserva su verificación, aunque el JSON diga que no está verificada, porque puede ser de
+antes de verificarla, y suma las personas que diga el JSON. Si ha cambiado, se queda con la del JSON o, si el JSON no
+la dice (uno escrito a mano o por una IA), sin verificar: lo verificado era otro texto. Al terminar se dice cuántas
+verificaciones se han conservado, añadido o quitado.</p>
+<p>Cada ordenador tiene su propia copia del banco: lo que se verifica en uno no aparece en otro. Para juntar el
+trabajo de dos copias (por ejemplo, la de casa y la del trabajo), exporte el JSON en una (<i>Archivo → Exportar
+preguntas (JSON)…</i>) y, en la otra, use <i>Archivo → Importar las verificaciones (JSON)…</i>: añade sus
+verificaciones a las preguntas que son iguales en las dos, juntando las personas, sin cambiar nada más ni quitar
+ninguna. Al terminar dice cuáles no ha tocado porque en el banco son distintas o no están, para revisarlas a mano.</p>
 
 <h3><a name="verificadores"></a>Los verificadores</h3>
 <p>Cada banco tiene su lista de verificadores, las personas que revisan sus preguntas. Se añaden, se les cambia el
@@ -859,9 +866,10 @@ JSON</a>).</p>
   <ul>
   <li><b>Añadir/actualizar</b>: las preguntas del JSON con el mismo tema, número y variante que una del banco la
   sustituyen; las demás preguntas del banco se conservan.</li>
-  <li><b>Reemplazar todo</b>: borra antes todos los temas y preguntas del banco. Antes de borrarlos guarda una
-  <a href="#copias">copia de seguridad</a>.</li>
+  <li><b>Reemplazar todo</b>: borra antes todos los temas y preguntas del banco.</li>
   </ul>
+  En los dos casos, antes de importar guarda una <a href="#copias">copia de seguridad</a>, y las preguntas que no
+  cambian conservan su verificación (ver <a href="#verificar">Verificación por personas</a>).
   Antes, el JSON se comprueba (ver <a href="#comprobarjson">Comprobar un JSON</a>): si tiene errores, no se importa;
   si solo tiene avisos, se puede importar de todas formas.
   Si el banco aún no tiene nombre de asignatura ni idioma de los exámenes, toma los del JSON; si los tiene, los
@@ -869,6 +877,8 @@ JSON</a>).</p>
   preguntas no dicen la forma) se quedan con los que tenía el tema con su número: para añadir preguntas a un tema que
   ya está en el banco, basta con poner su número y las preguntas.
 </li>
+<li><i>Archivo → Importar las verificaciones (JSON)…</i> solo añade las verificaciones de un JSON, sin cambiar nada
+más (ver <a href="#verificar">Verificación por personas</a>).</li>
 <li><i>Archivo → Exportar preguntas (JSON)…</i> guarda todo el banco en un JSON.</li>
 </ul>
 
@@ -991,7 +1001,7 @@ cambio del banco. Nunca toca un JSON que ya no coincida con la base de datos (po
 el documento de preguntas y aún sin importar): en ese caso solo avisa.</p>
 
 <h3><a name="copias"></a>Copias de seguridad</h3>
-<p>Antes de «Reemplazar todo», el programa guarda una copia de la base de datos en la carpeta <tt>copias</tt>, junto
+<p>Antes de importar un JSON, el programa guarda una copia de la base de datos en la carpeta <tt>copias</tt>, junto
 a ella, con la fecha y la hora en el nombre (<tt>copias/preguntas_2026-10-22_153045.db</tt>), y al terminar dice
 dónde la ha dejado. Si la importación falla, la base de datos no cambia y la copia se borra.</p>
 <p>Para volver atrás, abra la copia con <i>Archivo → Abrir banco de preguntas…</i> o, con el programa cerrado,
@@ -1135,6 +1145,11 @@ no cambian: guardan la pregunta tal como salió.</p>
 <h3><a name="problema-reemplazar"></a>He reemplazado el banco por error</h3>
 <p>Abra la copia de seguridad que se guardó en la carpeta <tt>copias</tt> (ver <a href="#copias">Copias de
 seguridad</a>).</p>
+
+<h3><a name="problema-verificaciones"></a>Faltan preguntas que se verificaron</h3>
+<p>Si se verificaron en otro ordenador, están en la copia del banco de ese ordenador. Exporte allí el JSON e importe
+aquí sus verificaciones con <i>Archivo → Importar las verificaciones (JSON)…</i> (ver <a href="#verificar">Verificación
+por personas</a>). Importar un JSON nunca quita la verificación de una pregunta que no ha cambiado.</p>
 
 <h3><a name="problema-ingles"></a>Algunos botones de los diálogos salen en inglés</h3>
 <p>Faltan las traducciones al castellano de Qt, la biblioteca con la que está hecho el programa. No afecta a su

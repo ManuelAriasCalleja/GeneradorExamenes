@@ -376,6 +376,10 @@ void VentanaPrincipal::crearMenus()
     archivo->addAction(tr("&Nuevo banco de preguntas…"), this, &VentanaPrincipal::nuevaBaseDatos);
     archivo->addSeparator();
     archivo->addAction(tr("&Importar preguntas (JSON)…"), this, &VentanaPrincipal::importarJson);
+    //: Menú Archivo. El & marca la letra del atajo: no puede ser la de otra orden del menú.
+    archivo->addAction(tr("Importar las &verificaciones (JSON)…"), this, &VentanaPrincipal::importarVerificaciones)
+        ->setToolTip(tr("Añade las verificaciones de un JSON (exportado de otra copia del banco, en otro ordenador) a "
+                        "las preguntas que son iguales en este banco, sin cambiar nada más ni quitar ninguna"));
     archivo->addAction(tr("&Comprobar un JSON…"), this, &VentanaPrincipal::comprobarFicheroJson)
         ->setToolTip(tr("Dice los errores de un JSON de preguntas, con su línea, sin importarlo"));
     archivo->addAction(tr("Guardar un JSON de e&jemplo…"), this, &VentanaPrincipal::guardarJsonEjemplo)
@@ -557,8 +561,10 @@ void VentanaPrincipal::importarJson()
     QMessageBox caja(QMessageBox::Question, windowTitle(),
                      tr("¿Cómo quiere importar las preguntas?\n\n"
                         "Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.\n"
-                        "Reemplazar todo: se borran antes todos los temas y preguntas (antes de borrarlos se guarda "
-                        "una copia de seguridad de la base de datos en la carpeta «copias», junto a ella)."),
+                        "Reemplazar todo: se borran antes todos los temas y preguntas.\n\n"
+                        "La verificación de las preguntas que no cambian se conserva, aunque el JSON no la tenga. Antes "
+                        "de importar se guarda una copia de seguridad de la base de datos en la carpeta «copias», junto "
+                        "a ella."),
                      QMessageBox::NoButton, this);
     QPushButton *anadir = caja.addButton(tr("Añadir/actualizar"), QMessageBox::AcceptRole);
     QPushButton *reemplazar = caja.addButton(tr("Reemplazar todo"), QMessageBox::DestructiveRole);
@@ -567,8 +573,9 @@ void VentanaPrincipal::importarJson()
     if (caja.clickedButton() != anadir && caja.clickedButton() != reemplazar)
         return;
     QString copia;
+    ResumenVerificacion verificacion;
     const QString asignaturaAntes = m_bd.asignatura();
-    const int n = m_bd.importarJson(ruta, caja.clickedButton() == reemplazar, &copia);
+    const int n = m_bd.importarJson(ruta, caja.clickedButton() == reemplazar, &copia, &verificacion);
     if (n < 0) {
         QMessageBox::warning(this, windowTitle(), tr("Error al importar:\n%1").arg(m_bd.ultimoError()));
         return;
@@ -584,10 +591,50 @@ void VentanaPrincipal::importarJson()
     m_panel->ponerIdiomaDelBanco();   // por si el banco no decía el idioma y lo trae el JSON
     recargarDatos();
     QString mensaje = tr("Se han importado %1 preguntas.").arg(n);
+    if (verificacion.conservadas > 0)
+        mensaje += tr("\n\nVerificaciones conservadas (el JSON las da por no verificadas, pero no han cambiado): %1.")
+                       .arg(verificacion.conservadas);
+    if (verificacion.anadidas > 0)
+        mensaje += tr("\n\nPreguntas con verificaciones nuevas del JSON: %1.").arg(verificacion.anadidas);
+    if (verificacion.quitadas > 0)
+        mensaje += tr("\n\nVerificaciones quitadas porque la pregunta ha cambiado: %1.").arg(verificacion.quitadas);
     if (!copia.isEmpty())
-        mensaje += tr("\n\nAntes de borrar el banco se ha guardado una copia de seguridad en:\n%1")
+        mensaje += tr("\n\nAntes de importar se ha guardado una copia de seguridad del banco en:\n%1")
                        .arg(QDir::toNativeSeparators(copia));
     QMessageBox::information(this, windowTitle(), mensaje);
+}
+
+void VentanaPrincipal::importarVerificaciones()
+{
+    const QString ruta = QFileDialog::getOpenFileName(this, tr("Importar las verificaciones de un JSON"), QString(),
+                                                      QStringLiteral("JSON (*.json)"));
+    if (ruta.isEmpty())
+        return;
+    ResumenVerificacion r;
+    const int n = m_bd.importarVerificaciones(ruta, &r);
+    if (n < 0) {
+        QMessageBox::warning(this, windowTitle(), tr("No se pudieron importar las verificaciones:\n%1").arg(m_bd.ultimoError()));
+        return;
+    }
+    // Los códigos de las que no se han tocado, para revisarlas a mano (los primeros, si son muchos).
+    auto codigos = [](const QStringList &lista) {
+        constexpr int kMaximo = 20;
+        QString texto = lista.mid(0, kMaximo).join(QStringLiteral(", "));
+        if (lista.size() > kMaximo)
+            texto += QStringLiteral(", …");
+        return texto;
+    };
+    QString mensaje = tr("Preguntas con verificaciones nuevas: %1.").arg(n);
+    if (r.yaEstaban > 0)
+        mensaje += tr("\n\nYa tenían esas verificaciones: %1.").arg(r.yaEstaban);
+    if (!r.distintas.isEmpty())
+        mensaje += tr("\n\nNo se han tocado porque en el banco no son iguales que en el JSON (%1): %2.")
+                       .arg(r.distintas.size()).arg(codigos(r.distintas));
+    if (!r.noEstan.isEmpty())
+        mensaje += tr("\n\nNo están en el banco (%1): %2.").arg(r.noEstan.size()).arg(codigos(r.noEstan));
+    QMessageBox::information(this, windowTitle(), mensaje);
+    if (n > 0)
+        verificacionCambiada(0);
 }
 
 void VentanaPrincipal::comprobarFicheroJson()

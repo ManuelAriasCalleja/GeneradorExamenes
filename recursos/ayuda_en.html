@@ -822,10 +822,19 @@ and is remembered from one session to the next.</li>
 list of questions and in the exam, behind the dialog. When generating, the option <b>Only
 questions verified by humans</b> leaves out the rest (see <a href="#opciones">Options</a>), and in the exam preview each
 question has a mark that says whether it is verified (see <a href="#vista">The exam preview</a>).</p>
-<p>The verification goes in the bank’s JSON (see <a href="#formatojson">JSON format</a>). When importing one that does
-not say it, such as one written by hand or by an AI, each question keeps the one it had if what is shown of it has not
-changed (the question text, the options, the correct answer, the reference, the explanation or the image); if it has
-changed, it becomes not verified.</p>
+<p>The verification goes in the bank’s JSON (see <a href="#formatojson">JSON format</a>). When importing a JSON, each
+question whose visible content has not changed (the question text, the options, the correct answer, the reference,
+the explanation or the image) keeps its verification, even if the JSON says it is not verified, because the JSON may
+be from before it was verified, and adds the people the JSON names. If it has changed, it takes the verification in
+the JSON or, if the JSON does not state it (one written by hand or by an AI), it becomes not verified: what was
+verified was a different text. When it has finished, the program says how many verifications were kept, added or
+removed.</p>
+<p>Each computer has its own copy of the bank: what is verified on one does not appear on another. To bring together
+the work done on two copies (for example, at home and at work), export the JSON on one (<i>File → Export questions
+(JSON)…</i>) and, on the other, use <i>File → Import verifications (JSON)…</i>: it adds its verifications to the
+questions that are the same in both, combining the people, without changing anything else or removing any. When it has
+finished it says which ones it has not touched because they are different in the bank or are not in it, so that you
+can review them by hand.</p>
 
 <h3><a name="verificadores"></a>The verifiers</h3>
 <p>Each bank has its list of verifiers, the people who review its questions. They are added, renamed (also in the
@@ -880,9 +889,10 @@ format</a>).</p>
   <ul>
   <li><b>Add/update</b>: the questions in the JSON with the same topic, number and variant as one in the bank replace
   it; the other questions in the bank are kept.</li>
-  <li><b>Replace all</b>: first deletes all the topics and questions in the bank. Before deleting them, it saves a
-  <a href="#copias">backup</a>.</li>
+  <li><b>Replace all</b>: first deletes all the topics and questions in the bank.</li>
   </ul>
+  In both cases, before importing it saves a <a href="#copias">backup</a>, and the questions that do not change keep
+  their verification (see <a href="#verificar">Verification by people</a>).
   First, the JSON is checked (see <a href="#comprobarjson">Checking a JSON file</a>): if it has errors, it is not
   imported; if it only has warnings, it can be imported anyway.
   If the bank does not yet have a subject name or an exam language, it takes those of the JSON; if it does, it keeps
@@ -890,6 +900,8 @@ format</a>).</p>
   the questions document do not state the format) keep the ones that the topic with that number already had: to add
   questions to a topic that is already in the bank, just give its number and the questions.
 </li>
+<li><i>File → Import verifications (JSON)…</i> only adds the verifications of a JSON, without changing anything else
+(see <a href="#verificar">Verification by people</a>).</li>
 <li><i>File → Export questions (JSON)…</i> saves the whole bank in a JSON file.</li>
 </ul>
 
@@ -1012,7 +1024,7 @@ change to the bank. It never touches a JSON that no longer matches the database 
 from the questions document and not yet imported): in that case it only shows a warning.</p>
 
 <h3><a name="copias"></a>Backups</h3>
-<p>Before “Replace all”, the program saves a copy of the database in the <tt>copias</tt> folder next to it, with the
+<p>Before importing a JSON, the program saves a copy of the database in the <tt>copias</tt> folder next to it, with the
 date and time in its name (<tt>copias/preguntas_2026-10-22_153045.db</tt>), and when it has finished it says where it
 has saved it. If the import fails, the database does not change and the copy is deleted.</p>
 <p>To go back, open the copy with <i>File → Open question bank…</i> or, with the program closed, copy it over the
@@ -1155,6 +1167,11 @@ not change: they keep the question exactly as it was set.</p>
 
 <h3><a name="problema-reemplazar"></a>I have replaced the bank by mistake</h3>
 <p>Open the backup that was saved in the <tt>copias</tt> folder (see <a href="#copias">Backups</a>).</p>
+
+<h3><a name="problema-verificaciones"></a>Some questions that were verified are missing</h3>
+<p>If they were verified on another computer, they are in that computer’s copy of the bank. Export the JSON there and
+import its verifications here with <i>File → Import verifications (JSON)…</i> (see <a href="#verificar">Verification by
+people</a>). Importing a JSON never removes the verification of a question that has not changed.</p>
 
 <h3><a name="problema-ingles"></a>Some dialog buttons are in English with the Spanish interface</h3>
 <p>This only happens with the interface in Spanish: the Spanish translations of Qt, the library the program is built

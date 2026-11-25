@@ -25,6 +25,18 @@ struct ExamenRegistrado
     int numPreguntas = 0;
 };
 
+// Lo que ha pasado con la verificación de las preguntas al importar un JSON (ver BaseDatos::importarJson() e
+// importarVerificaciones()). Importar nunca quita la verificación de una pregunta que no ha cambiado.
+struct ResumenVerificacion
+{
+    int conservadas = 0;     // verificadas en el banco que el JSON da por no verificadas, sin cambios: lo siguen
+    int anadidas = 0;        // preguntas con alguna verificación (o persona) del JSON que no tenían en el banco
+    int quitadas = 0;        // verificadas en el banco que han cambiado y el JSON no da por verificadas
+    int yaEstaban = 0;       // al importar solo las verificaciones: el banco ya las tenía todas
+    QStringList distintas;   // … las que el JSON da por verificadas y en el banco tienen otro contenido (no se tocan)
+    QStringList noEstan;     // … las que el JSON da por verificadas y no están en el banco
+};
+
 // Reparto de preguntas por tema guardado en el banco, con un nombre: es uno de los botones («T1–T4») que lo ponen.
 struct Reparto
 {
@@ -82,15 +94,22 @@ public:
     bool guardarUltimosVerificadores(const QStringList &nombres);
 
     // Importa un JSON con el formato de herramientas/importar_docx.py.
-    // Si 'reemplazar' es true borra antes todas las preguntas y temas, tras guardar una copia de seguridad de la
-    // base de datos (ver copiaSeguridad()); en 'copia', si se da, deja la ruta de esa copia, o vacía si no se ha
-    // hecho (banco sin temas, o añadir/actualizar). Si la importación falla, la base de datos no cambia y la copia
-    // se borra. Las preguntas con el mismo tema, número y variante se actualizan. El nombre de la asignatura del
-    // JSON solo se toma si el banco aún no tiene; la forma de la referencia de un tema, si el JSON no la dice (los
-    // de importar_docx.py no la dicen), es la que ya tenía el tema con ese número. La verificación de una pregunta
-    // es la del JSON si la dice («verificada»); si no, la que tenía en el banco la pregunta con el mismo código si su
-    // contenido no ha cambiado (también al reemplazarlo todo), y si no, sin verificar.
-    int importarJson(const QString &ruta, bool reemplazar, QString *copia = nullptr);
+    // Antes de importar guarda una copia de seguridad de la base de datos (ver copiaSeguridad()), si tiene algo; en
+    // 'copia', si se da, deja su ruta, o vacía si no se ha hecho (banco sin temas). Si 'reemplazar' es true borra
+    // antes todas las preguntas y temas. Si la importación falla, la base de datos no cambia y la copia se borra. Las
+    // preguntas con el mismo tema, número y variante se actualizan. El nombre de la asignatura del JSON solo se toma
+    // si el banco aún no tiene; la forma de la referencia de un tema, si el JSON no la dice (los de importar_docx.py
+    // no la dicen), es la que ya tenía el tema con ese número. La verificación de una pregunta: si su contenido no ha
+    // cambiado, la que tenía en el banco la del mismo código, con las personas que añada el JSON (importar nunca la
+    // quita: el JSON puede ser de antes de verificarla); si ha cambiado, o es nueva, la del JSON, si la dice. Lo que
+    // ha pasado con ella, en 'verificacion', si se da. También al reemplazarlo todo.
+    int importarJson(const QString &ruta, bool reemplazar, QString *copia = nullptr,
+                     ResumenVerificacion *verificacion = nullptr);
+    // Solo las verificaciones de un JSON (exportado de otra copia del banco, en otro ordenador): las que da por
+    // verificadas se añaden a las preguntas del banco con el mismo código y el mismo contenido, juntando las personas.
+    // No cambia nada más ni quita ninguna verificación. Devuelve a cuántas preguntas se ha añadido algo (lo demás, en
+    // 'resumen'), o -1 si no se puede leer el JSON o guardar (el motivo, en ultimoError()).
+    int importarVerificaciones(const QString &ruta, ResumenVerificacion *resumen = nullptr);
     bool exportarJson(const QString &ruta);
 
     // Guarda una copia de la base de datos en la carpeta «copias» junto a ella, con la fecha y la hora en el nombre
