@@ -1320,11 +1320,16 @@ QHash<QString, SalidaAnterior> BaseDatos::salidasAnteriores(int anio, const QStr
     for (const ExamenRegistrado &e : examenesRegistrados()) {
         if (e.datos.anio == anio && e.datos.convocatoria == convocatoria && excluidos.contains(e.nombre))
             continue;
-        for (const PreguntaExamen &pe : modeloRegistrado(e.id).preguntas) {
-            SalidaAnterior &s = salidas[pe.pregunta.codigoCompleto()];
+        const QVector<PreguntaExamen> preguntas = modeloRegistrado(e.id).preguntas;
+        // El código, el de la columna, que se renumera con los temas (guardarTemas()); el de la copia de la pregunta
+        // es el de cuando salió.
+        QSqlQuery q = consultar(QStringLiteral("SELECT codigo FROM preguntas_registradas WHERE examen_id = ? ORDER BY posicion"),
+                                {e.id});
+        for (int i = 0; q.next() && i < preguntas.size(); ++i) {
+            SalidaAnterior &s = salidas[q.value(0).toString()];
             if (s.letras.isEmpty())
                 s.convocatoria = e.datos.convocatoriaYAnio();
-            s.letras << pe.correcta();
+            s.letras << preguntas.at(i).correcta();
         }
     }
     return salidas;

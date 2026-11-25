@@ -897,6 +897,17 @@ private slots:
         const SalidaAnterior sinFebrero = bd.salidasAnteriores(2026, QStringLiteral("Febrero"), {QStringLiteral("Uno")}).value(codigo);
         QCOMPARE(sinFebrero.convocatoria, QStringLiteral("Junio 2025"));
         QCOMPARE(sinFebrero.letras, (QVector<int>{letra({{0, 1, 2, 3}}), letra({{3, 2, 1, 0}})}));
+
+        // Al intercambiar los temas 1 y 2, la pregunta cambia de código, y lo que salió va con el nuevo (no con el que
+        // ahora lleva otra pregunta).
+        QVector<Tema> temas = bd.temas();
+        for (Tema &t : temas)
+            t.numero = t.numero == 1 ? 2 : t.numero == 2 ? 1 : t.numero;
+        QVERIFY2(bd.guardarTemas(temas, {}), qPrintable(bd.ultimoError()));
+        const QString codigoNuevo = QStringLiteral("T2-") + m.preguntas.first().pregunta.codigo();
+        const QHash<QString, SalidaAnterior> renumeradas = bd.salidasAnteriores(2026, QStringLiteral("Junio"), {});
+        QCOMPARE(renumeradas.value(codigoNuevo).letras, salidas.value(codigo).letras);
+        QVERIFY(!renumeradas.contains(codigo));
     }
 
     void temasIntercambiadosActualizanCodigos()
