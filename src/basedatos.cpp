@@ -1232,6 +1232,24 @@ QHash<QString, int> BaseDatos::usoReciente(int cuantas, int anio, const QString 
     return res;
 }
 
+QHash<QString, SalidaAnterior> BaseDatos::salidasAnteriores(int anio, const QString &convocatoria,
+                                                           const QStringList &excluidos)
+{
+    QHash<QString, SalidaAnterior> salidas;
+    // examenesRegistrados() los da de la convocatoria más reciente a la más antigua.
+    for (const ExamenRegistrado &e : examenesRegistrados()) {
+        if (e.datos.anio == anio && e.datos.convocatoria == convocatoria && excluidos.contains(e.nombre))
+            continue;
+        for (const PreguntaExamen &pe : modeloRegistrado(e.id).preguntas) {
+            SalidaAnterior &s = salidas[pe.pregunta.codigoCompleto()];
+            if (s.letras.isEmpty())
+                s.convocatoria = e.datos.convocatoriaYAnio();
+            s.letras << pe.correcta();
+        }
+    }
+    return salidas;
+}
+
 QStringList BaseDatos::usosDe(const QString &codigo)
 {
     QStringList res;

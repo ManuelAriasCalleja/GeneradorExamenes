@@ -241,7 +241,8 @@ numbers come back.</td></tr>
 exams.</td></tr>
 <tr><td><b>Shuffle the options</b></td>
 <td>Changes the order of the options to spread the correct answer across a), b), c) and d) (see
-<a href="#correctas">Distribution of the correct answer</a>).</td></tr>
+<a href="#correctas">Distribution of the correct answer</a>). The options of questions that have already been used are
+always shuffled.</td></tr>
 <tr><td><b>Fit on one page per 10 questions</b></td>
 <td>Compacts the layout until each exam fits on one page per 10 questions, and warns if it cannot (see
 <a href="#maqueta">One page per 10 questions</a>). If unticked, exams use the normal layout and take as many pages
@@ -274,8 +275,17 @@ June, September…).</li>
 of times (with a difference of one at most) and, where possible, never three times in a row on the same letter.
 Questions with options that refer to the others (“All of the above”, “a and b”…) are not shuffled, because their
 meaning would change.</p>
-<p>Without shuffling, the correct answer stays on the letter it has in the bank. If in any exam one letter comes up
-considerably more often than its share (5 out of 10, for example), a warning is shown.</p>
+<p>Without shuffling, the correct answer stays on the letter it has in the bank, except in questions that have
+already been used. If in any exam one letter comes up considerably more often than its share (5 out of 10, for
+example), a warning is shown.</p>
+<p>Questions that have already been used in an exam recorded in the history, whatever its exam session, and those
+marked “old” always have their options shuffled, even if <b>Shuffle the options</b> is not ticked, and the correct
+answer on a letter it has not had: if it was used several times, on one it has never had and, if it has had them all,
+on a different one from the last time. For those marked “old” it is not known how they were used: the correct answer
+goes on a different letter from the one in the bank. That way, anyone who remembers the answer from a past exam
+session will not find it on the same letter. Exams of the same exam session with the same name do not count, since
+they are the ones being generated again. If one of them cannot be shuffled, because its options refer to the others,
+and its correct answer falls on a letter it has already had, a warning is shown.</p>
 <p>Next to <b>Large print</b> you can see how many times each letter is correct in the exam being shown
 (“Correct: A 3 · B 3 · C 2 · D 2”). The solutions sheet also shows it.</p>
 

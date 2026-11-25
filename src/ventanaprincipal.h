@@ -160,6 +160,9 @@ private:
     // Si se evitan, las preguntas de las últimas convocatorias registradas. Los exámenes 'examenes' de la convocatoria
     // de la ventana no cuentan: son los que se generan, que sustituirán a los registrados con su nombre.
     QHash<QString, int> usoReciente(const QStringList &examenes);
+    // Cómo salieron las preguntas en los exámenes registrados (ConfigExamen::salidas), sin contar los de la
+    // convocatoria del panel que se llamen como 'examenes'.
+    QHash<QString, SalidaAnterior> salidasAnteriores(const QStringList &examenes);
     DatosConvocatoria datosConvocatoria() const;
     QSet<QString> gruposDelBanco() const;   // «T1-7» de las preguntas del banco abierto
     QString nombreBaseFichero() const;

@@ -711,6 +711,42 @@ private slots:
             QCOMPARE(sinSeptiembre.value(pe.pregunta.codigoCompleto()), 1);
     }
 
+    // Cómo salió cada pregunta en todos los exámenes registrados: la letra de la correcta cada vez, de la convocatoria
+    // más reciente a la más antigua, y la más reciente. Sin contar los exámenes que se van a generar de nuevo.
+    void historialSalidasAnteriores()
+    {
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd), qPrintable(bd.ultimoError()));
+        ConfigExamen c;
+        c.preguntasPorTema = {{1, 3}};
+        c.nombresModelos = {QStringLiteral("Uno")};
+        c.semilla = 5;
+        Modelo m = Generador::generar(bd.preguntas(), c).modelos.first();
+        const QString codigo = m.preguntas.first().pregunta.codigoCompleto();
+        auto registrar = [&](const QString &convocatoria, int anio, const std::array<int, 4> &orden) {
+            m.preguntas[0].orden = orden;
+            DatosConvocatoria d;
+            d.convocatoria = convocatoria;
+            d.anio = anio;
+            return bd.registrarExamenes({m}, d, 5);
+        };
+        QVERIFY(registrar(QStringLiteral("Junio"), 2025, {{0, 1, 2, 3}}));
+        QVERIFY(registrar(QStringLiteral("Febrero"), 2026, {{1, 2, 3, 0}}));
+        QVERIFY(registrar(QStringLiteral("Septiembre"), 2024, {{3, 2, 1, 0}}));
+        const int correcta = m.preguntas.first().pregunta.correcta;
+        auto letra = [correcta](const std::array<int, 4> &orden) {
+            return int(std::find(orden.begin(), orden.end(), correcta) - orden.begin());
+        };
+        const QHash<QString, SalidaAnterior> salidas = bd.salidasAnteriores(2026, QStringLiteral("Junio"), {});
+        QCOMPARE(salidas.value(codigo).convocatoria, QStringLiteral("Febrero 2026"));
+        QCOMPARE(salidas.value(codigo).letras, (QVector<int>{letra({{1, 2, 3, 0}}), letra({{0, 1, 2, 3}}), letra({{3, 2, 1, 0}})}));
+        QCOMPARE(salidas.size(), 3);   // las tres preguntas del examen
+        // El examen «Uno» de Febrero 2026 se va a generar de nuevo: no cuenta.
+        const SalidaAnterior sinFebrero = bd.salidasAnteriores(2026, QStringLiteral("Febrero"), {QStringLiteral("Uno")}).value(codigo);
+        QCOMPARE(sinFebrero.convocatoria, QStringLiteral("Junio 2025"));
+        QCOMPARE(sinFebrero.letras, (QVector<int>{letra({{0, 1, 2, 3}}), letra({{3, 2, 1, 0}})}));
+    }
+
     void temasIntercambiadosActualizanCodigos()
     {
         BaseDatos bd;

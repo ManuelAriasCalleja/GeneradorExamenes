@@ -2410,7 +2410,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Generador</name>
     <message>
-        <location filename="../src/generador.cpp" line="+287"/>
+        <location filename="../src/generador.cpp" line="+350"/>
         <source>no queda ninguna otra pregunta del tema %1; %2 es (o es variante de) una de las ya quitadas.</source>
         <extracomment>Va detrás de «Examen», pregunta N: (por eso empieza en minúscula). %2 es el código de una pregunta (T1-7a).</extracomment>
         <translation>there is no other question left from topic %1; %2 is (or is a variant of) one of those already removed.</translation>
@@ -2448,7 +2448,19 @@ Do not hand in the question paper.</translation>
         <translation>“%1”: </translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+25"/>
+        <source>%1 ya salió en %2 con la correcta en la %3), y sus opciones no se pueden barajar porque remiten a otras.</source>
+        <extracomment>Va detrás de «Examen», pregunta N: . %1 es el código de una pregunta (T1-7a), %2 una convocatoria («Junio 2025») y %3 una letra (a, b, c o d).</extracomment>
+        <translation>%1 was used in %2 with the correct answer on %3), and its options cannot be shuffled because they refer to the others.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>%1 está marcada «old» y sus opciones no se pueden barajar porque remiten a otras: la correcta sigue en la %2), como en el banco.</source>
+        <extracomment>Va detrás de «Examen», pregunta N: . «old» es la marca de las preguntas que ya han salido en exámenes. %1 es el código de una pregunta (T1-7a) y %2 una letra (a, b, c o d).</extracomment>
+        <translation>%1 is marked “old” and its options cannot be shuffled because they refer to the others: the correct answer stays on %2), as in the bank.</translation>
+    </message>
+    <message>
+        <location line="+14"/>
         <source>la respuesta correcta es la %1) en %2 de %3 preguntas%4.</source>
         <extracomment>Va detrás de «Nombre del examen»: . %1 es una letra (a, b, c o d); %4 está vacío o es «; marque «Barajar las opciones»…».</extracomment>
         <translation>the correct answer is %1) in %2 of %3 questions%4.</translation>
@@ -2460,13 +2472,13 @@ Do not hand in the question paper.</translation>
         <translation>; tick “Shuffle the options” to spread it out</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="-41"/>
         <source>«%1», pregunta %2: </source>
         <extracomment>Comienzo de un aviso sobre una pregunta: %1 es el nombre del examen y %2, el número de la pregunta en él.</extracomment>
         <translation>“%1”, question %2: </translation>
     </message>
     <message>
-        <location line="+95"/>
+        <location line="+194"/>
         <source>Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas verificadas disponibles.</source>
         <translation>Topic %1: %2 questions were requested but there are only %3 different verified ones available.</translation>
     </message>
@@ -3907,12 +3919,12 @@ Replace all: all topics and questions are deleted first (before deleting them, a
     </message>
     <message>
         <location line="+1"/>
-        <location line="+611"/>
+        <location line="+618"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-603"/>
+        <location line="-610"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -4130,12 +4142,12 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Two ticked exams have the same name.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>No hay ninguna convocatoria registrada en el historial, así que no se evitan las preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con Archivo → Registrar exámenes anteriores…</source>
         <translation>There is no exam session recorded in the history, so questions from previous ones are not avoided. If they were held outside the program, record them with File → Record previous exams…</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+47"/>
         <source>Semilla: %1</source>
         <extracomment>Línea de información del examen generado: semilla del generador de números aleatorios</extracomment>
         <translation>Seed: %1</translation>
@@ -4352,7 +4364,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <translation>Exams for %1 recorded in the history</translation>
     </message>
     <message>
-        <location line="+36"/>
+        <location line="+37"/>
         <source>Registrada el %1</source>
         <extracomment>Origen de los exámenes cargados del historial: la convocatoria se registró el día %1</extracomment>
         <translation>Recorded on %1</translation>

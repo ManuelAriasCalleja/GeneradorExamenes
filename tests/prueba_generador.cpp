@@ -461,6 +461,137 @@ private slots:
         otra.id = -1;
         QCOMPARE(Generador::ponerVerificacion(r, otra), 0);
     }
+
+    // Las preguntas que ya han salido en exámenes registrados, y las marcadas «old», llevan las opciones barajadas
+    // aunque no se pida, con la correcta en otra letra que la vez anterior (de las «old», que en el banco). Las demás,
+    // sin «Barajar las opciones», como en el banco.
+    void lasQueYaSalieronSeBarajanSiempre()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        for (quint32 semilla = 1; semilla <= 50; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            for (const Pregunta &p : banco)
+                if (p.id % 2 == 0)
+                    c.salidas.insert(p.codigoCompleto(), {QStringLiteral("Junio 2025"), {p.correcta}});
+            for (const Modelo &m : Generador::generar(banco, c).modelos)
+                for (const PreguntaExamen &pe : m.preguntas) {
+                    const Pregunta &p = pe.pregunta;
+                    QCOMPARE(pe.opcion(pe.correcta()), p.opciones.at(p.correcta));
+                    if (Estilo::tieneOpcionesDependientes(p) || (p.id % 2 != 0 && !p.old))
+                        QCOMPARE(pe.orden, (std::array<int, 4>{{0, 1, 2, 3}}));
+                    else
+                        QVERIFY2(pe.correcta() != p.correcta, qPrintable(p.codigoCompleto()));
+                }
+        }
+    }
+
+    // Si salió varias veces, la correcta va a una letra en que no estuvo nunca; si estuvo en todas, a otra que la
+    // última vez. Con «Barajar las opciones» o sin ello.
+    void laCorrectaVaDondeNoEstuvo()
+    {
+        const QVector<Pregunta> banco = bancoInventado(1, 12);
+        for (quint32 semilla = 1; semilla <= 50; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            c.preguntasPorTema = {{1, 12}};
+            c.nombresModelos = {QStringLiteral("Uno")};
+            c.barajarOpciones = semilla % 2;
+            for (const Pregunta &p : banco)
+                c.salidas.insert(p.codigoCompleto(), {QStringLiteral("Junio 2025"),
+                                                      p.numero % 2 ? QVector<int>{2, 0, 1} : QVector<int>{1, 3, 0, 2}});
+            const ResultadoGeneracion r = Generador::generar(banco, c);
+            for (const PreguntaExamen &pe : r.modelos.first().preguntas) {
+                if (pe.pregunta.numero % 2)
+                    QCOMPARE(pe.correcta(), 3);   // la única en que no estuvo
+                else
+                    QVERIFY(pe.correcta() != 1);  // estuvo en todas: otra que la última vez
+            }
+        }
+    }
+
+    // Barajadas, la correcta sigue repartida por igual aunque algunas no puedan ir en alguna letra, si se puede.
+    void yaSalidasYRepartidas()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        for (quint32 semilla = 1; semilla <= 100; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            c.preguntasPorTema = {{1, 4}, {3, 4}, {4, 4}, {5, 4}, {6, 4}};   // el tema 2 tiene una que no se baraja
+            c.barajarOpciones = true;
+            for (const Pregunta &p : banco)
+                if (p.id % 3 == 0)
+                    c.salidas.insert(p.codigoCompleto(), {QStringLiteral("Junio 2025"), {p.id % 4}});
+            for (const Modelo &m : Generador::generar(banco, c).modelos) {
+                for (const PreguntaExamen &pe : m.preguntas)
+                    if (pe.pregunta.id % 3 == 0)
+                        QVERIFY(pe.correcta() != pe.pregunta.id % 4);
+                const std::array<int, 4> cuenta = m.correctasPorLetra();
+                QVERIFY(*std::max_element(cuenta.begin(), cuenta.end()) - *std::min_element(cuenta.begin(), cuenta.end()) <= 1);
+            }
+        }
+    }
+
+    // Lo que ya ha salido no cambia las preguntas que se eligen con una semilla: solo cómo van sus opciones.
+    void yaSalidasConLasMismasPreguntas()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        auto preguntas = [](const ResultadoGeneracion &r) {
+            QStringList ids;
+            for (const Modelo &m : r.modelos)
+                for (const PreguntaExamen &pe : m.preguntas)
+                    ids << QString::number(pe.pregunta.id);
+            return ids;
+        };
+        for (bool barajar : {false, true}) {
+            ConfigExamen c = configuracion(33);
+            c.barajarOpciones = barajar;
+            const QStringList sinSalidas = preguntas(Generador::generar(banco, c));
+            for (const Pregunta &p : banco)
+                c.salidas.insert(p.codigoCompleto(), {QStringLiteral("Junio 2025"), {(p.correcta + 1) % 4}});
+            QCOMPARE(preguntas(Generador::generar(banco, c)), sinSalidas);
+        }
+    }
+
+    // La que tiene opciones que remiten a otras (la T2-6, marcada «old») no se baraja: si su correcta va donde estuvo,
+    // se avisa.
+    void yaSalidaSinBarajarAvisa()
+    {
+        const QVector<Pregunta> banco = bancoInventado(2, 6);
+        ConfigExamen c = configuracion(3);
+        c.preguntasPorTema = {{2, 6}};
+        c.nombresModelos = {QStringLiteral("Uno")};
+        Pregunta t26;
+        for (const Pregunta &p : banco)
+            if (p.codigoCompleto() == QStringLiteral("T2-6"))
+                t26 = p;
+        QVERIFY(Estilo::tieneOpcionesDependientes(t26) && t26.old);
+        const QString letra(Pregunta::letra(t26.correcta));
+        ResultadoGeneracion r = Generador::generar(banco, c);
+        QVERIFY2(avisoQueContiene(r, QStringLiteral("T2-6 está marcada «old» y sus opciones no se pueden barajar porque "
+                                                    "remiten a otras: la correcta sigue en la %1)").arg(letra)),
+                 qPrintable(r.avisos.join(QLatin1Char('\n'))));
+        c.salidas.insert(QStringLiteral("T2-6"), {QStringLiteral("Junio 2025"), {t26.correcta}});
+        r = Generador::generar(banco, c);
+        QVERIFY(avisoQueContiene(r, QStringLiteral("T2-6 ya salió en Junio 2025 con la correcta en la %1)").arg(letra)));
+        // Si salió con las opciones en otro orden (un examen anterior al programa, leído de su PDF), no.
+        c.salidas.insert(QStringLiteral("T2-6"), {QStringLiteral("Junio 2025"), {(t26.correcta + 1) % 4}});
+        QVERIFY(!avisoQueContiene(Generador::generar(banco, c), QStringLiteral("T2-6")));
+    }
+
+    // Al cambiar una pregunta por otra que ya ha salido, también se barajan sus opciones, aunque no se pida.
+    void cambiarPorUnaYaSalida()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        for (quint32 semilla = 1; semilla <= 30; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            ResultadoGeneracion r = Generador::generar(banco, c);
+            for (const Pregunta &p : banco)
+                c.salidas.insert(p.codigoCompleto(), {QStringLiteral("Junio 2025"), {p.correcta}});
+            const int indice = int(semilla % r.modelos.at(0).preguntas.size());
+            QVERIFY(Generador::cambiarPregunta(banco, c, r, 0, indice, {}));
+            const PreguntaExamen &nueva = r.modelos.at(0).preguntas.at(indice);
+            if (!Estilo::tieneOpcionesDependientes(nueva.pregunta))
+                QVERIFY2(nueva.correcta() != nueva.pregunta.correcta, qPrintable(nueva.pregunta.codigoCompleto()));
+        }
+    }
 };
 
 QTEST_MAIN(PruebaGenerador)

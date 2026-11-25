@@ -21,6 +21,7 @@
 #include "atencionalverificar.h"
 #include "dialogoverificadores.h"
 #include "dialogoverificar.h"
+#include "estilo.h"
 #include "panelverificacion.h"
 #include "paleta.h"
 #include "pestanabanco.h"
@@ -1743,6 +1744,56 @@ private slots:
         QTest::keyClick(arbol, Qt::Key_Return);
         QCOMPARE(d.result(), int(QDialog::Accepted));
         QCOMPARE(d.examenesElegidos().size(), 1);
+    }
+
+    // Al generar, la ventana tiene en cuenta cómo salieron las preguntas en el historial: las que ya salieron llevan las
+    // opciones barajadas, aunque no esté marcado «Barajar las opciones», con la correcta en otra letra.
+    void ventanaBarajaLasQueYaSalieron()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        {
+            // Un examen anterior con todas las preguntas de los temas 1 a 4, con las opciones como en el banco.
+            BaseDatos bd;
+            QVERIFY(bd.abrir(ruta));
+            Modelo anterior;
+            anterior.nombre = QStringLiteral("Anterior");
+            for (const Pregunta &p : bd.preguntas())
+                if (p.temaNumero <= 4) {
+                    PreguntaExamen pe;
+                    pe.pregunta = p;
+                    anterior.preguntas << pe;
+                }
+            DatosConvocatoria d;
+            d.convocatoria = QStringLiteral("Junio");
+            d.anio = 2020;
+            QVERIFY(bd.registrarExamenes({anterior}, d, 1));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QVERIFY(marcar(&v, QStringLiteral("Barajar las opciones (la correcta, repartida entre a)–d))"), false));
+        QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
+        responder(QStringLiteral("Sí"));
+        QVERIFY(QMetaObject::invokeMethod(&v, "registrarConvocatoria"));
+        v.close();
+
+        BaseDatos bd;
+        QVERIFY(bd.abrir(ruta));
+        int nuevas = 0;
+        for (const ExamenRegistrado &e : bd.examenesRegistrados()) {
+            if (e.nombre == QStringLiteral("Anterior"))
+                continue;
+            for (const PreguntaExamen &pe : bd.modeloRegistrado(e.id).preguntas) {
+                ++nuevas;
+                if (!Estilo::tieneOpcionesDependientes(pe.pregunta))
+                    QVERIFY2(pe.correcta() != pe.pregunta.correcta, qPrintable(e.nombre + QLatin1Char(' ') + pe.pregunta.codigoCompleto()));
+            }
+        }
+        QVERIFY(nuevas >= 10);
+        QSettings().clear();
     }
 
     // Después de quitar un examen (Registrar exámenes anteriores) o un tema (Temas), el foco vuelve a la lista: si se

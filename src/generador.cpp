@@ -35,6 +35,27 @@ bool usable(const Pregunta &p, bool incluirParaRevisar, bool soloVerificadas)
     return p.activa() && (incluirParaRevisar || !p.revisar) && (!soloVerificadas || p.verificada);
 }
 
+// Letras (bits 0 a 3: a, b, c, d) en que puede ir la correcta de 'p': todas, salvo que ya haya salido (ver
+// ConfigExamen::salidas). Entonces, las que no tuvo nunca o, si las tuvo todas, las que no tuvo la última vez; y si
+// está marcada «old», las que no tiene en el banco.
+int letrasPermitidas(const Pregunta &p, const ConfigExamen &config)
+{
+    constexpr int todas = 0b1111;
+    const auto salida = config.salidas.constFind(p.codigoCompleto());
+    if (salida != config.salidas.cend() && !salida->letras.isEmpty()) {
+        int nunca = todas;
+        for (int l : salida->letras)
+            nunca &= ~(1 << l);
+        return nunca ? nunca : todas & ~(1 << salida->letras.first());
+    }
+    return p.old ? todas & ~(1 << p.correcta) : todas;
+}
+
+bool yaSalio(const Pregunta &p, const ConfigExamen &config)
+{
+    return letrasPermitidas(p, config) != 0b1111;
+}
+
 // Pone la correcta de la pregunta en la letra 'letra' y las otras tres opciones al azar en las demás.
 void ponerCorrectaEn(PreguntaExamen &pe, int letra, QRandomGenerator &rng)
 {
@@ -48,18 +69,23 @@ void ponerCorrectaEn(PreguntaExamen &pe, int letra, QRandomGenerator &rng)
 }
 
 // Baraja las opciones de las preguntas de un examen de modo que la correcta quede repartida por igual entre a),
-// b), c) y d) y, si se puede, sin caer tres veces seguidas en la misma letra. Las preguntas con opciones que se
+// b), c) y d) y, si se puede, sin caer tres veces seguidas en la misma letra. Con 'todas' a false, solo las de las
+// preguntas que ya han salido: las demás se quedan como están, y cuentan con la letra que tienen. La correcta de las
+// que ya han salido va en una de sus letras permitidas (letrasPermitidas()). Las preguntas con opciones que se
 // refieren a otras («Todas las anteriores»...) se quedan como están.
-void repartirCorrectas(QVector<PreguntaExamen> &preguntas, QRandomGenerator &rng)
+void repartirCorrectas(QVector<PreguntaExamen> &preguntas, QRandomGenerator &rng, const ConfigExamen &config, bool todas)
 {
     QVector<int> barajables;
     std::array<int, 4> cuenta{};
     for (int i = 0; i < preguntas.size(); ++i) {
-        if (Estilo::tieneOpcionesDependientes(preguntas.at(i).pregunta))
-            ++cuenta[preguntas.at(i).pregunta.correcta];
-        else
+        const Pregunta &p = preguntas.at(i).pregunta;
+        if (!Estilo::tieneOpcionesDependientes(p) && (todas || yaSalio(p, config)))
             barajables << i;
+        else
+            ++cuenta[preguntas.at(i).correcta()];
     }
+    if (barajables.isEmpty())
+        return;
 
     // Letra de la correcta para cada pregunta barajable: cada vez, la que menos ha salido (a igualdad, al azar).
     QVector<int> letras;
@@ -78,7 +104,7 @@ void repartirCorrectas(QVector<PreguntaExamen> &preguntas, QRandomGenerator &rng
     auto rachaMasLarga = [&](const QVector<int> &asignadas) {
         int racha = 0, masLarga = 0, anterior = -1;
         for (int i = 0, j = 0; i < preguntas.size(); ++i) {
-            const int l = j < barajables.size() && barajables.at(j) == i ? asignadas.at(j++) : preguntas.at(i).pregunta.correcta;
+            const int l = j < barajables.size() && barajables.at(j) == i ? asignadas.at(j++) : preguntas.at(i).correcta();
             racha = l == anterior ? racha + 1 : 1;
             anterior = l;
             masLarga = qMax(masLarga, racha);
@@ -91,6 +117,43 @@ void repartirCorrectas(QVector<PreguntaExamen> &preguntas, QRandomGenerator &rng
         std::shuffle(otras.begin(), otras.end(), rng);
         if (rachaMasLarga(otras) < rachaMasLarga(letras))
             letras = otras;
+    }
+
+    // Las que ya han salido, con la correcta en una de sus letras permitidas: si le ha tocado otra, se cambia por la de
+    // otra pregunta a la que le valga la suya (mejor si no alarga las rachas) y, si no hay ninguna, se le da la
+    // permitida que menos sale. Sin usar 'rng': sin preguntas que ya hayan salido, todo queda como antes, y con la
+    // misma semilla salen los mismos exámenes.
+    QVector<int> permitidas;
+    for (int i : std::as_const(barajables))
+        permitidas << letrasPermitidas(preguntas.at(i).pregunta, config);
+    auto vale = [&](int j, int letra) { return (permitidas.at(j) & (1 << letra)) != 0; };
+    for (int j = 0; j < barajables.size(); ++j) {
+        if (vale(j, letras.at(j)))
+            continue;
+        const int racha = qMax(2, rachaMasLarga(letras));
+        int primera = -1, sinAlargar = -1;
+        for (int k = 0; k < barajables.size() && sinAlargar < 0; ++k) {
+            if (k == j || !vale(j, letras.at(k)) || !vale(k, letras.at(j)))
+                continue;
+            if (primera < 0)
+                primera = k;
+            QVector<int> otras = letras;
+            std::swap(otras[j], otras[k]);
+            if (rachaMasLarga(otras) <= racha)
+                sinAlargar = k;
+        }
+        const int k = sinAlargar >= 0 ? sinAlargar : primera;
+        if (k >= 0) {
+            std::swap(letras[j], letras[k]);
+            continue;
+        }
+        int mejor = -1;
+        for (int l = 0; l < 4; ++l)
+            if (vale(j, l) && (mejor < 0 || cuenta[l] < cuenta[mejor]))
+                mejor = l;
+        --cuenta[letras.at(j)];
+        ++cuenta[mejor];
+        letras[j] = mejor;
     }
 
     for (int j = 0; j < barajables.size(); ++j)
@@ -329,6 +392,37 @@ QString inicioAvisoExamen(const QString &nombre)
     return Generador::tr("«%1»: ").arg(nombre);
 }
 
+// Comienzo de los avisos sobre una pregunta de un examen («Nacional Original», pregunta 7: …), con el que se
+// reconocen al cambiarla.
+QString inicioAvisoPregunta(const QString &nombre, int indice)
+{
+    //: Comienzo de un aviso sobre una pregunta: %1 es el nombre del examen y %2, el número de la pregunta en él.
+    return Generador::tr("«%1», pregunta %2: ").arg(nombre).arg(indice + 1);
+}
+
+// Aviso si la pregunta 'indice' del examen ya ha salido y su correcta va en una letra en que estuvo, porque sus
+// opciones remiten a otras y no se pueden barajar; vacío si no.
+QString avisoNoBarajable(const Modelo &modelo, int indice, const ConfigExamen &config)
+{
+    const PreguntaExamen &pe = modelo.preguntas.at(indice);
+    if (letrasPermitidas(pe.pregunta, config) & (1 << pe.correcta()))
+        return QString();
+    const QString codigo = pe.pregunta.codigoCompleto();
+    const QString letra(Pregunta::letra(pe.correcta()));
+    const auto salida = config.salidas.constFind(codigo);
+    if (salida != config.salidas.cend())
+        //: Va detrás de «Examen», pregunta N: . %1 es el código de una pregunta (T1-7a), %2 una convocatoria
+        //: («Junio 2025») y %3 una letra (a, b, c o d).
+        return inicioAvisoPregunta(modelo.nombre, indice)
+               + Generador::tr("%1 ya salió en %2 con la correcta en la %3), y sus opciones no se pueden barajar "
+                               "porque remiten a otras.").arg(codigo, salida->convocatoria, letra);
+    //: Va detrás de «Examen», pregunta N: . «old» es la marca de las preguntas que ya han salido en exámenes. %1 es el
+    //: código de una pregunta (T1-7a) y %2 una letra (a, b, c o d).
+    return inicioAvisoPregunta(modelo.nombre, indice)
+           + Generador::tr("%1 está marcada «old» y sus opciones no se pueden barajar porque remiten a otras: la "
+                           "correcta sigue en la %2), como en el banco.").arg(codigo, letra);
+}
+
 // Aviso si la correcta queda muy desigualmente repartida: una letra con dos o más de las que le tocarían.
 QString avisoReparto(const Modelo &modelo, bool barajadas)
 {
@@ -367,33 +461,41 @@ bool Generador::cambiarPregunta(const QVector<Pregunta> &banco, const ConfigExam
     // Barajadas, la correcta va a la letra de la quitada, que deja el reparto como estaba (si estaba bien repartida,
     // es una de las que menos salen en el resto del examen). Si no lo es (la quitada tenía la correcta fija, porque sus
     // opciones remiten a otras), a una de las que menos salen: la letra de la nueva no cambia nada más del examen.
-    if (config.barajarOpciones && !Estilo::tieneOpcionesDependientes(nueva)) {
+    // Si la nueva ya ha salido, se barajan aunque no se pida, y la correcta va a una de sus letras permitidas.
+    const bool barajar = !Estilo::tieneOpcionesDependientes(nueva) && (config.barajarOpciones || yaSalio(nueva, config));
+    if (barajar) {
         std::array<int, 4> cuenta{};
         for (int i = 0; i < m.preguntas.size(); ++i)
             if (i != indice)
                 ++cuenta[m.preguntas.at(i).correcta()];
-        const int minimo = *std::min_element(cuenta.begin(), cuenta.end());
-        if (cuenta[letra] != minimo) {
+        const int permitidas = letrasPermitidas(nueva, config);
+        int minimo = m.preguntas.size();
+        for (int l = 0; l < 4; ++l)
+            if (permitidas & (1 << l))
+                minimo = qMin(minimo, cuenta[l]);
+        if (!(permitidas & (1 << letra)) || cuenta[letra] != minimo) {
             QVector<int> menos;
             for (int l = 0; l < 4; ++l)
-                if (cuenta[l] == minimo)
+                if ((permitidas & (1 << l)) && cuenta[l] == minimo)
                     menos << l;
             letra = menos.at(rng.bounded(int(menos.size())));
         }
     }
     pe = PreguntaExamen();
     pe.pregunta = nueva;
-    if (config.barajarOpciones && !Estilo::tieneOpcionesDependientes(nueva))
+    if (barajar)
         ponerCorrectaEn(pe, letra, rng);
 
     // Los avisos de este examen que pueden haber cambiado: el del reparto de la correcta («Nacional Original»: …)
-    // y el de la pregunta de este sitio («Nacional Original», pregunta 7: …).
+    // y los de la pregunta de este sitio («Nacional Original», pregunta 7: …).
     const QString delReparto = inicioAvisoExamen(m.nombre);
-    //: Comienzo de un aviso sobre una pregunta: %1 es el nombre del examen y %2, el número de la pregunta en él.
-    const QString delSitio = tr("«%1», pregunta %2: ").arg(m.nombre).arg(indice + 1);
+    const QString delSitio = inicioAvisoPregunta(m.nombre, indice);
     resultado.avisos.removeIf([&](const QString &a) { return a.startsWith(delReparto) || a.startsWith(delSitio); });
     if (!aviso.isEmpty())
         resultado.avisos << delSitio + aviso;
+    const QString noBarajable = avisoNoBarajable(m, indice, config);
+    if (!noBarajable.isEmpty())
+        resultado.avisos << noBarajable;
     const QString reparto = avisoReparto(m, config.barajarOpciones);
     if (!reparto.isEmpty())
         resultado.avisos << reparto;
@@ -467,6 +569,10 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
     while (res.semilla == 0)
         res.semilla = QRandomGenerator::global()->generate();
     QRandomGenerator rng(res.semilla);
+    // Para lo que se añadió después (barajar las opciones de las que ya han salido, sin «Barajar las opciones»), otra
+    // serie de números al azar, sacada de la misma semilla: así 'rng', y con ella las preguntas que se eligen con cada
+    // semilla, sigue como antes.
+    QRandomGenerator rngExtra(res.semilla ^ 0x9e3779b9u);
     Seleccion seleccion(banco, config, rng);
     QSet<int> temasAvisoRepeticion, temasAvisoFaltan;
 
@@ -498,10 +604,17 @@ ResultadoGeneracion Generador::generar(const QVector<Pregunta> &banco, const Con
         }
         ordenar(modelo.preguntas, config.ordenAleatorio, rng);
         if (config.barajarOpciones)
-            repartirCorrectas(modelo.preguntas, rng);
+            repartirCorrectas(modelo.preguntas, rng, config, true);
+        else
+            repartirCorrectas(modelo.preguntas, rngExtra, config, false);   // solo las que ya han salido
         const QString aviso = avisoReparto(modelo, config.barajarOpciones);
         if (!aviso.isEmpty())
             res.avisos << aviso;
+        for (int i = 0; i < modelo.preguntas.size(); ++i) {
+            const QString noBarajable = avisoNoBarajable(modelo, i, config);
+            if (!noBarajable.isEmpty())
+                res.avisos << noBarajable;
+        }
         res.modelos.append(modelo);
     }
     res.avisos << seleccion.avisosUsoAnterior();

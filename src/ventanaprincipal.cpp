@@ -949,6 +949,7 @@ void VentanaPrincipal::generar()
     if (!puedenDescartarse())
         return;
     config.usoReciente = usoReciente(config.nombresModelos);
+    config.salidas = salidasAnteriores(config.nombresModelos);
     m_resultado = Generador::generar(m_preguntas, config);
     m_semillaFija = config.semilla != 0;   // se avisa en la franja de avisos (actualizarMaqueta())
     if (m_panel->evitaRecientes() && m_bd.examenesRegistrados().isEmpty())
@@ -958,6 +959,12 @@ void VentanaPrincipal::generar()
     m_configResultado = config;
     guardarConfiguracion();
     presentarResultado();
+}
+
+QHash<QString, SalidaAnterior> VentanaPrincipal::salidasAnteriores(const QStringList &examenes)
+{
+    const DatosConvocatoria d = m_panel->datos();
+    return m_bd.salidasAnteriores(d.anio, d.convocatoria, examenes);
 }
 
 QHash<QString, int> VentanaPrincipal::usoReciente(const QStringList &examenes)
@@ -1320,6 +1327,7 @@ void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)
     m_configResultado = m_panel->configuracion();
     m_configResultado.nombresModelos = nombresModelos();
     m_configResultado.usoReciente = usoReciente(m_configResultado.nombresModelos);
+    m_configResultado.salidas = salidasAnteriores(m_configResultado.nombresModelos);
     if (auto *pestanas = qobject_cast<QTabWidget *>(centralWidget()))
         pestanas->setCurrentIndex(0);
     //: Origen de los exámenes cargados del historial: la convocatoria se registró el día %1

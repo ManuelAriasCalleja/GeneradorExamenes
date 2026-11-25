@@ -149,6 +149,10 @@ public:
     // la última: 1 = la más reciente. No cuentan los exámenes de 'anio' y 'convocatoria' que se llamen como
     // alguno de 'excluidos': son los que se están generando de nuevo y sustituirán a los registrados.
     QHash<QString, int> usoReciente(int cuantas, int anio, const QString &convocatoria, const QStringList &excluidos);
+    // Cómo salió cada pregunta (por código) en todos los exámenes registrados, sean de la convocatoria que sean: en qué
+    // letra estuvo la correcta cada vez (ver ConfigExamen::salidas). Como en usoReciente(), no cuentan los exámenes de
+    // 'anio' y 'convocatoria' que se llamen como alguno de 'excluidos'.
+    QHash<QString, SalidaAnterior> salidasAnteriores(int anio, const QString &convocatoria, const QStringList &excluidos);
     // Exámenes registrados en que ha salido una pregunta: «Junio 2026 · Nacional Original».
     QStringList usosDe(const QString &codigo);
 

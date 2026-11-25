@@ -234,7 +234,8 @@ menos de las que se le piden, se le piden las que hay, y al desmarcarla vuelven 
 <td>Mezcla las preguntas del examen. Si no se marca, van por tema y número, como en los exámenes oficiales.</td></tr>
 <tr><td><b>Barajar las opciones</b></td>
 <td>Cambia el orden de las opciones para repartir la respuesta correcta entre a), b), c) y d) (ver
-<a href="#correctas">Reparto de la respuesta correcta</a>).</td></tr>
+<a href="#correctas">Reparto de la respuesta correcta</a>). Las de las preguntas que ya han salido se barajan
+siempre.</td></tr>
 <tr><td><b>Ajustar a una página por cada 10 preguntas</b></td>
 <td>Compacta la maqueta hasta que cada examen quepa en una página por cada 10 preguntas, y avisa si no se consigue
 (ver <a href="#maqueta">Una página por cada 10 preguntas</a>). Si se desmarca, los exámenes van con la maqueta normal y
@@ -267,8 +268,15 @@ Septiembre…).</li>
 veces (como mucho, con una de diferencia) y, si se puede, nunca tres veces seguidas en la misma letra. Las preguntas
 con opciones que remiten a las demás («Todas las anteriores», «a y b»…) no se barajan, porque cambiarían de
 sentido.</p>
-<p>Sin barajar, la correcta queda en la letra que tiene en el banco. Si en algún examen una letra sale bastante más
-de lo que le toca (5 de 10, por ejemplo), se avisa.</p>
+<p>Sin barajar, la correcta queda en la letra que tiene en el banco, salvo en las preguntas que ya han salido. Si en
+algún examen una letra sale bastante más de lo que le toca (5 de 10, por ejemplo), se avisa.</p>
+<p>Las preguntas que ya han salido en algún examen registrado en el historial, sea de la convocatoria que sea, y las
+marcadas «old» llevan siempre las opciones barajadas, aunque no se marque <b>Barajar las opciones</b>, y la correcta
+en una letra en que no estuvo: si salió varias veces, en una que no haya tenido nunca y, si las tuvo todas, en otra
+que la última vez. De las «old» no se sabe cómo salieron: la correcta va en otra letra que en el banco. Así, quien
+recuerde la respuesta de una convocatoria pasada no la encuentra en la misma letra. No cuentan los exámenes de la
+misma convocatoria con el mismo nombre, que son los que se están generando de nuevo. Si una de ellas no se puede
+barajar, porque sus opciones remiten a las demás, y su correcta va en una letra en que ya estuvo, se avisa.</p>
 <p>Junto a <b>Letra grande</b> se ve cuántas veces es correcta cada letra en el examen que se está viendo
 («Correctas: A 3 · B 3 · C 2 · D 2»). La hoja de soluciones lo dice también.</p>
 

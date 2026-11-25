@@ -10,6 +10,14 @@
 #include <QVector>
 #include <array>
 
+// Cómo salió una pregunta en los exámenes registrados en el historial. Si vuelve a salir, sus opciones se barajan
+// siempre, con la correcta en otra letra (ver ConfigExamen::salidas).
+struct SalidaAnterior
+{
+    QString convocatoria;   // la más reciente en que salió («Junio 2025»), para los avisos
+    QVector<int> letras;    // letra de la correcta (0..3) cada vez que salió, de la más reciente a la más antigua
+};
+
 struct ConfigExamen
 {
     QMap<int, int> preguntasPorTema;    // número de tema -> número de preguntas
@@ -24,6 +32,12 @@ struct ConfigExamen
     // a la más reciente.
     QHash<QString, int> usoReciente;    // código (T1-7a) -> última convocatoria en que salió (1 = la más reciente)
     bool evitarOld = false;
+    // Preguntas que ya han salido en exámenes registrados (sin contar los que se están generando de nuevo), por
+    // código (T1-7a). Las que vuelven a salir, y las marcadas «old», llevan siempre las opciones barajadas, aunque no
+    // se pida, y la correcta en una letra en que no estuvo (o, si estuvo en todas, en otra que la última vez; de las
+    // «old» no se sabe cómo salieron: en otra que en el banco). Las que tienen opciones que remiten a otras no se
+    // pueden barajar: se avisa si la correcta va donde estuvo.
+    QHash<QString, SalidaAnterior> salidas;
     quint32 semilla = 0;                // 0 = aleatoria
 };
 

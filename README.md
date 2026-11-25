@@ -240,6 +240,10 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   se refieren a otras («Todas las anteriores», «a y b»…) no se barajan. Sin barajar, la correcta queda donde está
   en el banco, y si en algún examen una letra sale bastante más de lo que le toca (5 de 10, por ejemplo), se
   avisa. La ventana y la hoja de soluciones muestran cuántas veces es correcta cada letra.
+- Las preguntas que ya han salido en algún examen registrado (de cualquier convocatoria) y las marcadas «old» llevan
+  siempre las opciones barajadas, aunque no se marque «Barajar las opciones», con la correcta en una letra en que no
+  estuvo (si estuvo en todas, en otra que la última vez; de las «old», en otra que en el banco). Si una no se puede
+  barajar y su correcta va donde ya estuvo, se avisa.
 - Las preguntas anuladas u obsoletas no salen nunca. Las marcadas para revisar se pueden excluir.
 - Con «Solo preguntas verificadas por humanos» (desmarcada al principio, y guardada en cada banco), solo salen las que
   ha revisado alguien. Los números pedidos de cada tema se recortan a los que hay y vuelven al desmarcarla.

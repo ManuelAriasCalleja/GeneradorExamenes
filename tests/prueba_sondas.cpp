@@ -553,6 +553,27 @@ private slots:
                 if (rng.bounded(5) == 0)
                     c.usoReciente.insert(p.codigoCompleto(), 1 + rng.bounded(3));
             c.semilla = 1 + rng.bounded(100000);
+            // Algunas ya salieron en exámenes registrados, con la correcta en unas letras (con otra serie al azar, para
+            // no cambiar los bancos de las vueltas).
+            QRandomGenerator rngSalidas(1000 + vuelta);
+            for (const Pregunta &p : banco)
+                if (rngSalidas.bounded(6) == 0) {
+                    SalidaAnterior &salida = c.salidas[p.codigoCompleto()];
+                    salida.convocatoria = QStringLiteral("Junio 2025");
+                    for (int k = 0, n = 1 + rngSalidas.bounded(4); k < n; ++k)
+                        salida.letras << rngSalidas.bounded(4);
+                }
+            // Letras en que puede ir la correcta de una que ya ha salido: las que no tuvo o, si las tuvo todas, otra que
+            // la última vez; de las «old», otra que en el banco.
+            auto permitidas = [&c](const Pregunta &p) {
+                const SalidaAnterior salida = c.salidas.value(p.codigoCompleto());
+                int nunca = 0b1111;
+                for (int l : salida.letras)
+                    nunca &= ~(1 << l);
+                if (!salida.letras.isEmpty())
+                    return nunca ? nunca : 0b1111 & ~(1 << salida.letras.first());
+                return p.old ? 0b1111 & ~(1 << p.correcta) : 0b1111;
+            };
             const QString contexto = QStringLiteral("vuelta %1 (semilla %2)").arg(vuelta).arg(c.semilla);
 
             ResultadoGeneracion r = Generador::generar(banco, c);
@@ -578,6 +599,7 @@ private slots:
                     QMap<int, int> porTema;
                     std::array<int, 4> letras{};
                     bool todasBarajables = true;
+                    bool yaSalidas = false;   // con alguna que ya salió, la correcta puede no poder repartirse por igual
                     for (const PreguntaExamen &pe : m.preguntas) {
                         const Pregunta &p = pe.pregunta;
                         const QString donde = contexto + cuando + QStringLiteral(", %1, %2").arg(m.nombre, p.codigoCompleto());
@@ -594,6 +616,16 @@ private slots:
                         if (Estilo::tieneOpcionesDependientes(p)) {
                             todasBarajables = false;
                             QVERIFY2(pe.orden == (std::array<int, 4>{{0, 1, 2, 3}}), qPrintable(donde + QStringLiteral(": barajada con opciones que remiten a otras")));
+                            // Si ya salió con la correcta en esa letra, un aviso.
+                            if (!(permitidas(p) & (1 << pe.correcta())))
+                                QVERIFY2(aviso.contains(p.codigoCompleto() + QStringLiteral(" ya salió en"))
+                                             || aviso.contains(p.codigoCompleto() + QStringLiteral(" está marcada «old»")),
+                                         qPrintable(donde + QStringLiteral(": ya salió en esa letra, sin aviso:\n") + aviso));
+                        } else {
+                            yaSalidas = yaSalidas || permitidas(p) != 0b1111;
+                            // Si ya salió, barajada aunque no se pida, y la correcta en una letra en que no estuvo.
+                            QVERIFY2(permitidas(p) & (1 << pe.correcta()),
+                                     qPrintable(donde + QStringLiteral(": la correcta va en la %1), en la que ya estuvo").arg(Pregunta::letra(pe.correcta()))));
                         }
                         ++letras[pe.correcta()];
                     }
@@ -612,8 +644,9 @@ private slots:
                     }
                     for (auto it = porTema.cbegin(); it != porTema.cend(); ++it)
                         QVERIFY2(c.preguntasPorTema.contains(it.key()), qPrintable(contexto + QStringLiteral(": sale un tema que no se pidió")));
-                    // Barajadas, la correcta repartida por igual (como mucho, una de diferencia).
-                    if (c.barajarOpciones && todasBarajables && !m.preguntas.isEmpty())
+                    // Barajadas, la correcta repartida por igual (como mucho, una de diferencia). Con preguntas que ya
+                    // salieron, puede no poder ser (si ninguna otra puede darle su letra): lo comprueba prueba_generador.
+                    if (c.barajarOpciones && todasBarajables && !yaSalidas && !m.preguntas.isEmpty())
                         QVERIFY2(*std::max_element(letras.begin(), letras.end()) - *std::min_element(letras.begin(), letras.end()) <= 1,
                                  qPrintable(contexto + cuando + QStringLiteral(", %1: la correcta no está repartida (A %2 · B %3 · C %4 · D %5)")
                                                                  .arg(m.nombre).arg(letras[0]).arg(letras[1]).arg(letras[2]).arg(letras[3])));
@@ -643,14 +676,22 @@ private slots:
                 for (int i = 0; i < r.modelos.at(mi).preguntas.size(); ++i)
                     if (i != pi)
                         ++resto[r.modelos.at(mi).preguntas.at(i).correcta()];
-                const int menos = *std::min_element(resto.begin(), resto.end());
                 if (Generador::cambiarPregunta(banco, c, r, mi, pi, {})) {
                     const PreguntaExamen &nueva = r.modelos.at(mi).preguntas.at(pi);
                     QCOMPARE(nueva.pregunta.temaNumero, tema);
                     // Barajada, en la letra de la quitada si es de las que menos salen en el resto; si no, en una de ellas.
-                    if (c.barajarOpciones && !Estilo::tieneOpcionesDependientes(nueva.pregunta))
-                        QVERIFY2(resto[letra] == menos ? nueva.correcta() == letra : resto[nueva.correcta()] == menos,
+                    // Si ya salió, se baraja aunque no se pida, y la correcta va a una de sus letras permitidas.
+                    const int validas = permitidas(nueva.pregunta);
+                    int menos = int(r.modelos.at(mi).preguntas.size());
+                    for (int l = 0; l < 4; ++l)
+                        if (validas & (1 << l))
+                            menos = qMin(menos, resto[l]);
+                    if ((c.barajarOpciones || validas != 0b1111) && !Estilo::tieneOpcionesDependientes(nueva.pregunta)) {
+                        const bool vale = (validas & (1 << letra)) && resto[letra] == menos;
+                        QVERIFY2(vale ? nueva.correcta() == letra
+                                      : (validas & (1 << nueva.correcta())) && resto[nueva.correcta()] == menos,
                                  qPrintable(contexto + QStringLiteral(": al cambiar, la correcta va a la %1 (era la %2)").arg(nueva.correcta()).arg(letra)));
+                    }
                 }
                 comprobar(r, QStringLiteral(", tras cambiar la %1 de «%2»").arg(pi + 1).arg(r.modelos.at(mi).nombre));
                 if (QTest::currentTestFailed())
