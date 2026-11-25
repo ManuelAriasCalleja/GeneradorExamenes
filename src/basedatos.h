@@ -114,9 +114,10 @@ public:
                      ResumenVerificacion *verificacion = nullptr);
     // Solo las verificaciones de un JSON (exportado de otra copia del banco, en otro ordenador): las que da por
     // verificadas se añaden a las preguntas del banco con el mismo código y el mismo contenido, juntando las personas.
-    // No cambia nada más ni quita ninguna verificación. Devuelve a cuántas preguntas se ha añadido algo (lo demás, en
-    // 'resumen'), o -1 si no se puede leer el JSON o guardar (el motivo, en ultimoError()).
-    int importarVerificaciones(const QString &ruta, ResumenVerificacion *resumen = nullptr);
+    // No cambia nada más ni quita ninguna verificación. Si hay algo que añadir, antes guarda una copia de seguridad,
+    // como importarJson() (su ruta, en 'copia'). Devuelve a cuántas preguntas se ha añadido algo (lo demás, en
+    // 'resumen'), o -1 si no se puede leer el JSON, hacer la copia o guardar (el motivo, en ultimoError()).
+    int importarVerificaciones(const QString &ruta, ResumenVerificacion *resumen = nullptr, QString *copia = nullptr);
     bool exportarJson(const QString &ruta);
 
     // Guarda una copia de la base de datos en la carpeta «copias» junto a ella, con la fecha y la hora en el nombre

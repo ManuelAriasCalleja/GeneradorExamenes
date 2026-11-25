@@ -626,7 +626,8 @@ void VentanaPrincipal::importarVerificaciones()
     if (ruta.isEmpty())
         return;
     ResumenVerificacion r;
-    const int n = m_bd.importarVerificaciones(ruta, &r);
+    QString copia;
+    const int n = m_bd.importarVerificaciones(ruta, &r, &copia);
     if (n < 0) {
         QMessageBox::warning(this, windowTitle(), tr("No se pudieron importar las verificaciones:\n%1").arg(m_bd.ultimoError()));
         return;
@@ -647,6 +648,9 @@ void VentanaPrincipal::importarVerificaciones()
                        .arg(r.distintas.size()).arg(codigos(r.distintas));
     if (!r.noEstan.isEmpty())
         mensaje += tr("\n\nNo están en el banco (%1): %2.").arg(r.noEstan.size()).arg(codigos(r.noEstan));
+    if (!copia.isEmpty())
+        mensaje += tr("\n\nAntes de importar se ha guardado una copia de seguridad del banco en:\n%1")
+                       .arg(QDir::toNativeSeparators(copia));
     QMessageBox::information(this, windowTitle(), mensaje);
     if (n > 0)
         verificacionCambiada(0);

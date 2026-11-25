@@ -37,18 +37,19 @@
     </message>
     <message>
         <location line="+77"/>
+        <location line="+102"/>
         <source>No se ha podido guardar la copia de seguridad del banco, así que no se ha importado nada:
 %1</source>
         <translation>The bank backup could not be saved, so nothing has been imported:
 %1</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="-61"/>
         <source>Tema %1, pregunta %2: %3</source>
         <translation>Topic %1, question %2: %3</translation>
     </message>
     <message>
-        <location line="+201"/>
+        <location line="+215"/>
         <source>pregunta distinta</source>
         <translation>question that differs</translation>
     </message>
@@ -2304,7 +2305,7 @@ Do you want to save it anyway?</translation>
         <translation>Reference:</translation>
     </message>
     <message>
-        <location line="+166"/>
+        <location line="+169"/>
         <location filename="../src/docx.cpp" line="+136"/>
         <location filename="../src/maquetador.cpp" line="+11"/>
         <source>Plantilla de corrección: %1</source>
@@ -2416,7 +2417,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>Generador</name>
     <message>
-        <location filename="../src/generador.cpp" line="+350"/>
+        <location filename="../src/generador.cpp" line="+363"/>
         <source>no queda ninguna otra pregunta del tema %1; %2 es (o es variante de) una de las ya quitadas.</source>
         <extracomment>Va detrás de «Examen», pregunta N: (por eso empieza en minúscula). %2 es el código de una pregunta (T1-7a).</extracomment>
         <translation>there is no other question left from topic %1; %2 is (or is a variant of) one of those already removed.</translation>
@@ -3993,12 +3994,12 @@ Choose where it is or create a new one.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+704"/>
+        <location line="+715"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-690"/>
+        <location line="-701"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -4010,13 +4011,13 @@ Choose where it is or create a new one.</translation>
         <translation>%1 questions have been imported.</translation>
     </message>
     <message>
-        <location line="+407"/>
+        <location line="+418"/>
         <source>Hay dos exámenes marcados con el mismo nombre: «%1».</source>
         <extracomment>%1 es el nombre de un examen, con su versión si tiene («Nacional Original B»)</extracomment>
         <translation>Two ticked exams have the same name: “%1”.</translation>
     </message>
     <message>
-        <location line="-451"/>
+        <location line="-462"/>
         <source>¿Cómo quiere importar las preguntas?
 
 Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.
@@ -4059,6 +4060,7 @@ Verifications removed because the question has changed: %1.</translation>
     </message>
     <message>
         <location line="+2"/>
+        <location line="+35"/>
         <source>
 
 Antes de importar se ha guardado una copia de seguridad del banco en:
@@ -4069,12 +4071,12 @@ Before importing, a backup of the bank was saved in:
 %1</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="-28"/>
         <source>Importar las verificaciones de un JSON</source>
         <translation>Import the verifications of a JSON file</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
         <source>No se pudieron importar las verificaciones:
 %1</source>
         <translation>The verifications could not be imported:
@@ -4113,7 +4115,7 @@ No están en el banco (%1): %2.</source>
 Not in the bank (%1): %2.</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+11"/>
         <source>Comprobar un JSON de preguntas</source>
         <translation>Check a JSON file of questions</translation>
     </message>
@@ -4193,20 +4195,20 @@ Open it with a text editor; in one that understands JSON schemas, such as VS Cod
 Overwrite it with the contents of the database?</translation>
     </message>
     <message>
-        <location line="-151"/>
-        <location line="+159"/>
+        <location line="-155"/>
+        <location line="+163"/>
         <source>No se pudo escribir el JSON:
 %1</source>
         <translation>Could not write the JSON:
 %1</translation>
     </message>
     <message>
-        <location line="-145"/>
+        <location line="-149"/>
         <source> El JSON, que ahora es el del banco, se ha puesto al día con ellas.</source>
         <translation> The JSON, which is now the bank’s, has been brought up to date with them.</translation>
     </message>
     <message>
-        <location line="+147"/>
+        <location line="+151"/>
         <source>JSON del banco actualizado: %1</source>
         <translation>Bank’s JSON updated: %1</translation>
     </message>
@@ -4299,7 +4301,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Specify how many questions you want from each topic.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+18"/>
         <source>Marque en la lista los exámenes que quiere generar.</source>
         <translation>Tick the exams you want to generate in the list.</translation>
     </message>

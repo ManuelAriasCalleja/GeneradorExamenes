@@ -485,7 +485,15 @@ private slots:
         }();
 
         ResumenVerificacion resumen;
-        QCOMPARE(trabajo.importarVerificaciones(json, &resumen), 2);
+        QString copia;
+        QCOMPARE(trabajo.importarVerificaciones(json, &resumen, &copia), 2);
+        // Antes, la copia de seguridad, con el banco de antes.
+        QVERIFY(QFileInfo::exists(copia));
+        {
+            BaseDatos antes;
+            QVERIFY(antes.abrir(copia));
+            QVERIFY(!antes.preguntas().at(0).verificada);
+        }
         const QVector<Pregunta> despues = trabajo.preguntas();
         QCOMPARE(despues.at(0).verificadores, QStringList{QStringLiteral("Persona Uno")});
         QCOMPARE(despues.at(1).verificadores, (QStringList{QStringLiteral("Otra Persona"), QStringLiteral("Persona Uno")}));
@@ -498,8 +506,9 @@ private slots:
             contenidoDespues << p.codigoCompleto() + p.enunciado;
         QCOMPARE(contenidoDespues, contenidoAntes);   // nada más cambia
         // Otra vez: ya las tiene.
-        QCOMPARE(trabajo.importarVerificaciones(json, &resumen), 0);
+        QCOMPARE(trabajo.importarVerificaciones(json, &resumen, &copia), 0);
         QCOMPARE(resumen.yaEstaban, 2);
+        QVERIFY(copia.isEmpty());   // sin nada que añadir, sin copia
         QCOMPARE(trabajo.importarVerificaciones(m_dir.filePath(QStringLiteral("no-existe.json"))), -1);
     }
 

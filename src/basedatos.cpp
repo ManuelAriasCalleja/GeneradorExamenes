@@ -915,8 +915,10 @@ int BaseDatos::importarJson(const QString &ruta, bool reemplazar, QString *copia
     return n;
 }
 
-int BaseDatos::importarVerificaciones(const QString &ruta, ResumenVerificacion *resumen)
+int BaseDatos::importarVerificaciones(const QString &ruta, ResumenVerificacion *resumen, QString *copia)
 {
+    if (copia)
+        copia->clear();
     ContenidoJson contenido;
     if (!leerJson(ruta, &contenido, &m_error))
         return -1;
@@ -954,10 +956,22 @@ int BaseDatos::importarVerificaciones(const QString &ruta, ResumenVerificacion *
         cambiadas << q;
     }
     r.anadidas = int(cambiadas.size());
-    if (!cambiadas.isEmpty() && !guardarVerificaciones(cambiadas))
-        return -1;
+    QString rutaCopia;
+    if (!cambiadas.isEmpty()) {
+        rutaCopia = copiaSeguridad();
+        if (rutaCopia.isEmpty()) {
+            m_error = tr("No se ha podido guardar la copia de seguridad del banco, así que no se ha importado nada:\n%1").arg(m_error);
+            return -1;
+        }
+        if (!guardarVerificaciones(cambiadas)) {
+            QFile::remove(rutaCopia);   // no ha cambiado nada: sobra
+            return -1;
+        }
+    }
     if (resumen)
         *resumen = r;
+    if (copia)
+        *copia = rutaCopia;
     return r.anadidas;
 }
 
