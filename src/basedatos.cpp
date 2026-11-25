@@ -1343,6 +1343,7 @@ QHash<QString, SalidaAnterior> BaseDatos::salidasAnteriores(int anio, const QStr
             if (s.letras.isEmpty())
                 s.convocatoria = e.datos.convocatoriaYAnio();
             s.letras << preguntas.at(i).correcta();
+            s.convocatorias << e.datos.convocatoriaYAnio();
         }
     }
     return salidas;

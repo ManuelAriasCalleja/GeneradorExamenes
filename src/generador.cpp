@@ -475,7 +475,7 @@ QString avisoNoBarajable(const Modelo &modelo, int indice, const ConfigExamen &c
         //: («Junio 2025») y %3 una letra (a, b, c o d).
         return inicioAvisoPregunta(modelo.nombre, indice)
                + Generador::tr("%1 ya salió en %2 con la correcta en la %3), y sus opciones no se pueden barajar "
-                               "porque remiten a otras.").arg(codigo, salida->convocatoria, letra);
+                               "porque remiten a otras.").arg(codigo, salida->convocatoriaConLetra(pe.correcta()), letra);
     //: Va detrás de «Examen», pregunta N: . «old» es la marca de las preguntas que ya han salido en exámenes. %1 es el
     //: código de una pregunta (T1-7a) y %2 una letra (a, b, c o d).
     return inicioAvisoPregunta(modelo.nombre, indice)

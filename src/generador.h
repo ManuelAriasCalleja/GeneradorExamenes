@@ -16,6 +16,14 @@ struct SalidaAnterior
 {
     QString convocatoria;   // la más reciente en que salió («Junio 2025»), para los avisos
     QVector<int> letras;    // letra de la correcta (0..3) cada vez que salió, de la más reciente a la más antigua
+    QStringList convocatorias;   // en qué convocatoria salió cada vez, como 'letras' (si falta, 'convocatoria')
+
+    // La convocatoria más reciente en que la correcta estuvo en 'letra'.
+    QString convocatoriaConLetra(int letra) const
+    {
+        const int i = int(letras.indexOf(letra));
+        return i >= 0 && i < convocatorias.size() ? convocatorias.at(i) : convocatoria;
+    }
 };
 
 struct ConfigExamen

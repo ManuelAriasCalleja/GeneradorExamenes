@@ -913,6 +913,8 @@ private slots:
         const QHash<QString, SalidaAnterior> salidas = bd.salidasAnteriores(2026, QStringLiteral("Junio"), {});
         QCOMPARE(salidas.value(codigo).convocatoria, QStringLiteral("Febrero 2026"));
         QCOMPARE(salidas.value(codigo).letras, (QVector<int>{letra({{1, 2, 3, 0}}), letra({{0, 1, 2, 3}}), letra({{3, 2, 1, 0}})}));
+        QCOMPARE(salidas.value(codigo).convocatorias,
+                 (QStringList{QStringLiteral("Febrero 2026"), QStringLiteral("Junio 2025"), QStringLiteral("Septiembre 2024")}));
         QCOMPARE(salidas.size(), 3);   // las tres preguntas del examen
         // El examen «Uno» de Febrero 2026 se va a generar de nuevo: no cuenta.
         const SalidaAnterior sinFebrero = bd.salidasAnteriores(2026, QStringLiteral("Febrero"), {QStringLiteral("Uno")}).value(codigo);

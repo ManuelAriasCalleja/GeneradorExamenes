@@ -571,6 +571,12 @@ private slots:
         c.salidas.insert(QStringLiteral("T2-6"), {QStringLiteral("Junio 2025"), {t26.correcta}});
         r = Generador::generar(banco, c);
         QVERIFY(avisoQueContiene(r, QStringLiteral("T2-6 ya salió en Junio 2025 con la correcta en la %1)").arg(letra)));
+        // Si salió varias veces, la convocatoria en que tuvo esa letra, aunque no sea la última.
+        c.salidas.insert(QStringLiteral("T2-6"), {QStringLiteral("Junio 2025"), {(t26.correcta + 1) % 4, t26.correcta},
+                                                  {QStringLiteral("Junio 2025"), QStringLiteral("Junio 2023")}});
+        r = Generador::generar(banco, c);
+        QVERIFY2(avisoQueContiene(r, QStringLiteral("T2-6 ya salió en Junio 2023 con la correcta en la %1)").arg(letra)),
+                 qPrintable(r.avisos.join(QLatin1Char('\n'))));
         // Si salió con las opciones en otro orden (un examen anterior al programa, leído de su PDF), no.
         c.salidas.insert(QStringLiteral("T2-6"), {QStringLiteral("Junio 2025"), {(t26.correcta + 1) % 4}});
         QVERIFY(!avisoQueContiene(Generador::generar(banco, c), QStringLiteral("T2-6")));
