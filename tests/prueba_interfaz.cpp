@@ -424,7 +424,17 @@ private slots:
                         },
                         QString());
         d.show();
+        QVERIFY(QTest::qWaitForWindowActive(&d));
         auto *arbol = d.findChild<QTreeWidget *>();
+        // Intro, sin ninguna elegida a la vista (aunque el árbol, al recibir el foco, haga actual la primera), no edita:
+        // pide que se elija una.
+        arbol->setFocus();
+        QVERIFY(arbol->selectedItems().isEmpty());
+        QString aviso;
+        responder(QStringLiteral("OK"), &aviso);
+        QTest::keyClick(arbol, Qt::Key_Return);
+        QCOMPARE(aviso, QStringLiteral("Elija una pregunta de la lista."));
+        QVERIFY(editadas.isEmpty());
         arbol->setCurrentItem(arbol->topLevelItem(0));
         pulsar(&d, QStringLiteral("Editar la pregunta…"));
         QCOMPARE(editadas, (QVector<int>{banco.at(0).id, banco.at(1).id, banco.at(2).id}));

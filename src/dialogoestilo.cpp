@@ -114,11 +114,16 @@ void DialogoEstilo::rellenar()
 
 void DialogoEstilo::editarSeleccionada()
 {
-    const QTreeWidgetItem *item = m_arbol->currentItem();
-    if (!item)
-        return;
-    if (item->parent())
+    // La elegida a la vista (seleccionada). No vale la actual sin más: al recibir el foco, el árbol hace actual la
+    // primera sin seleccionarla, e Intro editaría una que nadie ha elegido.
+    const QList<QTreeWidgetItem *> seleccionados = m_arbol->selectedItems();
+    const QTreeWidgetItem *item = seleccionados.isEmpty() ? nullptr : seleccionados.first();
+    if (item && item->parent())
         item = item->parent();
+    if (!item || item->data(0, Qt::UserRole).toInt() == 0) {
+        QMessageBox::information(this, windowTitle(), tr("Elija una pregunta de la lista."));
+        return;
+    }
     int posicion = m_arbol->indexOfTopLevelItem(const_cast<QTreeWidgetItem *>(item));
     int id = item->data(0, Qt::UserRole).toInt();
     // Con «Guardar y siguiente con avisos», la siguiente de la lista: detrás de la guardada, si sigue con avisos, o

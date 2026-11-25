@@ -1100,7 +1100,12 @@ Record them?</translation>
         <translation>With warnings: %1 of %2 questions (%3 warnings). Double-click one to edit it.</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+13"/>
+        <source>Elija una pregunta de la lista.</source>
+        <translation>Choose a question from the list.</translation>
+    </message>
+    <message>
+        <location line="+14"/>
         <source>No hay más preguntas con avisos en la lista.</source>
         <translation>There are no more questions with warnings in the list.</translation>
     </message>
