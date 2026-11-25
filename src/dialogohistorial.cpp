@@ -35,12 +35,14 @@ DialogoHistorial::DialogoHistorial(BaseDatos *bd, QWidget *parent)
     auto *bEliminar = new QPushButton(tr("Eliminar del historial…"));
     connect(bEliminar, &QPushButton::clicked, this, &DialogoHistorial::eliminar);
     auto *botones = new QDialogButtonBox;
-    QPushButton *cargar = botones->addButton(tr("Cargar"), QDialogButtonBox::AcceptRole);
-    cargar->setDefault(true);
-    botones->addButton(tr("Cerrar"), QDialogButtonBox::RejectRole);
+    //: Botón. El & marca la letra del atajo (Alt+letra): no puede ser la de «Cerrar» ni la de «Ayuda».
+    QPushButton *cargar = botones->addButton(tr("&Cargar"), QDialogButtonBox::AcceptRole);
+    //: Botón. El & marca la letra del atajo (Alt+letra): no puede ser la de «Cargar» ni la de «Ayuda».
+    botones->addButton(tr("Ce&rrar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoHistorial::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoHistorial::reject);
-    DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("historial"));
+    //: Botón. El & marca la letra del atajo (Alt+letra): no puede ser la de «Cargar» ni la de «Cerrar».
+    DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("historial"))->setText(tr("&Ayuda"));
 
     //: «Registrar convocatoria…» es una orden del menú Archivo de la ventana principal: tradúzcase igual
     auto *explicacion = new QLabel(tr(
@@ -55,6 +57,9 @@ DialogoHistorial::DialogoHistorial(BaseDatos *bd, QWidget *parent)
     l->addWidget(explicacion);
     l->addWidget(m_arbol, 1);
     l->addLayout(fila);
+    // Después de meter los botones en el diálogo: antes, Qt no se entera de cuál es el botón por defecto y al
+    // mostrarse se lo da al primero que encuentra, «Eliminar del historial…».
+    cargar->setDefault(true);
     rellenar();
 }
 
@@ -123,9 +128,12 @@ void DialogoHistorial::eliminar()
                             ? tr("el examen «%1» de %2").arg(item->text(ColNombre), item->parent()->text(ColNombre))
                             : ids.size() == 1 ? tr("la convocatoria %1 (un examen)").arg(item->text(ColNombre))
                             : tr("la convocatoria %1 (%2 exámenes)").arg(item->text(ColNombre)).arg(ids.size());
-    if (!confirmar(this, windowTitle(),
-                   tr("¿Eliminar del historial %1?\n\nSus preguntas dejarán de contar como usadas al generar "
-                      "exámenes y no se podrá volver a cargarlo.").arg(que)))
+    const bool eliminarlo = confirmar(this, windowTitle(),
+                                      tr("¿Eliminar del historial %1?\n\nSus preguntas dejarán de contar como usadas "
+                                         "al generar exámenes y no se podrá volver a cargarlo.").arg(que));
+    // El foco vuelve al árbol, para que Intro sea otra vez «Cargar» y no «Eliminar del historial…».
+    m_arbol->setFocus();
+    if (!eliminarlo)
         return;
     for (int id : ids) {
         if (!m_bd->borrarExamenRegistrado(id)) {

@@ -946,7 +946,7 @@ Record them?</translation>
         <translation>Close</translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+41"/>
         <source>Ayuda</source>
         <translation>Help</translation>
     </message>
@@ -1254,23 +1254,31 @@ Do you want to overwrite them?</translation>
         <translation>Delete from history…</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>Cargar</source>
-        <translation>Load</translation>
+        <location line="+4"/>
+        <source>&amp;Cargar</source>
+        <extracomment>Botón. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de «Cerrar» ni la de «Ayuda».</extracomment>
+        <translation>&amp;Load</translation>
     </message>
     <message>
         <location line="+2"/>
-        <source>Cerrar</source>
-        <translation>Close</translation>
+        <source>Ce&amp;rrar</source>
+        <extracomment>Botón. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de «Cargar» ni la de «Ayuda».</extracomment>
+        <translation>&amp;Close</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+4"/>
+        <source>&amp;Ayuda</source>
+        <extracomment>Botón. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de «Cargar» ni la de «Cerrar».</extracomment>
+        <translation>&amp;Help</translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Exámenes guardados con «Registrar convocatoria…». Cargue una convocatoria o un examen para verlo, exportarlo o imprimirlo tal como salió, aunque después se hayan corregido sus preguntas.</source>
         <extracomment>«Registrar convocatoria…» es una orden del menú Archivo de la ventana principal: tradúzcase igual</extracomment>
         <translation>Exams saved with “Record exam session…”. Load an exam session or an exam to view, export or print it exactly as it was set, even if its questions have been corrected since.</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+42"/>
         <source>Todavía no hay ninguna convocatoria registrada. Las anteriores al programa se registran con Archivo → Registrar exámenes anteriores…</source>
         <extracomment>«Archivo → Registrar exámenes anteriores…» es un menú de la ventana principal: tradúzcase igual</extracomment>
         <translation>No exam session has been recorded yet. Those from before the program are recorded with File → Record previous exams…</translation>
@@ -1305,7 +1313,7 @@ Sus preguntas dejarán de contar como usadas al generar exámenes y no se podrá
 Its questions will no longer count as used when generating exams, and it will not be possible to load it again.</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+8"/>
         <source>No se pudo eliminar: %1</source>
         <translation>Could not delete: %1</translation>
     </message>

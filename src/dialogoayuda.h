@@ -3,6 +3,7 @@
 #include <QDialog>
 
 class QDialogButtonBox;
+class QPushButton;
 class QLabel;
 class QLineEdit;
 class QTextBrowser;
@@ -20,7 +21,8 @@ public:
     // hija de la ventana desde la que se pide: si fuera hija de otra, un diálogo modal la dejaría sin poder usarse.
     static DialogoAyuda *mostrar(QWidget *desde, const QString &seccion);
     // Pone en 'dialogo' la tecla F1 y, si se da 'botones', el botón «Ayuda», que abren la ayuda por 'seccion'.
-    static void ponerAyuda(QDialog *dialogo, QDialogButtonBox *botones, const QString &seccion);
+    // Devuelve el botón (nullptr si no se da 'botones').
+    static QPushButton *ponerAyuda(QDialog *dialogo, QDialogButtonBox *botones, const QString &seccion);
 
     // Lleva el texto al apartado y lo marca en el índice; false si el manual no lo tiene.
     bool irA(const QString &seccion);

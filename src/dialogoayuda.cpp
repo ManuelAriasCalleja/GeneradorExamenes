@@ -94,12 +94,15 @@ DialogoAyuda *DialogoAyuda::mostrar(QWidget *desde, const QString &seccion)
     return abierta;
 }
 
-void DialogoAyuda::ponerAyuda(QDialog *dialogo, QDialogButtonBox *botones, const QString &seccion)
+QPushButton *DialogoAyuda::ponerAyuda(QDialog *dialogo, QDialogButtonBox *botones, const QString &seccion)
 {
     auto abrir = [dialogo, seccion]() { mostrar(dialogo, seccion); };
     connect(new QShortcut(QKeySequence::HelpContents, dialogo), &QShortcut::activated, dialogo, abrir);
-    if (botones)
-        connect(botones->addButton(tr("Ayuda"), QDialogButtonBox::HelpRole), &QPushButton::clicked, dialogo, abrir);
+    if (!botones)
+        return nullptr;
+    QPushButton *boton = botones->addButton(tr("Ayuda"), QDialogButtonBox::HelpRole);
+    connect(boton, &QPushButton::clicked, dialogo, abrir);
+    return boton;
 }
 
 // El índice sale de los títulos del manual: los capítulos (h2) y, dentro, sus apartados (h3). Cada título lleva el

@@ -5,6 +5,7 @@
 #include "dialogoanteriores.h"
 #include "dialogoayuda.h"
 #include "dialogocomprobacion.h"
+#include "dialogohistorial.h"
 #include "dialogoestilo.h"
 #include "dialogoparecidas.h"
 #include "dialogopractica.h"
@@ -1609,6 +1610,80 @@ private slots:
         QCOMPARE(examen.count(QStringLiteral("sin verificar")), 2);
         QVERIFY(!examen.contains(anadido));   // sigue tal como salió
         QSettings().clear();
+    }
+
+    // En el historial, «Cargar» es el botón por defecto (el de Intro) al abrirlo y después de eliminar algo, que pide
+    // confirmación; y Cargar, Cerrar y Ayuda tienen cada uno su atajo (Alt y una letra), salvo en macOS.
+    void historialConAtajosYCargarPorDefecto()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        BaseDatos bd;
+        QVERIFY(bd.abrir(ruta));
+        const QVector<Pregunta> banco = bd.preguntas();
+        DatosConvocatoria datos;
+        datos.anio = 2026;
+        for (const QString &convocatoria : {QStringLiteral("Junio"), QStringLiteral("Septiembre")}) {
+            Modelo modelo;
+            modelo.nombre = QStringLiteral("Uno");
+            PreguntaExamen pe;
+            pe.pregunta = banco.at(0);
+            modelo.preguntas << pe;
+            datos.convocatoria = convocatoria;
+            QVERIFY(bd.registrarExamenes({modelo}, datos, 1));
+        }
+        DialogoHistorial d(&bd);
+        d.show();
+        QVERIFY(QTest::qWaitForWindowActive(&d));
+        auto *arbol = d.findChild<QTreeWidget *>();
+        QPushButton *cargar = nullptr, *cerrar = nullptr, *ayuda = nullptr, *eliminar = nullptr;
+        for (QPushButton *b : d.findChildren<QPushButton *>()) {
+            const QString texto = b->text().remove(QLatin1Char('&'));
+            if (texto == QStringLiteral("Cargar"))
+                cargar = b;
+            else if (texto == QStringLiteral("Cerrar"))
+                cerrar = b;
+            else if (texto == QStringLiteral("Ayuda"))
+                ayuda = b;
+            else if (texto == QStringLiteral("Eliminar del historial…"))
+                eliminar = b;
+        }
+        QVERIFY(arbol && cargar && cerrar && ayuda && eliminar);
+        QVERIFY(cargar->isDefault());
+        QVERIFY(!eliminar->isDefault());
+
+        if (!QKeySequence::mnemonic(QStringLiteral("&a")).isEmpty()) {
+            QSet<QString> atajos;
+            for (QPushButton *b : {cargar, cerrar, ayuda}) {
+                const QString atajo = b->shortcut().toString();
+                QVERIFY2(atajo.startsWith(QStringLiteral("Alt+")), qPrintable(b->text()));
+                QVERIFY2(!atajos.contains(atajo), qPrintable(atajo));
+                atajos << atajo;
+            }
+        }
+
+        // Eliminar pide confirmación: con «No» no se borra; con «Sí», sí. Y después Cargar vuelve a ser el botón por
+        // defecto, aunque el foco se lo llevara «Eliminar del historial…» al pulsarlo.
+        for (const QString &respuesta : {QStringLiteral("No"), QStringLiteral("Sí")}) {
+            arbol->setCurrentItem(arbol->topLevelItem(0));
+            eliminar->setFocus(Qt::MouseFocusReason);
+            QString confirmacion;
+            responder(respuesta, &confirmacion);
+            eliminar->click();
+            QVERIFY2(confirmacion.startsWith(QStringLiteral("¿Eliminar del historial")), qPrintable(confirmacion));
+            QCOMPARE(bd.examenesRegistrados().size(), respuesta == QStringLiteral("No") ? 2 : 1);
+            QTRY_VERIFY(cargar->isDefault());
+            QVERIFY(!eliminar->isDefault());
+        }
+
+        // Intro carga la convocatoria elegida.
+        QCOMPARE(arbol->topLevelItemCount(), 1);
+        arbol->setCurrentItem(arbol->topLevelItem(0));
+        QCOMPARE(d.focusWidget(), arbol);
+        QTest::keyClick(arbol, Qt::Key_Return);
+        QCOMPARE(d.result(), int(QDialog::Accepted));
+        QCOMPARE(d.examenesElegidos().size(), 1);
     }
 
     // Al verificar: si se marca una pregunta sin tiempo para leerla, se avisa y hay que pulsar otra vez; y cada cierto
