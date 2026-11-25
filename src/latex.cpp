@@ -362,8 +362,11 @@ QString cuerpoExamenLatex(const Modelo &modelo, const DatosConvocatoria &d, bool
                           const QString &carpetaImagenes, int n)
 {
     QStringList derechas;
+    // La versión, del tamaño de la asignatura de la cabecera (cabeceraLatex()), como en el PDF y el Word.
     if (!Maquetador::textoVersion(modelo, d).isEmpty())
-        derechas << QStringLiteral("{\\large\\bfseries %1}").arg(Latex::escapar(Maquetador::textoVersion(modelo, d)));
+        derechas << QStringLiteral("{%1\\bfseries %2}")
+                        .arg(n == Maquetador::kLetraGrande ? QStringLiteral("\\huge") : QStringLiteral("\\Large"),
+                             Latex::escapar(Maquetador::textoVersion(modelo, d)));
     if (soluciones)
         derechas << QStringLiteral("\\textcolor{verde}{\\bfseries %1}").arg(Latex::escapar(tx(d, QT_TRANSLATE_NOOP("Examen", "CON SOLUCIONES"))));
     const QString derecha = derechas.join(QStringLiteral("\\\\ "));

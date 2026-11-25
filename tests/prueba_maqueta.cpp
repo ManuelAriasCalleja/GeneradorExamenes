@@ -424,7 +424,9 @@ private slots:
         QVERIFY2(html.contains(QStringLiteral("font-weight:bold\">Versión B</span></td>")), qPrintable(html.left(1500)));
         html = Maquetador::examenHtml(m, d, true);
         QVERIFY(html.contains(QStringLiteral("Versión B</span><br><span")));
-        QVERIFY(Latex::examenes({m}, d, false, QStringLiteral("img")).contains(QStringLiteral("{\\large\\bfseries Versión B}")));
+        QVERIFY(Latex::examenes({m}, d, false, QStringLiteral("img")).contains(QStringLiteral("{\\Large\\bfseries Versión B}")));
+        QVERIFY(Latex::examenes({m}, d, false, QStringLiteral("img"), Maquetador::kLetraGrande)
+                    .contains(QStringLiteral("{\\huge\\bfseries Versión B}")));
         d.idioma = QStringLiteral("en");
         QCOMPARE(Maquetador::textoVersion(m, d), QStringLiteral("Version B"));
         // Sin versión, nada, aunque se pida.
