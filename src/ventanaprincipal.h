@@ -60,6 +60,9 @@ private slots:
     void abrirOtraBaseDatos();
     void nuevaBaseDatos();
     void importarJson();
+    // Lo que hace importarJson() una vez elegidos el fichero y cómo importarlo: importa, enlaza el JSON si toca y dice
+    // cómo ha ido.
+    void importarJsonDe(const QString &ruta, bool reemplazar);
     // Las verificaciones de un JSON (de otra copia del banco), sin cambiar nada más (BaseDatos::importarVerificaciones()).
     void importarVerificaciones();
     void comprobarFicheroJson();   // Archivo → Comprobar un JSON…

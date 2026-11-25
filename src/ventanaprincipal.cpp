@@ -572,18 +572,31 @@ void VentanaPrincipal::importarJson()
     caja.exec();
     if (caja.clickedButton() != anadir && caja.clickedButton() != reemplazar)
         return;
+    importarJsonDe(ruta, caja.clickedButton() == reemplazar);
+}
+
+void VentanaPrincipal::importarJsonDe(const QString &ruta, bool reemplazar)
+{
     QString copia;
     ResumenVerificacion verificacion;
     const QString asignaturaAntes = m_bd.asignatura();
-    const int n = m_bd.importarJson(ruta, caja.clickedButton() == reemplazar, &copia, &verificacion);
+    const int n = m_bd.importarJson(ruta, reemplazar, &copia, &verificacion);
     if (n < 0) {
         QMessageBox::warning(this, windowTitle(), tr("Error al importar:\n%1").arg(m_bd.ultimoError()));
         return;
     }
     // El JSON del que viene todo el banco pasa a ser su copia en texto; si solo se han añadido preguntas, el que
-    // hubiera enlazado sigue siéndolo.
-    if (caja.clickedButton() == reemplazar || m_bd.jsonEnlazado().isEmpty())
+    // hubiera enlazado sigue siéndolo. Si se han conservado verificaciones que el JSON no tiene, ya no coincide con el
+    // banco: se pone al día, para que se pueda seguir manteniéndolo al día.
+    bool actualizado = false;
+    if (reemplazar || m_bd.jsonEnlazado().isEmpty()) {
         m_bd.enlazarJson(ruta);
+        if (verificacion.conservadas > 0) {
+            actualizado = m_bd.exportarJson(ruta);
+            if (!actualizado)
+                QMessageBox::warning(this, windowTitle(), tr("No se pudo escribir el JSON:\n%1").arg(m_bd.ultimoError()));
+        }
+    }
     if (m_bd.asignatura() != asignaturaAntes) {   // el banco no tenía nombre y lo trae el JSON
         m_panel->ponerAsignaturaDelBanco();
         actualizarTitulo();
@@ -594,6 +607,8 @@ void VentanaPrincipal::importarJson()
     if (verificacion.conservadas > 0)
         mensaje += tr("\n\nVerificaciones conservadas (el JSON las da por no verificadas, pero no han cambiado): %1.")
                        .arg(verificacion.conservadas);
+    if (actualizado)
+        mensaje += tr(" El JSON, que ahora es el del banco, se ha puesto al día con ellas.");
     if (verificacion.anadidas > 0)
         mensaje += tr("\n\nPreguntas con verificaciones nuevas del JSON: %1.").arg(verificacion.anadidas);
     if (verificacion.quitadas > 0)

@@ -2484,7 +2484,7 @@ Do not hand in the question paper.</translation>
         <translation>“%1”, question %2: </translation>
     </message>
     <message>
-        <location line="+252"/>
+        <location line="+278"/>
         <source>Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas verificadas disponibles.</source>
         <translation>Topic %1: %2 questions were requested but there are only %3 different verified ones available.</translation>
     </message>
@@ -3993,30 +3993,30 @@ Choose where it is or create a new one.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+689"/>
+        <location line="+704"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-680"/>
+        <location line="-690"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
 %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+21"/>
         <source>Se han importado %1 preguntas.</source>
         <translation>%1 questions have been imported.</translation>
     </message>
     <message>
-        <location line="+405"/>
+        <location line="+407"/>
         <source>Hay dos exámenes marcados con el mismo nombre: «%1».</source>
         <extracomment>%1 es el nombre de un examen, con su versión si tiene («Nacional Original B»)</extracomment>
         <translation>Two ticked exams have the same name: “%1”.</translation>
     </message>
     <message>
-        <location line="-436"/>
+        <location line="-451"/>
         <source>¿Cómo quiere importar las preguntas?
 
 Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.
@@ -4031,7 +4031,7 @@ Replace all: all topics and questions are deleted first.
 The verification of the questions that do not change is kept, even if the JSON does not have it. Before importing, a backup of the database is saved in the “copias” folder next to it.</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+46"/>
         <source>
 
 Verificaciones conservadas (el JSON las da por no verificadas, pero no han cambiado): %1.</source>
@@ -4040,7 +4040,7 @@ Verificaciones conservadas (el JSON las da por no verificadas, pero no han cambi
 Verifications kept (the JSON says they are not verified, but they have not changed): %1.</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+5"/>
         <source>
 
 Preguntas con verificaciones nuevas del JSON: %1.</source>
@@ -4193,14 +4193,20 @@ Open it with a text editor; in one that understands JSON schemas, such as VS Cod
 Overwrite it with the contents of the database?</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="-151"/>
+        <location line="+159"/>
         <source>No se pudo escribir el JSON:
 %1</source>
         <translation>Could not write the JSON:
 %1</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-145"/>
+        <source> El JSON, que ahora es el del banco, se ha puesto al día con ellas.</source>
+        <translation> The JSON, which is now the bank’s, has been brought up to date with them.</translation>
+    </message>
+    <message>
+        <location line="+147"/>
         <source>JSON del banco actualizado: %1</source>
         <translation>Bank’s JSON updated: %1</translation>
     </message>

@@ -1047,7 +1047,8 @@ imported, and with warnings you can click <b>Import anyway</b>.</p>
 there are errors, so that it can be used in a script.</p>
 
 <h3><a name="json-enlazado"></a>The JSON linked to the bank</h3>
-<p>The JSON file from which the whole bank is imported becomes <b>linked</b> to it as its text copy. When the
+<p>The JSON file from which the whole bank is imported becomes <b>linked</b> to it as its text copy (if verifications
+that it does not have were kept when importing it, it is brought up to date with them, so that they match). When the
 database and that JSON no longer match (for example, after correcting a question in the program), the status bar
 shows a warning. Hovering the mouse over the warning shows how they differ; clicking it, or using <i>File → Update the
 bank’s JSON…</i>, overwrites the JSON with the contents of the database. The first time, if no JSON is

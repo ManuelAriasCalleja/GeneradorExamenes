@@ -1025,7 +1025,8 @@ y con avisos se puede <b>Importar de todas formas</b>.</p>
 errores, para usarlo en un script.</p>
 
 <h3><a name="json-enlazado"></a>El JSON enlazado al banco</h3>
-<p>El JSON del que se importa todo el banco queda <b>enlazado</b> con él como su copia en texto. Cuando la base de
+<p>El JSON del que se importa todo el banco queda <b>enlazado</b> con él como su copia en texto (si al importarlo se
+han conservado verificaciones que él no tiene, se pone al día con ellas, para que coincida). Cuando la base de
 datos y ese JSON dejan de coincidir (por ejemplo, tras corregir una pregunta en el programa), la barra de estado lo
 avisa. Dejando el ratón sobre el aviso se ve en qué se diferencian; pulsándolo, o con <i>Archivo → Actualizar el JSON
 del banco…</i>, el JSON se sobrescribe con el contenido de la base de datos. La primera vez, si no hay ninguno

@@ -1834,6 +1834,42 @@ private slots:
         QSettings().clear();
     }
 
+    // Al reemplazar el banco por un JSON de antes de verificar una pregunta, la verificación se conserva y el JSON, que
+    // pasa a ser el del banco, se pone al día con ella: si no, ya no coincidiría y dejaría de mantenerse al día.
+    void importarConservaYPoneAlDiaElJson()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        const QString json = dir.filePath(QStringLiteral("banco.json"));
+        QVERIFY(crearBancoInventado(ruta));
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(ruta));
+            QVERIFY(bd.exportarJson(json));
+            QVERIFY(bd.anadirVerificador(QStringLiteral("Persona Uno")));
+            QVERIFY(bd.guardarVerificacion(bd.preguntas().first().id, true, {QStringLiteral("Persona Uno")}));
+        }
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QString texto;
+        responder(QStringLiteral("OK"), &texto);
+        QVERIFY(QMetaObject::invokeMethod(&v, "importarJsonDe", Q_ARG(QString, json), Q_ARG(bool, true)));
+        QVERIFY2(texto.contains(QStringLiteral("Verificaciones conservadas (el JSON las da por no verificadas, pero no han "
+                                               "cambiado): 1. El JSON, que ahora es el del banco, se ha puesto al día con ellas.")),
+                 qPrintable(texto));
+        for (QPushButton *b : v.findChildren<QPushButton *>())
+            QVERIFY2(!b->text().startsWith(QStringLiteral("El JSON del banco no coincide")) || !b->isVisible(), "aviso");
+        v.close();
+        BaseDatos bd;
+        QVERIFY(bd.abrir(ruta));
+        QVERIFY(bd.preguntas().first().verificada);
+        QCOMPARE(QFileInfo(bd.jsonEnlazado()).canonicalFilePath(), QFileInfo(json).canonicalFilePath());
+        QVERIFY(bd.diferenciasConJson(json).isEmpty());
+        QSettings().clear();
+    }
+
     // Si un examen de una convocatoria ya registrada se genera de nuevo con versiones (o sin ellas), al registrarlo se
     // sustituyen sus copias de antes, aunque se llamen de otra forma («Nacional Original» y «Nacional Original A»).
     void registrarConOtrasVersionesSustituye()
