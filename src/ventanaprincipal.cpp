@@ -997,12 +997,19 @@ void VentanaPrincipal::generar()
         QMessageBox::information(this, windowTitle(), tr("Indique cuántas preguntas quiere de cada tema."));
         return;
     }
-    // Los exámenes que salen, con las versiones de cada uno («Nacional Original A», «… B»).
+    // Los exámenes que salen, con las versiones de cada uno («Nacional Original A», «… B»). No puede haber dos con el
+    // mismo nombre: ni dos de la lista (las versiones se guardan por nombre) ni, con las versiones, uno que se llame
+    // como la versión de otro («Nacional Original B»).
     const QStringList examenes = Generador::nombresExamenes(config);
-    QString repetido;
-    for (int i = 0; i < examenes.size() && repetido.isEmpty(); ++i)
-        if (examenes.indexOf(examenes.at(i), i + 1) > 0)
-            repetido = examenes.at(i);
+    auto repetidoEn = [](const QStringList &nombres) {
+        for (int i = 0; i < nombres.size(); ++i)
+            if (nombres.indexOf(nombres.at(i), i + 1) > 0)
+                return nombres.at(i);
+        return QString();
+    };
+    QString repetido = repetidoEn(config.nombresModelos);
+    if (repetido.isEmpty())
+        repetido = repetidoEn(examenes);
     QString error;
     if (config.nombresModelos.isEmpty())
         error = tr("Marque en la lista los exámenes que quiere generar.");

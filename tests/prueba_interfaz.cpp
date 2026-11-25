@@ -1924,6 +1924,39 @@ private slots:
         QSettings().clear();
     }
 
+    // No se puede generar con dos exámenes marcados con el mismo nombre, aunque uno tenga versiones; ni con uno que se
+    // llame como la versión de otro.
+    void noGeneraConNombresRepetidos()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QListWidget *lista = nullptr;
+        for (QGroupBox *g : v.findChildren<QGroupBox *>())
+            if (g->title().startsWith(QStringLiteral("Exámenes:")))
+                lista = g->findChild<QListWidget *>();
+        QSpinBox *versiones = nullptr;
+        for (QLabel *l : v.findChildren<QLabel *>())
+            if (l->text() == QStringLiteral("Versiones:"))
+                versiones = qobject_cast<QSpinBox *>(l->buddy());
+        QVERIFY(lista && versiones);
+        lista->setCurrentRow(0);
+        versiones->setValue(2);   // «Nacional Original», con versiones A y B
+        for (const QString &nombre : {QStringLiteral("Nacional Original"), QStringLiteral("Nacional Original B")}) {
+            lista->item(1)->setText(nombre);
+            QString texto;
+            responder(QStringLiteral("OK"), &texto);
+            QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
+            QCOMPARE(texto, QStringLiteral("Hay dos exámenes marcados con el mismo nombre: «%1».").arg(nombre));
+        }
+        v.close();
+        QSettings().clear();
+    }
+
     // Al generar, la ventana tiene en cuenta cómo salieron las preguntas en el historial: las que ya salieron llevan las
     // opciones barajadas, aunque no esté marcado «Barajar las opciones», con la correcta en otra letra.
     void ventanaBarajaLasQueYaSalieron()
