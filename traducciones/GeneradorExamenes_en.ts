@@ -781,7 +781,7 @@
         <translation>Add</translation>
     </message>
     <message>
-        <location line="+37"/>
+        <location line="+39"/>
         <source>no está en el banco</source>
         <translation>not in the bank</translation>
     </message>
@@ -1284,12 +1284,13 @@ Do you want to overwrite them?</translation>
         <translation>No exam session has been recorded yet. Those from before the program are recorded with File → Record previous exams…</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+31"/>
+        <location line="+14"/>
         <source>Elija una convocatoria o un examen.</source>
         <translation>Choose an exam session or an exam.</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+4"/>
         <source>el examen «%1» de %2</source>
         <translation>the exam “%1” from %2</translation>
     </message>
@@ -1313,7 +1314,7 @@ Sus preguntas dejarán de contar como usadas al generar exámenes y no se podrá
 Its questions will no longer count as used when generating exams, and it will not be possible to load it again.</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+5"/>
         <source>No se pudo eliminar: %1</source>
         <translation>Could not delete: %1</translation>
     </message>
@@ -1846,7 +1847,7 @@ Do you want to save it anyway?</translation>
         <translation>New topic</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+15"/>
         <source>El tema tiene %1 preguntas, que también se borrarán. ¿Continuar?</source>
         <translation>The topic has %1 questions, which will also be deleted. Continue?</translation>
     </message>
@@ -2348,7 +2349,7 @@ Do not hand in the question paper.</translation>
         <location line="+88"/>
         <location filename="../src/maquetador.cpp" line="+54"/>
         <location line="+210"/>
-        <location filename="../tests/prueba_idiomas.cpp" line="+15"/>
+        <location filename="../tests/prueba_idiomas.cpp" line="+18"/>
         <location line="+1"/>
         <location line="+2"/>
         <location line="+3"/>
@@ -3254,15 +3255,17 @@ Replace it with this one?</translation>
     </message>
     <message>
         <location line="+2"/>
+        <location filename="../tests/prueba_idiomas.cpp" line="-22"/>
         <source>Verificadas</source>
         <extracomment>Filtro por estado de las preguntas: las revisadas por personas</extracomment>
-        <translation>Verify…</translation>
+        <translation>Verified</translation>
     </message>
     <message>
         <location line="+2"/>
+        <location filename="../tests/prueba_idiomas.cpp" line="+1"/>
         <source>Sin verificar</source>
         <extracomment>Filtro por estado de las preguntas: las que aún no ha revisado nadie</extracomment>
-        <translation>Verified</translation>
+        <translation>Not verified</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -3298,7 +3301,7 @@ Replace it with this one?</translation>
         <location line="+313"/>
         <source>Verificar…</source>
         <extracomment>Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas como verificadas por personas</extracomment>
-        <translation>%1 (%2 questions)</translation>
+        <translation>Verify…</translation>
     </message>
     <message>
         <location line="-312"/>
@@ -3455,7 +3458,7 @@ Replace it with this one?</translation>
     <name>Tema</name>
     <message>
         <location filename="../src/pregunta.cpp" line="-5"/>
-        <location filename="../tests/prueba_idiomas.cpp" line="-22"/>
+        <location filename="../tests/prueba_idiomas.cpp" line="-4"/>
         <source>Tema %1: %2</source>
         <translation>Topic %1: %2</translation>
     </message>
@@ -3640,7 +3643,7 @@ You can also right-click the question.</translation>
         <location line="+3"/>
         <source>Verificar…</source>
         <extracomment>Botón: recorre las preguntas del examen, desde esa, para marcarlas como verificadas por personas</extracomment>
-        <translation>%1 (%2 questions)</translation>
+        <translation>Verify…</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3656,7 +3659,7 @@ You can also right-click the question.</translation>
     <message>
         <location line="+32"/>
         <location filename="../tests/prueba_idiomas.cpp" line="-1"/>
-        <location line="+9"/>
+        <location line="+12"/>
         <source>&amp;Archivo</source>
         <translation>&amp;File</translation>
     </message>
@@ -3769,7 +3772,7 @@ You can also right-click the question.</translation>
         <location line="+2"/>
         <source>&amp;Verificadores…</source>
         <extracomment>Menú: la lista de personas que verifican las preguntas del banco</extracomment>
-        <translation>Not verified</translation>
+        <translation>&amp;Verifiers…</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -4391,7 +4394,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <location line="+67"/>
         <source>Verificar las preguntas de «%1»</source>
         <extracomment>Título del diálogo de verificar; %1 es el nombre del examen («Nacional Original»)</extracomment>
-        <translation>&amp;Verifiers…</translation>
+        <translation>Verify the questions of “%1”</translation>
     </message>
     <message>
         <location line="+62"/>
@@ -4408,7 +4411,7 @@ Some with the same name had already been recorded and will be replaced: %1.</tra
         <location line="+5"/>
         <source>Verificar la pregunta %1 (%2)…</source>
         <extracomment>%1 es el número de la pregunta en el examen y %2 su código (T2-15b)</extracomment>
-        <translation>Verify the questions of “%1”</translation>
+        <translation>Verify question %1 (%2)…</translation>
     </message>
     <message>
         <location line="+4"/>

@@ -223,6 +223,8 @@ void DialogoAnteriores::pegarTexto()
 
 void DialogoAnteriores::quitarExamen()
 {
+    // El foco vuelve a la lista: si se quedara en «Quitar», Intro quitaría otro examen en vez de pulsar «Registrar».
+    m_lista->setFocus();
     const int fila = m_lista->currentRow();
     if (fila < 0 || fila >= m_examenes.size())
         return;

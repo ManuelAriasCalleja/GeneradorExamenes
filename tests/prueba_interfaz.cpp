@@ -63,6 +63,7 @@
 #include <QSpinBox>
 #include <QStandardPaths>
 #include <QTabWidget>
+#include <QTableWidget>
 #include <QTableView>
 #include <QTemporaryDir>
 #include <QTextBlock>
@@ -1695,6 +1696,22 @@ private slots:
         QVERIFY(cargar->isDefault());
         QVERIFY(!eliminar->isDefault());
 
+        // Sin nada elegido a la vista, ni Intro carga ni «Eliminar del historial…» borra, aunque el árbol, al recibir el
+        // foco, haya hecho actual la primera convocatoria: dicen que se elija una.
+        QVERIFY(arbol->selectedItems().isEmpty());
+        for (QPushButton *b : {cargar, eliminar}) {
+            QString aviso;
+            responder(QStringLiteral("OK"), &aviso);
+            if (b == cargar)
+                QTest::keyClick(arbol, Qt::Key_Return);
+            else
+                b->click();
+            QCOMPARE(aviso, QStringLiteral("Elija una convocatoria o un examen."));
+            QVERIFY(d.isVisible());
+            QCOMPARE(bd.examenesRegistrados().size(), 2);
+        }
+        QCOMPARE(d.focusWidget(), arbol);
+
         if (!QKeySequence::mnemonic(QStringLiteral("&a")).isEmpty()) {
             QSet<QString> atajos;
             for (QPushButton *b : {cargar, cerrar, ayuda}) {
@@ -1726,6 +1743,62 @@ private slots:
         QTest::keyClick(arbol, Qt::Key_Return);
         QCOMPARE(d.result(), int(QDialog::Accepted));
         QCOMPARE(d.examenesElegidos().size(), 1);
+    }
+
+    // Después de quitar un examen (Registrar exámenes anteriores) o un tema (Temas), el foco vuelve a la lista: si se
+    // quedara en el botón, Intro quitaría otro en vez de pulsar el botón por defecto.
+    void quitarDevuelveIntroAlBotonPorDefecto()
+    {
+        QTemporaryDir dir;
+        BaseDatos bd;
+        QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+        QVERIFY(llenarBaseDatos(bd, 4, bancoVariado()));
+        const QVector<Pregunta> banco = bd.preguntas();
+        {
+            QString texto = QStringLiteral("Examen inventado\n");
+            for (int i = 0; i < 3; ++i) {
+                texto += QStringLiteral("%1.- %2\n").arg(i + 1).arg(banco.at(i).enunciado);
+                for (int k = 0; k < 4; ++k)
+                    texto += QStringLiteral("%1) %2\n").arg(Pregunta::letra(k)).arg(banco.at(i).opciones.at(k));
+            }
+            DialogoAnteriores d(&bd, banco, DatosConvocatoria(), {});
+            d.show();
+            QVERIFY(QTest::qWaitForWindowActive(&d));
+            QVERIFY(d.anadirExamen(texto));
+            QVERIFY(d.anadirExamen(texto));
+            QTableWidget *lista = nullptr;   // la de los exámenes (la otra es la de las preguntas del elegido)
+            for (QTableWidget *t : d.findChildren<QTableWidget *>())
+                if (t->rowCount() == 2)
+                    lista = t;
+            QVERIFY(lista);
+            lista->selectRow(0);
+            QPushButton *quitar = conTexto<QPushButton>(&d, QStringLiteral("Quitar"));
+            QVERIFY(quitar);
+            quitar->setFocus(Qt::MouseFocusReason);
+            QCOMPARE(botonDeIntro(&d), QStringLiteral("Quitar"));   // mientras tiene el foco, Intro es él
+            quitar->click();
+            QCOMPARE(lista->rowCount(), 1);
+            QCOMPARE(d.focusWidget(), lista);
+            QCOMPARE(botonDeIntro(&d), QStringLiteral("Registrar"));
+        }
+        {
+            DialogoTemas d(&bd);
+            d.show();
+            QVERIFY(QTest::qWaitForWindowActive(&d));
+            auto *tabla = d.findChild<QTableWidget *>();
+            const int temas = tabla->rowCount();
+            QVERIFY(pulsar(&d, QStringLiteral("Añadir tema")));
+            QCOMPARE(tabla->rowCount(), temas + 1);
+            tabla->setCurrentCell(temas, 0);   // el nuevo, sin preguntas: se quita sin preguntar
+            QPushButton *eliminar = conTexto<QPushButton>(&d, QStringLiteral("Eliminar tema"));
+            QVERIFY(eliminar);
+            eliminar->setFocus(Qt::MouseFocusReason);
+            QCOMPARE(botonDeIntro(&d), QStringLiteral("Eliminar tema"));
+            eliminar->click();
+            QCOMPARE(tabla->rowCount(), temas);
+            QCOMPARE(d.focusWidget(), tabla);
+            QCOMPARE(botonDeIntro(&d), QStringLiteral("Guardar"));
+        }
     }
 
     // En cada diálogo, Intro pulsa el botón que debe, al abrirlo y después de que el foco pase por los otros botones.
@@ -1837,14 +1910,21 @@ private slots:
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
-        QString problema = QStringLiteral("no se ha abierto");
-        QTimer::singleShot(100, [&problema] {
-            if (auto *d = qobject_cast<QDialog *>(QApplication::activeModalWidget())) {
-                problema = problemaConElBotonDeIntro(d, QStringLiteral("Marcar como verificadas"));
-                d->reject();
-            }
+        // Se mira cada poco hasta que se abre, y el temporizador muere con la prueba: si no llegara a abrirse, no
+        // quedaría nada pendiente que tocara otra prueba.
+        QString problema = QStringLiteral("«Marcar como verificadas» no se ha abierto");
+        QTimer espera;
+        QObject::connect(&espera, &QTimer::timeout, &v, [&espera, &problema] {
+            auto *d = qobject_cast<QDialog *>(QApplication::activeModalWidget());
+            if (!d)
+                return;
+            espera.stop();
+            problema = problemaConElBotonDeIntro(d, QStringLiteral("Marcar como verificadas"));
+            d->reject();
         });
+        espera.start(20);
         QVERIFY(QMetaObject::invokeMethod(v.findChild<PestanaBanco *>(), "verificarLista"));
+        espera.stop();
         if (!problema.isEmpty())
             problemas << problema;
         v.close();

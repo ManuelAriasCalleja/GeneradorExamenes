@@ -27,6 +27,9 @@ private slots:
 
 private:
     void rellenar();
+    // La convocatoria o el examen elegido a la vista (seleccionado); nullptr si no hay ninguno. No vale el actual sin
+    // más: al recibir el foco, el árbol hace actual la primera convocatoria sin seleccionarla.
+    const QTreeWidgetItem *elegido() const;
     // Exámenes de un elemento del árbol: el suyo, o todos los de la convocatoria.
     QVector<int> examenesDe(const QTreeWidgetItem *item) const;
 

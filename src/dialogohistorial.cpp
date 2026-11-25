@@ -108,9 +108,15 @@ QVector<int> DialogoHistorial::examenesDe(const QTreeWidgetItem *item) const
     return ids;
 }
 
+const QTreeWidgetItem *DialogoHistorial::elegido() const
+{
+    const QList<QTreeWidgetItem *> seleccionados = m_arbol->selectedItems();
+    return seleccionados.isEmpty() ? nullptr : seleccionados.first();
+}
+
 void DialogoHistorial::accept()
 {
-    m_elegidos = examenesDe(m_arbol->currentItem());
+    m_elegidos = examenesDe(elegido());
     if (m_elegidos.isEmpty()) {
         QMessageBox::information(this, windowTitle(), tr("Elija una convocatoria o un examen."));
         return;
@@ -120,20 +126,22 @@ void DialogoHistorial::accept()
 
 void DialogoHistorial::eliminar()
 {
-    const QTreeWidgetItem *item = m_arbol->currentItem();
+    // El foco vuelve al árbol (también después de la confirmación), para que Intro sea otra vez «Cargar» y no
+    // «Eliminar del historial…».
+    m_arbol->setFocus();
+    const QTreeWidgetItem *item = elegido();
     const QVector<int> ids = examenesDe(item);
-    if (ids.isEmpty())
+    if (ids.isEmpty()) {
+        QMessageBox::information(this, windowTitle(), tr("Elija una convocatoria o un examen."));
         return;
+    }
     const QString que = item->parent()
                             ? tr("el examen «%1» de %2").arg(item->text(ColNombre), item->parent()->text(ColNombre))
                             : ids.size() == 1 ? tr("la convocatoria %1 (un examen)").arg(item->text(ColNombre))
                             : tr("la convocatoria %1 (%2 exámenes)").arg(item->text(ColNombre)).arg(ids.size());
-    const bool eliminarlo = confirmar(this, windowTitle(),
-                                      tr("¿Eliminar del historial %1?\n\nSus preguntas dejarán de contar como usadas "
-                                         "al generar exámenes y no se podrá volver a cargarlo.").arg(que));
-    // El foco vuelve al árbol, para que Intro sea otra vez «Cargar» y no «Eliminar del historial…».
-    m_arbol->setFocus();
-    if (!eliminarlo)
+    if (!confirmar(this, windowTitle(),
+                   tr("¿Eliminar del historial %1?\n\nSus preguntas dejarán de contar como usadas al generar "
+                      "exámenes y no se podrá volver a cargarlo.").arg(que)))
         return;
     for (int id : ids) {
         if (!m_bd->borrarExamenRegistrado(id)) {

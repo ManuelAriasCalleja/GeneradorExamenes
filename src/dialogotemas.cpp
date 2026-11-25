@@ -99,6 +99,9 @@ void DialogoTemas::anadir()
 
 void DialogoTemas::eliminar()
 {
+    // El foco vuelve a la tabla (también después de la confirmación): si se quedara en «Eliminar tema», Intro borraría
+    // otro tema en vez de pulsar «Guardar».
+    m_tabla->setFocus();
     const int f = m_tabla->currentRow();
     if (f < 0)
         return;

@@ -83,6 +83,9 @@ private slots:
         QCOMPARE(QCoreApplication::translate("VentanaPrincipal", "&Archivo"), QStringLiteral("&File"));
         QCOMPARE(QCoreApplication::translate("Tema", "Tema %1: %2"), QStringLiteral("Topic %1: %2"));
         QCOMPARE(QCoreApplication::translate("ComprobadorJson", "aviso"), QStringLiteral("warning"));
+        // Los filtros del banco por la verificación, que estuvieron cambiados entre sí.
+        QCOMPARE(QCoreApplication::translate("PestanaBanco", "Verificadas"), QStringLiteral("Verified"));
+        QCOMPARE(QCoreApplication::translate("PestanaBanco", "Sin verificar"), QStringLiteral("Not verified"));
         Tema t;
         t.numero = 3;
         t.titulo = QStringLiteral("Inventado");
@@ -247,6 +250,47 @@ private slots:
         QVERIFY(!x.hasError());
         QVERIFY(mensajes > 600);
         QVERIFY2(sinTraducir.isEmpty(), qPrintable(sinTraducir.join(QLatin1Char('\n'))));
+    }
+
+    // Cada traducción lleva los mismos %1, %2… que su original y, si el original tiene la letra de un atajo (el & de
+    // «&Archivo»), también la lleva. Así se nota una traducción que se ha ido a otro texto (como «Verificar…» con
+    // la de «%1 (%2 preguntas)»).
+    void traduccionConLasMismasMarcas()
+    {
+        QFile f(QStringLiteral(RUTA_PROYECTO "/traducciones/GeneradorExamenes_en.ts"));
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        QXmlStreamReader x(&f);
+        // Las marcas de un texto: sus %N, sin repetir y en orden, y si tiene atajo. Un & que no es de atajo: «&&» (un &
+        // escrito) o el de una entidad de HTML («&mdash;»).
+        auto marcas = [](const QString &texto) {
+            QStringList numeros;
+            for (const QRegularExpressionMatch &m : QRegularExpression(QStringLiteral("%(\\d+)")).globalMatch(texto))
+                if (!numeros.contains(m.captured(1)))
+                    numeros << m.captured(1);
+            numeros.sort();
+            QString sinOtros = texto;
+            sinOtros.remove(QStringLiteral("&&")).remove(QRegularExpression(QStringLiteral("&#?\\w+;")));
+            const bool atajo = sinOtros.contains(QRegularExpression(QStringLiteral("&\\S")));
+            return numeros.join(QLatin1Char(' ')) + (atajo ? QStringLiteral(" (atajo)") : QString());
+        };
+        QString contexto, origen;
+        QStringList distintas;
+        while (!x.atEnd()) {
+            x.readNext();
+            if (!x.isStartElement())
+                continue;
+            if (x.name() == QLatin1String("name"))
+                contexto = x.readElementText();
+            else if (x.name() == QLatin1String("source"))
+                origen = x.readElementText();
+            else if (x.name() == QLatin1String("translation")) {
+                const QString traduccion = x.readElementText();
+                if (marcas(traduccion) != marcas(origen))
+                    distintas << QStringLiteral("%1: «%2» → «%3»").arg(contexto, origen, traduccion);
+            }
+        }
+        QVERIFY(!x.hasError());
+        QVERIFY2(distintas.isEmpty(), qPrintable(distintas.join(QLatin1Char('\n'))));
     }
 };
 
