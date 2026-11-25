@@ -279,22 +279,31 @@ Pregunta Seleccion::sustituta(const QVector<Modelo> &modelos, int modelo, int in
 {
     const PreguntaExamen &quitada = modelos.at(modelo).preguntas.at(indice);
     const int tema = quitada.pregunta.temaNumero;
-    // Grupos de las demás preguntas del examen (no pueden volver a salir en él), veces que está cada grupo en los
-    // otros exámenes y grupos ya quitados de este examen, la quitada incluida.
+    // Grupos de las demás preguntas del examen (no pueden volver a salir en él), en cuántos otros exámenes de la
+    // lista está cada grupo (las versiones de uno cuentan como uno, y las de este no son otros) y grupos ya quitados
+    // de este examen, la quitada incluida.
+    auto examenDeLaLista = [&modelos](int m) {
+        return modelos.at(m).version.isEmpty() ? QStringLiteral("#%1").arg(m) : QStringLiteral("v:") + modelos.at(m).base;
+    };
+    const QString este = examenDeLaLista(modelo);
     QSet<QString> enElExamen, quitados;
-    QHash<QString, int> enOtros;
+    QHash<QString, QSet<QString>> otrosExamenes;   // grupo -> exámenes de la lista en que está
     for (int m = 0; m < modelos.size(); ++m) {
+        const QString examen = examenDeLaLista(m);
         for (int i = 0; i < modelos.at(m).preguntas.size(); ++i) {
             const Pregunta &p = modelos.at(m).preguntas.at(i).pregunta;
             const QString r = raiz(p.temaNumero, p.numero);
-            if (m != modelo) {
-                enOtros[r] += 1;
+            if (examen != este) {
+                otrosExamenes[r].insert(examen);
                 m_idsUsados.insert(p.id);
-            } else if (i != indice) {
+            } else if (m == modelo && i != indice) {
                 enElExamen.insert(r);
             }
         }
     }
+    QHash<QString, int> enOtros;
+    for (auto it = otrosExamenes.cbegin(); it != otrosExamenes.cend(); ++it)
+        enOtros.insert(it.key(), int(it.value().size()));
     quitados.insert(raiz(tema, quitada.pregunta.numero));
     for (const QString &g : descartados)
         quitados.insert(m_pseudo.raiz(g));

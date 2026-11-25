@@ -648,6 +648,49 @@ private slots:
         QVERIFY(veces > 10);
     }
 
+    // Al cambiar una pregunta sin repetir entre exámenes, las versiones de un examen cuentan como un examen: una
+    // pregunta que está en las tres versiones de «Uno» está en tantos otros exámenes como una que está en «Dos».
+    void cambiarCuentaLasVersionesComoUnExamen()
+    {
+        const QVector<Pregunta> banco = bancoInventado(1, 6);
+        auto con = [&banco](const QString &codigo) {
+            for (const Pregunta &p : banco)
+                if (p.codigoCompleto() == codigo) {
+                    PreguntaExamen pe;
+                    pe.pregunta = p;
+                    return pe;
+                }
+            return PreguntaExamen();
+        };
+        ResultadoGeneracion base;
+        for (const QString &v : {QStringLiteral("A"), QStringLiteral("B"), QStringLiteral("C")}) {
+            Modelo m;
+            m.base = QStringLiteral("Uno");
+            m.version = v;
+            m.nombre = QStringLiteral("Uno ") + v;
+            m.preguntas = {con(QStringLiteral("T1-1"))};
+            base.modelos << m;
+        }
+        Modelo dos, tres;
+        dos.nombre = QStringLiteral("Dos");
+        dos.preguntas = {con(QStringLiteral("T1-2"))};
+        tres.nombre = QStringLiteral("Tres");
+        tres.preguntas = {con(QStringLiteral("T1-3"))};
+        base.modelos << dos << tres;
+        ConfigExamen c = configuracion(1);
+        c.preguntasPorTema = {{1, 1}};
+        c.noRepetirEntreModelos = true;
+        // Solo quedan la T1-1 (en «Uno») y la T1-2 (en «Dos»): las demás ya se quitaron.
+        const QSet<QString> descartadas{QStringLiteral("T1-4"), QStringLiteral("T1-5"), QStringLiteral("T1-6")};
+        QSet<QString> elegidas;
+        for (int vez = 0; vez < 40; ++vez) {
+            ResultadoGeneracion r = base;
+            QVERIFY(Generador::cambiarPregunta(banco, c, r, 4, 0, descartadas));
+            elegidas.insert(r.modelos.at(4).preguntas.at(0).pregunta.grupo());
+        }
+        QCOMPARE(elegidas, (QSet<QString>{QStringLiteral("T1-1"), QStringLiteral("T1-2")}));
+    }
+
     // Al cambiar una pregunta por otra que ya ha salido, también se barajan sus opciones, aunque no se pida.
     void cambiarPorUnaYaSalida()
     {
