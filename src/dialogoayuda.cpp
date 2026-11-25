@@ -59,7 +59,9 @@ DialogoAyuda::DialogoAyuda(QWidget *parent)
 
     // Botón con texto propio: los estándar vuelven al inglés si no están las traducciones de Qt.
     auto *botones = new QDialogButtonBox;
-    botones->addButton(tr("Cerrar"), QDialogButtonBox::RejectRole);
+    // Sin botón por defecto: si no, Qt se lo daría a «Cerrar», e Intro en el buscador, además de pasar a la siguiente
+    // vez que aparece lo buscado, cerraría la ayuda. Se cierra con Esc.
+    botones->addButton(tr("Cerrar"), QDialogButtonBox::RejectRole)->setAutoDefault(false);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoAyuda::reject);
 
     auto *l = new QVBoxLayout(this);

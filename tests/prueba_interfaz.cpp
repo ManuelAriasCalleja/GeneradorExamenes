@@ -7,6 +7,8 @@
 #include "dialogocomprobacion.h"
 #include "dialogohistorial.h"
 #include "dialogoestilo.h"
+#include "dialogoexportar.h"
+#include "dialogomoodle.h"
 #include "dialogoparecidas.h"
 #include "dialogopractica.h"
 #include "dialogopregunta.h"
@@ -124,6 +126,46 @@ bool marcar(const QWidget *w, const QString &texto, bool marcada = true)
     if (casilla)
         casilla->setChecked(marcada);
     return casilla != nullptr;
+}
+
+// El texto del botón de Intro (el botón por defecto) de 'd'; vacío si no tiene.
+QString botonDeIntro(const QDialog *d)
+{
+    QStringList textos;
+    for (QPushButton *b : d->findChildren<QPushButton *>())
+        if (b->isDefault() && b->isVisible())
+            textos << b->text();
+    return textos.join(QStringLiteral(" + "));
+}
+
+// Abre 'd' y comprueba que el botón de Intro es 'esperado', al abrirlo y después de que el foco pase por cada uno de
+// los otros botones y vuelva a otro control (Qt le da Intro al botón que tiene el foco y, al salir de él, se lo
+// devuelve al botón por defecto, si se entera de cuál es). Devuelve lo que falla; vacío si nada.
+QString problemaConElBotonDeIntro(QDialog *d, const QString &esperado)
+{
+    if (!d->isVisible())
+        d->show();
+    if (!QTest::qWaitForWindowActive(d))
+        return QStringLiteral("«%1» no se activa").arg(d->windowTitle());
+    if (botonDeIntro(d) != esperado)
+        return QStringLiteral("«%1»: al abrirlo, Intro es «%2» y no «%3»").arg(d->windowTitle(), botonDeIntro(d), esperado);
+    QWidget *otro = d;
+    for (QWidget *w : d->findChildren<QWidget *>())
+        if (!qobject_cast<QAbstractButton *>(w) && (w->focusPolicy() & Qt::TabFocus) && w->isVisible() && w->isEnabled()
+            && w->window() == d) {
+            otro = w;
+            break;
+        }
+    for (QPushButton *b : d->findChildren<QPushButton *>()) {
+        if (!b->isVisible() || !b->isEnabled() || b->isDefault() || b->window() != d)
+            continue;
+        b->setFocus(Qt::TabFocusReason);
+        otro->setFocus(Qt::TabFocusReason);
+        if (botonDeIntro(d) != esperado)
+            return QStringLiteral("«%1»: después de pasar por «%2», Intro es «%3» y no «%4»")
+                .arg(d->windowTitle(), b->text(), botonDeIntro(d), esperado);
+    }
+    return QString();
 }
 
 // Banco inventado de ocho temas en 'ruta', que la ventana abre con diez preguntas de los temas 1 a 4 (3, 2, 3 y 2).
@@ -1686,6 +1728,130 @@ private slots:
         QCOMPARE(d.examenesElegidos().size(), 1);
     }
 
+    // En cada diálogo, Intro pulsa el botón que debe, al abrirlo y después de que el foco pase por los otros botones.
+    // Si el botón por defecto se marca antes de meter los botones en el diálogo, Qt no se entera y le da Intro al
+    // primer botón que encuentra (en Exportar, «Elegir…»; en Temas, «Añadir tema»).
+    void botonDeIntroEnLosDialogos()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        BaseDatos bd;
+        QVERIFY(bd.abrir(ruta));
+        QVERIFY(bd.anadirVerificador(QStringLiteral("Persona Uno")));
+        const QVector<Pregunta> banco = bd.preguntas();
+        const QVector<Tema> temas = bd.temas();
+        DatosConvocatoria datos;
+        datos.asignatura = QStringLiteral("Asignatura inventada");
+        datos.convocatoria = QStringLiteral("Junio");
+        datos.anio = 2026;
+        Modelo modelo;
+        modelo.nombre = QStringLiteral("Uno");
+        for (int i = 0; i < 3; ++i) {
+            PreguntaExamen pe;
+            pe.pregunta = banco.at(i);
+            modelo.preguntas << pe;
+        }
+        QVERIFY(bd.registrarExamenes({modelo}, datos, 1));
+        const QString json = dir.filePath(QStringLiteral("nuevas.json"));
+        {
+            QFile f(json);
+            QVERIFY(f.open(QIODevice::WriteOnly));
+            f.write("{\"temas\": [{\"numero\": 1, \"titulo\": \"Inventado\", \"preguntas\": [\n"
+                    "{\"numero\": 1, \"enunciado\": \"Inventado:\", \"opciones\": [\"Uno.\", \"Dos.\", \"Tres.\", "
+                    "\"Cuatro.\"], \"correcta\": \"c\"}]}]}");
+        }
+        QVector<Parecidas::Parecida> parecidas;
+        parecidas.append({banco.at(1), 0.9});
+        QCOMPARE(banco.at(1).temaNumero, banco.at(0).temaNumero);   // «Guardar como variante» está activo
+
+        // Se apuntan los que fallan, para verlos todos de una vez.
+        QStringList problemas;
+        auto comprobar = [&problemas](QDialog &d, const QString &esperado) {
+            const QString problema = problemaConElBotonDeIntro(&d, esperado);
+            if (!problema.isEmpty())
+                problemas << problema;
+            d.hide();
+        };
+        {
+            DialogoHistorial d(&bd);
+            comprobar(d, QStringLiteral("&Cargar"));
+        }
+        {
+            DialogoAnteriores d(&bd, banco, datos, {});
+            comprobar(d, QStringLiteral("Registrar"));
+        }
+        {
+            DialogoExportar d(QStringLiteral("Exportar"), {QStringLiteral("Uno"), QStringLiteral("Dos")},
+                              QStringLiteral("examen"), QStringLiteral("pdf"), true);
+            comprobar(d, QStringLiteral("Exportar"));
+        }
+        {
+            DialogoMoodle d(banco, datos.asignatura);
+            comprobar(d, QStringLiteral("Exportar"));
+        }
+        {
+            DialogoPregunta d(temas, banco, banco.at(0));
+            comprobar(d, QStringLiteral("Guardar"));
+        }
+        {
+            DialogoTemas d(&bd);
+            comprobar(d, QStringLiteral("Guardar"));
+        }
+        {
+            DialogoComprobacion d(json, {}, DialogoComprobacion::Informe);
+            comprobar(d, QStringLiteral("Cerrar"));
+        }
+        {
+            DialogoComprobacion d(json, {}, DialogoComprobacion::AntesDeImportar);
+            comprobar(d, QStringLiteral("Importar"));
+        }
+        {
+            DialogoEstilo d([&banco] { return banco; }, [](int) { return false; }, QStringLiteral("banco"), temas);
+            comprobar(d, QStringLiteral("Editar la pregunta…"));
+        }
+        {
+            DialogoParecidas d(banco.at(0), parecidas, temas);
+            comprobar(d, QStringLiteral("Seguir editando"));
+        }
+        {
+            DialogoPractica d(modelo, datos, 60);
+            comprobar(d, QStringLiteral("Empezar"));
+        }
+        {
+            DialogoVerificar d(&bd, banco.mid(0, 3), 0, temas);
+            comprobar(d, QStringLiteral("&Verificada, siguiente"));
+        }
+        {
+            DialogoVerificadores d(&bd);
+            comprobar(d, QStringLiteral("Cerrar"));
+        }
+        {
+            // La ayuda no tiene: Intro en el buscador pasa a la siguiente vez que aparece lo buscado y no la cierra.
+            DialogoAyuda d;
+            comprobar(d, QString());
+        }
+
+        // El de marcar como verificadas las preguntas de la lista del banco, que se abre desde la pestaña.
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QString problema = QStringLiteral("no se ha abierto");
+        QTimer::singleShot(100, [&problema] {
+            if (auto *d = qobject_cast<QDialog *>(QApplication::activeModalWidget())) {
+                problema = problemaConElBotonDeIntro(d, QStringLiteral("Marcar como verificadas"));
+                d->reject();
+            }
+        });
+        QVERIFY(QMetaObject::invokeMethod(v.findChild<PestanaBanco *>(), "verificarLista"));
+        if (!problema.isEmpty())
+            problemas << problema;
+        v.close();
+        QVERIFY2(problemas.isEmpty(), qPrintable(problemas.join(QLatin1Char('\n'))));
+        QSettings().clear();
+    }
+
     // Al verificar: si se marca una pregunta sin tiempo para leerla, se avisa y hay que pulsar otra vez; y cada cierto
     // tiempo seguido verificando, se propone una pausa. Con la casilla desmarcada, ni lo uno ni lo otro.
     void verificarAvisaDeLaPrisaYDeLasPausas()
@@ -2558,8 +2724,8 @@ private slots:
         QTest::keyClick(buscar, Qt::Key_Return);
         QCOMPARE(texto->textCursor().selectedText().toLower(), QStringLiteral("semilla"));
         QVERIFY(texto->textCursor().position() > antes);
+        QVERIFY(ayuda.isVisible());   // Intro no cierra la ayuda
         // Si no está, no se mueve.
-        ayuda.show();
         auto *noEsta = ayuda.findChild<QLabel *>(QStringLiteral("noEsta"));
         QVERIFY(noEsta && !noEsta->isVisible());
         QTest::keyClicks(buscar, QStringLiteral("xyz"));

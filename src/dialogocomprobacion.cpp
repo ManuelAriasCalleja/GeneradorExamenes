@@ -47,16 +47,21 @@ DialogoComprobacion::DialogoComprobacion(const QString &ruta, const QSet<QString
             &DialogoComprobacion::abrirFichero);
     connect(m_botones->addButton(tr("Copiar el informe"), QDialogButtonBox::ActionRole), &QPushButton::clicked, this,
             &DialogoComprobacion::copiar);
+    QPushButton *cerrar = nullptr;
     if (m_modo == AntesDeImportar) {
         m_importar = m_botones->addButton(tr("Importar de todas formas"), QDialogButtonBox::AcceptRole);
         m_botones->addButton(tr("Cancelar"), QDialogButtonBox::RejectRole);
     } else {
-        m_botones->addButton(tr("Cerrar"), QDialogButtonBox::RejectRole);
+        cerrar = m_botones->addButton(tr("Cerrar"), QDialogButtonBox::RejectRole);
     }
     connect(m_botones, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(m_botones, &QDialogButtonBox::rejected, this, &QDialog::reject);
     DialogoAyuda::ponerAyuda(this, m_botones, QStringLiteral("comprobarjson"));
     l->addWidget(m_botones);
+    // Intro: «Importar» antes de importar (el primer botón de aceptar, que Qt pone solo) y, en el informe, «Cerrar»;
+    // si no, sería «Volver a comprobar». Después de meter los botones en el diálogo: antes, Qt no se entera.
+    if (cerrar)
+        cerrar->setDefault(true);
 
     comprobar();
 }

@@ -122,7 +122,7 @@ DialogoAnteriores::DialogoAnteriores(BaseDatos *bd, const QVector<Pregunta> &ban
 
     // Botones con texto propio: los estándar vuelven al inglés si no están las traducciones de Qt.
     auto *botones = new QDialogButtonBox;
-    botones->addButton(tr("Registrar"), QDialogButtonBox::AcceptRole)->setDefault(true);
+    QPushButton *registrar = botones->addButton(tr("Registrar"), QDialogButtonBox::AcceptRole);
     botones->addButton(tr("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoAnteriores::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoAnteriores::reject);
@@ -134,6 +134,9 @@ DialogoAnteriores::DialogoAnteriores(BaseDatos *bd, const QVector<Pregunta> &ban
     l->addWidget(divisor, 1);
     l->addWidget(m_resumen);
     l->addWidget(botones);
+    // Después de meter los botones en el diálogo: antes, Qt no se entera de cuál es el botón por defecto (el de
+    // Intro) y al mostrarse se lo da al primero que encuentra.
+    registrar->setDefault(true);
     actualizarExamen(-1);
 }
 

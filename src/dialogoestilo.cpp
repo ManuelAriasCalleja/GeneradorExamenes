@@ -66,6 +66,9 @@ DialogoEstilo::DialogoEstilo(std::function<QVector<Pregunta>()> preguntas, std::
     l->addWidget(m_resumen);
     l->addWidget(m_arbol, 1);
     l->addLayout(botones);
+    // Intro edita la pregunta elegida, como el doble clic. Se dice aquí, con los botones ya en el diálogo, para que no
+    // dependa de cuál encuentre Qt primero.
+    bEditar->setDefault(true);
     rellenar();
 }
 

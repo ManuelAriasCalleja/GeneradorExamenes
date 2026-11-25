@@ -380,12 +380,15 @@ void PestanaBanco::verificarLista()
     nota->setStyleSheet(Paleta::css(Paleta::Secundario));
     l->addWidget(nota);
     auto *botones = new QDialogButtonBox;
-    botones->addButton(tr("Marcar como verificadas"), QDialogButtonBox::AcceptRole)->setDefault(true);
+    QPushButton *marcar = botones->addButton(tr("Marcar como verificadas"), QDialogButtonBox::AcceptRole);
     botones->addButton(tr("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, &d, &QDialog::accept);
     connect(botones, &QDialogButtonBox::rejected, &d, &QDialog::reject);
     DialogoAyuda::ponerAyuda(&d, botones, QStringLiteral("verificar"));
     l->addWidget(botones);
+    // Después de meter los botones en el diálogo: antes, Qt no se entera de cuál es el botón por defecto (el de
+    // Intro) y al mostrarse se lo da al primero que encuentra.
+    marcar->setDefault(true);
     if (d.exec() != QDialog::Accepted)
         return;
     if (panel->hayVerificadores() && panel->verificadores().isEmpty()) {

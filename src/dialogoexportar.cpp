@@ -72,12 +72,14 @@ DialogoExportar::DialogoExportar(const QString &titulo, const QStringList &nombr
 
     auto *botones = new QDialogButtonBox;
     QPushButton *exportar = botones->addButton(tr("Exportar"), QDialogButtonBox::AcceptRole);
-    exportar->setDefault(true);
     botones->addButton(tr("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoExportar::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoExportar::reject);
     DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("exportar"));
     l->addWidget(botones);
+    // Después de meter los botones en el diálogo: antes, Qt no se entera de cuál es el botón por defecto (el de
+    // Intro) y al mostrarse se lo da al primero que encuentra.
+    exportar->setDefault(true);
 }
 
 // «<base>-<examen>.<extensión>» y, el de todos juntos, «<base>.<extensión>»; con soluciones, «-soluciones» delante

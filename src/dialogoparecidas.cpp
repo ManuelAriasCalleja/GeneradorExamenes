@@ -58,6 +58,9 @@ DialogoParecidas::DialogoParecidas(const Pregunta &nueva, const QVector<Parecida
     l->addWidget(explicacion);
     l->addWidget(divisor, 1);
     l->addLayout(botones);
+    // Intro sigue editando: es lo único que no guarda. Si no, Qt le daría Intro a «Guardar como variante…», y quien
+    // pulsa Intro para guardar en el editor la guardaría así con un segundo Intro, sin haber leído este diálogo.
+    seguir->setDefault(true);
     m_lista->setCurrentRow(0);
 }
 

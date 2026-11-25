@@ -45,7 +45,7 @@ DialogoTemas::DialogoTemas(BaseDatos *bd, QWidget *parent)
 
     // Botones con texto propio: los estándar (Save, Cancel) vuelven al inglés si no están las traducciones de Qt.
     auto *botones = new QDialogButtonBox;
-    botones->addButton(tr("Guardar"), QDialogButtonBox::AcceptRole)->setDefault(true);
+    QPushButton *guardar = botones->addButton(tr("Guardar"), QDialogButtonBox::AcceptRole);
     botones->addButton(tr("Cancelar"), QDialogButtonBox::RejectRole);
     connect(botones, &QDialogButtonBox::accepted, this, &DialogoTemas::accept);
     connect(botones, &QDialogButtonBox::rejected, this, &DialogoTemas::reject);
@@ -60,6 +60,9 @@ DialogoTemas::DialogoTemas(BaseDatos *bd, QWidget *parent)
     l->addWidget(m_tabla);
     l->addLayout(fila);
     l->addWidget(botones);
+    // Después de meter los botones en el diálogo: antes, Qt no se entera de cuál es el botón por defecto (el de
+    // Intro) y al mostrarse se lo da al primero que encuentra.
+    guardar->setDefault(true);
 }
 
 void DialogoTemas::anadirFila(const Tema &t, int numPreguntas)

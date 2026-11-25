@@ -735,7 +735,7 @@
     </message>
     <message>
         <location line="+1"/>
-        <location line="+89"/>
+        <location line="+92"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
@@ -941,7 +941,7 @@ Record them?</translation>
         <translation>Not found</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+26"/>
         <source>Cerrar</source>
         <translation>Close</translation>
     </message>
@@ -1000,13 +1000,13 @@ Record them?</translation>
         <translation>Copy the report</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <location line="+45"/>
+        <location line="+4"/>
+        <location line="+49"/>
         <source>Importar de todas formas</source>
         <translation>Import anyway</translation>
     </message>
     <message>
-        <location line="-44"/>
+        <location line="-48"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
@@ -1016,7 +1016,7 @@ Record them?</translation>
         <translation>Close</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+22"/>
         <source>Con errores no se puede importar: corríjalos en el fichero y pulse «Volver a comprobar».</source>
         <translation>It cannot be imported with errors: correct them in the file and press “Check again”.</translation>
     </message>
@@ -1084,7 +1084,7 @@ Record them?</translation>
         <translation>Close</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+42"/>
         <source>%1 avisos</source>
         <translation>%1 warnings</translation>
     </message>
@@ -1173,12 +1173,12 @@ Record them?</translation>
         <translation>Export</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="+78"/>
+        <location line="+81"/>
         <source>Carpeta donde guardar los exámenes</source>
         <translation>Folder in which to save the exams</translation>
     </message>
@@ -1363,12 +1363,12 @@ Its questions will no longer count as used when generating exams, and it will no
         <translation>Export</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+26"/>
         <source>Moodle XML (*.xml)</source>
         <translation>Moodle XML (*.xml)</translation>
     </message>
@@ -1406,7 +1406,7 @@ Its questions will no longer count as used when generating exams, and it will no
         <translation>Continue editing</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+36"/>
         <source>Guardar como variante de %1</source>
         <translation>Save as a variant of %1</translation>
     </message>
@@ -1531,7 +1531,7 @@ Score: %4 out of %5</translation>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="+38"/>
+        <location line="+41"/>
         <source>Verificación</source>
         <translation>Verification</translation>
     </message>
@@ -1841,7 +1841,7 @@ Do you want to save it anyway?</translation>
         <translation>Double-click a cell to edit it.</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+36"/>
         <source>Nuevo tema</source>
         <translation>New topic</translation>
     </message>
@@ -3288,20 +3288,20 @@ Replace it with this one?</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+311"/>
+        <location line="+314"/>
         <source>Editar…</source>
         <extracomment>Botón: editar la pregunta seleccionada</extracomment>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-309"/>
-        <location line="+310"/>
+        <location line="-312"/>
+        <location line="+313"/>
         <source>Verificar…</source>
         <extracomment>Botón: recorre las preguntas de la lista, desde la seleccionada, para marcarlas como verificadas por personas</extracomment>
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location line="-309"/>
+        <location line="-312"/>
         <source>Duplicar como variante…</source>
         <translation>Duplicate as variant…</translation>
     </message>
@@ -3406,7 +3406,7 @@ Replace it with this one?</translation>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+11"/>
         <source>Marque quién las ha verificado.</source>
         <translation>Tick who has verified them.</translation>
     </message>
