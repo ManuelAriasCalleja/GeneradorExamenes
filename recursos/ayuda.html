@@ -154,12 +154,12 @@ página (en el PDF, el LaTeX y el Word): «Asignatura · Nacional Original · Ju
 salvo que se desmarquen, y se guardan en el banco. Sin nada arriba, el examen empieza por el recuadro de las
 instrucciones; abajo, el nombre del examen y la página van siempre. La casilla <b>Versión</b>, desmarcada al
 principio, pone «Versión B» arriba a la derecha en los exámenes con varias versiones (ver <a href="#versiones">Versiones
-de un examen</a>).</li>
+de los exámenes</a>).</li>
 </ul>
 
 <h3><a name="lista-examenes"></a>Lista de exámenes</h3>
-<p>Se genera un examen por cada nombre marcado (o uno por cada versión: ver <a href="#versiones">Versiones de un
-examen</a>), en el orden de la lista. El título del recuadro dice cuántos hay marcados de los que hay en la lista:
+<p>Se genera un examen por cada nombre marcado (o uno por cada versión: ver <a href="#versiones">Versiones de los
+exámenes</a>), en el orden de la lista. El título del recuadro dice cuántos hay marcados de los que hay en la lista:
 «Exámenes: 2 modelos de 3 seleccionados.». El pie de cada página lleva el nombre
 del examen y, si se quiere, la asignatura y la convocatoria con el año (ver <a href="#convocatoria">Convocatoria</a>):
 «Asignatura · Nacional Original · Junio 2026: 1 / 2».</p>
@@ -174,13 +174,13 @@ puede arrastrar.</li>
 <p>La letra del atajo de cada botón está subrayada en él (en algunos escritorios, solo mientras se pulsa Alt). En
 macOS no existen estos atajos: los botones se pulsan con el ratón.</p>
 <p>La lista se guarda en el banco, así que cada asignatura tiene la suya, y se conserva de un año a otro. No puede
-haber dos exámenes marcados con el mismo nombre, contando sus versiones, ni uno sin nombre.</p>
+haber dos exámenes marcados con el mismo nombre, ni uno sin nombre.</p>
 
-<h3><a name="versiones"></a>Versiones de un examen</h3>
-<p>Cada examen de la lista puede tener varias versiones, con las mismas preguntas en otro orden, para que quienes se
-sientan juntos no tengan el mismo examen. Elija el examen en la lista y ponga cuántas en <b>Versiones</b> (de 1 a 26;
-con 1, sin versiones). La lista lo dice junto al nombre, «Nacional Original (A–C)», y el título del recuadro, cuántos
-exámenes salen con ellas.</p>
+<h3><a name="versiones"></a>Versiones de los exámenes</h3>
+<p>Los exámenes pueden tener varias versiones, con las mismas preguntas en otro orden, para que quienes se sientan
+juntos no tengan el mismo examen. Ponga cuántas en <b>Versiones</b>, bajo la lista (de 1 a 26; con 1, sin
+versiones): son las mismas para todos los exámenes marcados. El título del recuadro dice cuántos exámenes salen con
+ellas.</p>
 <ul>
 <li>Cada versión es un examen más: «Nacional Original A», «Nacional Original B»…, o «Nacional Original 1», «… 2»… si
 se elige <b>1, 2, 3…</b> en lugar de <b>A, B, C…</b> (la numeración es la misma para toda la lista). Se ve, se
@@ -199,24 +199,23 @@ demás exámenes.</li>
 «Versión B» arriba a la derecha de la primera página, para que se vea al indicarla en la hoja de respuestas. El nombre
 del examen, con su versión, va siempre en el pie de página.</li>
 </ul>
-<p>Las versiones de cada examen y la numeración se guardan en el banco, con la lista.</p>
-<p>Si se piden versiones de un examen que ya está generado sin ellas (o cargado del <a href="#historial">historial</a>),
-no hace falta volver a generarlo: el recuadro amarillo avisa de que la lista pide más versiones de las que tiene, y su
-enlace <b>Añadir las que faltan</b> se las añade.</p>
+<p>El número de versiones y la numeración se guardan en el banco, con la lista. (Las versiones anteriores del programa
+guardaban las de cada examen: al abrir un banco de entonces, se toman las del que tenía más.)</p>
+<p>Si se piden más versiones cuando los exámenes ya están generados (o cargados del <a href="#historial">historial</a>),
+no hace falta volver a generarlos: el recuadro amarillo dice cuáles tienen menos, y su enlace <b>Añadir las que
+faltan</b> se las añade a todos.</p>
 <ul>
-<li>El examen que había pasa a ser la A tal como está, con sus preguntas, sus opciones y lo que se haya cambiado,
+<li>Cada examen que había pasa a ser su A tal como está, con sus preguntas, sus opciones y lo que se haya cambiado,
 corregido o verificado en él; solo cambia su nombre («Nacional Original A»). Con <b>Orden aleatorio</b>, la A sigue con
 las preguntas en el orden en que estaban, sin ponerlas por temas.</li>
 <li>Las demás salen de la A como al generar, con las mismas preguntas. Si los exámenes no han cambiado desde que se
 generaron sin orden aleatorio, son las mismas que si se hubieran pedido entonces.</li>
-<li>A un examen que ya tiene versiones se le añaden las que faltan, con su numeración, y las que tiene no cambian. Si la
-lista pide menos de las que tiene, no se quita ninguna.</li>
-<li>No se añaden si saldrían dos exámenes con el mismo nombre (por ejemplo, si otro de la lista se llama «Nacional
-Original B»).</li>
+<li>A un examen que ya tiene versiones se le añaden las que faltan, con su numeración, y las que tiene no cambian. Si se
+piden menos de las que tiene, no se quita ninguna.</li>
 <li>Se deshace como un cambio de pregunta, con <b>Deshacer el cambio</b> (o «Deshacer las versiones añadidas», con el
 botón derecho).</li>
-<li>Si el examen estaba registrado, al registrar la convocatoria otra vez sus versiones sustituyen al registrado sin
-ellas (ver <a href="#historial">El historial de convocatorias</a>).</li>
+<li>Si los exámenes estaban registrados, al registrar la convocatoria otra vez sus versiones sustituyen a los
+registrados sin ellas (ver <a href="#historial">El historial de convocatorias</a>).</li>
 </ul>
 
 <h3><a name="reparto"></a>Preguntas por tema</h3>
@@ -286,7 +285,7 @@ menos de las que se le piden, se le piden las que hay, y al desmarcarla vuelven 
 <tr><td><b>Orden aleatorio</b></td>
 <td>Mezcla las preguntas del examen. Si no se marca, van por tema y número, como en los exámenes oficiales. En un
 examen con varias versiones, solo dentro de cada tema, y baraja también las opciones (ver
-<a href="#versiones">Versiones de un examen</a>).</td></tr>
+<a href="#versiones">Versiones de los exámenes</a>).</td></tr>
 <tr><td><b>Barajar las opciones</b></td>
 <td>Cambia el orden de las opciones para repartir la respuesta correcta entre a), b), c) y d) (ver
 <a href="#correctas">Reparto de la respuesta correcta</a>). Las de las preguntas que ya han salido se barajan
@@ -563,7 +562,7 @@ de sus preguntas tal como salieron, el orden de las opciones y los datos de la c
 instrucciones y puntuación). Hace falta haber escrito el nombre de la convocatoria.</p>
 <p>Si ya había exámenes registrados con el mismo nombre, convocatoria y año, se sustituyen (antes se pide
 confirmación); también los del mismo examen de la lista con otras versiones o sin ellas: «Nacional Original» y
-«Nacional Original A», «… B»… (ver <a href="#versiones">Versiones de un examen</a>). Por eso, si después de registrar
+«Nacional Original A», «… B»… (ver <a href="#versiones">Versiones de los exámenes</a>). Por eso, si después de registrar
 una convocatoria se generan otra vez sus exámenes, basta con registrarla de nuevo. Al generarlos otra vez, sus
 preguntas no cuentan como ya salidas.</p>
 <p>Desde entonces, la opción «Evitar las preguntas de las últimas N convocatorias» tiene en cuenta esos exámenes, y

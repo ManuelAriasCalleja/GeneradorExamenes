@@ -2683,7 +2683,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelConfiguracion</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="+448"/>
+        <location filename="../src/panelconfiguracion.cpp" line="+430"/>
         <source>Convocatoria</source>
         <extracomment>Convocatoria de examen (Febrero, Junio, Septiembre…): datos de la cabecera de los exámenes</extracomment>
         <translation>Exam session</translation>
@@ -2799,7 +2799,7 @@ Doble clic para cambiar el nombre; arrastre, o Subir y Bajar, para cambiar el or
 Double-click to change the name; drag, or use Move up and Move down, to change the order.</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+20"/>
         <source>Aña&amp;dir</source>
         <extracomment>Botón: añade un examen a la lista de exámenes que se generan. El &amp; marca la letra del atajo (Alt+letra): no puede ser la de un menú ni la de otro de estos seis botones.</extracomment>
         <translation>A&amp;dd</translation>
@@ -2865,11 +2865,11 @@ Double-click to change the name; drag, or use Move up and Move down, to change t
         <translation>Moves the selected exam down the list</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Versiones del examen seleccionado. Con varias, cada una es un examen más, con las mismas preguntas en otro orden (siempre por temas: las del tema 1, luego las del 2…) y las opciones barajadas.
-Si ya está generado sin ellas, se le pueden añadir sin volver a generarlo: lo ofrecen los avisos, junto al examen.</source>
-        <translation>Versions of the selected exam. With several, each one is one more exam, with the same questions in a different order (always by topic: those of topic 1, then those of topic 2…) and the options shuffled.
-If it has already been generated without them, they can be added without generating it again: the warnings next to the exam offer it.</translation>
+        <location line="+4"/>
+        <source>Versiones de cada examen, las mismas para todos. Con varias, cada versión es un examen más, con las mismas preguntas en otro orden (siempre por temas: las del tema 1, luego las del 2…) y las opciones barajadas.
+Si ya están generados sin ellas, se les pueden añadir sin volver a generarlos: lo ofrecen los avisos, junto al examen.</source>
+        <translation>Versions of each exam, the same for all of them. With several, each version is one more exam, with the same questions in a different order (always by topic: those of topic 1, then those of topic 2…) and the options shuffled.
+If the exams have already been generated without them, they can be added without generating them again: the warnings next to the exam offer it.</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2895,7 +2895,7 @@ If it has already been generated without them, they can be added without generat
         <translation>How the versions of the exams are named: “Nacional Original A”, “… B”… or “Nacional Original 1”, “… 2”…</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+31"/>
         <source>Exámenes: 1 modelo de %1 seleccionado.</source>
         <extracomment>Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay</extracomment>
         <translation>Exams: 1 model of %1 selected.</translation>
@@ -2913,13 +2913,19 @@ If it has already been generated without them, they can be added without generat
         <translation> With their versions, %1 exams.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+7"/>
         <source>ninguno marcado</source>
         <extracomment>Resumen del recuadro plegado de la lista de exámenes, si no hay ninguno marcado</extracomment>
         <translation>none ticked</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+3"/>
+        <source>%1 (versiones %2)</source>
+        <extracomment>Resumen del recuadro plegado de la lista de exámenes: %1 son los marcados y %2, sus versiones («A–C»)</extracomment>
+        <translation>%1 (versions %2)</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>Preguntas por tema</source>
         <translation>Questions per topic</translation>
     </message>
@@ -3191,7 +3197,7 @@ If empty, different exams come out each time.</translation>
         <translation>Distinct questions available (variants a, b, c... count as one)</translation>
     </message>
     <message>
-        <location line="+56"/>
+        <location line="+57"/>
         <source>No se pudo guardar el nombre de la asignatura en el banco:
 %1</source>
         <translation>Could not save the subject name in the bank:
@@ -3298,7 +3304,7 @@ Replace it with this one?</translation>
         <translation>%1 questions (%2)</translation>
     </message>
     <message>
-        <location line="+63"/>
+        <location line="+55"/>
         <source>Nuevo examen</source>
         <extracomment>Nombre que se propone para un examen nuevo de la lista (se cambia en el momento)</extracomment>
         <translation>New exam</translation>
@@ -3622,7 +3628,7 @@ Replace it with this one?</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="-1146"/>
+        <location filename="../src/panelconfiguracion.cpp" line="-1113"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
@@ -4036,12 +4042,12 @@ Choose where it is or create a new one.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+753"/>
+        <location line="+745"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-739"/>
+        <location line="-731"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -4053,13 +4059,13 @@ Choose where it is or create a new one.</translation>
         <translation>%1 questions have been imported.</translation>
     </message>
     <message>
-        <location line="+412"/>
+        <location line="+410"/>
         <source>Hay dos exámenes marcados con el mismo nombre: «%1».</source>
         <extracomment>%1 es el nombre de un examen, con su versión si tiene («Nacional Original B»)</extracomment>
         <translation>Two ticked exams have the same name: “%1”.</translation>
     </message>
     <message>
-        <location line="-456"/>
+        <location line="-454"/>
         <source>¿Cómo quiere importar las preguntas?
 
 Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.
@@ -4343,7 +4349,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Specify how many questions you want from each topic.</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+10"/>
         <source>Marque en la lista los exámenes que quiere generar.</source>
         <translation>Tick the exams you want to generate in the list.</translation>
     </message>
@@ -4359,18 +4365,6 @@ Click to overwrite the JSON with the contents of the database.</translation>
     </message>
     <message>
         <location line="+86"/>
-        <source>«%1» (%2 versiones)</source>
-        <extracomment>%1 es el nombre de un examen de la lista y %2, cuántas versiones tiene en ella (dos o más)</extracomment>
-        <translation>“%1” (%2 versions)</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Estos exámenes tienen menos versiones de las que pide la lista: %1.</source>
-        <extracomment>Aviso junto al examen; %1 es la lista de exámenes: «Nacional Original» (3 versiones), «Nacional Reserva» (2 versiones)</extracomment>
-        <translation>These exams have fewer versions than the list asks for: %1.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
         <source>Añadir las que faltan</source>
         <extracomment>Enlace del aviso de las versiones que faltan: las añade a los exámenes, sin volver a generarlos</extracomment>
         <translation>Add the missing ones</translation>
@@ -4610,19 +4604,22 @@ Some of these exams were already recorded (with the same name, or with other ver
         <translation>“%1”, question %2: %3 instead of %4</translation>
     </message>
     <message>
-        <location line="+22"/>
-        <source>No se pueden añadir las versiones: habría dos exámenes con el mismo nombre, «%1».</source>
-        <extracomment>%1 es el nombre de un examen con su versión («Nacional Original B»)</extracomment>
-        <translation>The versions cannot be added: two exams would have the same name, “%1”.</translation>
-    </message>
-    <message>
-        <location line="+31"/>
+        <location line="-394"/>
+        <location line="+436"/>
         <source>«%1»</source>
-        <extracomment>Un examen de la lista en el mensaje de las versiones añadidas: %1 es su nombre, entre comillas</extracomment>
+        <extracomment>Un examen en la lista del aviso de las versiones que faltan: %1 es su nombre, entre comillas
+----------
+Un examen de la lista en el mensaje de las versiones añadidas: %1 es su nombre, entre comillas</extracomment>
         <translation>“%1”</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-434"/>
+        <source>Se piden %1 versiones de cada examen, y estos tienen menos: %2.</source>
+        <extracomment>Aviso junto al examen; %1 es el número de versiones (dos o más) y %2, la lista de exámenes: «Nacional Original», «Nacional Reserva»</extracomment>
+        <translation>%1 versions of each exam are asked for, and these have fewer: %2.</translation>
+    </message>
+    <message>
+        <location line="+436"/>
         <source>Añadidas las versiones de %1. Los exámenes que ya había no cambian; si no tenían versiones, ahora son la %2.</source>
         <extracomment>%1 es la lista de los exámenes («Nacional Original», «Nacional Reserva») y %2, la etiqueta de la primera versión (A o 1)</extracomment>
         <translation>Versions added to %1. The exams you already had do not change; those without versions are now version %2.</translation>

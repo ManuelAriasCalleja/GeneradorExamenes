@@ -1781,8 +1781,8 @@ private slots:
         QCOMPARE(d.examenesElegidos().size(), 1);
     }
 
-    // Las versiones de un examen se eligen en la lista (el elegido), se generan como exámenes («Nacional Original A»…), la
-    // versión va en la cabecera si se marca la casilla, y todo se recuerda con el banco.
+    // Las versiones, las mismas para todos los exámenes de la lista, se generan como exámenes («Nacional Original A»…),
+    // la versión va en la cabecera si se marca la casilla, y todo se recuerda con el banco.
     void ventanaConVersiones()
     {
         QSettings().clear();
@@ -1806,35 +1806,31 @@ private slots:
             controles(v, lista, versiones, grupo);
             QVERIFY(lista && versiones && grupo);
             QCOMPARE(lista->item(0)->text(), QStringLiteral("Nacional Original"));
-            lista->setCurrentRow(0);
-            QVERIFY(versiones->isEnabled());
+            QVERIFY(versiones->isEnabled());   // sin elegir ningún examen: son de todos
             QCOMPARE(versiones->value(), 1);
             versiones->setValue(3);
-            QVERIFY2(grupo->textoCabecera().endsWith(QStringLiteral(" Con sus versiones, 4 exámenes.")),
+            QVERIFY2(grupo->textoCabecera().endsWith(QStringLiteral(" Con sus versiones, 6 exámenes.")),
                      qPrintable(grupo->textoCabecera()));
-            lista->setCurrentRow(1);
-            QCOMPARE(versiones->value(), 1);   // el de cada examen
             QVERIFY(marcar(&v, QStringLiteral("Versión")));
             QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
             QComboBox *selector = nullptr;
             for (QComboBox *c : v.findChildren<QComboBox *>())
-                if (c->count() == 4 && c->itemText(0) == QStringLiteral("Nacional Original A"))
+                if (c->count() == 6 && c->itemText(0) == QStringLiteral("Nacional Original A"))
                     selector = c;
             QVERIFY(selector);
             QCOMPARE(selector->itemText(2), QStringLiteral("Nacional Original C"));
-            QCOMPARE(selector->itemText(3), QStringLiteral("Nacional Reserva"));
-            selector->setCurrentIndex(1);
+            QCOMPARE(selector->itemText(3), QStringLiteral("Nacional Reserva A"));
+            QCOMPARE(selector->itemText(5), QStringLiteral("Nacional Reserva C"));
+            selector->setCurrentIndex(4);
             QTextBrowser *visor = nullptr;
             for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
                 if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
                     visor = t;
             QVERIFY(visor);
             QVERIFY(visor->toPlainText().contains(QStringLiteral("Versión B")));
-            selector->setCurrentIndex(3);
-            QVERIFY(!visor->toPlainText().contains(QStringLiteral("Versión")));   // sin versiones
             v.close();
         }
-        // Con el banco se recuerdan las versiones de cada examen y la casilla.
+        // Con el banco se recuerdan las versiones y la casilla.
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
@@ -1843,10 +1839,58 @@ private slots:
         GrupoPlegable *grupo = nullptr;
         controles(v, lista, versiones, grupo);
         QVERIFY(lista && versiones);
-        lista->setCurrentRow(0);
         QCOMPARE(versiones->value(), 3);
         QVERIFY(conTexto<QCheckBox>(&v, QStringLiteral("Versión"))->isChecked());
+        // Sin versiones, la cabecera no dice ninguna.
+        versiones->setValue(1);
+        QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
+        QTextBrowser *visor = nullptr;
+        for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
+            if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
+                visor = t;
+        QVERIFY(visor);
+        QVERIFY(!visor->toPlainText().contains(QStringLiteral("Versión")));
         v.close();
+        QSettings().clear();
+    }
+
+    // Las versiones anteriores guardaban las versiones de cada examen (en la configuración y en cada banco): se toma la
+    // mayor, para todos.
+    void versionesDeAntesDeCadaExamen()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        const QString otro = dir.filePath(QStringLiteral("otro.db"));
+        QVERIFY(crearBancoInventado(otro));
+        {
+            BaseDatos bd;
+            QVERIFY(bd.abrir(otro));
+            QVariantMap opciones = bd.opciones();
+            opciones.insert(QStringLiteral("examenes/versiones"), QVariantMap{{QStringLiteral("Nacional Reserva"), 4}});
+            QVERIFY(bd.guardarOpciones(opciones));
+        }
+        QSettings().setValue(QStringLiteral("examenes/versiones"),
+                             QVariantMap{{QStringLiteral("Nacional Original"), 3}, {QStringLiteral("Nacional Reserva"), 2}});
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QSpinBox *versiones = nullptr;
+        for (QLabel *l : v.findChildren<QLabel *>())
+            if (l->text() == QStringLiteral("Versiones:"))
+                versiones = qobject_cast<QSpinBox *>(l->buddy());
+        QVERIFY(versiones);
+        QCOMPARE(versiones->value(), 3);
+        QVERIFY(v.abrirBaseDatos(otro));
+        QCOMPARE(versiones->value(), 4);
+        v.close();
+        QVERIFY(!QSettings().contains(QStringLiteral("examenes/versiones")));
+        QCOMPARE(QSettings().value(QStringLiteral("examenes/numVersiones")).toInt(), 4);
+        BaseDatos bd;
+        QVERIFY(bd.abrir(otro));
+        QVERIFY(!bd.opciones().contains(QStringLiteral("examenes/versiones")));
+        QCOMPARE(bd.opciones().value(QStringLiteral("examenes/numVersiones")).toInt(), 4);
         QSettings().clear();
     }
 
@@ -1922,24 +1966,24 @@ private slots:
         generarYRegistrar(&texto);
         QCOMPARE(registrados(), (QStringList{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")}));
 
-        lista->setCurrentRow(0);
         versiones->setValue(2);
         generarYRegistrar(&texto);
-        QVERIFY2(texto.contains(QStringLiteral("se sustituirán: Nacional Reserva, Nacional Original.")), qPrintable(texto));
+        QVERIFY2(texto.contains(QStringLiteral("se sustituirán: ")) && texto.contains(QStringLiteral("Nacional Original"))
+                     && texto.contains(QStringLiteral("Nacional Reserva")),
+                 qPrintable(texto));
         QCOMPARE(registrados(), (QStringList{QStringLiteral("Nacional Original A"), QStringLiteral("Nacional Original B"),
-                                             QStringLiteral("Nacional Reserva")}));
+                                             QStringLiteral("Nacional Reserva A"), QStringLiteral("Nacional Reserva B")}));
 
-        lista->setCurrentRow(0);
         versiones->setValue(1);
         generarYRegistrar(&texto);
-        QVERIFY2(texto.contains(QStringLiteral("Nacional Original A, Nacional Original B")), qPrintable(texto));
+        for (const char *nombre : {"Nacional Original A", "Nacional Original B", "Nacional Reserva A", "Nacional Reserva B"})
+            QVERIFY2(texto.contains(QLatin1String(nombre)), qPrintable(texto));
         QCOMPARE(registrados(), (QStringList{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")}));
         v.close();
         QSettings().clear();
     }
 
-    // No se puede generar con dos exámenes marcados con el mismo nombre, aunque uno tenga versiones; ni con uno que se
-    // llame como la versión de otro.
+    // No se puede generar con dos exámenes marcados con el mismo nombre, con versiones o sin ellas.
     void noGeneraConNombresRepetidos()
     {
         QSettings().clear();
@@ -1956,22 +2000,21 @@ private slots:
             if (l->text() == QStringLiteral("Versiones:"))
                 versiones = qobject_cast<QSpinBox *>(l->buddy());
         QVERIFY(lista && versiones);
-        lista->setCurrentRow(0);
-        versiones->setValue(2);   // «Nacional Original», con versiones A y B
-        for (const QString &nombre : {QStringLiteral("Nacional Original"), QStringLiteral("Nacional Original B")}) {
-            lista->item(1)->setText(nombre);
+        lista->item(1)->setText(QStringLiteral("Nacional Original"));
+        for (int n : {1, 2}) {
+            versiones->setValue(n);
             QString texto;
             responder(QStringLiteral("OK"), &texto);
             QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
-            QCOMPARE(texto, QStringLiteral("Hay dos exámenes marcados con el mismo nombre: «%1».").arg(nombre));
+            QCOMPARE(texto, QStringLiteral("Hay dos exámenes marcados con el mismo nombre: «Nacional Original»."));
         }
         v.close();
         QSettings().clear();
     }
 
-    // A los exámenes ya generados se les añaden las versiones que se piden después en la lista, desde el aviso junto al
-    // examen y sin volver a generarlos: el que había pasa a ser la A, tal cual. Se deshace como un cambio de pregunta, al
-    // registrarlos se sustituye el registrado sin versiones y no se añaden si saldrían dos exámenes con el mismo nombre.
+    // A los exámenes ya generados se les añaden las versiones que se piden después, a todos, desde el aviso junto al
+    // examen y sin volver a generarlos: cada uno pasa a ser su A, tal cual. Se deshace como un cambio de pregunta, al
+    // registrarlos se sustituyen los registrados sin versiones y a los que ya tienen se les añaden las que faltan.
     void ventanaAnadeVersiones()
     {
         QSettings().clear();
@@ -1981,14 +2024,12 @@ private slots:
         VentanaPrincipal v;
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
-        QListWidget *lista = nullptr;
-        lista = v.findChild<GrupoPlegable *>(QStringLiteral("plegableExamenes"))->findChild<QListWidget *>();
         QSpinBox *versiones = nullptr;
         for (QLabel *l : v.findChildren<QLabel *>())
             if (l->text() == QStringLiteral("Versiones:"))
                 versiones = qobject_cast<QSpinBox *>(l->buddy());
         auto *avisos = v.findChild<QLabel *>(QStringLiteral("avisosExamen"));
-        QVERIFY(lista && versiones && avisos);
+        QVERIFY(versiones && avisos);
         auto dice = [avisos](const QString &texto) { return avisos->isVisible() && avisos->text().contains(texto); };
         auto nombres = [](const QComboBox *selector) {
             QStringList res;
@@ -2022,18 +2063,19 @@ private slots:
         responder(QStringLiteral("Sí"), &texto);
         QVERIFY(QMetaObject::invokeMethod(&v, "registrarConvocatoria"));
 
-        lista->setCurrentRow(0);
+        const QStringList conTres{QStringLiteral("Nacional Original A"), QStringLiteral("Nacional Original B"),
+                                  QStringLiteral("Nacional Original C"), QStringLiteral("Nacional Reserva A"),
+                                  QStringLiteral("Nacional Reserva B"), QStringLiteral("Nacional Reserva C")};
         versiones->setValue(3);
-        QVERIFY2(dice(QStringLiteral("Estos exámenes tienen menos versiones de las que pide la lista: «Nacional Original» "
-                                     "(3 versiones).")),
+        QVERIFY2(dice(QStringLiteral("Se piden 3 versiones de cada examen, y estos tienen menos: «Nacional Original», "
+                                     "«Nacional Reserva».")),
                  qPrintable(avisos->text()));
         QVERIFY(avisos->text().contains(QStringLiteral("<a href=\"anadir-versiones\">Añadir las que faltan</a>")));
         emit avisos->linkActivated(QStringLiteral("anadir-versiones"));
-        QCOMPARE(nombres(selector), (QStringList{QStringLiteral("Nacional Original A"), QStringLiteral("Nacional Original B"),
-                                                 QStringLiteral("Nacional Original C"), QStringLiteral("Nacional Reserva")}));
+        QCOMPARE(nombres(selector), conTres);
         QCOMPARE(selector->currentIndex(), 0);
         QCOMPARE(visor->toPlainText().replace(QStringLiteral("Nacional Original A"), QStringLiteral("Nacional Original")), antes);
-        QVERIFY(!dice(QStringLiteral("menos versiones")));
+        QVERIFY(!dice(QStringLiteral("y estos tienen menos")));
         for (QLabel *l : v.findChildren<QLabel *>())
             QVERIFY2(!l->text().startsWith(QStringLiteral("Semilla:")) || !l->text().contains(QStringLiteral("a mano")),
                      qPrintable(l->text()));
@@ -2042,31 +2084,28 @@ private slots:
         QVERIFY(QMetaObject::invokeMethod(&v, "deshacerCambio"));
         QCOMPARE(nombres(selector), (QStringList{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")}));
         QCOMPARE(visor->toPlainText(), antes);
-        QVERIFY(dice(QStringLiteral("menos versiones")));
+        QVERIFY(dice(QStringLiteral("y estos tienen menos")));
 
         // Registradas, sustituyen al registrado sin versiones.
         emit avisos->linkActivated(QStringLiteral("anadir-versiones"));
         responder(QStringLiteral("Sí"), &texto);
         QVERIFY(QMetaObject::invokeMethod(&v, "registrarConvocatoria"));
-        QVERIFY2(texto.contains(QStringLiteral("se sustituirán: ")) && texto.contains(QStringLiteral("Nacional Original")),
+        QVERIFY2(texto.contains(QStringLiteral("se sustituirán: ")) && texto.contains(QStringLiteral("Nacional Original"))
+                     && texto.contains(QStringLiteral("Nacional Reserva")),
                  qPrintable(texto));
-        QCOMPARE(registrados(), (QStringList{QStringLiteral("Nacional Original A"), QStringLiteral("Nacional Original B"),
-                                             QStringLiteral("Nacional Original C"), QStringLiteral("Nacional Reserva")}));
-        versiones->setValue(2);   // menos de las que tiene: no se quitan
-        QVERIFY(!dice(QStringLiteral("menos versiones")));
+        QStringList ordenados = conTres;
+        ordenados.sort();
+        QCOMPARE(registrados(), ordenados);
+        versiones->setValue(2);   // menos de las que tienen: no se quitan
+        QVERIFY(!dice(QStringLiteral("y estos tienen menos")));
 
-        // Si otro examen de la lista se llama como una de las versiones, no se añaden.
-        lista->item(1)->setText(QStringLiteral("Nacional Original B"));
-        versiones->setValue(1);
+        // A los que ya tienen versiones se les añaden las que faltan, detrás de las suyas.
         QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
-        QCOMPARE(nombres(selector), (QStringList{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Original B")}));
-        versiones->setValue(2);
-        QVERIFY(dice(QStringLiteral("menos versiones")));
-        responder(QStringLiteral("OK"), &texto);
+        QCOMPARE(selector->count(), 4);
+        versiones->setValue(3);
+        QVERIFY(dice(QStringLiteral("«Nacional Original», «Nacional Reserva»")));
         emit avisos->linkActivated(QStringLiteral("anadir-versiones"));
-        QCOMPARE(texto, QStringLiteral("No se pueden añadir las versiones: habría dos exámenes con el mismo nombre, "
-                                       "«Nacional Original B»."));
-        QCOMPARE(selector->count(), 2);
+        QCOMPARE(nombres(selector), conTres);
         v.close();
         QSettings().clear();
     }
@@ -2634,8 +2673,8 @@ private slots:
             QCOMPARE(convocatoria->textoCabecera(), QStringLiteral("Convocatoria: Junio 2030 · Asignatura inventada"));
             QCOMPARE(examenes->textoCabecera(), QStringLiteral("Exámenes: Nacional Original, Nacional Reserva"));
             auto *lista = examenes->findChild<QListWidget *>();
-            lista->item(0)->setData(Qt::UserRole + 1, 3);   // tres versiones
-            QCOMPARE(examenes->resumen(), QStringLiteral("Nacional Original (A–C), Nacional Reserva"));
+            examenes->findChild<QSpinBox *>()->setValue(3);   // tres versiones
+            QCOMPARE(examenes->resumen(), QStringLiteral("Nacional Original, Nacional Reserva (versiones A–C)"));
             lista->item(0)->setCheckState(Qt::Unchecked);
             lista->item(1)->setCheckState(Qt::Unchecked);
             QCOMPARE(examenes->resumen(), QStringLiteral("ninguno marcado"));

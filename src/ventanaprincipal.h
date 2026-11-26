@@ -127,11 +127,11 @@ private:
     void presentarResultado(const QString &origen = QString());
     // Pone en el selector los exámenes de m_resultado, con el 'actual' elegido.
     void ponerSelector(int actual);
-    // Las opciones con que se generaron los exámenes de la ventana (m_configResultado) con las versiones que tienen en la
-    // lista del panel los exámenes, estén marcados o no: para añadírselas (ver Generador::anadirVersiones()).
+    // Las opciones con que se generaron los exámenes de la ventana (m_configResultado) con las versiones que se piden en
+    // el panel, las mismas para todos: para añadírselas (ver Generador::anadirVersiones()).
     ConfigExamen configVersiones() const;
-    // El aviso (en HTML, con el enlace que las añade) de que la lista pide más versiones de las que tienen los exámenes
-    // de la ventana; vacío si no.
+    // El aviso (en HTML, con el enlace que las añade) de que se piden más versiones de las que tienen los exámenes de
+    // la ventana; vacío si no.
     QString avisoVersiones() const;
     // Avisos, nivel de la maqueta y examen mostrado, según el resultado y la casilla «Letra grande».
     void actualizarMaqueta();

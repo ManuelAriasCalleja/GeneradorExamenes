@@ -1016,13 +1016,11 @@ void VentanaPrincipal::generar()
         QMessageBox::information(this, windowTitle(), tr("Indique cuántas preguntas quiere de cada tema."));
         return;
     }
-    // Los exámenes que salen, con las versiones de cada uno («Nacional Original A», «… B»). No puede haber dos con el
-    // mismo nombre: ni dos de la lista (las versiones se guardan por nombre) ni, con las versiones, uno que se llame
-    // como la versión de otro («Nacional Original B»).
+    // Los exámenes que salen, con las versiones de cada uno («Nacional Original A», «… B»). No puede haber dos de la
+    // lista con el mismo nombre (sus versiones se llamarían igual); con las versiones, que son las mismas para todos,
+    // ninguno se llama como la versión de otro.
     const QStringList examenes = Generador::nombresExamenes(config);
-    QString repetido = repetidoEn(config.nombresModelos);
-    if (repetido.isEmpty())
-        repetido = repetidoEn(examenes);
+    const QString repetido = repetidoEn(config.nombresModelos);
     QString error;
     if (config.nombresModelos.isEmpty())
         error = tr("Marque en la lista los exámenes que quiere generar.");
@@ -1110,13 +1108,8 @@ int VentanaPrincipal::preguntasCambiadas() const
 ConfigExamen VentanaPrincipal::configVersiones() const
 {
     ConfigExamen config = m_configResultado;
-    config.nombresModelos.clear();
-    config.versiones.clear();
-    const QVariantMap versiones = m_panel->versionesDeLaLista();
-    for (auto it = versiones.cbegin(); it != versiones.cend(); ++it) {
-        config.nombresModelos << it.key();
-        config.versiones << it.value().toInt();
-    }
+    config.nombresModelos = nombresDeLaLista();
+    config.versiones = QVector<int>(config.nombresModelos.size(), m_panel->versiones());
     config.versionesConNumeros = m_panel->versionesConNumeros();
     return config;
 }
@@ -1126,14 +1119,13 @@ QString VentanaPrincipal::avisoVersiones() const
     const QStringList faltan = hayExamen() ? Generador::faltanVersiones(m_resultado, configVersiones()) : QStringList();
     if (faltan.isEmpty())
         return QString();
-    const QVariantMap versiones = m_panel->versionesDeLaLista();
     QStringList cuales;
     for (const QString &nombre : faltan)
-        //: %1 es el nombre de un examen de la lista y %2, cuántas versiones tiene en ella (dos o más)
-        cuales << tr("«%1» (%2 versiones)").arg(nombre).arg(versiones.value(nombre).toInt());
-    //: Aviso junto al examen; %1 es la lista de exámenes: «Nacional Original» (3 versiones), «Nacional Reserva» (2 versiones)
-    return tr("Estos exámenes tienen menos versiones de las que pide la lista: %1.")
-               .arg(cuales.join(QStringLiteral(", "))).toHtmlEscaped()
+        //: Un examen en la lista del aviso de las versiones que faltan: %1 es su nombre, entre comillas
+        cuales << tr("«%1»").arg(nombre);
+    //: Aviso junto al examen; %1 es el número de versiones (dos o más) y %2, la lista de exámenes: «Nacional Original», «Nacional Reserva»
+    return tr("Se piden %1 versiones de cada examen, y estos tienen menos: %2.")
+               .arg(m_panel->versiones()).arg(cuales.join(QStringLiteral(", "))).toHtmlEscaped()
            + QStringLiteral(" <a href=\"anadir-versiones\">%1</a>")
                  //: Enlace del aviso de las versiones que faltan: las añade a los exámenes, sin volver a generarlos
                  .arg(tr("Añadir las que faltan").toHtmlEscaped());
@@ -1539,17 +1531,6 @@ void VentanaPrincipal::anadirVersiones()
     const QStringList anadidos = Generador::anadirVersiones(conVersiones, configVersiones());
     if (anadidos.isEmpty())
         return;
-    QStringList nombres;
-    for (const Modelo &m : std::as_const(conVersiones.modelos))
-        nombres << m.nombre;
-    // Como al generar, no puede haber dos exámenes con el mismo nombre (otro de la lista que se llame como una versión).
-    const QString repetido = repetidoEn(nombres);
-    if (!repetido.isEmpty()) {
-        //: %1 es el nombre de un examen con su versión («Nacional Original B»)
-        QMessageBox::information(this, windowTitle(), tr("No se pueden añadir las versiones: habría dos exámenes con el "
-                                                         "mismo nombre, «%1».").arg(repetido));
-        return;
-    }
     // El examen que se ve sigue a la vista, en su sitio nuevo (si pasa a ser la A, con su nombre nuevo). Y los grupos
     // quitados de cada examen, por sus números nuevos: los de todas las versiones de un examen son los mismos.
     const int actual = m_selectorModelo->currentIndex();

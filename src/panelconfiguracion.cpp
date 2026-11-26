@@ -31,7 +31,6 @@
 #include <QSettings>
 #include <QSignalBlocker>
 #include <QSpinBox>
-#include <QStyledItemDelegate>
 #include <QTextBlock>
 #include <QTextLayout>
 #include <QVBoxLayout>
@@ -119,16 +118,20 @@ const QString kClavePuntuacion = QStringLiteral("examen/puntuacion");
 const QString kClavePuntuacionAntigua = QStringLiteral("examen/puntuacionAuto");
 const QString kClaveExamenes = QStringLiteral("examenes/nombres");        // la lista de exámenes y los marcados
 const QString kClaveExamenesMarcados = QStringLiteral("examenes/marcados");
-const QString kClaveExamenesVersiones = QStringLiteral("examenes/versiones");   // nombre -> versiones (si más de una)
-constexpr int kRolVersiones = Qt::UserRole + 1;   // de cada examen de la lista
+// Las versiones de los exámenes, las mismas para todos. Las versiones anteriores las guardaban de cada examen, con
+// la clave de kClaveVersionesDeCadaExamen (nombre -> versiones, si más de una): se toma la mayor.
+const QString kClaveVersiones = QStringLiteral("examenes/numVersiones");
+const QString kClaveVersionesDeCadaExamen = QStringLiteral("examenes/versiones");
 
-// Las versiones de un examen de la lista que tiene 'n', «(A–C)»; vacío si no tiene.
-QString textoVersiones(int n, bool conNumeros)
+int versionesDeCadaExamen(const QVariant &guardadas)
 {
-    return n > 1 ? QStringLiteral("(%1–%2)").arg(Generador::etiquetaVersion(0, conNumeros),
-                                                 Generador::etiquetaVersion(n - 1, conNumeros))
-                 : QString();
+    int mayor = 1;
+    const QVariantMap porExamen = guardadas.toMap();
+    for (const QVariant &n : porExamen)
+        mayor = qMax(mayor, n.toInt());
+    return qBound(1, mayor, Generador::kMaxVersiones);
 }
+
 
 // Campo de texto de varias líneas tan alto como su texto, de 3 a 8 líneas (con más, se desplaza), con la letra que
 // tenga, también al ampliar el panel: para las instrucciones, que con un alto fijo no se veían enteras.
@@ -206,28 +209,6 @@ private:
     }
 };
 
-// Cada examen de la lista: su nombre y, si tiene varias versiones, cuáles («Nacional Original (A–C)»). Solo al verlo:
-// al cambiarle el nombre se edita el nombre.
-class DelegadoExamenes : public QStyledItemDelegate
-{
-public:
-    DelegadoExamenes(std::function<bool()> conNumeros, QObject *parent)
-        : QStyledItemDelegate(parent), m_conNumeros(std::move(conNumeros))
-    {
-    }
-
-protected:
-    void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
-    {
-        QStyledItemDelegate::initStyleOption(option, index);
-        const QString versiones = textoVersiones(index.data(kRolVersiones).toInt(), m_conNumeros());
-        if (!versiones.isEmpty())
-            option->text += QStringLiteral("  ") + versiones;
-    }
-
-private:
-    std::function<bool()> m_conNumeros;
-};
 const QString kClaveTemasAntiguos = QStringLiteral("examen/temas");       // de versiones anteriores: va en el banco
 
 QString puntuacionAntigua(const QVariant &automatica)
@@ -381,9 +362,10 @@ void PanelConfiguracion::leerConfiguracion()
         ponerAjuste(m_puntuacion, puntuacionAntigua(s.value(kClavePuntuacionAntigua)));
     const QStringList examenes = s.value(kClaveExamenes, kExamenesPorDefecto).toStringList();
     const QStringList marcados = s.value(kClaveExamenesMarcados, examenes).toStringList();
-    const QVariantMap versiones = s.value(kClaveExamenesVersiones).toMap();
     for (const QString &nombre : examenes)
-        anadirExamen(nombre, marcados.contains(nombre), versiones.value(nombre, 1).toInt());
+        anadirExamen(nombre, marcados.contains(nombre));
+    if (!s.contains(kClaveVersiones) && s.contains(kClaveVersionesDeCadaExamen))
+        m_versiones->setValue(versionesDeCadaExamen(s.value(kClaveVersionesDeCadaExamen)));
     connect(m_incluirRevisar, &QCheckBox::toggled, this, &PanelConfiguracion::reconstruirTemas);
     connect(m_soloVerificadas, &QCheckBox::toggled, this, &PanelConfiguracion::reconstruirTemas);
     actualizarPuntuacion();
@@ -397,7 +379,7 @@ void PanelConfiguracion::guardarConfiguracion()
     QStringList marcados;
     s.setValue(kClaveExamenes, examenes(&marcados));
     s.setValue(kClaveExamenesMarcados, marcados);
-    s.setValue(kClaveExamenesVersiones, versionesDeLaLista());
+    s.remove(kClaveVersionesDeCadaExamen);           // de las versiones anteriores: ahora, kClaveVersiones
     s.remove(QStringLiteral("examen/asignatura"));   // de las versiones anteriores: ahora va en el banco
     s.remove(kClavePuntuacionAntigua);
 }
@@ -410,7 +392,6 @@ QVariantMap PanelConfiguracion::opciones() const
     QStringList marcados;
     opciones.insert(kClaveExamenes, examenes(&marcados));
     opciones.insert(kClaveExamenesMarcados, marcados);
-    opciones.insert(kClaveExamenesVersiones, versionesDeLaLista());
     return opciones;
 }
 
@@ -424,11 +405,12 @@ void PanelConfiguracion::aplicarOpciones(const QVariantMap &opciones)
         ponerAjuste(m_puntuacion, puntuacionAntigua(opciones.value(kClavePuntuacionAntigua)));
     if (opciones.contains(kClaveExamenes)) {
         const QStringList marcados = opciones.value(kClaveExamenesMarcados).toStringList();
-        const QVariantMap versiones = opciones.value(kClaveExamenesVersiones).toMap();
         m_listaExamenes->clear();
         for (const QString &nombre : opciones.value(kClaveExamenes).toStringList())
-            anadirExamen(nombre, marcados.contains(nombre), versiones.value(nombre, 1).toInt());
+            anadirExamen(nombre, marcados.contains(nombre));
     }
+    if (!opciones.contains(kClaveVersiones) && opciones.contains(kClaveVersionesDeCadaExamen))
+        m_versiones->setValue(versionesDeCadaExamen(opciones.value(kClaveVersionesDeCadaExamen)));
     actualizarPuntuacion();
 }
 
@@ -534,7 +516,6 @@ QWidget *PanelConfiguracion::crearGrupoExamenes()
     m_listaExamenes->setToolTip(tr("Se genera un examen por cada nombre marcado (o uno por cada versión), en este orden.\n"
                                    "Doble clic para cambiar el nombre; arrastre, o Subir y Bajar, para cambiar el orden."));
     m_listaExamenes->setDragDropMode(QAbstractItemView::InternalMove);
-    m_listaExamenes->setItemDelegate(new DelegadoExamenes([this] { return versionesConNumeros(); }, m_listaExamenes));
     m_listaExamenes->setMaximumHeight(150);
     le->addWidget(m_listaExamenes);
     // Cada botón tiene su atajo, Alt y la letra subrayada (sin las de los menús), que dice su descripción emergente.
@@ -571,12 +552,11 @@ QWidget *PanelConfiguracion::crearGrupoExamenes()
     fila->addStretch();
     m_versiones = new QSpinBox;
     m_versiones->setRange(1, Generador::kMaxVersiones);
-    m_versiones->setEnabled(false);
-    m_versiones->setToolTip(tr("Versiones del examen seleccionado. Con varias, cada una es un examen más, con las mismas "
-                               "preguntas en otro orden (siempre por temas: las del tema 1, luego las del 2…) y las "
-                               "opciones barajadas.\n"
-                               "Si ya está generado sin ellas, se le pueden añadir sin volver a generarlo: lo ofrecen "
-                               "los avisos, junto al examen."));
+    m_versiones->setToolTip(tr("Versiones de cada examen, las mismas para todos. Con varias, cada versión es un examen "
+                               "más, con las mismas preguntas en otro orden (siempre por temas: las del tema 1, luego "
+                               "las del 2…) y las opciones barajadas.\n"
+                               "Si ya están generados sin ellas, se les pueden añadir sin volver a generarlos: lo "
+                               "ofrecen los avisos, junto al examen."));
     //: Delante del número de versiones del examen seleccionado en la lista
     auto *etiqueta = new QLabel(tr("Versiones:"));
     etiqueta->setBuddy(m_versiones);
@@ -596,20 +576,12 @@ QWidget *PanelConfiguracion::crearGrupoExamenes()
         r->setToolTip(tr("Cómo se llaman las versiones de los exámenes: «Nacional Original A», «… B»… o "
                          "«Nacional Original 1», «… 2»…"));
         ln->addWidget(r);
-        connect(r, &QRadioButton::toggled, m_listaExamenes->viewport(), qOverload<>(&QWidget::update));
         connect(r, &QRadioButton::toggled, this, &PanelConfiguracion::actualizarCuentaExamenes);
     }
     fila->addWidget(m_numeracion);
     le->addLayout(fila);
-    connect(m_listaExamenes, &QListWidget::currentItemChanged, this, [this](QListWidgetItem *item) {
-        const QSignalBlocker bloqueo(m_versiones);
-        m_versiones->setEnabled(item != nullptr);
-        m_versiones->setValue(item ? qMax(1, item->data(kRolVersiones).toInt()) : 1);
-    });
-    connect(m_versiones, &QSpinBox::valueChanged, this, [this](int n) {
-        if (QListWidgetItem *item = m_listaExamenes->currentItem())
-            item->setData(kRolVersiones, n);
-    });
+    connect(m_versiones, &QSpinBox::valueChanged, this, &PanelConfiguracion::actualizarCuentaExamenes);
+    connect(m_versiones, &QSpinBox::valueChanged, this, &PanelConfiguracion::listaExamenesCambiada);
     // El título dice cuántos hay marcados: se pone al día al marcar o desmarcar, añadir, quitar o cargar la lista.
     const QAbstractItemModel *modelo = m_listaExamenes->model();
     connect(modelo, &QAbstractItemModel::dataChanged, this, &PanelConfiguracion::actualizarCuentaExamenes);
@@ -637,21 +609,22 @@ void PanelConfiguracion::actualizarCuentaExamenes()
                                    //: marcados, los que se generan, de cuántos hay
                                    : tr("Exámenes: %1 modelos de %2 seleccionados.").arg(marcados).arg(total);
     // Con versiones, cuántos exámenes salen.
-    const int examenes = int(Generador::nombresExamenes(configuracionExamenes()).size());
-    if (examenes != marcados)
+    const int conVersiones = int(Generador::nombresExamenes(configuracionExamenes()).size());
+    if (conVersiones != marcados)
         //: Se añade al título del recuadro de la lista de exámenes (con el espacio delante) si alguno tiene versiones
-        titulo += tr(" Con sus versiones, %1 exámenes.").arg(examenes);
+        titulo += tr(" Con sus versiones, %1 exámenes.").arg(conVersiones);
     m_plegableExamenes->ponerTituloDesplegado(titulo);
-    QStringList generados;
-    for (int i = 0; i < m_listaExamenes->count(); ++i) {
-        const QListWidgetItem *item = m_listaExamenes->item(i);
-        if (item->checkState() != Qt::Checked)
-            continue;
-        const QString versiones = textoVersiones(item->data(kRolVersiones).toInt(), versionesConNumeros());
-        generados << (versiones.isEmpty() ? item->text().trimmed() : item->text().trimmed() + QLatin1Char(' ') + versiones);
-    }
-    //: Resumen del recuadro plegado de la lista de exámenes, si no hay ninguno marcado
-    m_plegableExamenes->ponerResumen(generados.isEmpty() ? tr("ninguno marcado") : generados.join(QStringLiteral(", ")));
+    QStringList marcadosAhora;
+    examenes(&marcadosAhora);
+    QString resumen = marcadosAhora.join(QStringLiteral(", "));
+    if (marcadosAhora.isEmpty())
+        //: Resumen del recuadro plegado de la lista de exámenes, si no hay ninguno marcado
+        resumen = tr("ninguno marcado");
+    else if (versiones() > 1)
+        //: Resumen del recuadro plegado de la lista de exámenes: %1 son los marcados y %2, sus versiones («A–C»)
+        resumen = tr("%1 (versiones %2)").arg(resumen, QStringLiteral("%1–%2").arg(Generador::etiquetaVersion(0, versionesConNumeros()),
+                                                                                    Generador::etiquetaVersion(versiones() - 1, versionesConNumeros())));
+    m_plegableExamenes->ponerResumen(resumen);
 }
 
 QWidget *PanelConfiguracion::crearGrupoTemas()
@@ -935,6 +908,7 @@ QVector<PanelConfiguracion::Ajuste> PanelConfiguracion::ajustes() const
         {QStringLiteral("examen/convocatoriaEnPie"), m_convocatoriaEnPie},
         {QStringLiteral("examen/versionEnCabecera"), m_versionEnCabecera},
         {QStringLiteral("examenes/numeracion"), m_numeracion},
+        {kClaveVersiones, m_versiones},
     };
     for (const Opcion &o : m_opciones)
         if (!o.clave.isEmpty())
@@ -1150,13 +1124,12 @@ void PanelConfiguracion::actualizarPuntuacion()
     m_fallo->setValue(d.puntosFallo);
 }
 
-QListWidgetItem *PanelConfiguracion::anadirExamen(const QString &nombre, bool marcado, int versiones)
+QListWidgetItem *PanelConfiguracion::anadirExamen(const QString &nombre, bool marcado)
 {
     auto *item = new QListWidgetItem(nombre, m_listaExamenes);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable
                    | Qt::ItemIsDragEnabled);
     item->setCheckState(marcado ? Qt::Checked : Qt::Unchecked);
-    item->setData(kRolVersiones, qBound(1, versiones, Generador::kMaxVersiones));
     return item;
 }
 
@@ -1171,16 +1144,9 @@ void PanelConfiguracion::moverExamen(int desplazamiento)
     m_listaExamenes->setCurrentItem(item);
 }
 
-QVariantMap PanelConfiguracion::versionesDeLaLista() const
+int PanelConfiguracion::versiones() const
 {
-    QVariantMap versiones;
-    for (int i = 0; i < m_listaExamenes->count(); ++i) {
-        const QListWidgetItem *item = m_listaExamenes->item(i);
-        const int n = item->data(kRolVersiones).toInt();
-        if (n > 1 && !item->text().trimmed().isEmpty())
-            versiones.insert(item->text().trimmed(), n);
-    }
-    return versiones;
+    return m_versiones->value();
 }
 
 bool PanelConfiguracion::versionesConNumeros() const
@@ -1209,7 +1175,7 @@ ConfigExamen PanelConfiguracion::configuracionExamenes() const
     for (int i = 0; i < m_listaExamenes->count(); ++i)
         if (m_listaExamenes->item(i)->checkState() == Qt::Checked) {
             c.nombresModelos << m_listaExamenes->item(i)->text().trimmed();
-            c.versiones << qMax(1, m_listaExamenes->item(i)->data(kRolVersiones).toInt());
+            c.versiones << versiones();
         }
     c.versionesConNumeros = versionesConNumeros();
     return c;

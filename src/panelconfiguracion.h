@@ -56,8 +56,8 @@ public:
     bool limitaPaginas() const;
     QString semilla() const;     // vacía: aleatoria
     void quitarSemilla();
-    // Las versiones de los exámenes de la lista que tienen más de una, estén marcados o no: nombre -> cuántas.
-    QVariantMap versionesDeLaLista() const;
+    // Las versiones de cada examen, las mismas para todos (1: sin versiones).
+    int versiones() const;
     bool versionesConNumeros() const;   // las versiones, «1, 2, 3…»; si no, «A, B, C…»
 
     // --- El banco
@@ -91,7 +91,7 @@ signals:
     // Ha cambiado algo que se ve en la maqueta de los exámenes ya generados (la cabecera, el pie, el ajuste a páginas).
     void maquetaCambiada();
     void semillaCambiada();
-    // Ha cambiado la lista de exámenes: sus nombres, cuáles están marcados o sus versiones.
+    // Ha cambiado la lista de exámenes (sus nombres o cuáles están marcados) o sus versiones.
     void listaExamenesCambiada();
 
 private:
@@ -120,13 +120,13 @@ private:
     void guardarReparto();        // el del panel, como un reparto del banco con nombre (un botón más)
     void actualizarTotal();
     void actualizarPuntuacion();
-    QListWidgetItem *anadirExamen(const QString &nombre, bool marcado, int versiones = 1);
+    QListWidgetItem *anadirExamen(const QString &nombre, bool marcado);
     void nuevoExamen();
     void quitarExamen();
     // Sube (-1) o baja (+1) en la lista el examen elegido.
     void moverExamen(int desplazamiento);
     // La cabecera del recuadro de la lista de exámenes: desplegado, «Exámenes: 2 modelos de 3 seleccionados.»;
-    // plegado, los que se generan («Exámenes: Nacional Original (A–C), Nacional Reserva»).
+    // plegado, los que se generan («Exámenes: Nacional Original, Nacional Reserva (versiones A–C)»).
     void actualizarCuentaExamenes();
     // Lo que casi nunca se cambia va plegado, con un resumen de lo elegido en la cabecera.
     void resumirPuntuacion();
@@ -158,7 +158,7 @@ private:
     QComboBox *m_convocatoria;
     QSpinBox *m_anio;
     QListWidget *m_listaExamenes;           // nombres de los exámenes; se generan los marcados
-    QSpinBox *m_versiones;                  // las del examen elegido en la lista
+    QSpinBox *m_versiones;                  // las de cada examen, las mismas para todos
     QWidget *m_numeracion;                  // «A, B, C…» o «1, 2, 3…»: un botón de opción por forma (con su «valor»)
     QPlainTextEdit *m_instrucciones;
     // Si van la asignatura y la convocatoria en la cabecera y en el pie de página de los exámenes.
