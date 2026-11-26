@@ -116,6 +116,15 @@ const QString kClaveGeometria = QStringLiteral("ventana/geometria");
 const QString kClaveEscalaVista = QStringLiteral("vista/escala");         // el tamaño de la vista del examen
 const QString kClaveDuracionPractica = QStringLiteral("practica/duracion");
 
+// El primer nombre que está dos veces en 'nombres'; vacío si no hay ninguno.
+QString repetidoEn(const QStringList &nombres)
+{
+    for (int i = 0; i < nombres.size(); ++i)
+        if (nombres.indexOf(nombres.at(i), i + 1) > 0)
+            return nombres.at(i);
+    return QString();
+}
+
 } // namespace
 
 VentanaPrincipal::VentanaPrincipal(QWidget *parent)
@@ -255,9 +264,15 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     connect(m_avisos, &QLabel::linkActivated, this, [this](const QString &enlace) {
         if (enlace == QLatin1String("quitar-semilla"))
             m_panel->quitarSemilla();
+        else if (enlace == QLatin1String("anadir-versiones"))
+            anadirVersiones();
     });
     connect(m_panel, &PanelConfiguracion::semillaCambiada, this, [this]() {
         if (hayExamen() && m_semillaFija)
+            actualizarMaqueta();
+    });
+    connect(m_panel, &PanelConfiguracion::listaExamenesCambiada, this, [this]() {
+        if (hayExamen() && avisoVersiones() != m_avisoVersiones)
             actualizarMaqueta();
     });
     lr->addWidget(m_avisos);
@@ -989,7 +1004,7 @@ DatosConvocatoria VentanaPrincipal::datosConvocatoria() const
     // La de los exámenes que se ven, para las soluciones y las propiedades de los ficheros.
     if (hayExamen()) {
         d.semilla = m_resultado.semilla;
-        d.cambiadosAMano = !m_cambios.isEmpty();
+        d.cambiadosAMano = preguntasCambiadas() > 0;
     }
     return d;
 }
@@ -1005,12 +1020,6 @@ void VentanaPrincipal::generar()
     // mismo nombre: ni dos de la lista (las versiones se guardan por nombre) ni, con las versiones, uno que se llame
     // como la versión de otro («Nacional Original B»).
     const QStringList examenes = Generador::nombresExamenes(config);
-    auto repetidoEn = [](const QStringList &nombres) {
-        for (int i = 0; i < nombres.size(); ++i)
-            if (nombres.indexOf(nombres.at(i), i + 1) > 0)
-                return nombres.at(i);
-        return QString();
-    };
     QString repetido = repetidoEn(config.nombresModelos);
     if (repetido.isEmpty())
         repetido = repetidoEn(examenes);
@@ -1070,11 +1079,7 @@ QHash<QString, int> VentanaPrincipal::usoReciente(const QStringList &examenes)
 void VentanaPrincipal::presentarResultado(const QString &origen)
 {
     m_origenResultado = origen;
-    m_selectorModelo->blockSignals(true);
-    m_selectorModelo->clear();
-    for (const Modelo &m : std::as_const(m_resultado.modelos))
-        m_selectorModelo->addItem(m.nombre);
-    m_selectorModelo->blockSignals(false);
+    ponerSelector(0);
     for (QPushButton *b : std::as_const(m_botonesExamen))
         b->setEnabled(hayExamen());
     m_preguntaACambiar->setEnabled(hayExamen());
@@ -1087,6 +1092,53 @@ void VentanaPrincipal::presentarResultado(const QString &origen)
     actualizarMaqueta();
 }
 
+void VentanaPrincipal::ponerSelector(int actual)
+{
+    m_selectorModelo->blockSignals(true);
+    m_selectorModelo->clear();
+    for (const Modelo &m : std::as_const(m_resultado.modelos))
+        m_selectorModelo->addItem(m.nombre);
+    m_selectorModelo->setCurrentIndex(qBound(0, actual, int(m_resultado.modelos.size()) - 1));
+    m_selectorModelo->blockSignals(false);
+}
+
+int VentanaPrincipal::preguntasCambiadas() const
+{
+    return int(std::count_if(m_cambios.cbegin(), m_cambios.cend(), [](const CambioPregunta &c) { return !c.versiones; }));
+}
+
+ConfigExamen VentanaPrincipal::configVersiones() const
+{
+    ConfigExamen config = m_configResultado;
+    config.nombresModelos.clear();
+    config.versiones.clear();
+    const QVariantMap versiones = m_panel->versionesDeLaLista();
+    for (auto it = versiones.cbegin(); it != versiones.cend(); ++it) {
+        config.nombresModelos << it.key();
+        config.versiones << it.value().toInt();
+    }
+    config.versionesConNumeros = m_panel->versionesConNumeros();
+    return config;
+}
+
+QString VentanaPrincipal::avisoVersiones() const
+{
+    const QStringList faltan = hayExamen() ? Generador::faltanVersiones(m_resultado, configVersiones()) : QStringList();
+    if (faltan.isEmpty())
+        return QString();
+    const QVariantMap versiones = m_panel->versionesDeLaLista();
+    QStringList cuales;
+    for (const QString &nombre : faltan)
+        //: %1 es el nombre de un examen de la lista y %2, cuántas versiones tiene en ella (dos o más)
+        cuales << tr("«%1» (%2 versiones)").arg(nombre).arg(versiones.value(nombre).toInt());
+    //: Aviso junto al examen; %1 es la lista de exámenes: «Nacional Original» (3 versiones), «Nacional Reserva» (2 versiones)
+    return tr("Estos exámenes tienen menos versiones de las que pide la lista: %1.")
+               .arg(cuales.join(QStringLiteral(", "))).toHtmlEscaped()
+           + QStringLiteral(" <a href=\"anadir-versiones\">%1</a>")
+                 //: Enlace del aviso de las versiones que faltan: las añade a los exámenes, sin volver a generarlos
+                 .arg(tr("Añadir las que faltan").toHtmlEscaped());
+}
+
 void VentanaPrincipal::actualizarMaqueta()
 {
     QStringList avisos = m_resultado.avisos;
@@ -1097,9 +1149,9 @@ void VentanaPrincipal::actualizarMaqueta()
     if (m_semillaFija)
         info += tr(" (fija: cada vez salen los mismos exámenes)");
     //: Se añade a la línea de información del examen (con el espacio delante)
-    if (!m_cambios.isEmpty())
-        info += m_cambios.size() == 1 ? tr(" (con una pregunta cambiada a mano)")
-                                      : tr(" (con %1 preguntas cambiadas a mano)").arg(m_cambios.size());
+    if (const int cambiadas = preguntasCambiadas())
+        info += cambiadas == 1 ? tr(" (con una pregunta cambiada a mano)")
+                               : tr(" (con %1 preguntas cambiadas a mano)").arg(cambiadas);
     if (m_letraGrande->isChecked()) {
         //: Se añade a la línea de información del examen (con el separador delante)
         info += tr("  ·  Letra grande (versión adaptada, sin límite de páginas)");
@@ -1133,6 +1185,9 @@ void VentanaPrincipal::actualizarMaqueta()
                       + QStringLiteral(" <a href=\"quitar-semilla\">%1</a>")
                             //: Enlace del aviso de la semilla fija: borra el campo «Semilla» de las opciones
                             .arg(tr("Quitar la semilla").toHtmlEscaped());
+    m_avisoVersiones = avisoVersiones();
+    if (!m_avisoVersiones.isEmpty())
+        lineas << m_avisoVersiones;
     for (const QString &aviso : std::as_const(avisos))
         lineas << aviso.toHtmlEscaped().replace(QLatin1Char('\n'), QStringLiteral("<br>"));
     m_avisos->setText(lineas.join(QStringLiteral("<br>")));
@@ -1183,11 +1238,9 @@ QString VentanaPrincipal::nombreBaseFichero() const
 QStringList VentanaPrincipal::nombresDeLaLista() const
 {
     QStringList nombres;
-    for (const Modelo &m : m_resultado.modelos) {
-        const QString nombre = m.version.isEmpty() ? m.nombre : m.base;
-        if (!nombres.contains(nombre))
-            nombres << nombre;
-    }
+    for (const Modelo &m : m_resultado.modelos)
+        if (!nombres.contains(m.nombreEnLaLista()))
+            nombres << m.nombreEnLaLista();
     return nombres;
 }
 
@@ -1478,6 +1531,60 @@ void VentanaPrincipal::cambiar(int indice)
                              10000);
 }
 
+void VentanaPrincipal::anadirVersiones()
+{
+    if (!hayExamen())
+        return;
+    ResultadoGeneracion conVersiones = m_resultado;
+    const QStringList anadidos = Generador::anadirVersiones(conVersiones, configVersiones());
+    if (anadidos.isEmpty())
+        return;
+    QStringList nombres;
+    for (const Modelo &m : std::as_const(conVersiones.modelos))
+        nombres << m.nombre;
+    // Como al generar, no puede haber dos exámenes con el mismo nombre (otro de la lista que se llame como una versión).
+    const QString repetido = repetidoEn(nombres);
+    if (!repetido.isEmpty()) {
+        //: %1 es el nombre de un examen con su versión («Nacional Original B»)
+        QMessageBox::information(this, windowTitle(), tr("No se pueden añadir las versiones: habría dos exámenes con el "
+                                                         "mismo nombre, «%1».").arg(repetido));
+        return;
+    }
+    // El examen que se ve sigue a la vista, en su sitio nuevo (si pasa a ser la A, con su nombre nuevo). Y los grupos
+    // quitados de cada examen, por sus números nuevos: los de todas las versiones de un examen son los mismos.
+    const int actual = m_selectorModelo->currentIndex();
+    const Modelo visto = m_resultado.modelos.value(actual);
+    QHash<QString, QSet<QString>> quitadasDe;   // por nombre en la lista
+    for (auto it = m_quitadas.cbegin(); it != m_quitadas.cend(); ++it)
+        quitadasDe[m_resultado.modelos.value(it.key()).nombreEnLaLista()] += it.value();
+    int nuevoActual = -1;
+    QHash<int, QSet<QString>> quitadas;
+    for (int i = 0; i < conVersiones.modelos.size(); ++i) {
+        const Modelo &m = conVersiones.modelos.at(i);
+        if (nuevoActual < 0 && m.nombreEnLaLista() == visto.nombreEnLaLista()
+            && (visto.version.isEmpty() || m.version == visto.version))
+            nuevoActual = i;
+        if (quitadasDe.contains(m.nombreEnLaLista()))
+            quitadas.insert(i, quitadasDe.value(m.nombreEnLaLista()));
+    }
+    m_cambios << CambioPregunta{m_resultado, actual, -1, true, m_quitadas};
+    m_resultado = conVersiones;
+    m_quitadas = quitadas;
+    m_registrados = false;   // ya no son como los registrados
+    m_deshacerCambio->setEnabled(true);
+    ponerSelector(nuevoActual);
+    actualizarMaqueta();
+    QStringList cuales;
+    for (const QString &nombre : anadidos)
+        //: Un examen de la lista en el mensaje de las versiones añadidas: %1 es su nombre, entre comillas
+        cuales << tr("«%1»").arg(nombre);
+    //: %1 es la lista de los exámenes («Nacional Original», «Nacional Reserva») y %2, la etiqueta de la primera versión (A o 1)
+    statusBar()->showMessage(tr("Añadidas las versiones de %1. Los exámenes que ya había no cambian; si no tenían "
+                                "versiones, ahora son la %2.")
+                                 .arg(cuales.join(QStringLiteral(", ")), Generador::etiquetaVersion(0, m_panel->versionesConNumeros())),
+                             10000);
+}
+
 void VentanaPrincipal::editarPreguntaExamen()
 {
     editarDelExamen(m_preguntaACambiar->value() - 1);
@@ -1634,6 +1741,13 @@ void VentanaPrincipal::deshacerCambio()
     m_resultado = cambio.antes;
     m_registrados = false;
     m_deshacerCambio->setEnabled(!m_cambios.isEmpty());
+    if (cambio.versiones) {
+        m_quitadas = cambio.quitadas;
+        ponerSelector(cambio.modelo);
+        actualizarMaqueta();
+        statusBar()->showMessage(tr("Quitadas las versiones que se añadieron: los exámenes vuelven a estar como antes."), 8000);
+        return;
+    }
     // Se vuelve al examen y la pregunta del cambio.
     m_selectorModelo->blockSignals(true);
     m_selectorModelo->setCurrentIndex(cambio.modelo);
@@ -1689,7 +1803,9 @@ void VentanaPrincipal::menuVista(const QPoint &enVista)
         menu->insertAction(primera, cambiar);
     }
     if (!m_cambios.isEmpty()) {
-        deshacer = new QAction(tr("Deshacer el último cambio de pregunta"), menu.get());
+        deshacer = new QAction(m_cambios.last().versiones ? tr("Deshacer las versiones añadidas")
+                                                          : tr("Deshacer el último cambio de pregunta"),
+                               menu.get());
         menu->insertAction(primera, deshacer);
     }
     if (editar || cambiar || deshacer)

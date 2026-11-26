@@ -55,6 +55,9 @@ public:
     bool limitaPaginas() const;
     QString semilla() const;     // vacía: aleatoria
     void quitarSemilla();
+    // Las versiones de los exámenes de la lista que tienen más de una, estén marcados o no: nombre -> cuántas.
+    QVariantMap versionesDeLaLista() const;
+    bool versionesConNumeros() const;   // las versiones, «1, 2, 3…»; si no, «A, B, C…»
 
     // --- El banco
     // Tras abrir un banco (o cambiarlo desde fuera del panel): su asignatura, su idioma y el último reparto que se usó
@@ -87,6 +90,8 @@ signals:
     // Ha cambiado algo que se ve en la maqueta de los exámenes ya generados (la cabecera, el pie, el ajuste a páginas).
     void maquetaCambiada();
     void semillaCambiada();
+    // Ha cambiado la lista de exámenes: sus nombres, cuáles están marcados o sus versiones.
+    void listaExamenesCambiada();
 
 private:
     QWidget *crearGrupoConvocatoria();
@@ -116,9 +121,6 @@ private:
     void quitarExamen();
     // Sube (-1) o baja (+1) en la lista el examen elegido.
     void moverExamen(int desplazamiento);
-    // Las versiones de los exámenes de la lista que tienen más de una: nombre -> cuántas.
-    QVariantMap versionesDeLaLista() const;
-    bool versionesConNumeros() const;   // las versiones, «1, 2, 3…»; si no, «A, B, C…»
     // El título del recuadro de la lista de exámenes: «Exámenes: 2 modelos de 3 seleccionados.».
     void actualizarCuentaExamenes();
     // Lo que casi nunca se cambia va plegado, con un resumen de lo elegido en la cabecera.

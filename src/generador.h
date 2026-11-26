@@ -81,6 +81,9 @@ struct Modelo
     bool barajadas = false;             // las opciones de todas sus preguntas se barajaron (salvo las que no se puede)
     QVector<PreguntaExamen> preguntas;
 
+    // El nombre del examen de la lista del que sale: el suyo o, si es una versión, el de todas («Nacional Original»).
+    QString nombreEnLaLista() const { return version.isEmpty() ? nombre : base; }
+
     // Cuántas veces es correcta cada letra (a, b, c, d) tal como se muestran las opciones.
     std::array<int, 4> correctasPorLetra() const
     {
@@ -139,6 +142,20 @@ public:
     static QStringList nombresExamenes(const ConfigExamen &config);
     // Los exámenes de 'resultado' que son versiones del mismo que 'modelo' (él incluido), en orden; solo él si no tiene.
     static QVector<int> versionesDe(const ResultadoGeneracion &resultado, int modelo);
+
+    // Para exámenes ya generados (o cargados del historial): los de 'resultado' (por su nombre en la lista,
+    // Modelo::nombreEnLaLista()) a los que 'config' pide más versiones (ConfigExamen::versiones, por ese nombre) de las
+    // que tienen. Y añadírselas sin cambiar las que ya están: un examen sin versiones pasa a ser la A tal cual (solo
+    // cambia su nombre, «Nacional Original A»), aunque lleve las preguntas en orden aleatorio, y las demás salen de ella
+    // como al generar, siempre por temas, con las preguntas de cada tema en otro orden y las opciones barajadas. Las que
+    // se añaden a un examen que ya tenía versiones llevan la numeración de las suyas. Todas las de un examen van juntas,
+    // donde estaba la primera.
+    // Con la serie de números al azar de las versiones de generar(): a unos exámenes generados sin orden aleatorio, y
+    // que no han cambiado, se les añaden las mismas que si se hubieran pedido al generarlos. Pone los avisos de las
+    // nuevas y, en los del examen que pasa a ser la A, su nombre nuevo. Devuelve los nombres en la lista de los
+    // exámenes a los que se ha añadido alguna.
+    static QStringList faltanVersiones(const ResultadoGeneracion &resultado, const ConfigExamen &config);
+    static QStringList anadirVersiones(ResultadoGeneracion &resultado, const ConfigExamen &config);
 
     // Número de preguntas distintas (sin contar variantes) disponibles por tema.
     static QMap<int, int> gruposDisponibles(const QVector<Pregunta> &banco, bool incluirParaRevisar, bool soloVerificadas = false);

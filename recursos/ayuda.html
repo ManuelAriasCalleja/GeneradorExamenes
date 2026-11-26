@@ -196,6 +196,24 @@ demás exámenes.</li>
 del examen, con su versión, va siempre en el pie de página.</li>
 </ul>
 <p>Las versiones de cada examen y la numeración se guardan en el banco, con la lista.</p>
+<p>Si se piden versiones de un examen que ya está generado sin ellas (o cargado del <a href="#historial">historial</a>),
+no hace falta volver a generarlo: el recuadro amarillo avisa de que la lista pide más versiones de las que tiene, y su
+enlace <b>Añadir las que faltan</b> se las añade.</p>
+<ul>
+<li>El examen que había pasa a ser la A tal como está, con sus preguntas, sus opciones y lo que se haya cambiado,
+corregido o verificado en él; solo cambia su nombre («Nacional Original A»). Con <b>Orden aleatorio</b>, la A sigue con
+las preguntas en el orden en que estaban, sin ponerlas por temas.</li>
+<li>Las demás salen de la A como al generar, con las mismas preguntas. Si los exámenes no han cambiado desde que se
+generaron sin orden aleatorio, son las mismas que si se hubieran pedido entonces.</li>
+<li>A un examen que ya tiene versiones se le añaden las que faltan, con su numeración, y las que tiene no cambian. Si la
+lista pide menos de las que tiene, no se quita ninguna.</li>
+<li>No se añaden si saldrían dos exámenes con el mismo nombre (por ejemplo, si otro de la lista se llama «Nacional
+Original B»).</li>
+<li>Se deshace como un cambio de pregunta, con <b>Deshacer el cambio</b> (o «Deshacer las versiones añadidas», con el
+botón derecho).</li>
+<li>Si el examen estaba registrado, al registrar la convocatoria otra vez sus versiones sustituyen al registrado sin
+ellas (ver <a href="#historial">El historial de convocatorias</a>).</li>
+</ul>
 
 <h3><a name="reparto"></a>Preguntas por tema</h3>
 <p>Hay una casilla por tema con el número de preguntas que se quieren de él. Al lado, en gris, «de N» dice cuántas
@@ -364,7 +382,7 @@ nunca, luego las «old» y por último las de las convocatorias registradas, de 
 reciente y no quedaba otra), el recuadro amarillo lo avisa. Si no hay ninguna que pueda ir en su lugar, no se cambia
 nada y se avisa.</li>
 <li><b>Deshacer el cambio</b> (o «Deshacer el último cambio de pregunta», con el botón derecho) deshace los cambios,
-del último al primero.</li>
+del último al primero, y también las <a href="#versiones">versiones añadidas</a> a los exámenes.</li>
 </ul>
 <p>Se pueden cambiar preguntas también en los exámenes cargados del <a href="#historial">historial</a>; entonces se
 eligen con las opciones que haya en la ventana. Si después se registran otra vez, sustituyen a los que había.</p>

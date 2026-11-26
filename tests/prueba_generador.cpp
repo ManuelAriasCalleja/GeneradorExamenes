@@ -832,6 +832,137 @@ private slots:
             }
         }
     }
+
+    // A unos exámenes generados sin versiones (y sin orden aleatorio) se les pueden añadir después: salen las mismas
+    // que si se hubieran pedido al generar, con los mismos avisos. A un examen que ya tenía versiones se le añaden las
+    // que faltan, también como al generar. Lo que ya está no cambia.
+    void anadirVersionesComoAlGenerar()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        auto ordenados = [](QStringList avisos) {
+            avisos.sort();
+            return avisos;
+        };
+        for (quint32 semilla = 1; semilla <= 30; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            c.barajarOpciones = semilla % 3 == 0;
+            ResultadoGeneracion r = Generador::generar(banco, c);
+            QVERIFY(Generador::faltanVersiones(r, c).isEmpty());
+            c.versiones = {3, 1, 2};
+            c.versionesConNumeros = semilla % 2;
+            const ResultadoGeneracion conVersiones = Generador::generar(banco, c);
+            QCOMPARE(Generador::faltanVersiones(r, c), (QStringList{QStringLiteral("Uno"), QStringLiteral("Tres")}));
+            QCOMPARE(Generador::anadirVersiones(r, c), (QStringList{QStringLiteral("Uno"), QStringLiteral("Tres")}));
+            QCOMPARE(firma(r), firma(conVersiones));
+            QCOMPARE(ordenados(r.avisos), ordenados(conVersiones.avisos));
+            for (int i = 0; i < r.modelos.size(); ++i) {
+                QCOMPARE(r.modelos.at(i).base, conVersiones.modelos.at(i).base);
+                QCOMPARE(r.modelos.at(i).version, conVersiones.modelos.at(i).version);
+                QCOMPARE(r.modelos.at(i).barajadas, conVersiones.modelos.at(i).barajadas);
+            }
+            QVERIFY(Generador::faltanVersiones(r, c).isEmpty());
+            QVERIFY(Generador::anadirVersiones(r, c).isEmpty());
+            QCOMPARE(firma(r), firma(conVersiones));
+
+            // La que se añade a «Uno», como al generar con ella; los demás, como estaban (al generar, «Tres B» saldría de
+            // otra forma: la serie de números al azar habría seguido con la D de «Uno»).
+            c.versiones = {4, 1, 2};
+            QCOMPARE(Generador::anadirVersiones(r, c), QStringList{QStringLiteral("Uno")});
+            const ResultadoGeneracion conCuatro = Generador::generar(banco, c);
+            QCOMPARE(firma(ResultadoGeneracion{r.modelos.mid(0, 4), {}, 0}), firma(ResultadoGeneracion{conCuatro.modelos.mid(0, 4), {}, 0}));
+            QCOMPARE(firma(ResultadoGeneracion{r.modelos.mid(4), {}, 0}), firma(ResultadoGeneracion{conVersiones.modelos.mid(3), {}, 0}));
+        }
+    }
+
+    // Con orden aleatorio, el examen al que se le añaden versiones se queda tal cual (con otro nombre): las preguntas no
+    // se ponen por temas ni se barajan sus opciones, como al generar con versiones. Las demás van por temas, con las
+    // mismas preguntas en otro orden y las opciones barajadas.
+    void anadirVersionesDejaElExamenComoEsta()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        auto porTemas = [](const Modelo &m) {
+            return std::is_sorted(m.preguntas.begin(), m.preguntas.end(), [](const PreguntaExamen &x, const PreguntaExamen &y) {
+                return x.pregunta.temaNumero < y.pregunta.temaNumero;
+            });
+        };
+        auto ids = [](const Modelo &m) {
+            QVector<int> res;
+            for (const PreguntaExamen &pe : m.preguntas)
+                res << pe.pregunta.id;
+            return res;
+        };
+        bool algunaDesordenada = false;
+        for (quint32 semilla = 1; semilla <= 30; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            c.nombresModelos = {QStringLiteral("Uno"), QStringLiteral("Dos")};
+            c.ordenAleatorio = true;
+            const ResultadoGeneracion antes = Generador::generar(banco, c);
+            ResultadoGeneracion r = antes;
+            c.versiones = {1, 3};
+            QCOMPARE(Generador::anadirVersiones(r, c), QStringList{QStringLiteral("Dos")});
+            QCOMPARE(r.modelos.size(), 4);
+            QCOMPARE(firma(ResultadoGeneracion{{r.modelos.at(0)}, {}, 0}), firma(ResultadoGeneracion{{antes.modelos.at(0)}, {}, 0}));
+            const Modelo &a = r.modelos.at(1);
+            QCOMPARE(a.nombre, QStringLiteral("Dos A"));
+            QCOMPARE(a.base, QStringLiteral("Dos"));
+            QCOMPARE(a.version, QStringLiteral("A"));
+            QCOMPARE(a.barajadas, antes.modelos.at(1).barajadas);
+            Modelo comoAntes = a;
+            comoAntes.nombre = QStringLiteral("Dos");
+            QCOMPARE(firma(ResultadoGeneracion{{comoAntes}, {}, 0}), firma(ResultadoGeneracion{{antes.modelos.at(1)}, {}, 0}));
+            algunaDesordenada = algunaDesordenada || !porTemas(a);
+            QVector<int> deLaA = ids(a);
+            std::sort(deLaA.begin(), deLaA.end());
+            QVector<QVector<int>> ordenes{ids(a)};
+            for (int v : {2, 3}) {
+                const Modelo &m = r.modelos.at(v);
+                QCOMPARE(m.base, QStringLiteral("Dos"));
+                QCOMPARE(m.version, Generador::etiquetaVersion(v - 1, false));
+                QVERIFY(porTemas(m));
+                QVERIFY(m.barajadas);
+                QVERIFY(!ordenes.contains(ids(m)));
+                ordenes << ids(m);
+                QVector<int> estas = ids(m);
+                std::sort(estas.begin(), estas.end());
+                QCOMPARE(estas, deLaA);
+            }
+            QCOMPARE(Generador::versionesDe(r, 2), (QVector<int>{1, 2, 3}));
+        }
+        QVERIFY(algunaDesordenada);   // la A no se ha puesto por temas
+    }
+
+    // Lo que ya se ha cambiado en un examen sigue en él al añadirle versiones, y está en todas; sus avisos pasan a ser
+    // los de la A. Las que se añaden a uno que ya tenía versiones llevan su numeración, aunque la lista pida otra.
+    void anadirVersionesConservaLosCambios()
+    {
+        const QVector<Pregunta> banco = bancoInventado();
+        for (quint32 semilla = 1; semilla <= 20; ++semilla) {
+            ConfigExamen c = configuracion(semilla);
+            ResultadoGeneracion r = Generador::generar(banco, c);
+            QVERIFY(Generador::cambiarPregunta(banco, c, r, 0, 4, {}));
+            const Pregunta nueva = r.modelos.at(0).preguntas.at(4).pregunta;
+            r.avisos = {QStringLiteral("«Uno»: un aviso del examen."), QStringLiteral("«Uno», pregunta 5: un aviso de una pregunta."),
+                        QStringLiteral("«Dos»: otro examen.")};
+            c.versiones = {2, 1, 1};
+            QCOMPARE(Generador::anadirVersiones(r, c), QStringList{QStringLiteral("Uno")});
+            QCOMPARE(r.modelos.at(0).preguntas.at(4).pregunta.id, nueva.id);
+            QVERIFY(std::any_of(r.modelos.at(1).preguntas.cbegin(), r.modelos.at(1).preguntas.cend(),
+                                [&nueva](const PreguntaExamen &pe) { return pe.pregunta.id == nueva.id; }));
+            QVERIFY(r.avisos.contains(QStringLiteral("«Uno A»: un aviso del examen.")));
+            QVERIFY(r.avisos.contains(QStringLiteral("«Uno A», pregunta 5: un aviso de una pregunta.")));
+            QVERIFY(r.avisos.contains(QStringLiteral("«Dos»: otro examen.")));
+            QVERIFY(!avisoQueContiene(r, QStringLiteral("«Uno»")));
+
+            c.versiones = {3, 1, 1};
+            c.versionesConNumeros = true;
+            QCOMPARE(Generador::anadirVersiones(r, c), QStringList{QStringLiteral("Uno")});
+            QStringList nombres;
+            for (const Modelo &m : r.modelos)
+                nombres << m.nombre;
+            QCOMPARE(nombres, (QStringList{QStringLiteral("Uno A"), QStringLiteral("Uno B"), QStringLiteral("Uno C"),
+                                           QStringLiteral("Dos"), QStringLiteral("Tres")}));
+        }
+    }
 };
 
 QTEST_MAIN(PruebaGenerador)

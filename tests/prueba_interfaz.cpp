@@ -1967,6 +1967,110 @@ private slots:
         QSettings().clear();
     }
 
+    // A los exámenes ya generados se les añaden las versiones que se piden después en la lista, desde el aviso junto al
+    // examen y sin volver a generarlos: el que había pasa a ser la A, tal cual. Se deshace como un cambio de pregunta, al
+    // registrarlos se sustituye el registrado sin versiones y no se añaden si saldrían dos exámenes con el mismo nombre.
+    void ventanaAnadeVersiones()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        QListWidget *lista = nullptr;
+        for (QGroupBox *g : v.findChildren<QGroupBox *>())
+            if (g->title().startsWith(QStringLiteral("Exámenes:")))
+                lista = g->findChild<QListWidget *>();
+        QSpinBox *versiones = nullptr;
+        for (QLabel *l : v.findChildren<QLabel *>())
+            if (l->text() == QStringLiteral("Versiones:"))
+                versiones = qobject_cast<QSpinBox *>(l->buddy());
+        auto *avisos = v.findChild<QLabel *>(QStringLiteral("avisosExamen"));
+        QVERIFY(lista && versiones && avisos);
+        auto dice = [avisos](const QString &texto) { return avisos->isVisible() && avisos->text().contains(texto); };
+        auto nombres = [](const QComboBox *selector) {
+            QStringList res;
+            for (int i = 0; i < selector->count(); ++i)
+                res << selector->itemText(i);
+            return res;
+        };
+        auto registrados = [&ruta]() {
+            BaseDatos bd;
+            QStringList res;
+            if (bd.abrir(ruta))
+                for (const ExamenRegistrado &e : bd.examenesRegistrados())
+                    res << e.nombre;
+            res.sort();
+            return res;
+        };
+
+        QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
+        QComboBox *selector = nullptr;
+        for (QComboBox *c : v.findChildren<QComboBox *>())
+            if (c->count() == 2 && c->itemText(0) == QStringLiteral("Nacional Original"))
+                selector = c;
+        QTextBrowser *visor = nullptr;
+        for (QTextBrowser *t : v.findChildren<QTextBrowser *>())
+            if (t->toPlainText().contains(QStringLiteral("Respuesta correcta: +")))
+                visor = t;
+        QVERIFY(selector && visor);
+        const QString antes = visor->toPlainText();
+        QVERIFY(!dice(QStringLiteral("versiones")));
+        QString texto;
+        responder(QStringLiteral("Sí"), &texto);
+        QVERIFY(QMetaObject::invokeMethod(&v, "registrarConvocatoria"));
+
+        lista->setCurrentRow(0);
+        versiones->setValue(3);
+        QVERIFY2(dice(QStringLiteral("Estos exámenes tienen menos versiones de las que pide la lista: «Nacional Original» "
+                                     "(3 versiones).")),
+                 qPrintable(avisos->text()));
+        QVERIFY(avisos->text().contains(QStringLiteral("<a href=\"anadir-versiones\">Añadir las que faltan</a>")));
+        emit avisos->linkActivated(QStringLiteral("anadir-versiones"));
+        QCOMPARE(nombres(selector), (QStringList{QStringLiteral("Nacional Original A"), QStringLiteral("Nacional Original B"),
+                                                 QStringLiteral("Nacional Original C"), QStringLiteral("Nacional Reserva")}));
+        QCOMPARE(selector->currentIndex(), 0);
+        QCOMPARE(visor->toPlainText().replace(QStringLiteral("Nacional Original A"), QStringLiteral("Nacional Original")), antes);
+        QVERIFY(!dice(QStringLiteral("menos versiones")));
+        for (QLabel *l : v.findChildren<QLabel *>())
+            QVERIFY2(!l->text().startsWith(QStringLiteral("Semilla:")) || !l->text().contains(QStringLiteral("a mano")),
+                     qPrintable(l->text()));
+
+        // Se deshace como un cambio de pregunta.
+        QVERIFY(QMetaObject::invokeMethod(&v, "deshacerCambio"));
+        QCOMPARE(nombres(selector), (QStringList{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")}));
+        QCOMPARE(visor->toPlainText(), antes);
+        QVERIFY(dice(QStringLiteral("menos versiones")));
+
+        // Registradas, sustituyen al registrado sin versiones.
+        emit avisos->linkActivated(QStringLiteral("anadir-versiones"));
+        responder(QStringLiteral("Sí"), &texto);
+        QVERIFY(QMetaObject::invokeMethod(&v, "registrarConvocatoria"));
+        QVERIFY2(texto.contains(QStringLiteral("se sustituirán: ")) && texto.contains(QStringLiteral("Nacional Original")),
+                 qPrintable(texto));
+        QCOMPARE(registrados(), (QStringList{QStringLiteral("Nacional Original A"), QStringLiteral("Nacional Original B"),
+                                             QStringLiteral("Nacional Original C"), QStringLiteral("Nacional Reserva")}));
+        versiones->setValue(2);   // menos de las que tiene: no se quitan
+        QVERIFY(!dice(QStringLiteral("menos versiones")));
+
+        // Si otro examen de la lista se llama como una de las versiones, no se añaden.
+        lista->item(1)->setText(QStringLiteral("Nacional Original B"));
+        versiones->setValue(1);
+        QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
+        QCOMPARE(nombres(selector), (QStringList{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Original B")}));
+        versiones->setValue(2);
+        QVERIFY(dice(QStringLiteral("menos versiones")));
+        responder(QStringLiteral("OK"), &texto);
+        emit avisos->linkActivated(QStringLiteral("anadir-versiones"));
+        QCOMPARE(texto, QStringLiteral("No se pueden añadir las versiones: habría dos exámenes con el mismo nombre, "
+                                       "«Nacional Original B»."));
+        QCOMPARE(selector->count(), 2);
+        v.close();
+        QSettings().clear();
+    }
+
     // Al generar, la ventana tiene en cuenta cómo salieron las preguntas en el historial: las que ya salieron llevan las
     // opciones barajadas, aunque no esté marcado «Barajar las opciones», con la correcta en otra letra.
     void ventanaBarajaLasQueYaSalieron()

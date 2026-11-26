@@ -468,7 +468,9 @@ QWidget *PanelConfiguracion::crearGrupoExamenes()
     m_versiones->setEnabled(false);
     m_versiones->setToolTip(tr("Versiones del examen seleccionado. Con varias, cada una es un examen más, con las mismas "
                                "preguntas en otro orden (siempre por temas: las del tema 1, luego las del 2…) y las "
-                               "opciones barajadas."));
+                               "opciones barajadas.\n"
+                               "Si ya está generado sin ellas, se le pueden añadir sin volver a generarlo: lo ofrecen "
+                               "los avisos, junto al examen."));
     //: Delante del número de versiones del examen seleccionado en la lista
     auto *etiqueta = new QLabel(tr("Versiones:"));
     etiqueta->setBuddy(m_versiones);
@@ -507,6 +509,10 @@ QWidget *PanelConfiguracion::crearGrupoExamenes()
     connect(modelo, &QAbstractItemModel::rowsInserted, this, &PanelConfiguracion::actualizarCuentaExamenes);
     connect(modelo, &QAbstractItemModel::rowsRemoved, this, &PanelConfiguracion::actualizarCuentaExamenes);
     connect(modelo, &QAbstractItemModel::modelReset, this, &PanelConfiguracion::actualizarCuentaExamenes);
+    connect(modelo, &QAbstractItemModel::dataChanged, this, &PanelConfiguracion::listaExamenesCambiada);
+    connect(modelo, &QAbstractItemModel::rowsInserted, this, &PanelConfiguracion::listaExamenesCambiada);
+    connect(modelo, &QAbstractItemModel::rowsRemoved, this, &PanelConfiguracion::listaExamenesCambiada);
+    connect(modelo, &QAbstractItemModel::modelReset, this, &PanelConfiguracion::listaExamenesCambiada);
     actualizarCuentaExamenes();
     return gExamenes;
 }

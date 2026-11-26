@@ -94,6 +94,9 @@ private slots:
     void editarPreguntaExamen();   // la del número elegido bajo la vista
     void verificarPreguntaExamen();   // desde la del número elegido bajo la vista
     void cambiarPregunta();   // la del número elegido bajo la vista
+    // Añade a los exámenes de la ventana las versiones que les pide la lista y no tienen, sin volver a generarlos (ver
+    // Generador::anadirVersiones()). Se deshace como un cambio de pregunta.
+    void anadirVersiones();
     void deshacerCambio();
 
 private:
@@ -122,6 +125,14 @@ private:
     bool hayExamen() const;
     // Muestra m_resultado (recién generado o cargado del historial); 'origen' va delante de la semilla.
     void presentarResultado(const QString &origen = QString());
+    // Pone en el selector los exámenes de m_resultado, con el 'actual' elegido.
+    void ponerSelector(int actual);
+    // Las opciones con que se generaron los exámenes de la ventana (m_configResultado) con las versiones que tienen en la
+    // lista del panel los exámenes, estén marcados o no: para añadírselas (ver Generador::anadirVersiones()).
+    ConfigExamen configVersiones() const;
+    // El aviso (en HTML, con el enlace que las añade) de que la lista pide más versiones de las que tienen los exámenes
+    // de la ventana; vacío si no.
+    QString avisoVersiones() const;
     // Avisos, nivel de la maqueta y examen mostrado, según el resultado y la casilla «Letra grande».
     void actualizarMaqueta();
     // Enseña (en la línea gris y en el botón de registrar) si los exámenes están exportados y sin registrar.
@@ -206,7 +217,8 @@ private:
     QString m_infoBase;                     // la línea gris, sin el aviso de que no está registrado
     // Para cambiar preguntas: la configuración con que se generó m_resultado (o, si viene del historial, la de la
     // ventana al cargarlo); los grupos quitados de cada examen, que no se vuelven a proponer mientras haya otros; y
-    // los cambios hechos, para deshacerlos.
+    // los cambios hechos, para deshacerlos: el de la pregunta 'indice' del examen 'modelo' o, con 'versiones', el de
+    // añadir versiones (con 'modelo', el examen que se veía, y 'quitadas', las de antes, que iban por otros números).
     ConfigExamen m_configResultado;
     QHash<int, QSet<QString>> m_quitadas;
     struct CambioPregunta
@@ -214,8 +226,12 @@ private:
         ResultadoGeneracion antes;
         int modelo;
         int indice;
+        bool versiones = false;
+        QHash<int, QSet<QString>> quitadas;
     };
     QVector<CambioPregunta> m_cambios;
+    int preguntasCambiadas() const;   // los cambios de m_cambios que son de una pregunta
+    QString m_avisoVersiones;         // el de avisoVersiones() que se ve
     QPushButton *m_avisoJson;               // en la barra de estado: el JSON enlazado no coincide con el banco
     QPushButton *m_abrirCarpeta;            // en la barra de estado, tras exportar: abre la carpeta de los ficheros
     QAction *m_accionJsonAuto;

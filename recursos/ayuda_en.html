@@ -201,6 +201,24 @@ place.</li>
 name of the exam, with its version, always goes in the footer.</li>
 </ul>
 <p>The versions of each exam and the numbering are saved in the bank, with the list.</p>
+<p>If you ask for versions of an exam that has already been generated without them (or loaded from the
+<a href="#historial">history</a>), there is no need to generate it again: the yellow box warns that the list asks for
+more versions than it has, and its link <b>Add the missing ones</b> adds them.</p>
+<ul>
+<li>The exam you had becomes version A just as it is, with its questions, its options and whatever has been replaced,
+corrected or verified in it; only its name changes (“Nacional Original A”). With <b>Random order</b>, version A keeps
+the questions in the order they were in, without putting them in topic order.</li>
+<li>The others are made from version A as when generating, with the same questions. If the exams have not changed since
+they were generated without random order, they are the same as if they had been asked for then.</li>
+<li>An exam that already has versions gets the missing ones, with its numbering, and the ones it has do not change. If
+the list asks for fewer than it has, none is removed.</li>
+<li>They are not added if two exams would have the same name (for example, if another exam in the list is called
+“Nacional Original B”).</li>
+<li>It is undone like a question replacement, with <b>Undo the change</b> (or “Undo the added versions”, by
+right-clicking).</li>
+<li>If the exam had been recorded, when you record the exam session again its versions replace the recorded one
+without them (see <a href="#historial">The exam session history</a>).</li>
+</ul>
 
 <h3><a name="reparto"></a>Questions per topic</h3>
 <p>There is one box per topic with the number of questions you want from it. Next to it, in grey, “of N” shows how
@@ -372,7 +390,7 @@ others left.</li>
 in a recent exam session and there was no other left), the yellow box warns you. If no question can take its place,
 nothing is changed and a warning is shown.</li>
 <li><b>Undo the change</b> (or “Undo the last question change”, by right-clicking) undoes the changes, from the last
-to the first.</li>
+to the first, and also the <a href="#versiones">versions added</a> to the exams.</li>
 </ul>
 <p>Questions can also be replaced in exams loaded from the <a href="#historial">history</a>; the replacements are
 then chosen with the options currently set in the window. If the exams are then recorded again, they replace the ones

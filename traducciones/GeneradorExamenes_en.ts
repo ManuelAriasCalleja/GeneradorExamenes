@@ -736,12 +736,12 @@
     </message>
     <message>
         <location line="+1"/>
-        <location line="+92"/>
+        <location line="+95"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-64"/>
+        <location line="-67"/>
         <source>texto pegado</source>
         <translation>pasted text</translation>
     </message>
@@ -757,7 +757,7 @@
         <translation>Exam %1</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+32"/>
         <source>Exámenes anteriores (PDF)</source>
         <translation>Previous exams (PDF)</translation>
     </message>
@@ -767,7 +767,7 @@
         <translation>PDF (*.pdf)</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+18"/>
         <source>Pegar el texto de un examen</source>
         <translation>Paste the text of an exam</translation>
     </message>
@@ -1184,7 +1184,7 @@ Record them?</translation>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="+81"/>
+        <location line="+83"/>
         <source>Carpeta donde guardar los exámenes</source>
         <translation>Folder in which to save the exams</translation>
     </message>
@@ -1375,7 +1375,7 @@ Its questions will no longer count as used when generating exams, and it will no
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="+26"/>
+        <location line="+28"/>
         <source>Moodle XML (*.xml)</source>
         <translation>Moodle XML (*.xml)</translation>
     </message>
@@ -2454,7 +2454,7 @@ Do not hand in the question paper.</translation>
         <translation>Topic %1: there are not enough questions left without the “old” mark; some (or their variants) are used.</translation>
     </message>
     <message>
-        <location line="+81"/>
+        <location line="+114"/>
         <source>«%1»: </source>
         <extracomment>Comienzo de un aviso sobre un examen entero: %1 es su nombre. Detrás va el aviso («la respuesta correcta es…»).</extracomment>
         <translation>“%1”: </translation>
@@ -2490,7 +2490,7 @@ Do not hand in the question paper.</translation>
         <translation>“%1”, question %2: </translation>
     </message>
     <message>
-        <location line="+278"/>
+        <location line="+369"/>
         <source>Tema %1: se pidieron %2 preguntas pero solo hay %3 distintas verificadas disponibles.</source>
         <translation>Topic %1: %2 questions were requested but there are only %3 different verified ones available.</translation>
     </message>
@@ -2860,11 +2860,13 @@ Double-click to change the name; drag, or use Move up and Move down, to change t
     </message>
     <message>
         <location line="+5"/>
-        <source>Versiones del examen seleccionado. Con varias, cada una es un examen más, con las mismas preguntas en otro orden (siempre por temas: las del tema 1, luego las del 2…) y las opciones barajadas.</source>
-        <translation>Versions of the selected exam. With several, each one is one more exam, with the same questions in a different order (always by topic: those of topic 1, then those of topic 2…) and the options shuffled.</translation>
+        <source>Versiones del examen seleccionado. Con varias, cada una es un examen más, con las mismas preguntas en otro orden (siempre por temas: las del tema 1, luego las del 2…) y las opciones barajadas.
+Si ya está generado sin ellas, se le pueden añadir sin volver a generarlo: lo ofrecen los avisos, junto al examen.</source>
+        <translation>Versions of the selected exam. With several, each one is one more exam, with the same questions in a different order (always by topic: those of topic 1, then those of topic 2…) and the options shuffled.
+If it has already been generated without them, they can be added without generating it again: the warnings next to the exam offer it.</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+6"/>
         <source>Versiones:</source>
         <extracomment>Delante del número de versiones del examen seleccionado en la lista</extracomment>
         <translation>Versions:</translation>
@@ -2887,7 +2889,7 @@ Double-click to change the name; drag, or use Move up and Move down, to change t
         <translation>How the versions of the exams are named: “Nacional Original A”, “… B”… or “Nacional Original 1”, “… 2”…</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+37"/>
         <source>Exámenes: 1 modelo de %1 seleccionado.</source>
         <extracomment>Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay</extracomment>
         <translation>Exams: 1 model of %1 selected.</translation>
@@ -3585,13 +3587,13 @@ Replace it with this one?</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="-994"/>
+        <location filename="../src/panelconfiguracion.cpp" line="-1000"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+126"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+135"/>
         <source>Generar examen</source>
         <translation>Generate exam</translation>
     </message>
@@ -3633,7 +3635,7 @@ Replace it with this one?</translation>
         <translation>How many times each letter is correct in this exam</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+36"/>
         <source>Elija cuántas preguntas quiere de cada tema y pulse &lt;b&gt;Generar exámenes&lt;/b&gt;.</source>
         <translation>Choose how many questions you want from each topic and click &lt;b&gt;Generate exams&lt;/b&gt;.</translation>
     </message>
@@ -3707,14 +3709,14 @@ Replace it with this one?</translation>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-82"/>
+        <location line="-88"/>
         <source>Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.
 Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-letra-grande» en el nombre.</source>
         <translation>Adapted version for visually impaired students: 16 pt font, one option per line (question text not in italics), more spacing and larger images, with no page limit.
 Applies to the preview, printing and exports; the files have “-letra-grande” in their name.</translation>
     </message>
     <message>
-        <location line="+72"/>
+        <location line="+78"/>
         <source>Exportar Word…</source>
         <extracomment>Botón: guarda los exámenes en un documento de Word (.docx)</extracomment>
         <translation>Export Word…</translation>
@@ -3999,12 +4001,12 @@ Choose where it is or create a new one.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+715"/>
+        <location line="+753"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-701"/>
+        <location line="-739"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -4016,13 +4018,13 @@ Choose where it is or create a new one.</translation>
         <translation>%1 questions have been imported.</translation>
     </message>
     <message>
-        <location line="+418"/>
+        <location line="+412"/>
         <source>Hay dos exámenes marcados con el mismo nombre: «%1».</source>
         <extracomment>%1 es el nombre de un examen, con su versión si tiene («Nacional Original B»)</extracomment>
         <translation>Two ticked exams have the same name: “%1”.</translation>
     </message>
     <message>
-        <location line="-462"/>
+        <location line="-456"/>
         <source>¿Cómo quiere importar las preguntas?
 
 Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.
@@ -4306,7 +4308,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Specify how many questions you want from each topic.</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+12"/>
         <source>Marque en la lista los exámenes que quiere generar.</source>
         <translation>Tick the exams you want to generate in the list.</translation>
     </message>
@@ -4321,7 +4323,25 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>There is no exam session recorded in the history, so questions from previous ones are not avoided. If they were held outside the program, record them with File → Record previous exams…</translation>
     </message>
     <message>
-        <location line="+57"/>
+        <location line="+86"/>
+        <source>«%1» (%2 versiones)</source>
+        <extracomment>%1 es el nombre de un examen de la lista y %2, cuántas versiones tiene en ella (dos o más)</extracomment>
+        <translation>“%1” (%2 versions)</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Estos exámenes tienen menos versiones de las que pide la lista: %1.</source>
+        <extracomment>Aviso junto al examen; %1 es la lista de exámenes: «Nacional Original» (3 versiones), «Nacional Reserva» (2 versiones)</extracomment>
+        <translation>These exams have fewer versions than the list asks for: %1.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Añadir las que faltan</source>
+        <extracomment>Enlace del aviso de las versiones que faltan: las añade a los exámenes, sin volver a generarlos</extracomment>
+        <translation>Add the missing ones</translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Semilla: %1</source>
         <extracomment>Línea de información del examen generado: semilla del generador de números aleatorios</extracomment>
         <translation>Seed: %1</translation>
@@ -4395,7 +4415,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>Remove the seed</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+10"/>
         <source>Escriba esta semilla en Opciones para volver a obtener los mismos exámenes.
 Si se han cambiado preguntas a mano, ya no los reproduce: regístrelos para conservarlos.
 Con «Ajustar a una página por cada 10 preguntas» (en Opciones), la maqueta se compacta (opciones en dos columnas, menos separación, letra menor) hasta que cada examen cabe en sus páginas; con «Letra grande» no se compacta.</source>
@@ -4410,7 +4430,7 @@ With “Fit on one page per 10 questions” (in Options), the layout is compacte
         <translation>Correct: %1</translation>
     </message>
     <message>
-        <location line="+61"/>
+        <location line="+59"/>
         <source>No se pudieron escribir estos ficheros:
 %1</source>
         <translation>Could not write these files:
@@ -4556,6 +4576,24 @@ Some of these exams were already recorded (with the same name, or with other ver
     </message>
     <message>
         <location line="+22"/>
+        <source>No se pueden añadir las versiones: habría dos exámenes con el mismo nombre, «%1».</source>
+        <extracomment>%1 es el nombre de un examen con su versión («Nacional Original B»)</extracomment>
+        <translation>The versions cannot be added: two exams would have the same name, “%1”.</translation>
+    </message>
+    <message>
+        <location line="+31"/>
+        <source>«%1»</source>
+        <extracomment>Un examen de la lista en el mensaje de las versiones añadidas: %1 es su nombre, entre comillas</extracomment>
+        <translation>“%1”</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Añadidas las versiones de %1. Los exámenes que ya había no cambian; si no tenían versiones, ahora son la %2.</source>
+        <extracomment>%1 es la lista de los exámenes («Nacional Original», «Nacional Reserva») y %2, la etiqueta de la primera versión (A o 1)</extracomment>
+        <translation>Versions added to %1. The exams you already had do not change; those without versions are now version %2.</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>La pregunta %1 ya no está en el banco: no se puede editar.</source>
         <translation>Question %1 is no longer in the bank: it cannot be edited.</translation>
     </message>
@@ -4583,7 +4621,12 @@ Some of these exams were already recorded (with the same name, or with other ver
         <translation>Verify the questions of “%1”</translation>
     </message>
     <message>
-        <location line="+62"/>
+        <location line="+59"/>
+        <source>Quitadas las versiones que se añadieron: los exámenes vuelven a estar como antes.</source>
+        <translation>The added versions have been removed: the exams are back as they were.</translation>
+    </message>
+    <message>
+        <location line="+10"/>
         <source>Deshecho el cambio de la pregunta %1 de «%2»</source>
         <translation>Change to question %1 of “%2” undone</translation>
     </message>
@@ -4606,6 +4649,11 @@ Some of these exams were already recorded (with the same name, or with other ver
     </message>
     <message>
         <location line="+6"/>
+        <source>Deshacer las versiones añadidas</source>
+        <translation>Undo the added versions</translation>
+    </message>
+    <message>
+        <location line="+1"/>
         <source>Deshacer el último cambio de pregunta</source>
         <translation>Undo the last question change</translation>
     </message>

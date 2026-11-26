@@ -147,7 +147,10 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   barajadas. Con «Orden aleatorio», también la A se desordena dentro de cada tema y baraja las opciones. Las versiones
   de un examen no cuentan entre sí para «No repetir preguntas entre exámenes»; al cambiar una pregunta de una
   versión, se cambia en todas. En el historial, cada examen registrado guarda su versión (columna `version`, desde la
-  versión 3 del esquema).
+  versión 3 del esquema). Si se piden versiones de un examen ya generado sin ellas (o cargado del historial), el
+  recuadro de avisos ofrece añadírselas sin volver a generarlo («Añadir las que faltan»): el que había pasa a ser la A
+  tal cual, también con «Orden aleatorio», y las demás salen de ella como al generar (`Generador::anadirVersiones`).
+  Se deshace como un cambio de pregunta.
 - Número de preguntas de cada tema. Junto a cada tema se ve cuántas preguntas distintas hay. Los botones de reparto
   son los del banco (por ejemplo, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3) más «Ninguna»;
   «Guardar reparto…» guarda los números de ese momento como un reparto nuevo, con nombre, y con el botón derecho
