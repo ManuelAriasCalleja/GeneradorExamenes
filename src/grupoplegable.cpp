@@ -41,6 +41,12 @@ void GrupoPlegable::ponerResumen(const QString &resumen)
     ponerTexto();
 }
 
+void GrupoPlegable::ponerTituloDesplegado(const QString &titulo)
+{
+    m_tituloDesplegado = titulo;
+    ponerTexto();
+}
+
 void GrupoPlegable::resizeEvent(QResizeEvent *e)
 {
     QWidget::resizeEvent(e);
@@ -50,9 +56,12 @@ void GrupoPlegable::resizeEvent(QResizeEvent *e)
 void GrupoPlegable::ponerTexto()
 {
     //: Cabecera de un grupo plegado: %1 es su título («Puntuación») y %2, el resumen de lo elegido dentro
-    const QString texto = m_plegado && !m_resumen.isEmpty() ? tr("%1: %2").arg(m_titulo, m_resumen) : m_titulo;
+    if (m_plegado)
+        m_texto = m_resumen.isEmpty() ? m_titulo : tr("%1: %2").arg(m_titulo, m_resumen);
+    else
+        m_texto = m_tituloDesplegado.isEmpty() ? m_titulo : m_tituloDesplegado;
     // Sitio para la flecha y los márgenes del botón.
     const int ancho = qMax(40, m_cabecera->width() - m_cabecera->iconSize().width() - 16);
-    m_cabecera->setText(m_cabecera->fontMetrics().elidedText(texto, Qt::ElideRight, ancho));
-    m_cabecera->setToolTip(texto);
+    m_cabecera->setText(m_cabecera->fontMetrics().elidedText(m_texto, Qt::ElideRight, ancho));
+    m_cabecera->setToolTip(m_texto);
 }

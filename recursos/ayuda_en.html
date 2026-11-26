@@ -82,11 +82,14 @@ options; on the right, the generated exams and the buttons to print them, export
 take them on screen.</li>
 <li><b>Question bank</b>: the list of questions, with its filters, and the details of the selected question.</li>
 </ul>
-<p>In the panel on the left, <b>Scoring</b> and <b>Options</b>, which are chosen once and hardly ever changed, start
-folded: you only see their title with a summary of what is chosen (“Scoring: Each wrong answer deducts 30%”). In
-<b>Options</b> the summary says what differs from the usual settings (“verified only, seed 42”), or “the usual ones”
-if nothing has been changed. Click the title to unfold or fold them; how you leave them is remembered from one
-session to the next.</p>
+<p>In the panel on the left, all the boxes can be folded: folded, you only see their title with a summary of what is
+chosen (“Scoring: Each wrong answer deducts 30%”). <b>Scoring</b> and <b>Options</b>, which are chosen once and hardly
+ever changed, start folded; in <b>Options</b> the summary says what differs from the usual settings (“verified only,
+seed 42”), or “the usual ones” if nothing has been changed. <b>Exam session</b>, <b>Exams</b> and <b>Questions per
+topic</b>, which are decided each time, start unfolded; folded, they show the exam session with the year and the
+subject (“June 2026 · …”), the exams that are generated, with their versions (“Nacional Original (A–C), Nacional
+Reserva”), and the total number of questions with those of each topic. Click the title to unfold or fold them; how
+you leave them is remembered from one session to the next.</p>
 <p>The menus hold everything else: <i>File</i> (opening and creating banks, importing and exporting, exam session
 history), <i>Edit</i> (topics, new question, style check) and <i>Help</i>.</p>
 <p>The instructions, what goes in the header and in the footer, the list of exams, the options, the scoring and the
@@ -148,7 +151,8 @@ date: the first of February, June and September whose month has not yet arrived.
 February; from February to May, June; and from June to August, September. If you are preparing another one, change
 them.</li>
 <li><b>Instructions</b>: the text of the instructions box below the header. The scoring is added below it, on one
-line. If an exam does not fit on its page, shortening the instructions helps.</li>
+line. If an exam does not fit on its page, shortening the instructions helps. The field is as tall as the text, from 3
+to 8 lines; with more, it scrolls.</li>
 <li><b>Header</b> and <b>Footer</b>: whether the subject and the exam session with the year go at the top, in the
 header of each exam (and of the solutions sheet), and at the bottom, in the footer of each page, next to the exam name
 and the page number (in the PDF, LaTeX and Word files): “Subject · Nacional Original · June 2026: 1 / 2”. They are
@@ -226,8 +230,10 @@ many different questions there are: the variants a, b, c… of a question count 
 appear in an exam (see <a href="#codigos">Codes, variants and pseudo-duplicates</a>). Voided and obsolete questions
 do not count, and neither do those flagged for review unless the option “Include questions flagged for review” is
 ticked.</p>
-<p>Below are the buttons for the subject’s usual distributions, which are saved in the bank: each one sets the number
-of questions from each topic (hover the mouse over it to see how many). <b>None</b> sets all the topics to 0.
+<p>Below, after “Saved distributions:”, are the buttons for the subject’s usual distributions, which are saved in the
+bank: each one puts in the boxes the number of questions from each topic (hover the mouse over it to see how many), and
+the one of the distribution currently set is shown pressed. <b>Set to 0</b>, next to the total, sets all the topics
+to 0.
 For example, those of an eight-topic bank examined in two parts could be these:</p>
 <table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
 <tr><th align="left">Button</th><th align="left">Distribution</th></tr>

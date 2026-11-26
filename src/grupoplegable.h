@@ -21,6 +21,11 @@ public:
     // Lo que se ve tras el título cuando está plegado.
     void ponerResumen(const QString &resumen);
     QString resumen() const { return m_resumen; }
+    // Lo que se ve en la cabecera cuando está desplegado, si no es solo el título («Exámenes: 2 modelos de 3
+    // seleccionados.»). Vacío: el título.
+    void ponerTituloDesplegado(const QString &titulo);
+    // Lo que dice la cabecera ahora, entero (si no cabe, se ve cortado).
+    QString textoCabecera() const { return m_texto; }
 
 protected:
     void resizeEvent(QResizeEvent *e) override;
@@ -30,6 +35,8 @@ private:
 
     QString m_titulo;
     QString m_resumen;
+    QString m_tituloDesplegado;
+    QString m_texto;
     QString m_clave;
     bool m_plegado = false;
     QToolButton *m_cabecera;

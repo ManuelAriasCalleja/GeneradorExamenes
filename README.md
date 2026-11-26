@@ -123,6 +123,9 @@ diálogos tienen además un botón «Ayuda». El manual es `recursos/ayuda.html`
 va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay que actualizar los dos.
 
 **Generar examen**
+- Los recuadros del panel izquierdo se pliegan, con un resumen de lo elegido en la cabecera, y cómo se dejan se
+  recuerda: «Puntuación» y «Opciones» vienen plegados; «Convocatoria», «Exámenes» y «Preguntas por tema», desplegados.
+  El campo de las instrucciones es tan alto como su texto (de 3 a 8 líneas), también al ampliar el panel.
 - Asignatura: va en la cabecera, en el pie de cada página y en el título de la ventana. Es la del banco abierto; si se cambia en la ventana, se
   guarda en el banco. Al crear un banco nuevo se pide.
 - Idioma de los exámenes (castellano o inglés): el de lo que pone el programa en los exámenes y en Moodle. Va con el
@@ -152,7 +155,8 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   tal cual, también con «Orden aleatorio», y las demás salen de ella como al generar (`Generador::anadirVersiones`).
   Se deshace como un cambio de pregunta.
 - Número de preguntas de cada tema. Junto a cada tema se ve cuántas preguntas distintas hay. Los botones de reparto
-  son los del banco (por ejemplo, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3) más «Ninguna»;
+  son los del banco («Repartos guardados:»; por ejemplo, T1–T4, T5–T8 y T1–T8: 3-2-3-2 / 2-3-2-3), y el del reparto
+  que hay puesto se ve pulsado; «Poner a 0» pone todos los temas a 0;
   «Guardar reparto…» guarda los números de ese momento como un reparto nuevo, con nombre, y con el botón derecho
   sobre uno se sustituye o se quita. Cada banco recuerda su último reparto usado; la primera vez se propone el primero
   de sus repartos. (Las versiones anteriores guardaban el último reparto en la configuración: pasa al primer banco

@@ -81,11 +81,14 @@ opciones; a la derecha, los exámenes generados y los botones para imprimirlos, 
 historial o hacerlos en pantalla.</li>
 <li><b>Banco de preguntas</b>: la lista de preguntas, con sus filtros, y la ficha de la pregunta elegida.</li>
 </ul>
-<p>En el panel de la izquierda, <b>Puntuación</b> y <b>Opciones</b>, que se eligen una vez y casi nunca se cambian,
-vienen plegadas: solo se ve su título con un resumen de lo elegido («Puntuación: Cada fallo resta el 30 %»). En
-<b>Opciones</b> el resumen dice lo que se aparta de lo habitual («solo verificadas, semilla 42»), o «las habituales»
-si no hay nada cambiado. Pulsando en el título se despliegan o se pliegan, y cómo se dejan se recuerda de una vez a
-otra.</p>
+<p>En el panel de la izquierda, todos los recuadros se pliegan: plegados, solo se ve su título con un resumen de lo
+elegido («Puntuación: Cada fallo resta el 30 %»). <b>Puntuación</b> y <b>Opciones</b>, que se eligen una vez y casi
+nunca se cambian, vienen plegadas; en <b>Opciones</b> el resumen dice lo que se aparta de lo habitual («solo
+verificadas, semilla 42»), o «las habituales» si no hay nada cambiado. <b>Convocatoria</b>, <b>Exámenes</b> y
+<b>Preguntas por tema</b>, que se deciden cada vez, vienen desplegados; plegados, dicen la convocatoria con el año y la
+asignatura («Junio 2026 · …»), los exámenes que se generan, con sus versiones («Nacional Original (A–C), Nacional
+Reserva»), y el total de preguntas con las de cada tema. Pulsando en el título se despliegan o se pliegan, y cómo se
+dejan se recuerda de una vez a otra.</p>
 <p>Los menús reúnen lo demás: <i>Archivo</i> (abrir y crear bancos, importar y exportar, historial de
 convocatorias), <i>Editar</i> (temas, nueva pregunta, revisión del estilo) y <i>Ayuda</i>.</p>
 <p>Las instrucciones, lo que va en la cabecera y en el pie de página, la lista de exámenes, las opciones, la puntuación
@@ -143,7 +146,8 @@ va en la cabecera, en el pie de cada página y en el nombre de los ficheros que 
 febrero, junio y septiembre cuyo mes aún no ha llegado: de septiembre a enero, la de febrero; de febrero a mayo, la
 de junio; y de junio a agosto, la de septiembre. Si prepara otra, cámbielas.</li>
 <li><b>Instrucciones</b>: el texto del recuadro de instrucciones que hay bajo la cabecera. Debajo de él se añade la
-puntuación, en una línea. Si un examen no cabe en su página, acortar las instrucciones ayuda.</li>
+puntuación, en una línea. Si un examen no cabe en su página, acortar las instrucciones ayuda. El campo es tan alto como
+el texto, de 3 a 8 líneas; con más, se desplaza.</li>
 <li><b>Cabecera</b> y <b>Pie de página</b>: si van la asignatura y la convocatoria con el año arriba, en la cabecera de
 cada examen (y de la hoja de soluciones), y abajo, en el pie de cada página, junto al nombre del examen y el número de
 página (en el PDF, el LaTeX y el Word): «Asignatura · Nacional Original · Junio 2026: 1 / 2». Están marcadas
@@ -221,8 +225,9 @@ preguntas distintas hay: las variantes a, b, c… de una pregunta cuentan como u
 puede salir una de ellas (ver <a href="#codigos">Códigos, variantes y pseudorrepetidas</a>). Las anuladas y las
 obsoletas no cuentan, y las marcadas para revisar tampoco si no está marcada la opción «Incluir preguntas marcadas
 para revisar».</p>
-<p>Debajo están los botones de los repartos habituales de la asignatura, que se guardan en el banco: cada uno pone
-el número de preguntas de cada tema (dejando el ratón sobre él se ve cuántas). <b>Ninguna</b> pone todos los temas a 0.
+<p>Debajo, tras «Repartos guardados:», están los botones de los repartos habituales de la asignatura, que se guardan en
+el banco: cada uno pone en las casillas el número de preguntas de cada tema (dejando el ratón sobre él se ve cuántas),
+y el del reparto que hay puesto se ve pulsado. <b>Poner a 0</b>, junto al total, pone todos los temas a 0.
 Por ejemplo, los de un banco de ocho temas que se examina en dos partes podrían ser estos:</p>
 <table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
 <tr><th align="left">Botón</th><th align="left">Reparto</th></tr>

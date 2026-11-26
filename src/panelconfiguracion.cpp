@@ -26,18 +26,22 @@
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QResizeEvent>
 #include <QRadioButton>
 #include <QSettings>
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QStyledItemDelegate>
+#include <QTextBlock>
+#include <QTextLayout>
 #include <QVBoxLayout>
+#include <QtMath>
 #include <algorithm>
 
 namespace {
 
 // Botones de reparto por fila.
-constexpr int kRepartosPorFila = 4;
+constexpr int kRepartosPorFila = 3;   // detrás de su etiqueta, «Repartos guardados:»
 
 // Lo que pone un reparto, para su botón: «T1: 3, T2: 2, T3: 3, T4: 2 (10 preguntas)».
 QString describirReparto(const QMap<int, int> &reparto)
@@ -118,6 +122,90 @@ const QString kClaveExamenesMarcados = QStringLiteral("examenes/marcados");
 const QString kClaveExamenesVersiones = QStringLiteral("examenes/versiones");   // nombre -> versiones (si más de una)
 constexpr int kRolVersiones = Qt::UserRole + 1;   // de cada examen de la lista
 
+// Las versiones de un examen de la lista que tiene 'n', «(A–C)»; vacío si no tiene.
+QString textoVersiones(int n, bool conNumeros)
+{
+    return n > 1 ? QStringLiteral("(%1–%2)").arg(Generador::etiquetaVersion(0, conNumeros),
+                                                 Generador::etiquetaVersion(n - 1, conNumeros))
+                 : QString();
+}
+
+// Campo de texto de varias líneas tan alto como su texto, de 3 a 8 líneas (con más, se desplaza), con la letra que
+// tenga, también al ampliar el panel: para las instrucciones, que con un alto fijo no se veían enteras.
+class CampoAjustado : public QPlainTextEdit
+{
+public:
+    explicit CampoAjustado(const QString &texto) : QPlainTextEdit(texto)
+    {
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        connect(this, &QPlainTextEdit::textChanged, this, &CampoAjustado::ajustarAlto);
+        ajustarAlto();
+    }
+
+protected:
+    // Al cambiar el ancho (las líneas se parten en otros sitios) o la letra. Después, no dentro del cambio: el alto que
+    // se le pone dentro del de tamaño no le llega a su vista, que se quedaría con el de antes.
+    void resizeEvent(QResizeEvent *e) override
+    {
+        QPlainTextEdit::resizeEvent(e);
+        if (e->size().width() != e->oldSize().width())
+            pedirAjuste();
+    }
+    void changeEvent(QEvent *e) override
+    {
+        QPlainTextEdit::changeEvent(e);
+        if (e->type() == QEvent::FontChange)
+            pedirAjuste();
+    }
+
+private:
+    static constexpr int kMinLineas = 3;
+    static constexpr int kMaxLineas = 8;
+
+    // Las líneas que ocupa el texto con el ancho que tiene el campo (las largas se parten).
+    int lineasDelTexto() const
+    {
+        const qreal ancho = qMax(qreal(20), viewport()->width() - 2 * document()->documentMargin());
+        int lineas = 0;
+        for (QTextBlock b = document()->begin(); b.isValid(); b = b.next()) {
+            QTextLayout capa(b.text(), font());
+            capa.setTextOption(document()->defaultTextOption());
+            int delBloque = 0;
+            capa.beginLayout();
+            for (QTextLine l = capa.createLine(); l.isValid(); l = capa.createLine()) {
+                l.setLineWidth(ancho);
+                ++delBloque;
+            }
+            capa.endLayout();
+            lineas += qMax(1, delBloque);
+        }
+        return lineas;
+    }
+
+    void pedirAjuste()
+    {
+        if (m_ajustePedido)
+            return;
+        m_ajustePedido = true;
+        QMetaObject::invokeMethod(this, [this]() {
+            m_ajustePedido = false;
+            ajustarAlto();
+        }, Qt::QueuedConnection);
+    }
+
+    bool m_ajustePedido = false;
+
+    void ajustarAlto()
+    {
+        // El alto del texto como lo pone el campo (cada línea, en píxeles enteros; el margen del documento, arriba y
+        // abajo, y uno más, que pide para no desplazarse), más el marco.
+        const int lineas = qBound(kMinLineas, lineasDelTexto(), kMaxLineas);
+        const int texto = lineas * qCeil(QFontMetricsF(font()).lineSpacing()) + qCeil(2 * document()->documentMargin()) + 1;
+        const QMargins vista = viewportMargins();
+        setFixedHeight(texto + 2 * frameWidth() + vista.top() + vista.bottom());
+    }
+};
+
 // Cada examen de la lista: su nombre y, si tiene varias versiones, cuáles («Nacional Original (A–C)»). Solo al verlo:
 // al cambiarle el nombre se edita el nombre.
 class DelegadoExamenes : public QStyledItemDelegate
@@ -132,10 +220,9 @@ protected:
     void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
     {
         QStyledItemDelegate::initStyleOption(option, index);
-        const int n = index.data(kRolVersiones).toInt();
-        if (n > 1)
-            option->text += QStringLiteral("  (%1–%2)").arg(Generador::etiquetaVersion(0, m_conNumeros()),
-                                                            Generador::etiquetaVersion(n - 1, m_conNumeros()));
+        const QString versiones = textoVersiones(index.data(kRolVersiones).toInt(), m_conNumeros());
+        if (!versiones.isEmpty())
+            option->text += QStringLiteral("  ") + versiones;
     }
 
 private:
@@ -154,19 +241,24 @@ PanelConfiguracion::PanelConfiguracion(BaseDatos *bd, QWidget *parent)
     : QWidget(parent), m_bd(bd)
 {
     auto *lc = new QVBoxLayout(this);
-    lc->addWidget(crearGrupoConvocatoria());
-    lc->addWidget(crearGrupoExamenes());
-    lc->addWidget(crearGrupoTemas());
-    // La puntuación y las opciones se eligen una vez y casi nunca se cambian: plegadas, con lo elegido en el título,
-    // dejan a la vista lo que se decide cada vez (la convocatoria, los exámenes y las preguntas por tema).
-    m_plegablePuntuacion = new GrupoPlegable(qobject_cast<QGroupBox *>(crearGrupoPuntuacion()),
-                                             QStringLiteral("vista/plegadoPuntuacion"), true);
-    m_plegablePuntuacion->setObjectName(QStringLiteral("plegablePuntuacion"));
-    m_plegableOpciones = new GrupoPlegable(qobject_cast<QGroupBox *>(crearGrupoOpciones()),
-                                           QStringLiteral("vista/plegadoOpciones"), true);
-    m_plegableOpciones->setObjectName(QStringLiteral("plegableOpciones"));
-    lc->addWidget(m_plegablePuntuacion);
-    lc->addWidget(m_plegableOpciones);
+    // Todos los recuadros se pliegan, con lo elegido en la cabecera, y cómo se dejan se recuerda. La puntuación y las
+    // opciones, que se eligen una vez y casi nunca se cambian, vienen plegadas; lo que se decide cada vez (la
+    // convocatoria, los exámenes y las preguntas por tema), desplegado.
+    auto plegable = [lc](QWidget *grupo, const char *nombre, bool plegado) {
+        auto *p = new GrupoPlegable(qobject_cast<QGroupBox *>(grupo),
+                                    QStringLiteral("vista/plegado%1").arg(QLatin1String(nombre)), plegado);
+        p->setObjectName(QStringLiteral("plegable%1").arg(QLatin1String(nombre)));
+        lc->addWidget(p);
+        return p;
+    };
+    m_plegableConvocatoria = plegable(crearGrupoConvocatoria(), "Convocatoria", false);
+    m_plegableExamenes = plegable(crearGrupoExamenes(), "Examenes", false);
+    m_plegableTemas = plegable(crearGrupoTemas(), "Temas", false);
+    m_plegablePuntuacion = plegable(crearGrupoPuntuacion(), "Puntuacion", true);
+    m_plegableOpciones = plegable(crearGrupoOpciones(), "Opciones", true);
+    resumirConvocatoria();
+    actualizarCuentaExamenes();
+    actualizarTotal();
     resumirPuntuacion();
     resumirOpciones();
     lc->addStretch();
@@ -376,9 +468,12 @@ QWidget *PanelConfiguracion::crearGrupoConvocatoria()
     m_anio = new QSpinBox;
     m_anio->setRange(2000, 2100);
     m_anio->setValue(proxima.anio);
-    m_instrucciones = new QPlainTextEdit(DatosConvocatoria().instrucciones);
-    m_instrucciones->setMaximumHeight(52);
+    m_instrucciones = new CampoAjustado(DatosConvocatoria().instrucciones);
+    m_instrucciones->setObjectName(QStringLiteral("instrucciones"));
     m_instrucciones->setTabChangesFocus(true);
+    connect(m_asignatura, &QLineEdit::textChanged, this, &PanelConfiguracion::resumirConvocatoria);
+    connect(m_convocatoria, &QComboBox::currentTextChanged, this, &PanelConfiguracion::resumirConvocatoria);
+    connect(m_anio, &QSpinBox::valueChanged, this, &PanelConfiguracion::resumirConvocatoria);
     // Qué va arriba (en la cabecera de cada examen y de la hoja de soluciones) y abajo (en el pie de cada página).
     auto casilla = [this](const QString &texto, const QString &descripcion) {
         auto *c = new QCheckBox(texto);
@@ -420,9 +515,20 @@ QWidget *PanelConfiguracion::crearGrupoConvocatoria()
     return gConv;
 }
 
+void PanelConfiguracion::resumirConvocatoria()
+{
+    if (!m_plegableConvocatoria)
+        return;
+    QStringList partes{QStringLiteral("%1 %2").arg(m_convocatoria->currentText().trimmed()).arg(m_anio->value()).trimmed()};
+    if (!m_asignatura->text().trimmed().isEmpty())
+        partes << m_asignatura->text().trimmed();
+    m_plegableConvocatoria->ponerResumen(partes.join(QStringLiteral(" · ")));
+}
+
 QWidget *PanelConfiguracion::crearGrupoExamenes()
 {
-    auto *gExamenes = m_grupoExamenes = new QGroupBox;
+    //: Título del recuadro de la lista de exámenes (modelos) que se generan
+    auto *gExamenes = new QGroupBox(tr("Exámenes"));
     auto *le = new QVBoxLayout(gExamenes);
     m_listaExamenes = new QListWidget;
     m_listaExamenes->setToolTip(tr("Se genera un examen por cada nombre marcado (o uno por cada versión), en este orden.\n"
@@ -491,6 +597,7 @@ QWidget *PanelConfiguracion::crearGrupoExamenes()
                          "«Nacional Original 1», «… 2»…"));
         ln->addWidget(r);
         connect(r, &QRadioButton::toggled, m_listaExamenes->viewport(), qOverload<>(&QWidget::update));
+        connect(r, &QRadioButton::toggled, this, &PanelConfiguracion::actualizarCuentaExamenes);
     }
     fila->addWidget(m_numeracion);
     le->addLayout(fila);
@@ -513,12 +620,13 @@ QWidget *PanelConfiguracion::crearGrupoExamenes()
     connect(modelo, &QAbstractItemModel::rowsInserted, this, &PanelConfiguracion::listaExamenesCambiada);
     connect(modelo, &QAbstractItemModel::rowsRemoved, this, &PanelConfiguracion::listaExamenesCambiada);
     connect(modelo, &QAbstractItemModel::modelReset, this, &PanelConfiguracion::listaExamenesCambiada);
-    actualizarCuentaExamenes();
     return gExamenes;
 }
 
 void PanelConfiguracion::actualizarCuentaExamenes()
 {
+    if (!m_plegableExamenes)
+        return;
     const int total = m_listaExamenes->count();
     int marcados = 0;
     for (int i = 0; i < total; ++i)
@@ -533,7 +641,17 @@ void PanelConfiguracion::actualizarCuentaExamenes()
     if (examenes != marcados)
         //: Se añade al título del recuadro de la lista de exámenes (con el espacio delante) si alguno tiene versiones
         titulo += tr(" Con sus versiones, %1 exámenes.").arg(examenes);
-    m_grupoExamenes->setTitle(titulo);
+    m_plegableExamenes->ponerTituloDesplegado(titulo);
+    QStringList generados;
+    for (int i = 0; i < m_listaExamenes->count(); ++i) {
+        const QListWidgetItem *item = m_listaExamenes->item(i);
+        if (item->checkState() != Qt::Checked)
+            continue;
+        const QString versiones = textoVersiones(item->data(kRolVersiones).toInt(), versionesConNumeros());
+        generados << (versiones.isEmpty() ? item->text().trimmed() : item->text().trimmed() + QLatin1Char(' ') + versiones);
+    }
+    //: Resumen del recuadro plegado de la lista de exámenes, si no hay ninguno marcado
+    m_plegableExamenes->ponerResumen(generados.isEmpty() ? tr("ninguno marcado") : generados.join(QStringLiteral(", ")));
 }
 
 QWidget *PanelConfiguracion::crearGrupoTemas()
@@ -549,6 +667,11 @@ QWidget *PanelConfiguracion::crearGrupoTemas()
     auto *pie = new QHBoxLayout;
     m_total = new QLabel;
     pie->addWidget(m_total, 1);
+    //: Botón: pone a 0 el número de preguntas de todos los temas
+    auto *aCero = new QPushButton(tr("Poner a 0"));
+    aCero->setToolTip(tr("Pone todos los temas a 0"));
+    connect(aCero, &QPushButton::clicked, this, [this]() { aplicarReparto({}); });
+    pie->addWidget(aCero);
     auto *guardar = new QPushButton(tr("Guardar reparto…"));
     guardar->setToolTip(tr("Guarda en el banco el número de preguntas de cada tema que hay ahora, con un nombre: "
                            "sale un botón que lo pone"));
@@ -886,26 +1009,45 @@ void PanelConfiguracion::reconstruirRepartos()
         }
         delete item;
     }
+    m_botonesReparto.clear();
+    const QVector<Reparto> repartos = m_bd->repartos();
+    if (repartos.isEmpty())
+        return;
+    // Delante, qué son: sin ella, un botón «20 preguntas» no dice que pone las preguntas de cada tema.
+    auto *etiqueta = new QLabel(tr("Repartos guardados:"));
+    etiqueta->setToolTip(tr("Repartos guardados en el banco: cada botón pone en las casillas de los temas su número de "
+                            "preguntas, y el del reparto que hay puesto se ve pulsado.\n"
+                            "Se crean con «Guardar reparto…»; con el botón derecho sobre uno, se sustituye o se quita."));
+    m_rejillaRepartos->addWidget(etiqueta, 0, 0, Qt::AlignLeft | Qt::AlignVCenter);
     int n = 0;
-    auto anadir = [this, &n](QPushButton *b) {
-        m_rejillaRepartos->addWidget(b, n / kRepartosPorFila, n % kRepartosPorFila);
-        ++n;
-    };
-    for (const Reparto &r : m_bd->repartos()) {
+    for (const Reparto &r : repartos) {
         auto *b = new QPushButton(r.nombre);
+        b->setCheckable(true);
         //: %1 es el reparto: «T1: 3, T2: 2 (5 preguntas)»
-        b->setToolTip(tr("%1\nBotón derecho: sustituirlo o quitarlo").arg(describirReparto(r.preguntas)));
-        connect(b, &QPushButton::clicked, this, [this, preguntas = r.preguntas]() { aplicarReparto(preguntas); });
+        b->setToolTip(tr("Pone en las casillas de los temas: %1\nBotón derecho: sustituirlo o quitarlo")
+                          .arg(describirReparto(r.preguntas)));
+        connect(b, &QPushButton::clicked, this, [this, preguntas = r.preguntas]() {
+            aplicarReparto(preguntas);
+            marcarRepartoPuesto();   // si ya estaba puesto, las casillas no cambian, pero el botón se ha soltado
+        });
         b->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(b, &QPushButton::customContextMenuRequested, this,
                 [this, b, nombre = r.nombre](const QPoint &donde) { menuReparto(nombre, b->mapToGlobal(donde)); });
-        anadir(b);
+        m_rejillaRepartos->addWidget(b, n / kRepartosPorFila, 1 + n % kRepartosPorFila);
+        m_botonesReparto.append({b, r.preguntas});
+        ++n;
     }
-    //: Botón de reparto: ninguna pregunta de ningún tema (pone todos los temas a 0)
-    auto *ninguna = new QPushButton(tr("Ninguna"));
-    ninguna->setToolTip(tr("Poner todos los temas a 0"));
-    connect(ninguna, &QPushButton::clicked, this, [this]() { aplicarReparto({}); });
-    anadir(ninguna);
+    marcarRepartoPuesto();
+}
+
+void PanelConfiguracion::marcarRepartoPuesto()
+{
+    const QMap<int, int> puesto = repartoActual();
+    for (const auto &[boton, preguntas] : std::as_const(m_botonesReparto)) {
+        QMap<int, int> sinCeros = preguntas;
+        sinCeros.removeIf([](auto it) { return it.value() <= 0; });
+        boton->setChecked(!puesto.isEmpty() && sinCeros == puesto);
+    }
 }
 
 void PanelConfiguracion::menuReparto(const QString &nombre, const QPoint &donde)
@@ -977,9 +1119,17 @@ void PanelConfiguracion::guardarReparto()
 void PanelConfiguracion::actualizarTotal()
 {
     int total = 0;
-    for (QSpinBox *s : std::as_const(m_cantidades))
-        total += s->value();
+    QStringList temas;
+    for (auto it = m_cantidades.cbegin(); it != m_cantidades.cend(); ++it) {
+        total += it.value()->value();
+        if (it.value()->value() > 0)
+            temas << QStringLiteral("T%1: %2").arg(it.key()).arg(it.value()->value());
+    }
     m_total->setText(tr("<b>Total: %1 preguntas</b>").arg(total));
+    if (m_plegableTemas)
+        //: Resumen del recuadro plegado de las preguntas por tema: %1 es el total y %2, las de cada tema («T1: 3, T2: 2»)
+        m_plegableTemas->ponerResumen(total == 0 ? tr("ninguna pregunta") : tr("%1 preguntas (%2)").arg(total).arg(temas.join(QStringLiteral(", "))));
+    marcarRepartoPuesto();
     actualizarPuntuacion();
 }
 

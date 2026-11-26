@@ -647,9 +647,8 @@ private slots:
         QCOMPARE(asignatura->text(), QStringLiteral("Asignatura inventada"));
         auto casillas = [&v]() {
             QList<QSpinBox *> res;
-            for (QGroupBox *g : v.findChildren<QGroupBox *>())
-                if (g->title() == QStringLiteral("Preguntas por tema"))
-                    res = g->findChildren<QSpinBox *>();
+            if (auto *temas = v.findChild<GrupoPlegable *>(QStringLiteral("plegableTemas")))
+                res = temas->findChildren<QSpinBox *>();
             return res;
         };
         auto valores = [&casillas]() {
@@ -667,12 +666,23 @@ private slots:
         QCOMPARE(valores(), (QList<int>{1, 2, 3, 4}));
         QVERIFY(!QSettings().contains(QStringLiteral("examen/temas")));
 
-        // Los botones de reparto son los del banco, más «Ninguna».
+        // Los botones de reparto son los del banco; «Poner a 0» los pone todos a 0.
         QVERIFY(boton(QStringLiteral("Primeros")));
+        QVERIFY(conTexto<QLabel>(&v, QStringLiteral("Repartos guardados:")));
+        QVERIFY(!boton(QStringLiteral("Primeros"))->isChecked());
         boton(QStringLiteral("Primeros"))->click();
         QCOMPARE(valores(), (QList<int>{2, 1, 0, 0}));
-        boton(QStringLiteral("Ninguna"))->click();
+        // El del reparto que hay puesto se ve pulsado, también si se pulsa otra vez; al cambiar un tema, ya no.
+        QVERIFY(boton(QStringLiteral("Primeros"))->isChecked());
+        boton(QStringLiteral("Primeros"))->click();
+        QVERIFY(boton(QStringLiteral("Primeros"))->isChecked());
+        casillas().at(3)->setValue(1);
+        QVERIFY(!boton(QStringLiteral("Primeros"))->isChecked());
+        casillas().at(3)->setValue(0);
+        QVERIFY(boton(QStringLiteral("Primeros"))->isChecked());
+        boton(QStringLiteral("Poner a 0"))->click();
         QCOMPARE(valores(), (QList<int>{0, 0, 0, 0}));
+        QVERIFY(!boton(QStringLiteral("Primeros"))->isChecked());
         QString aviso;
         responder(QStringLiteral("OK"), &aviso);
         boton(QStringLiteral("Guardar reparto…"))->click();   // sin preguntas, no hay nada que guardar
@@ -684,7 +694,7 @@ private slots:
         boton(QStringLiteral("Guardar reparto…"))->click();
         QVERIFY(boton(QStringLiteral("T1–T3")));
         QVERIFY(boton(QStringLiteral("Primeros")));
-        boton(QStringLiteral("Ninguna"))->click();
+        boton(QStringLiteral("Poner a 0"))->click();
         boton(QStringLiteral("T1–T3"))->click();
         QCOMPARE(valores(), (QList<int>{2, 1, 3, 0}));
 
@@ -707,7 +717,8 @@ private slots:
         QVERIFY(asignatura->text().isEmpty());
         QCOMPARE(valores(), (QList<int>{0, 0, 0}));
         QVERIFY(!boton(QStringLiteral("Primeros")));
-        QVERIFY(boton(QStringLiteral("Ninguna")));
+        QVERIFY(!conTexto<QLabel>(&v, QStringLiteral("Repartos guardados:")));   // sin repartos, ni su etiqueta
+        QVERIFY(boton(QStringLiteral("Poner a 0")));
         casillas().at(0)->setValue(5);
         QVERIFY(v.abrirBaseDatos(primero));
         QCOMPARE(valores(), (QList<int>{2, 1, 3, 0}));
@@ -822,13 +833,10 @@ private slots:
         QVERIFY(v.abrirBancoInicial(dir.filePath(QStringLiteral("banco.db"))));
         QListWidget *lista = nullptr;
         QList<QPushButton *> botones;
-        QGroupBox *grupo = nullptr;
-        for (QGroupBox *g : v.findChildren<QGroupBox *>())
-            if (g->title().startsWith(QStringLiteral("Exámenes:"))) {
-                grupo = g;
-                lista = g->findChild<QListWidget *>();
-                botones = g->findChildren<QPushButton *>();
-            }
+        auto *grupo = v.findChild<GrupoPlegable *>(QStringLiteral("plegableExamenes"));
+        QVERIFY(grupo);
+        lista = grupo->findChild<QListWidget *>();
+        botones = grupo->findChildren<QPushButton *>();
         QVERIFY(lista);
         QCOMPARE(botones.size(), 6);   // Añadir, Quitar, Todos, Ninguno, Subir y Bajar
 
@@ -871,18 +879,18 @@ private slots:
             return marcados == 1 ? QStringLiteral("Exámenes: 1 modelo de %1 seleccionado.").arg(total)
                                  : QStringLiteral("Exámenes: %1 modelos de %2 seleccionados.").arg(marcados).arg(total);
         };
-        QCOMPARE(grupo->title(), titulo(marcados(), examenes));
+        QCOMPARE(grupo->textoCabecera(), titulo(marcados(), examenes));
         usar(Qt::Key_N);
         QTRY_COMPARE(marcados(), 0);
-        QCOMPARE(grupo->title(), titulo(0, examenes));
+        QCOMPARE(grupo->textoCabecera(), titulo(0, examenes));
         lista->item(0)->setCheckState(Qt::Checked);
-        QCOMPARE(grupo->title(), titulo(1, examenes));
+        QCOMPARE(grupo->textoCabecera(), titulo(1, examenes));
         usar(Qt::Key_T);
         QTRY_COMPARE(marcados(), examenes);
-        QCOMPARE(grupo->title(), titulo(examenes, examenes));
+        QCOMPARE(grupo->textoCabecera(), titulo(examenes, examenes));
         usar(Qt::Key_D);
         QTRY_COMPARE(lista->count(), examenes + 1);
-        QCOMPARE(grupo->title(), titulo(examenes + 1, examenes + 1));
+        QCOMPARE(grupo->textoCabecera(), titulo(examenes + 1, examenes + 1));
         QTest::keyClick(QApplication::focusWidget(), Qt::Key_Escape);   // deja el nombre que se propone
         QCOMPARE(lista->currentRow(), examenes);
         // La confirmación sale al pulsarse el botón, un momento después de la tecla: se responde cuando aparece.
@@ -896,7 +904,7 @@ private slots:
         espera.start(20);
         usar(Qt::Key_Q);
         QTRY_COMPARE(lista->count(), examenes);
-        QCOMPARE(grupo->title(), titulo(examenes, examenes));
+        QCOMPARE(grupo->textoCabecera(), titulo(examenes, examenes));
 
         // Bajar y Subir mueven el elegido (en el primero no sube y en el último no baja). Los atajos solo van con la
         // ventana activa, y la confirmación de Quitar se ha llevado la activación.
@@ -1781,12 +1789,9 @@ private slots:
         QTemporaryDir dir;
         const QString ruta = dir.filePath(QStringLiteral("banco.db"));
         QVERIFY(crearBancoInventado(ruta));
-        auto controles = [](VentanaPrincipal &v, QListWidget *&lista, QSpinBox *&versiones, QGroupBox *&grupo) {
-            for (QGroupBox *g : v.findChildren<QGroupBox *>())
-                if (g->title().startsWith(QStringLiteral("Exámenes:"))) {
-                    grupo = g;
-                    lista = g->findChild<QListWidget *>();
-                }
+        auto controles = [](VentanaPrincipal &v, QListWidget *&lista, QSpinBox *&versiones, GrupoPlegable *&grupo) {
+            grupo = v.findChild<GrupoPlegable *>(QStringLiteral("plegableExamenes"));
+            lista = grupo ? grupo->findChild<QListWidget *>() : nullptr;
             for (QLabel *l : v.findChildren<QLabel *>())
                 if (l->text() == QStringLiteral("Versiones:"))
                     versiones = qobject_cast<QSpinBox *>(l->buddy());
@@ -1797,7 +1802,7 @@ private slots:
             QVERIFY(v.abrirBancoInicial(ruta));
             QListWidget *lista = nullptr;
             QSpinBox *versiones = nullptr;
-            QGroupBox *grupo = nullptr;
+            GrupoPlegable *grupo = nullptr;
             controles(v, lista, versiones, grupo);
             QVERIFY(lista && versiones && grupo);
             QCOMPARE(lista->item(0)->text(), QStringLiteral("Nacional Original"));
@@ -1805,7 +1810,8 @@ private slots:
             QVERIFY(versiones->isEnabled());
             QCOMPARE(versiones->value(), 1);
             versiones->setValue(3);
-            QVERIFY2(grupo->title().endsWith(QStringLiteral(" Con sus versiones, 4 exámenes.")), qPrintable(grupo->title()));
+            QVERIFY2(grupo->textoCabecera().endsWith(QStringLiteral(" Con sus versiones, 4 exámenes.")),
+                     qPrintable(grupo->textoCabecera()));
             lista->setCurrentRow(1);
             QCOMPARE(versiones->value(), 1);   // el de cada examen
             QVERIFY(marcar(&v, QStringLiteral("Versión")));
@@ -1834,7 +1840,7 @@ private slots:
         QVERIFY(v.abrirBancoInicial(ruta));
         QListWidget *lista = nullptr;
         QSpinBox *versiones = nullptr;
-        QGroupBox *grupo = nullptr;
+        GrupoPlegable *grupo = nullptr;
         controles(v, lista, versiones, grupo);
         QVERIFY(lista && versiones);
         lista->setCurrentRow(0);
@@ -1892,9 +1898,7 @@ private slots:
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
         QListWidget *lista = nullptr;
-        for (QGroupBox *g : v.findChildren<QGroupBox *>())
-            if (g->title().startsWith(QStringLiteral("Exámenes:")))
-                lista = g->findChild<QListWidget *>();
+        lista = v.findChild<GrupoPlegable *>(QStringLiteral("plegableExamenes"))->findChild<QListWidget *>();
         QSpinBox *versiones = nullptr;
         for (QLabel *l : v.findChildren<QLabel *>())
             if (l->text() == QStringLiteral("Versiones:"))
@@ -1946,9 +1950,7 @@ private slots:
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
         QListWidget *lista = nullptr;
-        for (QGroupBox *g : v.findChildren<QGroupBox *>())
-            if (g->title().startsWith(QStringLiteral("Exámenes:")))
-                lista = g->findChild<QListWidget *>();
+        lista = v.findChild<GrupoPlegable *>(QStringLiteral("plegableExamenes"))->findChild<QListWidget *>();
         QSpinBox *versiones = nullptr;
         for (QLabel *l : v.findChildren<QLabel *>())
             if (l->text() == QStringLiteral("Versiones:"))
@@ -1980,9 +1982,7 @@ private slots:
         v.show();
         QVERIFY(v.abrirBancoInicial(ruta));
         QListWidget *lista = nullptr;
-        for (QGroupBox *g : v.findChildren<QGroupBox *>())
-            if (g->title().startsWith(QStringLiteral("Exámenes:")))
-                lista = g->findChild<QListWidget *>();
+        lista = v.findChild<GrupoPlegable *>(QStringLiteral("plegableExamenes"))->findChild<QListWidget *>();
         QSpinBox *versiones = nullptr;
         for (QLabel *l : v.findChildren<QLabel *>())
             if (l->text() == QStringLiteral("Versiones:"))
@@ -2594,6 +2594,107 @@ private slots:
         VentanaPrincipal otra;
         QVERIFY(!otra.findChild<GrupoPlegable *>(QStringLiteral("plegableOpciones"))->plegado());
         QVERIFY(otra.findChild<GrupoPlegable *>(QStringLiteral("plegablePuntuacion"))->plegado());
+        QSettings().clear();
+    }
+
+    // La convocatoria, la lista de exámenes y las preguntas por tema, que se deciden cada vez, vienen desplegadas, pero
+    // también se pliegan, con lo elegido en la cabecera; cómo se dejan se recuerda.
+    void ventanaPliegaLosRecuadros()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        QSettings().clear();
+        {
+            VentanaPrincipal v;
+            v.resize(1200, 800);
+            v.show();
+            QVERIFY(v.abrirBancoInicial(ruta));
+            auto *convocatoria = v.findChild<GrupoPlegable *>(QStringLiteral("plegableConvocatoria"));
+            auto *examenes = v.findChild<GrupoPlegable *>(QStringLiteral("plegableExamenes"));
+            auto *temas = v.findChild<GrupoPlegable *>(QStringLiteral("plegableTemas"));
+            QVERIFY(convocatoria && examenes && temas);
+            QVERIFY(!convocatoria->plegado() && !examenes->plegado() && !temas->plegado());
+            QCOMPARE(convocatoria->textoCabecera(), QStringLiteral("Convocatoria"));
+            QCOMPARE(examenes->textoCabecera(), QStringLiteral("Exámenes: 2 modelos de 2 seleccionados."));
+            QCOMPARE(temas->textoCabecera(), QStringLiteral("Preguntas por tema"));
+            for (GrupoPlegable *g : {convocatoria, examenes, temas})
+                g->findChild<QToolButton *>(QString(), Qt::FindDirectChildrenOnly)->click();
+            QVERIFY(convocatoria->plegado() && examenes->plegado() && temas->plegado());
+            QVERIFY(!examenes->findChild<QListWidget *>()->isVisible());
+
+            // Plegados, con lo elegido.
+            auto *asignatura = convocatoria->findChild<QLineEdit *>();
+            asignatura->setText(QStringLiteral("Asignatura inventada"));
+            for (QComboBox *c : convocatoria->findChildren<QComboBox *>())
+                if (c->isEditable())   // la de la convocatoria (la del idioma no se escribe)
+                    c->setCurrentText(QStringLiteral("Junio"));
+            auto *anio = convocatoria->findChild<QSpinBox *>();
+            anio->setValue(2030);
+            QCOMPARE(convocatoria->textoCabecera(), QStringLiteral("Convocatoria: Junio 2030 · Asignatura inventada"));
+            QCOMPARE(examenes->textoCabecera(), QStringLiteral("Exámenes: Nacional Original, Nacional Reserva"));
+            auto *lista = examenes->findChild<QListWidget *>();
+            lista->item(0)->setData(Qt::UserRole + 1, 3);   // tres versiones
+            QCOMPARE(examenes->resumen(), QStringLiteral("Nacional Original (A–C), Nacional Reserva"));
+            lista->item(0)->setCheckState(Qt::Unchecked);
+            lista->item(1)->setCheckState(Qt::Unchecked);
+            QCOMPARE(examenes->resumen(), QStringLiteral("ninguno marcado"));
+            QCOMPARE(temas->textoCabecera(), QStringLiteral("Preguntas por tema: 10 preguntas (T1: 3, T2: 2, T3: 3, T4: 2)"));
+            QVERIFY(pulsar(temas, QStringLiteral("Poner a 0")));
+            QCOMPARE(temas->resumen(), QStringLiteral("ninguna pregunta"));
+            v.close();
+        }
+        VentanaPrincipal otra;
+        for (const char *nombre : {"plegableConvocatoria", "plegableExamenes", "plegableTemas"})
+            QVERIFY2(otra.findChild<GrupoPlegable *>(QLatin1String(nombre))->plegado(), nombre);
+        QSettings().clear();
+    }
+
+    // El campo de las instrucciones es tan alto como su texto, de 3 a 8 líneas, sin barra de desplazamiento hasta que
+    // no cabe, y crece con la letra al ampliar el panel.
+    void instruccionesTanAltasComoSuTexto()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.resize(1200, 800);
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        auto *campo = v.findChild<QPlainTextEdit *>(QStringLiteral("instrucciones"));
+        QVERIFY(campo);
+        QTest::qWait(50);
+        auto sinDesplazar = [campo]() { return campo->verticalScrollBar()->maximum() == 0; };
+        auto lineas = [campo]() { return campo->viewport()->height() / QFontMetricsF(campo->font()).lineSpacing(); };
+        QVERIFY2(sinDesplazar(), "las de entrada caben");
+        QVERIFY2(lineas() >= 3 && lineas() < 4, qPrintable(QString::number(lineas())));
+        const int deTres = campo->height();
+
+        campo->setPlainText(QStringLiteral("Primera.\nSegunda.\nTercera.\nCuarta.\nQuinta."));
+        QTest::qWait(50);
+        QVERIFY(campo->height() > deTres);
+        QVERIFY(sinDesplazar());
+        QVERIFY2(lineas() >= 5 && lineas() < 6, qPrintable(QString::number(lineas())));
+
+        QStringList muchas;
+        for (int i = 1; i <= 12; ++i)
+            muchas << QStringLiteral("Línea %1.").arg(i);
+        campo->setPlainText(muchas.join(QLatin1Char('\n')));
+        QTest::qWait(50);
+        QVERIFY2(lineas() >= 8 && lineas() < 9, qPrintable(QString::number(lineas())));
+        QVERIFY(!sinDesplazar());   // a partir de 8, se desplaza
+
+        // Con la letra más grande (como al ampliar el panel), sigue cabiendo.
+        campo->setPlainText(DatosConvocatoria::instruccionesPorDefecto(QStringLiteral("es")));
+        QWidget *panel = v.findChild<QScrollArea *>()->widget();
+        QFont letra = panel->font();
+        letra.setPointSizeF(letra.pointSizeF() * 1.5);
+        panel->setFont(letra);
+        QTRY_VERIFY(campo->height() > deTres);
+        QTest::qWait(50);
+        QVERIFY(sinDesplazar());
+        QVERIFY(campo->viewport()->height() <= campo->height());
         QSettings().clear();
     }
 

@@ -2508,7 +2508,7 @@ Do not hand in the question paper.</translation>
 <context>
     <name>GrupoPlegable</name>
     <message>
-        <location filename="../src/grupoplegable.cpp" line="+53"/>
+        <location filename="../src/grupoplegable.cpp" line="+60"/>
         <source>%1: %2</source>
         <extracomment>Cabecera de un grupo plegado: %1 es su título («Puntuación») y %2, el resumen de lo elegido dentro</extracomment>
         <translation>%1: %2</translation>
@@ -2683,7 +2683,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
 <context>
     <name>PanelConfiguracion</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="+356"/>
+        <location filename="../src/panelconfiguracion.cpp" line="+448"/>
         <source>Convocatoria</source>
         <extracomment>Convocatoria de examen (Febrero, Junio, Septiembre…): datos de la cabecera de los exámenes</extracomment>
         <translation>Exam session</translation>
@@ -2704,7 +2704,7 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>Language of the text that the program writes in the exams (suggested instructions, scoring, solutions, exam session months) and in Moodle, and of the style guidelines that are checked. It is saved in the question bank, so each bank keeps the language of its own subject.</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+28"/>
         <location line="+9"/>
         <source>Asignatura</source>
         <extracomment>Casilla: el nombre de la asignatura va en la cabecera (o en el pie) de los exámenes</extracomment>
@@ -2786,7 +2786,13 @@ Marca de la vista del examen tras el número de una pregunta que no han revisado
         <translation>Footer:</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+17"/>
+        <source>Exámenes</source>
+        <extracomment>Título del recuadro de la lista de exámenes (modelos) que se generan</extracomment>
+        <translation>Exams</translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Se genera un examen por cada nombre marcado (o uno por cada versión), en este orden.
 Doble clic para cambiar el nombre; arrastre, o Subir y Bajar, para cambiar el orden.</source>
         <translation>One exam is generated for each ticked name (or one for each version), in this order.
@@ -2889,7 +2895,7 @@ If it has already been generated without them, they can be added without generat
         <translation>How the versions of the exams are named: “Nacional Original A”, “… B”… or “Nacional Original 1”, “… 2”…</translation>
     </message>
     <message>
-        <location line="+37"/>
+        <location line="+39"/>
         <source>Exámenes: 1 modelo de %1 seleccionado.</source>
         <extracomment>Título del recuadro de la lista de exámenes (modelos): cuántos están marcados, los que se generan, de cuántos hay</extracomment>
         <translation>Exams: 1 model of %1 selected.</translation>
@@ -2907,12 +2913,29 @@ If it has already been generated without them, they can be added without generat
         <translation> With their versions, %1 exams.</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+11"/>
+        <source>ninguno marcado</source>
+        <extracomment>Resumen del recuadro plegado de la lista de exámenes, si no hay ninguno marcado</extracomment>
+        <translation>none ticked</translation>
+    </message>
+    <message>
+        <location line="+5"/>
         <source>Preguntas por tema</source>
         <translation>Questions per topic</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
+        <source>Poner a 0</source>
+        <extracomment>Botón: pone a 0 el número de preguntas de todos los temas</extracomment>
+        <translation>Set to 0</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Pone todos los temas a 0</source>
+        <translation>Sets all the topics to 0</translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Guardar reparto…</source>
         <translation>Save distribution…</translation>
     </message>
@@ -3182,26 +3205,27 @@ If empty, different exams come out each time.</translation>
 %1</translation>
     </message>
     <message>
-        <location line="+50"/>
-        <source>%1
-Botón derecho: sustituirlo o quitarlo</source>
-        <extracomment>%1 es el reparto: «T1: 3, T2: 2 (5 preguntas)»</extracomment>
-        <translation>%1
-Right-click: replace or remove it</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Ninguna</source>
-        <extracomment>Botón de reparto: ninguna pregunta de ningún tema (pone todos los temas a 0)</extracomment>
-        <translation>None</translation>
+        <location line="+47"/>
+        <source>Repartos guardados:</source>
+        <translation>Saved distributions:</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Poner todos los temas a 0</source>
-        <translation>Set all topics to 0</translation>
+        <source>Repartos guardados en el banco: cada botón pone en las casillas de los temas su número de preguntas, y el del reparto que hay puesto se ve pulsado.
+Se crean con «Guardar reparto…»; con el botón derecho sobre uno, se sustituye o se quita.</source>
+        <translation>Distributions saved in the bank: each button puts its number of questions in the topic boxes, and the one of the distribution currently set is shown pressed.
+They are created with “Save distribution…”; right-click one to replace or remove it.</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
+        <source>Pone en las casillas de los temas: %1
+Botón derecho: sustituirlo o quitarlo</source>
+        <extracomment>%1 es el reparto: «T1: 3, T2: 2 (5 preguntas)»</extracomment>
+        <translation>Puts in the topic boxes: %1
+Right-click: replace or remove it</translation>
+    </message>
+    <message>
+        <location line="+29"/>
         <source>Sustituir «%1» por el reparto de ahora</source>
         <translation>Replace “%1” with the current distribution</translation>
     </message>
@@ -3258,12 +3282,23 @@ Replace it with this one?</translation>
 %1</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+13"/>
         <source>&lt;b&gt;Total: %1 preguntas&lt;/b&gt;</source>
         <translation>&lt;b&gt;Total: %1 questions&lt;/b&gt;</translation>
     </message>
     <message>
-        <location line="+62"/>
+        <location line="+3"/>
+        <source>ninguna pregunta</source>
+        <extracomment>Resumen del recuadro plegado de las preguntas por tema: %1 es el total y %2, las de cada tema («T1: 3, T2: 2»)</extracomment>
+        <translation>no questions</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 preguntas (%2)</source>
+        <translation>%1 questions (%2)</translation>
+    </message>
+    <message>
+        <location line="+63"/>
         <source>Nuevo examen</source>
         <extracomment>Nombre que se propone para un examen nuevo de la lista (se cambia en el momento)</extracomment>
         <translation>New exam</translation>
@@ -3587,7 +3622,7 @@ Replace it with this one?</translation>
 <context>
     <name>VentanaPrincipal</name>
     <message>
-        <location filename="../src/panelconfiguracion.cpp" line="-1000"/>
+        <location filename="../src/panelconfiguracion.cpp" line="-1146"/>
         <source>%1 (%2 preguntas)</source>
         <extracomment>Texto de un reparto: %1 son los temas y su número de preguntas («T1: 3, T2: 2»), %2 el total</extracomment>
         <translation>%1 (%2 questions)</translation>

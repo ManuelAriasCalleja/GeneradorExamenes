@@ -25,6 +25,7 @@ class QListWidget;
 class QListWidgetItem;
 class QPlainTextEdit;
 class QPoint;
+class QPushButton;
 class QSpinBox;
 
 // El panel izquierdo de la pestaña «Generar examen»: lo que se elige antes de generar. La convocatoria (con la
@@ -95,6 +96,7 @@ signals:
 
 private:
     QWidget *crearGrupoConvocatoria();
+    void resumirConvocatoria();   // la convocatoria y el año, y la asignatura, en la cabecera del recuadro plegado
     QWidget *crearGrupoExamenes();
     QWidget *crearGrupoTemas();
     QWidget *crearGrupoPuntuacion();
@@ -113,6 +115,8 @@ private:
     // Las preguntas de cada tema en el panel (solo los temas con alguna).
     QMap<int, int> repartoActual() const;
     void aplicarReparto(const QMap<int, int> &reparto);
+    // El botón del reparto que hay puesto en las casillas se ve pulsado; los demás, no.
+    void marcarRepartoPuesto();
     void guardarReparto();        // el del panel, como un reparto del banco con nombre (un botón más)
     void actualizarTotal();
     void actualizarPuntuacion();
@@ -121,7 +125,8 @@ private:
     void quitarExamen();
     // Sube (-1) o baja (+1) en la lista el examen elegido.
     void moverExamen(int desplazamiento);
-    // El título del recuadro de la lista de exámenes: «Exámenes: 2 modelos de 3 seleccionados.».
+    // La cabecera del recuadro de la lista de exámenes: desplegado, «Exámenes: 2 modelos de 3 seleccionados.»;
+    // plegado, los que se generan («Exámenes: Nacional Original (A–C), Nacional Reserva»).
     void actualizarCuentaExamenes();
     // Lo que casi nunca se cambia va plegado, con un resumen de lo elegido en la cabecera.
     void resumirPuntuacion();
@@ -153,7 +158,6 @@ private:
     QComboBox *m_convocatoria;
     QSpinBox *m_anio;
     QListWidget *m_listaExamenes;           // nombres de los exámenes; se generan los marcados
-    QGroupBox *m_grupoExamenes;             // su recuadro, que dice cuántos hay marcados
     QSpinBox *m_versiones;                  // las del examen elegido en la lista
     QWidget *m_numeracion;                  // «A, B, C…» o «1, 2, 3…»: un botón de opción por forma (con su «valor»)
     QPlainTextEdit *m_instrucciones;
@@ -167,7 +171,8 @@ private:
     QWidget *m_contenedorTemas;
     QMap<int, QSpinBox *> m_cantidades;     // número de tema -> preguntas
     QMap<int, int> m_cantidadesGuardadas;
-    QGridLayout *m_rejillaRepartos;         // botones de los repartos del banco y «Ninguna»
+    QGridLayout *m_rejillaRepartos;         // los botones de los repartos del banco, con su etiqueta
+    QVector<QPair<QPushButton *, QMap<int, int>>> m_botonesReparto;   // cada uno, con su reparto
     QLabel *m_total;
     QWidget *m_puntuacion;                  // los botones de las formas de puntuar (DatosConvocatoria::Puntuacion)
     QButtonGroup *m_formasPuntuacion;       // los mismos, con la forma como id
@@ -184,6 +189,10 @@ private:
     QCheckBox *m_limitarPaginas;            // compactar la maqueta para que quepa en una página por cada 10 preguntas
     QCheckBox *m_enunciadoEnCursiva;        // si no, los enunciados van solo en negrita
     QLineEdit *m_semilla;
+    // Los recuadros, plegables: plegados, con lo elegido en la cabecera.
+    GrupoPlegable *m_plegableConvocatoria = nullptr;
+    GrupoPlegable *m_plegableExamenes = nullptr;
+    GrupoPlegable *m_plegableTemas = nullptr;
     GrupoPlegable *m_plegablePuntuacion = nullptr;
     GrupoPlegable *m_plegableOpciones = nullptr;
 };
