@@ -1,7 +1,7 @@
 # Prepara el paquete de macOS (el objetivo «paquete» de CMakeLists.txt): copia la aplicación, le añade las bibliotecas
 # de Qt con macdeployqt, la firma «ad hoc» (no es la firma de Apple, pero los Mac con procesador Apple no abren un
-# programa sin ninguna) y la mete en un .dmg con el LEEME y un enlace a Aplicaciones.
-# Recibe APP, MACDEPLOYQT, TRADUCCIONES_QT, LEEME, PAQUETE y DMG.
+# programa sin ninguna) y la mete en un .dmg con el LEEME, las licencias y un enlace a Aplicaciones.
+# Recibe APP, MACDEPLOYQT, TRADUCCIONES_QT, LEEME, LICENCIAS, PAQUETE y DMG.
 
 function(ejecutar)
     execute_process(COMMAND ${ARGN} RESULT_VARIABLE resultado)
@@ -30,6 +30,11 @@ endforeach()
 file(GLOB traducciones "${TRADUCCIONES_QT}/qtbase_es.qm" "${TRADUCCIONES_QT}/qt_es.qm")
 file(COPY ${traducciones} DESTINATION "${copia}/Contents/Resources/translations")
 file(APPEND "${copia}/Contents/Resources/qt.conf" "\nTranslations = Resources/translations\n")
+
+# Los avisos y textos de las licencias (los de Qt), dentro de la aplicación, para que vayan con ella al copiarla a
+# Aplicaciones, y junto a ella en el .dmg.
+file(COPY "${LICENCIAS}/" DESTINATION "${copia}/Contents/Resources/licencias")
+file(COPY "${LICENCIAS}/" DESTINATION "${PAQUETE}/Licencias")
 
 # Después de cambiar la aplicación: cualquier cambio posterior invalidaría la firma.
 ejecutar(codesign --force --deep --sign - "${copia}")

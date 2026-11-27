@@ -1,0 +1,4 @@
+#!/bin/sh
+# Abre el programa, que está en bin/ con sus bibliotecas en lib/.
+DIR=$(dirname "$(readlink -f "$0")")
+exec "$DIR/bin/GeneradorExamenes" "$@"

@@ -3,6 +3,10 @@ Generador de exámenes tipo test
 
 Necesita macOS 13 o posterior, en un Mac con procesador Apple o Intel.
 
+AVISO: esta versión para macOS se compila y pasa las pruebas automáticas en un Mac de GitHub, pero nadie la ha
+probado todavía en un Mac de verdad. Si algo no funciona, avise en
+https://github.com/ManuelAriasCalleja/GeneradorExamenes/issues.
+
 1. Arrastre GeneradorExamenes a la carpeta Aplicaciones.
 
 2. Ábralo. Como el programa no lleva la firma de pago de Apple, la primera vez macOS no lo deja abrir: cierre el
@@ -18,11 +22,17 @@ Necesita macOS 13 o posterior, en un Mac con procesador Apple o Intel.
 La ruta del último banco abierto y las opciones se guardan en ~/.config/UNED/GeneradorExamenes.ini.
 Para pasar a una versión nueva, sustituya la aplicación por la nueva: la configuración se conserva.
 
+El programa usa Qt, con la licencia LGPL v3: los avisos y los textos de las licencias están en la carpeta Licencias
+(y dentro de la aplicación, en Contents/Resources/licencias).
+
 English
 -------
-Requires macOS 13 or later, on an Apple or Intel Mac. Drag GeneradorExamenes to the Applications folder and open it.
-The program does not carry Apple's paid signature, so macOS blocks it the first time: close the warning, go to
-System Settings → Privacy & Security, scroll down to Security and click "Open Anyway". The program asks for a
-question bank (a .db file) or creates a new one; no questions come with it. It starts in the language of the system
-if it is English or Spanish; to change it, use Editar → Idioma (Edit → Language). Keyboard shortcuts use Cmd where
-the manual says Ctrl.
+Requires macOS 13 or later, on an Apple or Intel Mac. WARNING: this macOS version is built and passes the automatic
+tests on a GitHub Mac, but nobody has tried it on a real Mac yet; if something does not work, please report it at
+https://github.com/ManuelAriasCalleja/GeneradorExamenes/issues. Drag GeneradorExamenes to the Applications folder
+and open it. The program does not carry Apple's paid signature, so macOS blocks it the first time: close the
+warning, go to System Settings → Privacy & Security, scroll down to Security and click "Open Anyway". The program
+asks for a question bank (a .db file) or creates a new one; no questions come with it. It starts in the language of
+the system if it is English or Spanish; to change it, use Editar → Idioma (Edit → Language). Keyboard shortcuts use
+Cmd where the manual says Ctrl. The program uses Qt, under the LGPL v3: the license notices and texts are in the
+Licencias folder (and inside the application, in Contents/Resources/licencias).

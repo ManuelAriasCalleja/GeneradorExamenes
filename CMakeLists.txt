@@ -26,6 +26,14 @@ find_package(Qt6 6.2 COMPONENTS Pdf)    # opcional: leer los PDF de los exámene
 qt_standard_project_setup()
 include(GNUInstallDirs)
 
+# Avisos y textos de las licencias, que van en la carpeta «licencias» de los tres paquetes: Qt se distribuye con la
+# LGPL v3, que pide decirlo y acompañar su texto (y el de la GPL v3, que completa). El LEEME lleva la versión de Qt con
+# la que se compila. Los paquetes añaden, en «licencias/terceros», las licencias de las demás bibliotecas que llevan.
+set(LICENCIAS ${CMAKE_BINARY_DIR}/licencias)
+configure_file(licencias/LEEME.txt.in ${LICENCIAS}/LEEME.txt @ONLY)
+configure_file(licencias/LGPL-3.0.txt ${LICENCIAS}/LGPL-3.0.txt COPYONLY)
+configure_file(licencias/GPL-3.0.txt ${LICENCIAS}/GPL-3.0.txt COPYONLY)
+
 # Todo el programa salvo main.cpp, en una biblioteca que comparten el ejecutable y las pruebas.
 qt_add_library(nucleo STATIC
     src/pregunta.h src/pregunta.cpp
@@ -151,10 +159,19 @@ if(WIN32)
         message(WARNING "No se encuentra windeployqt: no se podrá preparar el paquete de Windows.")
     endif()
     # Bibliotecas del compilador: con MinGW, las de su carpeta; con Visual Studio, las que da CMake.
+    set(copiar_licencias_compilador)
     if(MINGW)
         get_filename_component(bin_compilador "${CMAKE_CXX_COMPILER}" DIRECTORY)
         file(GLOB bibliotecas_compilador "${bin_compilador}/libgcc_s_*.dll" "${bin_compilador}/libstdc++-6.dll"
                                          "${bin_compilador}/libwinpthread-1.dll")
+        # Sus licencias (las de GCC, mingw-w64 y winpthreads), si las trae el MinGW, como el del instalador de Qt.
+        get_filename_component(raiz_compilador "${bin_compilador}" DIRECTORY)
+        if(IS_DIRECTORY "${raiz_compilador}/licenses")
+            set(copiar_licencias_compilador COMMAND ${CMAKE_COMMAND} -E copy_directory "${raiz_compilador}/licenses"
+                                                    paquete/GeneradorExamenes/licencias/terceros/mingw)
+        else()
+            message(WARNING "El MinGW no trae sus licencias (${raiz_compilador}/licenses): el paquete de Windows irá sin ellas.")
+        endif()
     else()
         set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
         include(InstallRequiredSystemLibraries)
@@ -166,9 +183,10 @@ if(WIN32)
     else()
         message(WARNING "No se encuentran las bibliotecas del compilador: el paquete de Windows no funcionaría en otro ordenador.")
     endif()
-    # Instalación (la de compilar.ps1): el programa, en la carpeta de destino sin subcarpetas, con las bibliotecas
-    # de Qt que copia windeployqt y las del compilador, como en el paquete.
+    # Instalación (la de compilar.ps1): el programa, en la carpeta de destino, con las bibliotecas de Qt que copia
+    # windeployqt, las del compilador y la carpeta de las licencias, como en el paquete.
     install(TARGETS GeneradorExamenes RUNTIME DESTINATION .)
+    install(DIRECTORY ${LICENCIAS}/ DESTINATION licencias)
     if(bibliotecas_compilador)
         install(FILES ${bibliotecas_compilador} DESTINATION .)
     endif()
@@ -194,6 +212,8 @@ if(WIN32)
         COMMAND ${WINDEPLOYQT} $<IF:$<CONFIG:Debug>,--debug,--release> --no-compiler-runtime --no-opengl-sw
                 --no-system-d3d-compiler --translations es paquete/GeneradorExamenes/$<TARGET_FILE_NAME:GeneradorExamenes>
         ${copiar_bibliotecas_compilador}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LICENCIAS} paquete/GeneradorExamenes/licencias
+        ${copiar_licencias_compilador}
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/recursos/LEEME_windows.txt paquete/GeneradorExamenes/LEEME.txt
         COMMAND ${CMAKE_COMMAND} -E chdir paquete ${CMAKE_COMMAND} -E tar cf ../${zip} --format=zip GeneradorExamenes
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -247,6 +267,7 @@ if(APPLE)
                 -DMACDEPLOYQT=${MACDEPLOYQT}
                 -DTRADUCCIONES_QT=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_TRANSLATIONS}
                 -DLEEME=${CMAKE_CURRENT_SOURCE_DIR}/recursos/LEEME_macos.txt
+                -DLICENCIAS=${LICENCIAS}
                 -DPAQUETE=${CMAKE_BINARY_DIR}/paquete
                 -DDMG=${CMAKE_BINARY_DIR}/GeneradorExamenes-${PROJECT_VERSION}-macos.dmg
                 -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/paquete_macos.cmake

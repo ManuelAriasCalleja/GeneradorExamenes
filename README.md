@@ -52,21 +52,30 @@ cmake --build build --target paquete
 
 Deja `build\GeneradorExamenes-<versión>-windows.zip`, con una carpeta que contiene el programa, las bibliotecas de Qt
 que necesita (las copia `windeployqt`, con las traducciones al castellano de los diálogos), las del compilador
-(MinGW o Visual Studio) y un `LEEME.txt` para quien lo reciba (`recursos/LEEME_windows.txt`). Se descomprime y
+(MinGW o Visual Studio), los avisos y textos de las licencias (carpeta `licencias`: Qt va con la LGPL v3, y en
+`licencias/terceros` van las del MinGW) y un `LEEME.txt` para quien lo reciba (`recursos/LEEME_windows.txt`). Se descomprime y
 funciona sin instalar nada; no lleva preguntas. Desde Qt Creator: *Proyectos → Compilar → Pasos de compilación*,
 marcar el objetivo `paquete`. Para comprobar que no falta nada, conviene probarlo en un ordenador sin Qt.
 
 El paquete también se prepara en GitHub, sin un Windows a mano (`.github/workflows/windows.yml`): *Actions → Paquetes
 para Windows y macOS → Run workflow*. Compila con Qt 6.8 y el MinGW del instalador de Qt (con Qt PDF), pasa las pruebas y deja
 el zip para descargar en la página de la ejecución, durante 30 días. Al subir una etiqueta de versión
-(`git tag v1.1 && git push origin v1.1`) se lanza solo y publica además una *release* con el zip. No se lanza con
-cada `push`.
+(`git tag v1.1 && git push origin v1.1`) se lanza solo y publica además una *release* con el zip y el `.dmg` de
+macOS, si los dos han ido bien; el paquete de Linux se añade después. No se lanza con cada `push`.
 
 El mismo flujo prepara el paquete de macOS, `GeneradorExamenes-<versión>-macos.dmg`, para procesadores Apple e Intel
 (macOS 13 o posterior), con Qt 6.11, el objetivo `paquete` de CMake (`cmake/paquete_macos.cmake`) y un `LEEME.txt`
 (`recursos/LEEME_macos.txt`). No lleva la firma de pago de Apple, así que la primera vez hay que permitirlo en
-*Ajustes del Sistema → Privacidad y seguridad*. Queda para descargar en la ejecución y no se publica en las versiones
-hasta que se haya probado en un Mac.
+*Ajustes del Sistema → Privacidad y seguridad*. Lleva también la carpeta `licencias`, dentro de la aplicación y junto a
+ella en el `.dmg`. Se publica en las versiones aunque nadie lo haya probado todavía en un Mac de verdad: su `LEEME.txt`
+lo avisa y pide que se diga en GitHub lo que no funcione.
+
+El paquete de Linux, `GeneradorExamenes-<versión>-linux-x86_64.tar.gz`, para equipos de 64 bits con Ubuntu 22.04,
+Debian 12 o posteriores, no sale del flujo de GitHub: se prepara con `empaquetado/linux/generar.sh [etiqueta-o-commit]`,
+que necesita Docker. Compila lo que hay en git de ese commit (los bancos no pueden colarse) en un Ubuntu 22.04 con
+Qt 6.8.3, pasa las pruebas, junta el programa con las bibliotecas que no suelen venir instaladas (con sus licencias en
+`licencias/terceros`) y lo abre de verdad en Ubuntu 22.04 y 24.04, Debian 12 y 13 y Fedora 43. Deja el paquete en
+`empaquetado/linux/trabajo/salida` (fuera de git), y se añade a mano a la versión: `gh release upload v1.3 <paquete>`.
 
 ### Compilar e instalar con un script
 
@@ -391,6 +400,8 @@ campos), los ejemplos, la ayuda y la guía `docs/redactar_preguntas.md`.
 | `compilar.sh`, `compilar.bat`, `compilar.ps1` | Compilan, pasan las pruebas e instalan el programa (Linux y Windows). |
 | `.github/workflows/windows.yml` | Prepara en GitHub los paquetes de Windows y macOS (se lanza a mano o con una etiqueta `v*`). |
 | `cmake/paquete_macos.cmake` | Prepara el `.dmg` de macOS (objetivo `paquete`). |
+| `empaquetado/linux/` | Prepara y prueba el paquete de Linux (`generar.sh`, con Docker): la imagen en la que se compila, lo que se añade al paquete (el lanzador, `instalar.sh` y el `LEEME.txt`) y la prueba en cada distribución. |
+| `licencias/` | Avisos y textos de las licencias que van en la carpeta `licencias` de los paquetes: Qt, con la LGPL v3 (`LEEME.txt.in`, al que CMake pone la versión de Qt). |
 | `cmake/compilacion.cmake` | Apunta al compilar la fecha, la hora y el commit de git, que dice el diálogo *Ayuda → Acerca de* junto a la versión. Solo se actualizan cuando se recompila algo del programa. |
 | `herramientas/importar_docx.py` | Convierte el .docx de preguntas en el JSON. |
 | `traducciones/` | Traducciones de la interfaz y de los textos de los exámenes (Qt Linguist), una por idioma. |

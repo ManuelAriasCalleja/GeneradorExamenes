@@ -912,10 +912,14 @@ void VentanaPrincipal::acercaDe()
                     "con el número de preguntas que se indique de cada tema.</p>"
                     "<p>Nunca pone en un mismo examen dos variantes de una pregunta (3a/3b) ni "
                     "pseudorrepetidas, y puede evitar que se repitan preguntas entre exámenes.</p>"
-                    "<p>Base de datos: <tt>%2</tt></p><p>Configuración: <tt>%3</tt></p><p>Qt %4</p>")
+                    "<p>Base de datos: <tt>%2</tt></p><p>Configuración: <tt>%3</tt></p>"
+                    "<p>Hecho con Qt %4, que se distribuye con la licencia LGPL v3: sus avisos y su texto van en la "
+                    "carpeta «licencias» del programa.</p>")
                      .arg(versionYCompilacion().toHtmlEscaped(), QDir::toNativeSeparators(m_bd.ruta()).toHtmlEscaped(),
                           QDir::toNativeSeparators(QSettings().fileName()).toHtmlEscaped(), QString::fromLatin1(qVersion())));
     caja.setStandardButtons(QMessageBox::Ok);
+    //: Botón del diálogo «Acerca de»: abre el de Qt, con su versión y su licencia
+    QPushButton *acercaDeQt = caja.addButton(tr("Acerca de Qt…"), QMessageBox::ActionRole);
     // QMessageBox elige el ancho del texto y lo deja muy estrecho (hasta el nombre se partía en dos líneas).
     // Respeta el mínimo de su rejilla, así que se le añade un espaciador del ancho de la foto más unos
     // 55 caracteres de texto.
@@ -926,6 +930,8 @@ void VentanaPrincipal::acercaDe()
                          rejilla->rowCount(), 0, 1, rejilla->columnCount());
     }
     caja.exec();
+    if (caja.clickedButton() == acercaDeQt)
+        QMessageBox::aboutQt(this);
 }
 
 void VentanaPrincipal::recargarDatos(int seleccionarId)

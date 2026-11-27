@@ -68,8 +68,15 @@ El repositorio es <https://github.com/ManuelAriasCalleja/GeneradorExamenes> (has
 deben usar la nueva). Es **público**: cualquiera puede leer lo que se sube, también el historial y los mensajes
 de commit. Solo tiene un flujo de trabajo, `.github/workflows/windows.yml`, que prepara los paquetes de Windows y de
 macOS (este, sin la firma de Apple) y pasa allí las pruebas; se lanza a mano o al subir una etiqueta `v*`, nunca con
-cada `push`. El de macOS solo queda para descargar en la ejecución: no se publica en las versiones hasta que se haya
-probado en un Mac. No añadir más flujos de trabajo ni otras comprobaciones automáticas, ni hacer que este se lance solo.
+cada `push`. Con una etiqueta, su último trabajo publica la versión con los dos paquetes, si los dos han ido bien. El
+de macOS se publica aunque nadie lo haya probado en un Mac de verdad (no hay ninguno a mano), con un aviso en su
+`LEEME.txt`. El de Linux se prepara con `empaquetado/linux/generar.sh` (con Docker) y se añade después a la versión.
+Cada versión sale con el mismo número para las tres plataformas. No añadir más flujos de trabajo ni otras
+comprobaciones automáticas, ni hacer que este se lance solo.
+
+Los tres paquetes llevan la carpeta `licencias` (la prepara CMake desde `licencias/`): Qt se distribuye con la LGPL
+v3, que pide decirlo y acompañar su texto, y en `licencias/terceros` van las de las demás bibliotecas que lleve cada
+paquete. Si un paquete pasa a llevar otra biblioteca, hay que añadir su licencia.
 
 Los tres bancos **no deben mezclarse**: ni los dos de la primera asignatura entre sí (`datos` y `banco2`), ni
 ninguno de ellos con el de la otra asignatura (`BancoPreguntas`). Una pregunta, una opción o una frase de un banco no

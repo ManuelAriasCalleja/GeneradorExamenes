@@ -1,0 +1,34 @@
+Generador de exámenes tipo test
+===============================
+
+Necesita Linux de 64 bits (x86-64) de 2022 o posterior, por ejemplo Ubuntu 22.04 o Debian 12.
+
+1. Descomprima la carpeta GeneradorExamenes entera donde quiera:
+       tar xzf GeneradorExamenes-*-linux-x86_64.tar.gz
+   No saque el programa de ella: necesita los demás ficheros que la acompañan.
+
+2. Abra el programa:
+       ./GeneradorExamenes/GeneradorExamenes
+   Para tenerlo en el menú del escritorio, ejecute una vez ./GeneradorExamenes/instalar.sh (si mueve la carpeta,
+   vuelva a ejecutarlo; con --quitar, lo quita del menú).
+
+3. El programa pregunta por el banco de preguntas (un fichero .db) o si quiere crear uno nuevo. Las preguntas
+   no vienen con el programa.
+
+4. Para ver cómo se usa, pulse F1 o abra Ayuda → Manual de uso. El idioma del programa (castellano o inglés) se
+   cambia en Editar → Idioma.
+
+La ruta del último banco abierto y las opciones se guardan en ~/.config/UNED/GeneradorExamenes.conf.
+Para pasar a una versión nueva, borre esta carpeta y descomprima la nueva: la configuración se conserva.
+
+El programa usa Qt, con la licencia LGPL v3: los avisos y los textos de las licencias (también los de las demás
+bibliotecas que lleva) están en la carpeta licencias.
+
+English
+-------
+Requires 64-bit (x86-64) Linux from 2022 or later, such as Ubuntu 22.04 or Debian 12. Extract the whole
+GeneradorExamenes folder and run ./GeneradorExamenes/GeneradorExamenes. To add it to the desktop menu, run
+./GeneradorExamenes/instalar.sh once. The program asks for a question bank (a .db file) or creates a new one; no
+questions come with it. It starts in the language of the system if it is English or Spanish; to change it, use
+Editar → Idioma (Edit → Language). The user manual is under F1. The program uses Qt, under the LGPL v3: the license
+notices and texts (also those of the other libraries it includes) are in the licencias folder.

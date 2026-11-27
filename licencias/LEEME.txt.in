@@ -1,0 +1,32 @@
+Licencias
+=========
+
+El Generador de exámenes usa Qt @Qt6_VERSION@ (https://www.qt.io), de The Qt Company Ltd. y otros, con la licencia
+GNU Lesser General Public License, versión 3 (LGPL v3). Su texto está en LGPL-3.0.txt; como la LGPL v3 completa la
+GNU General Public License, versión 3, también va el de esta, en GPL-3.0.txt.
+
+- Las bibliotecas de Qt van tal como las distribuye Qt, sin modificar, en ficheros aparte que el programa carga al
+  arrancar: en Windows, las .dll de la carpeta del programa y sus subcarpetas; en macOS, las carpetas Frameworks y
+  PlugIns de la aplicación (dentro de Contents); en Linux, las carpetas lib y plugins. Se pueden sustituir por otras
+  de la misma versión de Qt, por ejemplo compiladas por usted.
+- El código fuente de Qt está en https://download.qt.io y en https://code.qt.io; el del Generador de exámenes, en
+  https://github.com/ManuelAriasCalleja/GeneradorExamenes.
+- Qt incluye a su vez componentes de otros autores, con sus propias licencias (casi todas permisivas, como MIT o
+  BSD), que se enumeran en https://doc.qt.io/qt-6/licenses-used-in-qt.html. Las de las demás bibliotecas que
+  acompañan al programa en este paquete, si las hay, van en la carpeta terceros.
+
+English
+-------
+The exam generator uses Qt @Qt6_VERSION@ (https://www.qt.io), by The Qt Company Ltd. and others, under the GNU Lesser
+General Public License, version 3 (LGPL v3). Its text is in LGPL-3.0.txt; as the LGPL v3 supplements the GNU General
+Public License, version 3, that one is included too, in GPL-3.0.txt.
+
+- The Qt libraries are included unmodified, as distributed by Qt, in separate files that the program loads when it
+  starts: on Windows, the .dll files in the program folder and its subfolders; on macOS, the Frameworks and PlugIns
+  folders of the application (inside Contents); on Linux, the lib and plugins folders. They can be replaced with
+  others of the same Qt version, for example built by yourself.
+- The source code of Qt is at https://download.qt.io and https://code.qt.io; that of the exam generator, at
+  https://github.com/ManuelAriasCalleja/GeneradorExamenes.
+- Qt itself includes components by other authors, under their own licenses (mostly permissive ones, such as MIT or
+  BSD), listed at https://doc.qt.io/qt-6/licenses-used-in-qt.html. The licenses of the other libraries that come
+  with the program in this package, if any, are in the terceros folder.

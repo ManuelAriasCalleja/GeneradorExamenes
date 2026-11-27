@@ -1,6 +1,8 @@
 # Compilación (también las de otras carpetas, como build-sanitizadores) y cachés del editor
 build/
 build-*/
+# La carpeta de trabajo del paquete de Linux (empaquetado/linux/generar.sh)
+empaquetado/linux/trabajo/
 .cache/
 
 # Preguntas: el repositorio se publica y no puede contener ninguna pregunta de ningún banco. Los bancos están

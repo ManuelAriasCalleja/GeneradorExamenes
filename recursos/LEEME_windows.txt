@@ -16,9 +16,12 @@ Generador de exámenes tipo test
 La ruta del último banco abierto y las opciones se guardan en %APPDATA%\UNED\GeneradorExamenes.ini.
 Para pasar a una versión nueva, borre esta carpeta y descomprima la nueva: la configuración se conserva.
 
+El programa usa Qt, con la licencia LGPL v3: los avisos y los textos de las licencias están en la carpeta licencias.
+
 English
 -------
 Unzip the whole GeneradorExamenes folder and open GeneradorExamenes.exe (if Windows warns about an unknown
 publisher, click "More info" and then "Run anyway"). The program asks for a question bank (a .db file) or
 creates a new one; no questions come with it. It starts in the language of the system if it is English or
-Spanish; to change it, use Editar → Idioma (Edit → Language). The user manual is under F1.
+Spanish; to change it, use Editar → Idioma (Edit → Language). The user manual is under F1. The program uses Qt,
+under the LGPL v3: the license notices and texts are in the licencias folder.

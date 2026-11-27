@@ -1640,6 +1640,11 @@ Score: %4 out of %5</translation>
         <translation>Verification</translation>
     </message>
     <message>
+        <location line="+7"/>
+        <source>Ha cambiado lo que se ve de la pregunta, y lo verificado era otro texto: se guardará sin verificar. Si ha revisado esta versión, vuelva a marcarla.</source>
+        <translation>What can be seen of the question has changed, and what was verified was another text: it will be saved unverified. If you have reviewed this version, tick it again.</translation>
+    </message>
+    <message>
         <location line="+21"/>
         <source>La pregunta tiene cambios sin guardar. ¿Descartarlos?</source>
         <translation>The question has unsaved changes. Discard them?</translation>
@@ -1651,12 +1656,12 @@ Score: %4 out of %5</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+226"/>
+        <location line="+255"/>
         <source>Seguir editando</source>
         <translation>Continue editing</translation>
     </message>
     <message>
-        <location line="-216"/>
+        <location line="-245"/>
         <source>Identificación</source>
         <translation>Identification</translation>
     </message>
@@ -1808,7 +1813,7 @@ Score: %4 out of %5</translation>
         <translation>If it is the same idea as one of them, save it as its variant (same number, another letter) or, if it belongs to another topic, link it in “Pseudo-duplicate of”.</translation>
     </message>
     <message>
-        <location line="+66"/>
+        <location line="+95"/>
         <source>Elija un tema.</source>
         <translation>Choose a topic.</translation>
     </message>
@@ -1841,7 +1846,7 @@ Do you want to save it anyway?</translation>
         <translation>Save anyway</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>&lt;b&gt;Pautas de estilo&lt;/b&gt;&lt;br&gt;</source>
         <translation>&lt;b&gt;Style guidelines&lt;/b&gt;&lt;br&gt;</translation>
     </message>
@@ -1879,11 +1884,6 @@ Do you want to save it anyway?</translation>
         <location line="+5"/>
         <source>No se pudo leer la imagen.</source>
         <translation>Could not read the image.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Ha cambiado lo que se ve de la pregunta, y lo verificado era otro texto: se guardará sin verificar. Si ha revisado esta versión, vuelva a marcarla.</source>
-        <translation>What can be seen of the question has changed, and what was verified was another text: it will be saved unverified. If you have reviewed this version, tick it again.</translation>
     </message>
 </context>
 <context>
@@ -3977,13 +3977,13 @@ You can also right-click the question.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+1313"/>
+        <location line="+1319"/>
         <source>&amp;Deshacer el cambio de pregunta</source>
         <extracomment>Menú Editar: deshace el último cambio de una pregunta de los exámenes (o las versiones añadidas)</extracomment>
         <translation>&amp;Undo the question change</translation>
     </message>
     <message>
-        <location line="-1310"/>
+        <location line="-1316"/>
         <source>&amp;Temas…</source>
         <translation>&amp;Topics…</translation>
     </message>
@@ -4158,12 +4158,12 @@ Choose where it is or create a new one.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+762"/>
+        <location line="+768"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-748"/>
+        <location line="-754"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -4175,13 +4175,24 @@ Choose where it is or create a new one.</translation>
         <translation>%1 questions have been imported.</translation>
     </message>
     <message>
-        <location line="+410"/>
+        <location line="+246"/>
+        <source>&lt;h3&gt;Generador de exámenes&lt;/h3&gt;&lt;p&gt;Versión %1&lt;/p&gt;&lt;p&gt;Desarrollado por Manuel Arias Calleja&lt;/p&gt;&lt;p&gt;Genera exámenes tipo test eligiendo al azar preguntas de la base de datos, con el número de preguntas que se indique de cada tema.&lt;/p&gt;&lt;p&gt;Nunca pone en un mismo examen dos variantes de una pregunta (3a/3b) ni pseudorrepetidas, y puede evitar que se repitan preguntas entre exámenes.&lt;/p&gt;&lt;p&gt;Base de datos: &lt;tt&gt;%2&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Configuración: &lt;tt&gt;%3&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Hecho con Qt %4, que se distribuye con la licencia LGPL v3: sus avisos y su texto van en la carpeta «licencias» del programa.&lt;/p&gt;</source>
+        <translation>&lt;h3&gt;Exam Generator&lt;/h3&gt;&lt;p&gt;Version %1&lt;/p&gt;&lt;p&gt;Developed by Manuel Arias Calleja&lt;/p&gt;&lt;p&gt;Generates multiple-choice exams by picking questions from the database at random, with the number of questions specified for each topic.&lt;/p&gt;&lt;p&gt;It never puts two variants of a question (3a/3b) or pseudo-duplicates in the same exam, and it can avoid repeating questions between exams.&lt;/p&gt;&lt;p&gt;Database: &lt;tt&gt;%2&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Settings: &lt;tt&gt;%3&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Built with Qt %4, which is distributed under the LGPL v3: its notices and text are in the program’s “licencias” folder.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Acerca de Qt…</source>
+        <extracomment>Botón del diálogo «Acerca de»: abre el de Qt, con su versión y su licencia</extracomment>
+        <translation>About Qt…</translation>
+    </message>
+    <message>
+        <location line="+156"/>
         <source>Hay dos exámenes marcados con el mismo nombre: «%1».</source>
         <extracomment>%1 es el nombre de un examen, con su versión si tiene («Nacional Original B»)</extracomment>
         <translation>Two ticked exams have the same name: “%1”.</translation>
     </message>
     <message>
-        <location line="-454"/>
+        <location line="-460"/>
         <source>¿Cómo quiere importar las preguntas?
 
 Añadir/actualizar: las preguntas con el mismo tema, número y variante se sobrescriben; el resto se conservan.
@@ -4435,12 +4446,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>About</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>&lt;h3&gt;Generador de exámenes&lt;/h3&gt;&lt;p&gt;Versión %1&lt;/p&gt;&lt;p&gt;Desarrollado por Manuel Arias Calleja&lt;/p&gt;&lt;p&gt;Genera exámenes tipo test eligiendo al azar preguntas de la base de datos, con el número de preguntas que se indique de cada tema.&lt;/p&gt;&lt;p&gt;Nunca pone en un mismo examen dos variantes de una pregunta (3a/3b) ni pseudorrepetidas, y puede evitar que se repitan preguntas entre exámenes.&lt;/p&gt;&lt;p&gt;Base de datos: &lt;tt&gt;%2&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Configuración: &lt;tt&gt;%3&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Qt %4&lt;/p&gt;</source>
-        <translation>&lt;h3&gt;Exam Generator&lt;/h3&gt;&lt;p&gt;Version %1&lt;/p&gt;&lt;p&gt;Developed by Manuel Arias Calleja&lt;/p&gt;&lt;p&gt;Generates multiple-choice exams by picking questions from the database at random, with the number of questions specified for each topic.&lt;/p&gt;&lt;p&gt;It never puts two variants of a question (3a/3b) or pseudo-duplicates in the same exam, and it can avoid repeating questions between exams.&lt;/p&gt;&lt;p&gt;Database: &lt;tt&gt;%2&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Settings: &lt;tt&gt;%3&lt;/tt&gt;&lt;/p&gt;&lt;p&gt;Qt %4&lt;/p&gt;</translation>
-    </message>
-    <message>
-        <location line="+38"/>
+        <location line="+49"/>
         <source>Base de datos: %1  ·  %2 temas, %3 preguntas (%4 activas, %5 verificadas)</source>
         <translation>Database: %1  ·  %2 topics, %3 questions (%4 active, %5 verified)</translation>
     </message>
