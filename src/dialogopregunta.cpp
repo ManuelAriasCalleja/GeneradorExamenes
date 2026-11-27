@@ -103,8 +103,15 @@ void DialogoPregunta::ponerVerificacion(BaseDatos *bd)
     auto *l = new QVBoxLayout(grupo);
     m_verificacion = new PanelVerificacion(bd);
     m_verificacion->ponerPregunta(m_original);
+    m_contenidoVisto = m_original;
     connect(m_verificacion, &PanelVerificacion::cambiado, this, &DialogoPregunta::actualizarVistaPrevia);
     l->addWidget(m_verificacion);
+    m_avisoVerificacion = new QLabel(tr("Ha cambiado lo que se ve de la pregunta, y lo verificado era otro texto: se "
+                                        "guardará sin verificar. Si ha revisado esta versión, vuelva a marcarla."));
+    m_avisoVerificacion->setWordWrap(true);
+    m_avisoVerificacion->setStyleSheet(Paleta::recuadroAtencion());
+    m_avisoVerificacion->hide();
+    l->addWidget(m_avisoVerificacion);
     m_formulario->addWidget(grupo);
     m_inicial = pregunta();
 }
@@ -318,8 +325,37 @@ Pregunta DialogoPregunta::pregunta() const
     if (m_verificacion) {
         p.verificada = m_verificacion->verificada();
         p.verificadores = p.verificada ? m_verificacion->verificadores() : QStringList();
+    } else if (!p.mismoContenido(m_original)) {
+        // Lo verificado era otro texto.
+        p.verificada = false;
+        p.verificadores.clear();
     }
     return p;
+}
+
+void DialogoPregunta::actualizarVerificacion()
+{
+    if (!m_verificacion)
+        return;
+    const Pregunta ahora = pregunta();
+    if (!ahora.mismoContenido(m_contenidoVisto)) {
+        // Ha cambiado lo que se ve: lo verificado hasta ahora era otro texto. Si vuelve a ser el del principio y no se
+        // ha vuelto a verificar, vuelve la verificación que tenía.
+        m_contenidoVisto = ahora;
+        if (ahora.mismoContenido(m_original) && m_verificacionQuitada && !m_verificacion->verificada()) {
+            m_verificacion->ponerPregunta(m_original);
+            m_verificacionQuitada = false;
+        } else if (m_verificacion->verificada()) {
+            Pregunta sinVerificar = m_original;
+            sinVerificar.verificada = false;
+            sinVerificar.verificadores.clear();
+            m_verificacion->ponerPregunta(sinVerificar);
+            m_verificacionQuitada = true;
+        }
+    } else if (m_verificacion->verificada()) {
+        m_verificacionQuitada = false;   // se ha vuelto a marcar, ya con este texto
+    }
+    m_avisoVerificacion->setVisible(m_verificacionQuitada);
 }
 
 void DialogoPregunta::accept()
@@ -361,6 +397,7 @@ void DialogoPregunta::accept()
 
 void DialogoPregunta::actualizarVistaPrevia()
 {
+    actualizarVerificacion();
     const Pregunta p = pregunta();
     QString nombreTema = m_tema->currentText();
     m_vistaPrevia->ponerDocumento(Maquetador::crearDocumento(Maquetador::fichaPreguntaHtml(p, nombreTema), {p}, m_vistaPrevia));

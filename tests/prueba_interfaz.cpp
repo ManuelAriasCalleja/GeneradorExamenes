@@ -1477,6 +1477,71 @@ private slots:
         QVERIFY(panel.sinCambios());
     }
 
+    // Lo verificado es lo que se ve de la pregunta: al cambiarlo en el editor, la verificación se quita (con un aviso),
+    // y vuelve si se deshace el cambio; si se vuelve a marcar, se guarda la nueva. Lo que no se ve no la quita.
+    void editarQuitaLaVerificacion()
+    {
+        QTemporaryDir dir;
+        BaseDatos bd;
+        QVERIFY(bd.abrir(dir.filePath(QStringLiteral("banco.db"))));
+        QVERIFY(llenarBaseDatos(bd, 2, bancoInventado(2, 3)));
+        QVERIFY(bd.anadirVerificador(QStringLiteral("Persona Uno")));
+        QVERIFY(bd.anadirVerificador(QStringLiteral("Persona Dos")));
+        Pregunta p = bd.preguntas().first();
+        p.verificada = true;
+        p.verificadores = {QStringLiteral("Persona Uno")};
+        DialogoPregunta d(bd.temas(), bd.preguntas(), p);
+        d.ponerVerificacion(&bd);
+        d.show();
+        QLabel *aviso = nullptr;
+        for (QLabel *l : d.findChildren<QLabel *>())
+            if (l->text().startsWith(QStringLiteral("Ha cambiado lo que se ve de la pregunta")))
+                aviso = l;
+        auto *enunciado = d.findChildren<QPlainTextEdit *>().value(0);
+        QVERIFY(aviso && enunciado && enunciado->toPlainText() == p.enunciado);
+        QCheckBox *verificada = conTexto<QCheckBox>(&d, QStringLiteral("Verificada por humanos"));
+        QVERIFY(verificada && verificada->isChecked());
+        QVERIFY(!aviso->isVisible());
+
+        // Marcarla para revisar no cambia lo que se ve: sigue verificada.
+        marcar(&d, QStringLiteral("Marcar para revisar"));
+        QVERIFY(d.pregunta().verificada);
+        QVERIFY(!aviso->isVisible());
+
+        // Al cambiar el enunciado, se quita, con el aviso.
+        enunciado->setPlainText(p.enunciado + QStringLiteral(" Con una frase más."));
+        QVERIFY(!verificada->isChecked());
+        QVERIFY(aviso->isVisible());
+        QVERIFY(!d.pregunta().verificada);
+        QVERIFY(d.pregunta().verificadores.isEmpty());
+        // Si se deshace, vuelve la que tenía.
+        enunciado->setPlainText(p.enunciado);
+        QVERIFY(verificada->isChecked());
+        QVERIFY(!aviso->isVisible());
+        QCOMPARE(d.pregunta().verificadores, QStringList{QStringLiteral("Persona Uno")});
+
+        // Cambiada y vuelta a marcar (por otra persona): se guarda la nueva, sin aviso.
+        enunciado->setPlainText(p.enunciado + QStringLiteral(" Con otra frase."));
+        QVERIFY(!d.pregunta().verificada);
+        conTexto<QCheckBox>(&d, QStringLiteral("Persona Dos"))->setChecked(true);
+        QVERIFY(verificada->isChecked());
+        QVERIFY(!aviso->isVisible());
+        QCOMPARE(d.pregunta().verificadores, QStringList{QStringLiteral("Persona Dos")});
+        // Pero si después se vuelve a cambiar, lo verificado otra vez era otro texto.
+        enunciado->setPlainText(p.enunciado + QStringLiteral(" Con otra frase más."));
+        QVERIFY(!d.pregunta().verificada);
+        QVERIFY(aviso->isVisible());
+        // Y si vuelve a ser el del principio, la que tenía al abrirla.
+        enunciado->setPlainText(p.enunciado);
+        QCOMPARE(d.pregunta().verificadores, QStringList{QStringLiteral("Persona Uno")});
+
+        // Igual con la correcta.
+        const QList<QRadioButton *> correctas = d.findChildren<QRadioButton *>();
+        QCOMPARE(correctas.size(), 4);
+        correctas.at((p.correcta + 1) % 4)->setChecked(true);
+        QVERIFY(!d.pregunta().verificada);
+    }
+
     void dialogoDeVerificadores()
     {
         QTemporaryDir dir;

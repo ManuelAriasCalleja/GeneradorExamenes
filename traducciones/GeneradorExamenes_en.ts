@@ -1880,6 +1880,11 @@ Do you want to save it anyway?</translation>
         <source>No se pudo leer la imagen.</source>
         <translation>Could not read the image.</translation>
     </message>
+    <message>
+        <location line="+7"/>
+        <source>Ha cambiado lo que se ve de la pregunta, y lo verificado era otro texto: se guardará sin verificar. Si ha revisado esta versión, vuelva a marcarla.</source>
+        <translation>What can be seen of the question has changed, and what was verified was another text: it will be saved unverified. If you have reviewed this version, tick it again.</translation>
+    </message>
 </context>
 <context>
     <name>DialogoTemas</name>

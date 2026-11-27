@@ -39,8 +39,11 @@ public:
     void anadirBoton(Despues despues, const QString &texto);
     Despues despues() const { return m_despues; }
 
-    // Añade al formulario la verificación por personas (Pregunta::verificada), con los verificadores de 'bd'. Sin
-    // ella, la pregunta guardada conserva la verificación que tenía.
+    // Añade al formulario la verificación por personas (Pregunta::verificada), con los verificadores de 'bd'.
+    // Lo verificado es lo que se ve de la pregunta (Pregunta::mismoContenido()): en cuanto cambia, la verificación
+    // marcada se quita del panel, con un aviso, y hay que volver a marcarla; si se deshace el cambio sin haberla vuelto
+    // a marcar, vuelve la que tenía. Sin el panel, la pregunta guardada conserva la verificación que tenía si no cambia
+    // lo que se ve.
     void ponerVerificacion(BaseDatos *bd);
 
 public slots:
@@ -49,6 +52,9 @@ public slots:
 
 private slots:
     void actualizarVistaPrevia();
+    // Quita la verificación del panel si ha cambiado lo que se ve de la pregunta, y vuelve a poner la que tenía si se
+    // deshace el cambio.
+    void actualizarVerificacion();
     void actualizarParecidas();
     void cargarImagen();
     void quitarImagen();
@@ -70,6 +76,11 @@ private:
     QVector<Pregunta> m_banco;
     Parecidas::Indice m_indice;
     Pregunta m_original;
+    // La verificación, quitada en el panel porque ha cambiado lo que se ve (ver actualizarVerificacion()), y lo que se
+    // veía la última vez que se miró.
+    bool m_verificacionQuitada = false;
+    Pregunta m_contenidoVisto;
+    QLabel *m_avisoVerificacion = nullptr;
     Pregunta m_inicial;   // como estaba en el formulario al abrirlo, para saber si hay cambios
     QByteArray m_imagen;
 
