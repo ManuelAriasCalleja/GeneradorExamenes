@@ -21,6 +21,7 @@
 #include <QDir>
 #include <QJsonArray>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QStandardPaths>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -263,6 +264,176 @@ Modelo modeloCon(const QVector<Pregunta> &preguntas, QRandomGenerator &rng)
     return m;
 }
 
+// Texto legible inventado, de palabras de sílabas al azar: casi nunca se repite, así que cada trozo de una pregunta se
+// puede buscar en lo exportado sin confundirlo con el de otra.
+QString fraseInventada(QRandomGenerator &rng, int palabras)
+{
+    static const QStringList silabas{QStringLiteral("ba"), QStringLiteral("ce"), QStringLiteral("di"), QStringLiteral("fo"),
+                                     QStringLiteral("gu"), QStringLiteral("la"), QStringLiteral("me"), QStringLiteral("ni"),
+                                     QStringLiteral("po"), QStringLiteral("ru"), QStringLiteral("sa"), QStringLiteral("té"),
+                                     QStringLiteral("vi"), QStringLiteral("zo"), QStringLiteral("tra"), QStringLiteral("plo"),
+                                     QStringLiteral("ñu"), QStringLiteral("chi"), QStringLiteral("rre"), QStringLiteral("güe")};
+    QStringList frase;
+    for (int i = 0; i < palabras; ++i) {
+        QString palabra;
+        for (int s = 2 + rng.bounded(3); s > 0; --s)
+            palabra += silabas.at(rng.bounded(int(silabas.size())));
+        // A veces, con un superíndice o un subíndice detrás (x⁵, x₂), que pdflatex no conocía.
+        if (rng.bounded(20) == 0)
+            palabra += QChar(rng.bounded(2) ? 0x2074 + rng.bounded(6) : 0x2080 + rng.bounded(10));
+        frase << palabra;
+    }
+    return frase.join(QLatin1Char(' '));
+}
+
+// Una pregunta legible al azar, como las de los bancos: enunciado de una o dos líneas, a veces con código (numerado o
+// no), una tabla o código en línea; opciones, explicación y referencia de largos muy distintos; a veces con imagen.
+Pregunta preguntaLegible(QRandomGenerator &rng, int numero)
+{
+    Pregunta p;
+    p.id = numero;
+    p.temaNumero = 1 + numero / 7;
+    p.numero = numero;
+    QStringList lineas{fraseInventada(rng, 4 + rng.bounded(30))};
+    switch (rng.bounded(5)) {
+    case 0: {
+        static const QStringList aperturas{QStringLiteral("```java"), QStringLiteral("```xml"), QStringLiteral("```numerado"),
+                                           QStringLiteral("```java numerado"), QStringLiteral("```")};
+        lineas << aperturas.at(rng.bounded(int(aperturas.size())));
+        for (int i = 1 + rng.bounded(12); i > 0; --i)
+            lineas << QStringLiteral("%1 = %2(\"%3\");").arg(fraseInventada(rng, 1), fraseInventada(rng, 1), fraseInventada(rng, 1 + rng.bounded(6)));
+        lineas << QStringLiteral("```") << fraseInventada(rng, 3 + rng.bounded(8)) + QLatin1Char('?');
+        break;
+    }
+    case 1:
+        for (int f = 1 + rng.bounded(4); f > 0; --f)
+            lineas << QStringLiteral("| %1 | %2 |").arg(fraseInventada(rng, 1 + rng.bounded(3)), fraseInventada(rng, 1 + rng.bounded(3)));
+        break;
+    case 2:
+        lineas.last() += QStringLiteral(" `%1()` %2").arg(fraseInventada(rng, 1), fraseInventada(rng, 3));
+        break;
+    case 3:
+        lineas << fraseInventada(rng, 5 + rng.bounded(20));
+        break;
+    default:
+        break;
+    }
+    p.enunciado = lineas.join(QLatin1Char('\n'));
+    for (int i = 0; i < 4; ++i)
+        p.opciones[i] = fraseInventada(rng, 1 + rng.bounded(rng.bounded(3) ? 6 : 25)) + QLatin1Char('.');
+    p.correcta = rng.bounded(4);
+    if (rng.bounded(4))
+        p.explicacion = fraseInventada(rng, 5 + rng.bounded(40));
+    if (rng.bounded(3))
+        p.referencia = fraseInventada(rng, 3 + rng.bounded(6));
+    if (rng.bounded(8) == 0)
+        p.imagen = imagenInventada();
+    return p;
+}
+
+// Lo que se compara de un texto exportado: sus letras y cifras, en minúsculas (y los superíndices y subíndices como
+// cifras normales, que es como salen en el LaTeX). Los espacios, los saltos de línea, la puntuación y los números de
+// línea del código cambian de un formato a otro.
+QString soloLetras(const QString &texto)
+{
+    QString res;
+    for (const QChar c : texto.normalized(QString::NormalizationForm_KC))
+        if (c.isLetterOrNumber())
+            res += c.toLower();
+    return res;
+}
+
+// Lo que falta en 'texto' (el de un fichero exportado) de las preguntas del examen: cada una debe estar en su orden, con
+// todo lo suyo (las líneas y las celdas del enunciado, las opciones y, con soluciones, la explicación y la referencia)
+// entre el principio de su enunciado y el de la siguiente.
+QStringList faltanDelExamen(const QString &texto, const Modelo &m, bool soluciones)
+{
+    const QString t = soloLetras(texto);
+    QStringList faltan;
+    QVector<int> inicios;
+    int desde = 0;
+    for (int k = 0; k < m.preguntas.size(); ++k) {
+        const QString primera = soloLetras(Enunciado::sinMarcas(m.preguntas.at(k).pregunta.enunciado.section(QLatin1Char('\n'), 0, 0)));
+        const int inicio = int(t.indexOf(primera, desde));
+        if (inicio < 0)
+            faltan << QStringLiteral("pregunta %1: no está su enunciado (o no en su sitio)").arg(k + 1);
+        else
+            desde = inicio + 1;
+        inicios << inicio;
+    }
+    for (int k = 0; k < m.preguntas.size(); ++k) {
+        if (inicios.at(k) < 0)
+            continue;
+        int fin = int(t.size());
+        for (int j = k + 1; j < m.preguntas.size(); ++j)
+            if (inicios.at(j) >= 0) {
+                fin = inicios.at(j);
+                break;
+            }
+        const QString suyo = t.mid(inicios.at(k), fin - inicios.at(k));
+        const PreguntaExamen &pe = m.preguntas.at(k);
+        QStringList trozos;
+        for (const Enunciado::Bloque &b : Enunciado::bloques(pe.pregunta.enunciado)) {
+            for (const QStringList &fila : b.filas)
+                for (const QString &celda : fila)
+                    trozos << Enunciado::sinMarcas(celda);
+            for (const QString &linea : b.lineas)
+                trozos << (b.tipo == Enunciado::Bloque::Codigo ? linea : Enunciado::sinMarcas(linea));
+        }
+        for (int i = 0; i < 4; ++i)
+            trozos << Enunciado::sinMarcas(pe.opcion(i));
+        if (soluciones)
+            trozos << pe.pregunta.explicacion << pe.pregunta.referencia;
+        for (const QString &trozo : std::as_const(trozos)) {
+            const QString buscado = soloLetras(trozo);
+            if (buscado.size() >= 4 && !suyo.contains(buscado))
+                faltan << QStringLiteral("pregunta %1: falta «%2»").arg(k + 1).arg(trozo.left(50));
+        }
+    }
+    return faltan;
+}
+
+// El texto de un PDF exportado sin sus pies de página («Asignatura · Modelo · Junio 2026: 1 / 2», que empiezan por la
+// asignatura de 'd'), que pueden caer en medio de una pregunta larga o pegados a la última línea de la página. Cuando
+// un párrafo se parte entre dos páginas, Qt escribe otra vez su última línea de la primera al principio de la segunda,
+// fuera de la página: no se ve, pero está en el texto del PDF (ver «Vistos y no arreglados» en
+// docs/revision_errores.md). Esa repetida, justo detrás del pie, también se quita.
+QString textoSinPies(const QString &texto, const DatosConvocatoria &d)
+{
+    const QRegularExpression pie(QRegularExpression::escape(d.asignatura) + QStringLiteral(".*: (\\d+|\\?\\?) / (\\d+|\\?\\?)"));
+    QStringList lineas;
+    bool trasPie = false;
+    for (const QString &linea : texto.split(QLatin1Char('\n'))) {
+        const QRegularExpressionMatch m = pie.match(linea);
+        if (m.hasMatch()) {
+            const QString antes = linea.left(m.capturedStart()).trimmed();
+            if (!antes.isEmpty())
+                lineas << antes;
+            trasPie = true;
+            continue;
+        }
+        if (!trasPie || lineas.isEmpty() || linea.trimmed() != lineas.last().trimmed())
+            lineas << linea;
+        trasPie = false;
+    }
+    return lineas.join(QLatin1Char('\n'));
+}
+
+// El texto del cuerpo de un Word (sus párrafos, uno por línea).
+QString textoDeWord(const QByteArray &documento)
+{
+    QString texto;
+    QXmlStreamReader r(documento);
+    while (!r.atEnd()) {
+        r.readNext();
+        if (r.isStartElement() && r.name() == QLatin1String("p"))
+            texto += QLatin1Char('\n');
+        else if (r.isStartElement() && r.name() == QLatin1String("t"))
+            texto += r.readElementText();
+    }
+    return texto;
+}
+
 } // namespace
 
 class PruebaSondas : public QObject
@@ -367,6 +538,72 @@ private slots:
             }
         }
         QVERIFY2(fallos.isEmpty(), qPrintable(fallos.join(QLatin1Char('\n'))));
+    }
+
+    // Exámenes de 8 a 40 preguntas legibles al azar (con código, tablas, imágenes y textos de largos muy distintos), con
+    // todos los niveles de la maqueta, con y sin soluciones: del HTML, el Word y el PDF no se pierde nada (cada pregunta
+    // sale en su orden y con todos sus textos) y los pies del PDF cuentan las páginas que salen. Con pdflatex y
+    // SONDAS_PDFLATEX=1, también del LaTeX compilado.
+    void nadaSePierdeAlExportar()
+    {
+        const bool leePdf = ExamenesAnteriores::puedeLeerPdf();
+        const QString pdflatex = qEnvironmentVariableIsSet("SONDAS_PDFLATEX") ? QStandardPaths::findExecutable(QStringLiteral("pdflatex"))
+                                                                              : QString();
+        QVector<int> niveles{Maquetador::kLetraGrande};
+        for (int n = 0; n < Maquetador::numNiveles(); ++n)
+            niveles << n;
+        QRandomGenerator rng(19);
+        QTemporaryDir dir;
+        for (int vuelta = 0; vuelta < vueltas(niveles.size() + 2); ++vuelta) {
+            QVector<Pregunta> preguntas;
+            for (int i = 8 + rng.bounded(33); i > 0; --i)
+                preguntas << preguntaLegible(rng, int(preguntas.size()) + 1);
+            const Modelo m = modeloCon(preguntas, rng);
+            DatosConvocatoria d = convocatoria();
+            d.enunciadoEnCursiva = rng.bounded(2);
+            const int nivel = niveles.at(vuelta % niveles.size());
+            for (bool soluciones : {false, true}) {
+                const QString donde = QStringLiteral("vuelta %1 (nivel %2%3)").arg(vuelta).arg(nivel).arg(soluciones ? QStringLiteral(", con soluciones") : QString());
+                const auto comprobar = [&](const QString &formato, const QString &texto) {
+                    const QStringList faltan = faltanDelExamen(texto, m, soluciones);
+                    QVERIFY2(faltan.isEmpty(), qPrintable(QStringLiteral("%1, %2: %3").arg(formato, donde, faltan.join(QStringLiteral("; ")))));
+                };
+                QTextDocument html;
+                html.setHtml(Maquetador::examenesHtml({m}, d, soluciones, nivel));
+                comprobar(QStringLiteral("HTML"), html.toPlainText());
+                comprobar(QStringLiteral("Word"), textoDeWord(Docx::partes({m}, d, soluciones, nivel).value(QStringLiteral("word/document.xml"))));
+                if (!leePdf)
+                    continue;
+                const QString pdf = dir.filePath(QStringLiteral("examen.pdf"));
+                QVERIFY(Exportacion::pdf(pdf, {m}, d, soluciones, nivel));
+                const QString texto = ExamenesAnteriores::textoDePdf(pdf);
+                comprobar(QStringLiteral("PDF"), textoSinPies(texto, d));
+                // Los últimos pies son los del examen (antes van los de la hoja de soluciones): «1 / n» … «n / n».
+                static const QRegularExpression rePie(QStringLiteral(": (\\d+) / (\\d+)\\s*$"), QRegularExpression::MultilineOption);
+                QStringList pies;
+                for (auto it = rePie.globalMatch(texto); it.hasNext();) {
+                    const QRegularExpressionMatch pie = it.next();
+                    pies << pie.captured(1) + QLatin1Char('/') + pie.captured(2);
+                }
+                const int paginas = Maquetador::paginas(m, d, soluciones, nivel);
+                QStringList esperados;
+                for (int p = 1; p <= paginas; ++p)
+                    esperados << QStringLiteral("%1/%2").arg(p).arg(paginas);
+                QVERIFY2(pies.size() >= paginas && pies.mid(pies.size() - paginas) == esperados,
+                         qPrintable(QStringLiteral("%1: pies %2").arg(donde, pies.join(QLatin1Char(' ')))));
+                if (pdflatex.isEmpty())
+                    continue;
+                QVERIFY(Exportacion::latex(dir.filePath(QStringLiteral("latex.tex")), {m}, d, soluciones, nivel));
+                QProcess proceso;
+                proceso.setWorkingDirectory(dir.path());
+                proceso.start(pdflatex, {QStringLiteral("-interaction=nonstopmode"), QStringLiteral("-halt-on-error"), QStringLiteral("latex.tex")});
+                QVERIFY(proceso.waitForFinished(60000));
+                QVERIFY2(proceso.exitCode() == 0, qPrintable(donde));
+                comprobar(QStringLiteral("LaTeX"), textoSinPies(ExamenesAnteriores::textoDePdf(dir.filePath(QStringLiteral("latex.pdf"))), d));
+            }
+            if (QTest::currentTestFailed())
+                return;
+        }
     }
 
     // Las parecidas y la lectura de los exámenes anteriores, con textos raros.

@@ -9,7 +9,7 @@ cualquier ordenador.
 | Paso | Estado |
 |---|---|
 | 1. Herramientas automáticas | Hecho: ningún fallo en el código; un descuido en `.gitignore` (arreglado). Repetido el 23 de noviembre, tras partir `VentanaPrincipal` y otros cambios: sin nada nuevo |
-| 2. Sondas dirigidas | Hecho: sondas en `tests/prueba_sondas.cpp`, pasadas a fondo (×20) y con los detectores; seis fallos arreglados. Repetidas el 23 de noviembre, también la de pdflatex: sin nada |
+| 2. Sondas dirigidas | Hecho: sondas en `tests/prueba_sondas.cpp`, pasadas a fondo (×20) y con los detectores; seis fallos arreglados. Repetidas el 23 de noviembre, también la de pdflatex: sin nada. El 27 de noviembre, tras un fallo de la maqueta que no veían (el 8), una sonda más, que busca en lo exportado todo el texto de las preguntas: un fallo más (el 9) |
 | 3. Revisión del código por partes | Sugerencia, para cuando acaben 1 y 2 |
 
 ## 1. Herramientas automáticas
@@ -75,7 +75,7 @@ falla y cumple sus reglas. Se quedan como pruebas automáticas, con datos invent
 
 ### Las sondas (`tests/prueba_sondas.cpp`)
 
-Se pasan con las demás pruebas (unos 2 segundos). Para buscar más a fondo, con las mismas semillas y más vueltas:
+Se pasan con las demás pruebas (unos 6 segundos). Para buscar más a fondo, con las mismas semillas y más vueltas:
 `SONDAS=20 ./build/prueba_sondas`. Cada una:
 
 - `escapeLatex`: textos raros escapados para LaTeX no dejan ningún carácter especial suelto ni «--».
@@ -95,11 +95,23 @@ Se pasan con las demás pruebas (unos 2 segundos). Para buscar más a fondo, con
   misma semilla los mismos, las opciones barajadas son una permutación con la correcta en su sitio y repartida; y lo
   mismo tras cambiar preguntas.
 - `bloquesDeLosEnunciados`: el reparto en bloques de enunciados raros.
+- `nadaSePierdeAlExportar`: exámenes de 8 a 40 preguntas legibles inventadas (palabras de sílabas al azar, que no se
+  repiten de una pregunta a otra), con código, tablas, imágenes, superíndices y subíndices y textos de largos muy
+  distintos, con todos los niveles de la maqueta, con y sin soluciones: en el texto del HTML, del Word y del PDF está
+  cada pregunta, en su orden, con todas las líneas y celdas de su enunciado, sus opciones y, con soluciones, su
+  explicación y su referencia; y los pies del PDF cuentan las páginas que salen. Con `SONDAS_PDFLATEX=1`, también el
+  LaTeX compilado. Las demás sondas solo miran que exportar no falle; esta, que no se pierda nada.
 - `latexCompilaConTextosRaros` (solo con `SONDAS_PDFLATEX=1` y pdflatex instalado, porque tarda): el LaTeX de
   preguntas con textos raros compila con pdflatex.
 
 Pasadas hechas el 18 de noviembre: todas con `SONDAS=20` y con los detectores (ASan + UBSan + fugas), sin nada; la de
 pdflatex con `SONDAS=5` (60 documentos) compila tras los arreglos 6 y 7.
+
+El 27 de noviembre, `nadaSePierdeAlExportar` con `SONDAS=20` y `SONDAS_PDFLATEX=1` (140 exámenes, con y sin
+soluciones, en los cuatro formatos), sin nada tras el arreglo 9. Ese día, además, con un programa aparte que se queda
+fuera del repositorio porque usa los bancos, se exportaron todas las preguntas de los tres bancos (de 20 en 20, con
+la maqueta normal, la compacta y la de letra grande) y exámenes generados con sus repartos, en PDF, HTML, Word, LaTeX
+y Moodle, buscando cada texto en lo exportado: solo apareció el 9.
 
 Repetidas el 23 de noviembre: todas con `SONDAS=20` y con los detectores, sin nada, y la de pdflatex con `SONDAS=5`
 (60 documentos, ya con código dentro del texto: las sondas ponen comillas invertidas al azar), que compila.
@@ -151,8 +163,28 @@ Cada uno con lo que pasaba, cómo se encontró y si está arreglado (con su prue
    dejaba un `\\` sin línea que terminar. Encontrado por `latexCompilaConTextosRaros` con `SONDAS=5`. Arreglado: las
    líneas se separan con `\\\relax` y se saltan las que no tienen nada visible. Prueba: `latexSinLineasVacias`
    (enunciado) al día.
+8. **En el PDF se perdían los enunciados a partir de una pregunta** (arreglado en `8b8edb7`). Al pasar una pregunta
+   entera a la página siguiente para que no se parta, Qt rehacía la maqueta solo desde ella, y lo que venía detrás (con
+   tablas) quedaba mal colocado: enunciados que no se pintaban (salían las opciones sin su pregunta) y menos páginas en
+   el pie de las que había. Pasaba con exámenes normales, sin nada raro. Lo encontró un profesor en los exámenes de
+   una convocatoria; las sondas no lo veían porque solo miraban que exportar no fallara. Arreglado: tras cada salto se
+   rehace la maqueta entera. Pruebas: `ningunEnunciadoSePierdeTrasUnSaltoDePagina` (maqueta) y la sonda
+   `nadaSePierdeAlExportar`, que lo encuentra en cuanto se quita el arreglo.
+9. **En el LaTeX, los superíndices y subíndices salían como «?»** (arreglado). ⁰, ⁴ a ⁹, ⁺, ⁻, ⁿ y ₀ a ₉ no los conoce
+   pdflatex, y salían como «?» en un recuadro (lo que se hace desde el arreglo 6 con los caracteres desconocidos); ¹,
+   ² y ³ sí salían. Uno de los bancos los usa. Encontrado al buscar en lo exportado los textos de todas las preguntas
+   de los bancos. Arreglado: el preámbulo los declara. Pruebas: `latexConoceLosSuperindicesYSubindices` (maqueta) y
+   `nadaSePierdeAlExportar` con `SONDAS_PDFLATEX=1`.
 
 ### Vistos y no arreglados
+
+- **Cuando un párrafo se parte entre dos páginas, el PDF lleva dos veces la línea del corte.** Qt
+  (`QTextLayout::draw()`) pinta también la última línea que queda por encima de la zona que se le pide, así que la
+  última línea de la primera página se escribe otra vez en la segunda, por encima de su borde: no se ve ni se imprime,
+  pero sale repetida al copiar el texto del PDF, al buscar en él o al leerlo con un lector de pantalla. Solo pasa con
+  las preguntas que no caben en una página, que se parten (casi siempre con letra grande; las demás se pasan enteras a
+  la página siguiente). No se arregla: estrechar la zona no sirve, y habría que pintar las líneas una a una en lugar
+  de usar la maqueta de Qt. Encontrado por `nadaSePierdeAlExportar` con `SONDAS=20`, que lo tiene en cuenta.
 
 - **SQLite quita un U+FEFF al principio de un texto.** Es la marca de orden de bytes del UTF-16, invisible; el
   controlador de Qt pasa los textos a SQLite en UTF-16 y SQLite la toma por una marca y la quita. No se ve, así que da

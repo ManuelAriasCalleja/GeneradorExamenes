@@ -650,6 +650,20 @@ private slots:
         QCOMPARE(Latex::escapar(QStringLiteral("50% & $5 #1 a_b {x}")),
                  QStringLiteral("50\\% \\& \\$5 \\#1 a\\_b \\{x\\}"));
     }
+
+    // Los superíndices y subíndices de Unicode («x⁵», «log₂») salen como tales y no como «?» en un recuadro, que es como
+    // sale en el LaTeX un carácter que pdflatex no conoce: el preámbulo los declara todos (¹, ² y ³ ya los conoce).
+    void latexConoceLosSuperindicesYSubindices()
+    {
+        const QString tex = Latex::examenes(examenes(bancoInventado(), 1, 1), convocatoria(), false, QStringLiteral("img"));
+        QString caracteres = QStringLiteral("⁰⁴⁵⁶⁷⁸⁹⁺⁻ⁿⁱ");
+        for (char16_t c = 0x2080; c <= 0x208B; ++c)
+            caracteres += QChar(c);
+        for (const QChar c : std::as_const(caracteres)) {
+            const QString codigo = QString::number(c.unicode(), 16).toUpper().rightJustified(4, QLatin1Char('0'));
+            QVERIFY2(tex.contains(QStringLiteral("\\DeclareUnicodeCharacter{%1}").arg(codigo)), qPrintable(QString(c)));
+        }
+    }
 };
 
 QTEST_MAIN(PruebaMaqueta)

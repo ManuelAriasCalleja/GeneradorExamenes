@@ -78,6 +78,13 @@ const char *const kPreambuloLatex = R"tex(\documentclass[10pt,a4paper]{article}
 \DeclareUnicodeCharacter{2717}{\ensuremath{\times}}\DeclareUnicodeCharacter{2718}{\ensuremath{\times}}\DeclareUnicodeCharacter{2605}{\ensuremath{\bigstar}}\DeclareUnicodeCharacter{2610}{\ensuremath{\square}}
 \DeclareUnicodeCharacter{200B}{}\DeclareUnicodeCharacter{200C}{}\DeclareUnicodeCharacter{200D}{}\DeclareUnicodeCharacter{200E}{}\DeclareUnicodeCharacter{200F}{}\DeclareUnicodeCharacter{202A}{}\DeclareUnicodeCharacter{202B}{}
 \DeclareUnicodeCharacter{202C}{}\DeclareUnicodeCharacter{202D}{}\DeclareUnicodeCharacter{202E}{}\DeclareUnicodeCharacter{2060}{}\DeclareUnicodeCharacter{FEFF}{}\DeclareUnicodeCharacter{00AD}{}
+% Los superíndices y subíndices de Unicode («x⁵», «log₂ n»); ¹, ² y ³ ya los conoce.
+\DeclareUnicodeCharacter{2070}{\textsuperscript{0}}\DeclareUnicodeCharacter{2074}{\textsuperscript{4}}\DeclareUnicodeCharacter{2075}{\textsuperscript{5}}\DeclareUnicodeCharacter{2076}{\textsuperscript{6}}
+\DeclareUnicodeCharacter{2077}{\textsuperscript{7}}\DeclareUnicodeCharacter{2078}{\textsuperscript{8}}\DeclareUnicodeCharacter{2079}{\textsuperscript{9}}\DeclareUnicodeCharacter{207A}{\ensuremath{^{+}}}
+\DeclareUnicodeCharacter{207B}{\ensuremath{^{-}}}\DeclareUnicodeCharacter{207F}{\textsuperscript{n}}\DeclareUnicodeCharacter{2071}{\textsuperscript{i}}
+\DeclareUnicodeCharacter{2080}{\textsubscript{0}}\DeclareUnicodeCharacter{2081}{\textsubscript{1}}\DeclareUnicodeCharacter{2082}{\textsubscript{2}}\DeclareUnicodeCharacter{2083}{\textsubscript{3}}
+\DeclareUnicodeCharacter{2084}{\textsubscript{4}}\DeclareUnicodeCharacter{2085}{\textsubscript{5}}\DeclareUnicodeCharacter{2086}{\textsubscript{6}}\DeclareUnicodeCharacter{2087}{\textsubscript{7}}
+\DeclareUnicodeCharacter{2088}{\textsubscript{8}}\DeclareUnicodeCharacter{2089}{\textsubscript{9}}\DeclareUnicodeCharacter{208A}{\ensuremath{_{+}}}\DeclareUnicodeCharacter{208B}{\ensuremath{_{-}}}
 % Cualquier otro carácter que no conozca (un emoji, un alfabeto que no es el latino…) sale como «?» en un recuadro, en
 % lugar de parar la compilación.
 \makeatletter\def\UTFviii@undefined@err#1{\fbox{?}}\makeatother
