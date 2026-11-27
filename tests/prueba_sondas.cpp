@@ -20,6 +20,7 @@
 #include "texto_exportado.h"
 
 #include <QDir>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QProcess>
 #include <QRegularExpression>
@@ -251,6 +252,22 @@ DatosConvocatoria convocatoria()
     return d;
 }
 
+// Con SONDAS_GUARDAR=<carpeta>, un fichero exportado en el que falla algo se copia allí con 'nombre', junto con el texto
+// que se ha leído de él, para poder verlo (en GitHub, el flujo los deja para descargar en la ejecución).
+void guardarFallo(const QString &fichero, const QString &texto, const QString &nombre)
+{
+    const QString carpeta = qEnvironmentVariable("SONDAS_GUARDAR");
+    if (carpeta.isEmpty())
+        return;
+    QDir().mkpath(carpeta);
+    const QString base = QDir(carpeta).filePath(nombre);
+    QFile::remove(base + QLatin1Char('.') + QFileInfo(fichero).suffix());
+    QFile::copy(fichero, base + QLatin1Char('.') + QFileInfo(fichero).suffix());
+    QFile leido(base + QStringLiteral("-texto.txt"));
+    if (leido.open(QIODevice::WriteOnly))
+        leido.write(texto.toUtf8());
+}
+
 // Un examen con las preguntas dadas, con las opciones en un orden al azar.
 Modelo modeloCon(const QVector<Pregunta> &preguntas, QRandomGenerator &rng)
 {
@@ -475,7 +492,6 @@ private slots:
                 const QString pdf = dir.filePath(QStringLiteral("examen.pdf"));
                 QVERIFY(Exportacion::pdf(pdf, {m}, d, soluciones, nivel));
                 const QString texto = ExamenesAnteriores::textoDePdf(pdf);
-                comprobar(QStringLiteral("PDF"), textoSinPies(texto, d));
                 // Los últimos pies son los del examen (antes van los de la hoja de soluciones): «1 / n» … «n / n».
                 static const QRegularExpression rePie(QStringLiteral(": (\\d+) / (\\d+)\\s*$"), QRegularExpression::MultilineOption);
                 QStringList pies;
@@ -487,8 +503,11 @@ private slots:
                 QStringList esperados;
                 for (int p = 1; p <= paginas; ++p)
                     esperados << QStringLiteral("%1/%2").arg(p).arg(paginas);
-                QVERIFY2(pies.size() >= paginas && pies.mid(pies.size() - paginas) == esperados,
-                         qPrintable(QStringLiteral("%1: pies %2").arg(donde, pies.join(QLatin1Char(' ')))));
+                const bool piesBien = pies.size() >= paginas && pies.mid(pies.size() - paginas) == esperados;
+                if (!piesBien || !faltanDelExamen(textoSinPies(texto, d), m, soluciones).isEmpty())
+                    guardarFallo(pdf, texto, QStringLiteral("vuelta%1-nivel%2%3").arg(vuelta).arg(nivel).arg(soluciones ? QStringLiteral("-soluciones") : QString()));
+                comprobar(QStringLiteral("PDF"), textoSinPies(texto, d));
+                QVERIFY2(piesBien, qPrintable(QStringLiteral("%1: pies %2 (debían acabar en %3)").arg(donde, pies.join(QLatin1Char(' ')), esperados.join(QLatin1Char(' ')))));
                 if (pdflatex.isEmpty())
                     continue;
                 QVERIFY(Exportacion::latex(dir.filePath(QStringLiteral("latex.tex")), {m}, d, soluciones, nivel));

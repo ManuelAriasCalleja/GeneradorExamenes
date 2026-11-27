@@ -100,7 +100,9 @@ Se pasan con las demás pruebas (unos 6 segundos). Para buscar más a fondo, con
   distintos, con todos los niveles de la maqueta, con y sin soluciones: en el texto del HTML, del Word y del PDF está
   cada pregunta, en su orden, con todas las líneas y celdas de su enunciado, sus opciones y, con soluciones, su
   explicación y su referencia; y los pies del PDF cuentan las páginas que salen. Con `SONDAS_PDFLATEX=1`, también el
-  LaTeX compilado. Las demás sondas solo miran que exportar no falle; esta, que no se pierda nada.
+  LaTeX compilado. Las demás sondas solo miran que exportar no falle; esta, que no se pierda nada. Con
+  `SONDAS_GUARDAR=<carpeta>`, el PDF en que encuentre un fallo se copia allí, con el texto que se ha leído de él; en
+  GitHub, el flujo los deja para descargar cuando fallan las pruebas.
 - `latexCompilaConTextosRaros` (solo con `SONDAS_PDFLATEX=1` y pdflatex instalado, porque tarda): el LaTeX de
   preguntas con textos raros compila con pdflatex.
 

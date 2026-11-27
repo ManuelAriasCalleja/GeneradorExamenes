@@ -185,6 +185,19 @@ private:
         return lineas;
     }
 
+    // El alto de una línea como lo pone el campo (QPlainTextDocumentLayout, con el interlineado): en Linux y Windows,
+    // en píxeles enteros, aunque el de la letra (QFontMetricsF::lineSpacing()) no lo sea; en macOS, no. Con el de la
+    // letra, redondeado, con 8 líneas en macOS cabía casi otra.
+    qreal altoDeLinea() const
+    {
+        QTextLayout capa(QStringLiteral("x"), font());
+        capa.beginLayout();
+        QTextLine linea = capa.createLine();
+        linea.setLeadingIncluded(true);
+        capa.endLayout();
+        return linea.height();
+    }
+
     void pedirAjuste()
     {
         if (m_ajustePedido)
@@ -200,10 +213,10 @@ private:
 
     void ajustarAlto()
     {
-        // El alto del texto como lo pone el campo (cada línea, en píxeles enteros; el margen del documento, arriba y
-        // abajo, y uno más, que pide para no desplazarse), más el marco.
+        // El alto del texto como lo pone el campo (las líneas, una tras otra con el alto de altoDeLinea(); el margen
+        // del documento, arriba y abajo, y uno más, que pide para no desplazarse), más el marco.
         const int lineas = qBound(kMinLineas, lineasDelTexto(), kMaxLineas);
-        const int texto = lineas * qCeil(QFontMetricsF(font()).lineSpacing()) + qCeil(2 * document()->documentMargin()) + 1;
+        const int texto = qCeil(lineas * altoDeLinea() + 2 * document()->documentMargin()) + 1;
         const QMargins vista = viewportMargins();
         setFixedHeight(texto + 2 * frameWidth() + vista.top() + vista.bottom());
     }

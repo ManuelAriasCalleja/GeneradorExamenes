@@ -73,6 +73,8 @@ jobs:
       # Después del paquete, para que se pueda descargar aunque falle alguna prueba (la ejecución sale en rojo).
       - name: Pruebas
         id: pruebas
+        env:
+          SONDAS_GUARDAR: ${{ runner.temp }}/sondas   # los ficheros de las sondas que fallen (ver prueba_sondas.cpp)
         run: ctest --test-dir build --output-on-failure
 
       # En Windows, ctest no enseña lo que escriben las pruebas que fallan: se vuelven a ejecutar con la salida a un
@@ -92,6 +94,16 @@ jobs:
             Write-Host ("Código de salida: 0x{0:X8}" -f $LASTEXITCODE)
             if (Test-Path $salida) { Get-Content $salida -Encoding utf8 | Out-Host }
           }
+
+      # Los ficheros exportados en los que una sonda ha encontrado un fallo, con el texto leído de ellos, para verlos.
+      - name: Guardar lo que falla en las sondas
+        if: failure() && steps.pruebas.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sondas-windows
+          path: ${{ runner.temp }}/sondas
+          retention-days: 7
+          if-no-files-found: ignore
 
   macos:
     runs-on: macos-latest
@@ -161,7 +173,19 @@ jobs:
           test -s "$banco"
 
       - name: Pruebas
+        id: pruebas
+        env:
+          SONDAS_GUARDAR: ${{ runner.temp }}/sondas   # los ficheros de las sondas que fallen (ver prueba_sondas.cpp)
         run: ctest --test-dir build --output-on-failure
+
+      - name: Guardar lo que falla en las sondas
+        if: failure() && steps.pruebas.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sondas-macos
+          path: ${{ runner.temp }}/sondas
+          retention-days: 7
+          if-no-files-found: ignore
 
   # Con una etiqueta, la versión (release) con los paquetes de Windows y macOS, solo si los dos trabajos han ido bien.
   publicar:

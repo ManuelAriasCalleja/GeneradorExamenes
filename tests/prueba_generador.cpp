@@ -358,9 +358,11 @@ private slots:
         ConfigExamen c = configuracion(4);
         c.barajarOpciones = true;
         ResultadoGeneracion r = Generador::generar(bancoInventado(), c);
-        // Una pregunta con las opciones barajadas, que se pone también en otro examen.
+        // Una pregunta con las opciones barajadas, que se pone también en otro examen. No «old»: la correcta de esas no
+        // va nunca a la letra que tiene en el banco, y la nueva correcta podría tener que ir a otra (pasa según cómo
+        // baraje std::shuffle, que no es igual en todas las bibliotecas de C++: con la de macOS salía una).
         int i = 0;
-        while (r.modelos[0].preguntas[i].orden == std::array<int, 4>{{0, 1, 2, 3}})
+        while (r.modelos[0].preguntas[i].orden == std::array<int, 4>{{0, 1, 2, 3}} || r.modelos[0].preguntas[i].pregunta.old)
             ++i;
         const PreguntaExamen antes = r.modelos[0].preguntas[i];
         r.modelos[1].preguntas[0] = antes;
