@@ -3958,6 +3958,17 @@ You can also right-click the question.</translation>
         <translation>Expor&amp;t the exams…</translation>
     </message>
     <message>
+        <location line="+3"/>
+        <source>Re&amp;gistrar la convocatoria…</source>
+        <extracomment>Menú Archivo. El &amp; marca la letra del atajo: no puede ser la de otra orden del menú.</extracomment>
+        <translation>Recor&amp;d the exam session…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Guarda los exámenes generados en el historial, para que sus preguntas se eviten en las convocatorias siguientes</source>
+        <translation>Saves the generated exams in the history, so that their questions are avoided in the following exam sessions</translation>
+    </message>
+    <message>
         <location line="+4"/>
         <source>&amp;Historial de convocatorias…</source>
         <translation>Exam session &amp;history…</translation>
@@ -4334,7 +4345,7 @@ Overwrite it with the contents of the database?</translation>
 %1</translation>
     </message>
     <message>
-        <location line="-475"/>
+        <location line="-479"/>
         <source>Exportar…</source>
         <extracomment>Botón: abre el diálogo para guardar los exámenes en ficheros (PDF, Word, HTML o LaTeX), con o sin soluciones</extracomment>
         <translation>Export…</translation>
@@ -4345,7 +4356,7 @@ Overwrite it with the contents of the database?</translation>
         <translation>Saves the exams as PDF, Word, HTML or LaTeX (one or several at once): the exams, their solutions or both, each in its own folder.</translation>
     </message>
     <message>
-        <location line="+325"/>
+        <location line="+329"/>
         <source> El JSON, que ahora es el del banco, se ha puesto al día con ellas.</source>
         <translation> The JSON, which is now the bank’s, has been brought up to date with them.</translation>
     </message>

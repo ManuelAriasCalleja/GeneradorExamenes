@@ -437,6 +437,10 @@ void VentanaPrincipal::crearMenus()
     //: Menú Archivo. El & marca la letra del atajo: no puede ser la de otra orden del menú.
     m_accionesExamen << archivo->addAction(tr("E&xportar los exámenes…"), QKeySequence(Qt::CTRL | Qt::Key_E), this,
                                            &VentanaPrincipal::exportarExamenes);
+    //: Menú Archivo. El & marca la letra del atajo: no puede ser la de otra orden del menú.
+    m_accionesExamen << archivo->addAction(tr("Re&gistrar la convocatoria…"), this, &VentanaPrincipal::registrarConvocatoria);
+    m_accionesExamen.last()->setToolTip(tr("Guarda los exámenes generados en el historial, para que sus preguntas se "
+                                           "eviten en las convocatorias siguientes"));
     for (QAction *a : std::as_const(m_accionesExamen))
         a->setEnabled(false);
     archivo->addAction(tr("&Historial de convocatorias…"), this, &VentanaPrincipal::historialConvocatorias);

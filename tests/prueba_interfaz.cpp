@@ -1119,15 +1119,23 @@ private slots:
         QVERIFY(generar);
         for (QWidget *w = generar; w; w = w->parentWidget())
             QVERIFY(!qobject_cast<QScrollArea *>(w));
-        generar->click();
-
-        // Exportar está en el menú Archivo y, como su botón, solo con exámenes.
-        QAction *accion = nullptr;
+        // Imprimir, exportar y registrar están en el menú Archivo y, como sus botones, solo con exámenes.
+        QHash<QString, QAction *> acciones;
         for (QAction *a : v.findChildren<QAction *>())
-            if (a->text() == QStringLiteral("E&xportar los exámenes…"))
-                accion = a;
-        QVERIFY(accion && accion->isEnabled());
-        QVERIFY(conTexto<QPushButton>(&v, QStringLiteral("Exportar…"))->isEnabled());
+            acciones.insert(a->text(), a);
+        const QStringList delMenu{QStringLiteral("Im&primir los exámenes…"), QStringLiteral("E&xportar los exámenes…"),
+                                  QStringLiteral("Re&gistrar la convocatoria…")};
+        const QStringList botones{QStringLiteral("Imprimir…"), QStringLiteral("Exportar…"), QStringLiteral("Registrar convocatoria…")};
+        for (int i = 0; i < delMenu.size(); ++i) {
+            QVERIFY2(acciones.value(delMenu.at(i)) && !acciones.value(delMenu.at(i))->isEnabled(), qPrintable(delMenu.at(i)));
+            QVERIFY2(!conTexto<QPushButton>(&v, botones.at(i))->isEnabled(), qPrintable(botones.at(i)));
+        }
+        generar->click();
+        for (int i = 0; i < delMenu.size(); ++i) {
+            QVERIFY2(acciones.value(delMenu.at(i))->isEnabled(), qPrintable(delMenu.at(i)));
+            QVERIFY2(conTexto<QPushButton>(&v, botones.at(i))->isEnabled(), qPrintable(botones.at(i)));
+        }
+        QAction *accion = acciones.value(delMenu.at(1));
 
         // Los cuatro formatos a la vez, los enunciados en una carpeta y las soluciones en otra (que se crean).
         const QString carpeta = dir.filePath(QStringLiteral("exportados"));
