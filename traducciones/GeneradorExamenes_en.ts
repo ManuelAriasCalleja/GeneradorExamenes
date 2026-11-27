@@ -14,7 +14,7 @@
         <translation>Invalid JSON: %1</translation>
     </message>
     <message>
-        <location line="+485"/>
+        <location line="+491"/>
         <source>Ya existe una pregunta %1 en ese tema.</source>
         <translation>A question %1 already exists in that topic.</translation>
     </message>
@@ -2360,7 +2360,7 @@ Do not hand in the question paper.</translation>
         <location filename="../src/docx.cpp" line="+18"/>
         <location line="+88"/>
         <location filename="../src/maquetador.cpp" line="+55"/>
-        <location line="+210"/>
+        <location line="+213"/>
         <location filename="../tests/prueba_idiomas.cpp" line="+18"/>
         <location line="+1"/>
         <location line="+2"/>
@@ -2371,7 +2371,7 @@ Do not hand in the question paper.</translation>
     <message>
         <location line="-95"/>
         <location filename="../src/docx.cpp" line="-71"/>
-        <location filename="../src/maquetador.cpp" line="-201"/>
+        <location filename="../src/maquetador.cpp" line="-204"/>
         <source>Estructura de la convocatoria</source>
         <translation>Session structure</translation>
     </message>
@@ -4042,12 +4042,12 @@ Choose where it is or create a new one.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+745"/>
+        <location line="+751"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-731"/>
+        <location line="-737"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -4382,6 +4382,12 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation> (fixed: the same exams come out every time)</translation>
     </message>
     <message>
+        <location line="+5"/>
+        <source> (con preguntas cambiadas a mano)</source>
+        <extracomment>Se añade a la línea de información de unos exámenes cargados del historial en los que se cambiaron preguntas a mano antes de registrarlos (con el espacio delante)</extracomment>
+        <translation> (with questions changed by hand)</translation>
+    </message>
+    <message>
         <location line="+3"/>
         <source> (con una pregunta cambiada a mano)</source>
         <extracomment>Se añade a la línea de información del examen (con el espacio delante)</extracomment>
@@ -4393,7 +4399,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation> (with %1 questions changed by hand)</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+4"/>
         <source>  ·  Letra grande (versión adaptada, sin límite de páginas)</source>
         <extracomment>Se añade a la línea de información del examen (con el separador delante)</extracomment>
         <translation>  ·  Large print (adapted version, no page limit)</translation>
@@ -4587,7 +4593,7 @@ Some of these exams were already recorded (with the same name, or with other ver
         <translation>Exams for %1 recorded in the history</translation>
     </message>
     <message>
-        <location line="+38"/>
+        <location line="+40"/>
         <source>Registrada el %1</source>
         <extracomment>Origen de los exámenes cargados del historial: la convocatoria se registró el día %1</extracomment>
         <translation>Recorded on %1</translation>
@@ -4604,8 +4610,8 @@ Some of these exams were already recorded (with the same name, or with other ver
         <translation>“%1”, question %2: %3 instead of %4</translation>
     </message>
     <message>
-        <location line="-394"/>
-        <location line="+436"/>
+        <location line="-402"/>
+        <location line="+444"/>
         <source>«%1»</source>
         <extracomment>Un examen en la lista del aviso de las versiones que faltan: %1 es su nombre, entre comillas
 ----------
@@ -4613,13 +4619,13 @@ Un examen de la lista en el mensaje de las versiones añadidas: %1 es su nombre,
         <translation>“%1”</translation>
     </message>
     <message>
-        <location line="-434"/>
+        <location line="-442"/>
         <source>Se piden %1 versiones de cada examen, y estos tienen menos: %2.</source>
         <extracomment>Aviso junto al examen; %1 es el número de versiones (dos o más) y %2, la lista de exámenes: «Nacional Original», «Nacional Reserva»</extracomment>
         <translation>%1 versions of each exam are asked for, and these have fewer: %2.</translation>
     </message>
     <message>
-        <location line="+436"/>
+        <location line="+444"/>
         <source>Añadidas las versiones de %1. Los exámenes que ya había no cambian; si no tenían versiones, ahora son la %2.</source>
         <extracomment>%1 es la lista de los exámenes («Nacional Original», «Nacional Reserva») y %2, la etiqueta de la primera versión (A o 1)</extracomment>
         <translation>Versions added to %1. The exams you already had do not change; those without versions are now version %2.</translation>

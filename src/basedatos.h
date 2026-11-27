@@ -22,7 +22,7 @@ struct ExamenRegistrado
     QString version;                 // la de un examen con versiones («B»); vacía si no
     QDateTime registrado;
     quint32 semilla = 0;
-    DatosConvocatoria datos;         // convocatoria, año, asignatura, instrucciones y puntuación
+    DatosConvocatoria datos;         // convocatoria, año, asignatura, instrucciones, puntuación y cambiadosAMano
     int numPreguntas = 0;
 
     // El nombre del examen de la lista: sin la versión, si tiene («Nacional Original»).
@@ -191,7 +191,8 @@ private:
     // nombre de la asignatura, sus repartos y la forma de la referencia de cada tema; a los bancos de antes, que
     // eran todos de Fundamentos de la informática (los que tienen temas), se les ponen los de esa asignatura. En la 2,
     // las preguntas dicen si están verificadas (ninguna lo está). En la 3, los exámenes registrados dicen su versión
-    // (ninguno tiene), y en la 4, si se barajaron sus opciones (ninguno: lo que diga la ventana, como antes).
+    // (ninguno tiene); en la 4, si se barajaron sus opciones (ninguno: lo que diga la ventana, como antes), y en la 5,
+    // si se cambiaron preguntas a mano antes de registrarlos (ninguno lo dice).
     bool actualizarEsquema();
     // Sentencia con sus valores (los «?», en orden); si falla, deja el error en m_error. En 'id' deja el de la fila
     // insertada.

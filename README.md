@@ -226,7 +226,8 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   No va en los exámenes que leen los estudiantes, pero sí en la hoja de soluciones (bajo «Soluciones») y en las
   propiedades de los ficheros exportados: en el PDF, como programa que lo creó; en el Word, en los comentarios; en el
   HTML, en la etiqueta `generator`; y en el LaTeX, en un comentario de la primera línea y en el asunto del PDF al
-  compilarlo. Con preguntas cambiadas a mano, se añade «(con preguntas cambiadas a mano)».
+  compilarlo. Con preguntas cambiadas a mano, se añade «(con preguntas cambiadas a mano)», también al cargarlos del
+  historial si se registraron así.
 - *Registrar convocatoria…* guarda en el historial (dentro de la base de datos) los exámenes generados, con una
   copia de sus preguntas tal como salieron y el orden de las opciones. Si ya había exámenes registrados con el
   mismo nombre, convocatoria y año, se sustituyen. Mientras los exámenes estén exportados (o impresos) y sin

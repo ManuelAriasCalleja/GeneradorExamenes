@@ -99,6 +99,8 @@ struct ResultadoGeneracion
     QVector<Modelo> modelos;
     QStringList avisos;
     quint32 semilla = 0;
+    // Cargados del historial: si se habían cambiado preguntas a mano antes de registrarlos (la semilla ya no los da).
+    bool cambiadosAMano = false;
 };
 
 // Elige preguntas al azar respetando:

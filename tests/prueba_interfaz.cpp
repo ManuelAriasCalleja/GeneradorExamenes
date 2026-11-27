@@ -1691,6 +1691,74 @@ private slots:
         QSettings().clear();
     }
 
+    // Con preguntas cambiadas a mano, la semilla ya no da los exámenes. Si se registran así, al cargarlos del historial
+    // la línea gris lo sigue diciendo, y también la hoja de soluciones de lo que se exporta.
+    void historialRecuerdaLasPreguntasCambiadasAMano()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("banco.db"));
+        QVERIFY(crearBancoInventado(ruta));
+        QSettings().clear();
+        VentanaPrincipal v;
+        v.show();
+        QVERIFY(v.abrirBancoInicial(ruta));
+        auto lineaGris = [&v]() {
+            for (QLabel *l : v.findChildren<QLabel *>())
+                if (l->text().contains(QStringLiteral("Semilla: ")))
+                    return l->text();
+            return QString();
+        };
+        QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
+        QVERIFY2(!lineaGris().contains(QStringLiteral("a mano")), qPrintable(lineaGris()));
+        QSpinBox *numero = nullptr;
+        for (QSpinBox *s : v.findChildren<QSpinBox *>())
+            if (s->toolTip().startsWith(QStringLiteral("Número de la pregunta que se quiere editar o cambiar")))
+                numero = s;
+        QVERIFY(numero);
+        numero->setValue(3);
+        QVERIFY(pulsar(&v, QStringLiteral("Cambiar por otra")));
+        QVERIFY2(lineaGris().contains(QStringLiteral(" (con una pregunta cambiada a mano)")), qPrintable(lineaGris()));
+        responder(QStringLiteral("Sí"));
+        QVERIFY(QMetaObject::invokeMethod(&v, "registrarConvocatoria"));
+
+        // Otros, sin cambios: no lo dicen.
+        QVERIFY(pulsar(&v, QStringLiteral("Generar exámenes")));
+        QVERIFY2(!lineaGris().contains(QStringLiteral("a mano")), qPrintable(lineaGris()));
+
+        // Los registrados, cargados del historial.
+        QTimer::singleShot(100, [] {
+            auto *d = qobject_cast<QDialog *>(QApplication::activeModalWidget());
+            if (!d)
+                return;
+            auto *arbol = d->findChild<QTreeWidget *>();
+            arbol->setCurrentItem(arbol->topLevelItem(0));
+            d->accept();
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "historialConvocatorias"));
+        QVERIFY2(lineaGris().startsWith(QStringLiteral("Registrada el ")) && lineaGris().contains(QStringLiteral(" (con preguntas cambiadas a mano)")),
+                 qPrintable(lineaGris()));
+        const QString carpeta = dir.filePath(QStringLiteral("exportados"));
+        QDir().mkpath(carpeta);
+        QTimer::singleShot(100, [&carpeta] {
+            QWidget *d = QApplication::activeModalWidget();
+            if (!d)
+                return;
+            d->findChild<QLineEdit *>()->setText(carpeta);
+            d->findChild<QCheckBox *>()->setChecked(true);
+            pulsar(d, QStringLiteral("Exportar"));
+        });
+        QVERIFY(QMetaObject::invokeMethod(&v, "exportarHtml"));
+        const QStringList exportados = QDir(carpeta).entryList({QStringLiteral("*-soluciones.html")});
+        QVERIFY(!exportados.isEmpty());
+        for (const QString &nombre : exportados) {
+            QFile f(carpeta + QLatin1Char('/') + nombre);
+            QVERIFY(f.open(QIODevice::ReadOnly));
+            QVERIFY2(QString::fromUtf8(f.readAll()).contains(QStringLiteral(" (con preguntas cambiadas a mano)")), qPrintable(nombre));
+        }
+        v.close();
+        QSettings().clear();
+    }
+
     // En el historial, «Cargar» es el botón por defecto (el de Intro) al abrirlo y después de eliminar algo, que pide
     // confirmación; y Cargar, Cerrar y Ayuda tienen cada uno su atajo (Alt y una letra), salvo en macOS.
     void historialConAtajosYCargarPorDefecto()

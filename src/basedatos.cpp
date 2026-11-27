@@ -18,7 +18,7 @@
 
 namespace {
 // Versión del esquema de la base de datos (PRAGMA user_version): ver BaseDatos::actualizarEsquema().
-constexpr int kVersionEsquema = 4;
+constexpr int kVersionEsquema = 5;
 
 QString nombreConexion(const BaseDatos *bd)
 {
@@ -359,6 +359,7 @@ bool BaseDatos::crearEsquema()
                " puntos_fallo REAL NOT NULL,"
                " version TEXT NOT NULL DEFAULT '',"   // la de un examen con versiones («B»); vacía si no
                " barajadas INTEGER NOT NULL DEFAULT 0,"   // si se barajaron las opciones de todo el examen (Modelo::barajadas)
+               " cambiadas INTEGER NOT NULL DEFAULT 0,"   // si se cambiaron preguntas a mano (DatosConvocatoria::cambiadosAMano)
                " UNIQUE (anio, convocatoria, nombre))"))
         && ejecutar(QStringLiteral(
                "CREATE TABLE IF NOT EXISTS preguntas_registradas ("
@@ -378,6 +379,7 @@ bool BaseDatos::actualizarEsquema()
     bool tieneVerificada = false;
     bool tieneVersion = false;
     bool tieneBarajadas = false;
+    bool tieneCambiadas = false;
     {   // Las consultas se cierran antes de la transacción.
         QSqlQuery q = consultar(QStringLiteral("PRAGMA user_version"));
         if (q.next())
@@ -392,6 +394,7 @@ bool BaseDatos::actualizarEsquema()
         while (q.next()) {
             tieneVersion = tieneVersion || q.value(1).toString() == QLatin1String("version");
             tieneBarajadas = tieneBarajadas || q.value(1).toString() == QLatin1String("barajadas");
+            tieneCambiadas = tieneCambiadas || q.value(1).toString() == QLatin1String("cambiadas");
         }
     }
     if (version >= kVersionEsquema)
@@ -405,6 +408,9 @@ bool BaseDatos::actualizarEsquema()
         return false;
     if (!tieneBarajadas
         && !ejecutar(QStringLiteral("ALTER TABLE examenes_registrados ADD COLUMN barajadas INTEGER NOT NULL DEFAULT 0")))
+        return false;
+    if (!tieneCambiadas
+        && !ejecutar(QStringLiteral("ALTER TABLE examenes_registrados ADD COLUMN cambiadas INTEGER NOT NULL DEFAULT 0")))
         return false;
     // Lo que el programa daba por hecho cuando solo era para Fundamentos de la informática: el nombre, los repartos
     // de sus exámenes (la primera parte, la segunda y las dos juntas) y la forma de la referencia según el autor de
@@ -1204,10 +1210,10 @@ bool BaseDatos::registrarExamenes(const QVector<Modelo> &modelos, const DatosCon
                       {datos.anio, texto(datos.convocatoria), texto(m.nombre)})
             || !ejecutar(QStringLiteral("INSERT INTO examenes_registrados (anio, convocatoria, nombre, registrado, semilla,"
                                         " asignatura, instrucciones, duracion, puntos_acierto, puntos_fallo, version,"
-                                        " barajadas) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"),
+                                        " barajadas, cambiadas) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"),
                          {datos.anio, texto(datos.convocatoria), texto(m.nombre), ahora, qint64(semilla), texto(datos.asignatura),
                           texto(datos.instrucciones), 0 /* duracion: columna antigua, ya sin uso */, datos.puntosAcierto, datos.puntosFallo,
-                          texto(m.version), m.barajadas ? 1 : 0},
+                          texto(m.version), m.barajadas ? 1 : 0, datos.cambiadosAMano ? 1 : 0},
                          &examenId))
             return false;
         for (int i = 0; i < m.preguntas.size(); ++i) {
@@ -1238,7 +1244,7 @@ QVector<ExamenRegistrado> BaseDatos::examenesRegistrados()
     QSqlQuery q = consultar(QStringLiteral(
         "SELECT e.id, e.nombre, e.registrado, e.semilla, e.anio, e.convocatoria, e.asignatura, e.instrucciones,"
         " e.puntos_acierto, e.puntos_fallo,"
-        " (SELECT COUNT(*) FROM preguntas_registradas p WHERE p.examen_id = e.id), e.version"
+        " (SELECT COUNT(*) FROM preguntas_registradas p WHERE p.examen_id = e.id), e.version, e.cambiadas"
         " FROM examenes_registrados e ORDER BY e.id"));
     while (q.next()) {
         ExamenRegistrado e;
@@ -1254,6 +1260,7 @@ QVector<ExamenRegistrado> BaseDatos::examenesRegistrados()
         e.datos.puntosFallo = q.value(9).toDouble();
         e.numPreguntas = q.value(10).toInt();
         e.version = q.value(11).toString();
+        e.datos.cambiadosAMano = q.value(12).toBool();
         ultimoId[ClaveConvocatoria(e.datos.anio, e.datos.convocatoria)] = e.id;
         res.append(e);
     }

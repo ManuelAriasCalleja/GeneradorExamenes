@@ -881,6 +881,7 @@ private slots:
             QSqlQuery q(db);
             QVERIFY2(q.exec(QStringLiteral("ALTER TABLE examenes_registrados DROP COLUMN version")), qPrintable(q.lastError().text()));
             QVERIFY2(q.exec(QStringLiteral("ALTER TABLE examenes_registrados DROP COLUMN barajadas")), qPrintable(q.lastError().text()));
+            QVERIFY2(q.exec(QStringLiteral("ALTER TABLE examenes_registrados DROP COLUMN cambiadas")), qPrintable(q.lastError().text()));
             QVERIFY(q.exec(QStringLiteral("PRAGMA user_version = 2")));
         }
         QSqlDatabase::removeDatabase(QStringLiteral("version2"));
@@ -888,9 +889,41 @@ private slots:
         m = cargados();
         QCOMPARE(m.size(), 3);
         QVERIFY(m.at(1).version.isEmpty() && !m.at(1).barajadas);   // los de antes no lo dicen
+        QVERIFY(!bd.examenesRegistrados().at(1).datos.cambiadosAMano);
         QCOMPARE(m.at(1).nombre, QStringLiteral("Uno B"));
         QVERIFY(bd.registrarExamenes(r.modelos, d, r.semilla));   // y se pueden volver a registrar con ella
         QCOMPARE(cargados().at(1).version, QStringLiteral("B"));
+    }
+
+    // El historial guarda si se cambiaron preguntas a mano antes de registrar los exámenes: la semilla ya no los da, y
+    // al cargarlos y exportarlos se tiene que seguir diciendo.
+    void historialConPreguntasCambiadasAMano()
+    {
+        BaseDatos bd;
+        QVERIFY2(abrirConBanco(bd), qPrintable(bd.ultimoError()));
+        ConfigExamen c;
+        c.preguntasPorTema = {{1, 3}, {2, 2}};
+        c.nombresModelos = {QStringLiteral("Uno"), QStringLiteral("Dos")};
+        c.semilla = 9;
+        const ResultadoGeneracion r = Generador::generar(bd.preguntas(), c);
+        DatosConvocatoria d;
+        d.convocatoria = QStringLiteral("Junio");
+        d.anio = 2026;
+        d.cambiadosAMano = true;
+        QVERIFY(bd.registrarExamenes(r.modelos, d, r.semilla));
+        d.convocatoria = QStringLiteral("Septiembre");
+        d.cambiadosAMano = false;
+        QVERIFY(bd.registrarExamenes(r.modelos, d, r.semilla));
+        int conCambios = 0, sinCambios = 0;
+        for (const ExamenRegistrado &e : bd.examenesRegistrados()) {
+            QCOMPARE(e.semilla, quint32(9));
+            if (e.datos.convocatoria == QLatin1String("Junio"))
+                conCambios += e.datos.cambiadosAMano ? 1 : -100;
+            else
+                sinCambios += e.datos.cambiadosAMano ? -100 : 1;
+        }
+        QCOMPARE(conCambios, 2);
+        QCOMPARE(sinCambios, 2);
     }
 
     // Cómo salió cada pregunta en todos los exámenes registrados: la letra de la correcta cada vez, de la convocatoria

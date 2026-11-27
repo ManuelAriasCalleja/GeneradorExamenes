@@ -1004,7 +1004,7 @@ DatosConvocatoria VentanaPrincipal::datosConvocatoria() const
     // La de los exámenes que se ven, para las soluciones y las propiedades de los ficheros.
     if (hayExamen()) {
         d.semilla = m_resultado.semilla;
-        d.cambiadosAMano = preguntasCambiadas() > 0;
+        d.cambiadosAMano = m_resultado.cambiadosAMano || preguntasCambiadas() > 0;
     }
     return d;
 }
@@ -1140,10 +1140,16 @@ void VentanaPrincipal::actualizarMaqueta()
     //: Se añade tras «Semilla: %1» (con el espacio delante)
     if (m_semillaFija)
         info += tr(" (fija: cada vez salen los mismos exámenes)");
-    //: Se añade a la línea de información del examen (con el espacio delante)
-    if (const int cambiadas = preguntasCambiadas())
+    // Cargados del historial, los cambios de antes de registrarlos no se cuentan: no se dice cuántos.
+    if (m_resultado.cambiadosAMano) {
+        //: Se añade a la línea de información de unos exámenes cargados del historial en los que se cambiaron
+        //: preguntas a mano antes de registrarlos (con el espacio delante)
+        info += tr(" (con preguntas cambiadas a mano)");
+    } else if (const int cambiadas = preguntasCambiadas()) {
+        //: Se añade a la línea de información del examen (con el espacio delante)
         info += cambiadas == 1 ? tr(" (con una pregunta cambiada a mano)")
                                : tr(" (con %1 preguntas cambiadas a mano)").arg(cambiadas);
+    }
     if (m_letraGrande->isChecked()) {
         //: Se añade a la línea de información del examen (con el separador delante)
         info += tr("  ·  Letra grande (versión adaptada, sin límite de páginas)");
@@ -1462,6 +1468,8 @@ void VentanaPrincipal::cargarRegistrados(const QVector<int> &examenes)
             if (!primero)
                 primero = &e;
             resultado.modelos << m_bd.modeloRegistrado(id);
+            // Si se cambiaron preguntas antes de registrarlos, la semilla sigue sin darlos: se dice al exportarlos.
+            resultado.cambiadosAMano = resultado.cambiadosAMano || e.datos.cambiadosAMano;
         }
     }
     if (!primero)
