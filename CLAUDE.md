@@ -25,6 +25,8 @@ Si falta alguno: `ln -s "<carpeta>" <enlace>`. El programa no los usa: abre el
 `ctest --test-dir build --output-on-failure` (ver README). Pasarlas antes de dar por bueno un cambio, y añadir
 una cuando se arregle un fallo o se programe algo nuevo. Los datos de prueba son inventados (`tests/datos_prueba.h`):
 nunca se copian preguntas, opciones ni frases de los bancos, tampoco para reproducir un caso real.
+Si se toca la maqueta o las exportaciones, pasar también `BANCOS_EXPORTAR=1 ./build/prueba_bancos_reales
+nadaSePierdeAlExportar`, que exporta todas las preguntas de los bancos reales y busca cada texto en lo exportado.
 
 ## Manual de uso
 `recursos/ayuda.html` es la ayuda del programa (*Ayuda → Manual de uso*, F1, y el botón «Ayuda» de los diálogos, que

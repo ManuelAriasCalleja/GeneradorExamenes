@@ -111,7 +111,10 @@ El 27 de noviembre, `nadaSePierdeAlExportar` con `SONDAS=20` y `SONDAS_PDFLATEX=
 soluciones, en los cuatro formatos), sin nada tras el arreglo 9. Ese día, además, con un programa aparte que se queda
 fuera del repositorio porque usa los bancos, se exportaron todas las preguntas de los tres bancos (de 20 en 20, con
 la maqueta normal, la compacta y la de letra grande) y exámenes generados con sus repartos, en PDF, HTML, Word, LaTeX
-y Moodle, buscando cada texto en lo exportado: solo apareció el 9.
+y Moodle, buscando cada texto en lo exportado: solo apareció el 9. Desde ese día es una prueba más,
+`nadaSePierdeAlExportar` de `prueba_bancos_reales` (se salta si no están los bancos, y tarda: solo con
+`BANCOS_EXPORTAR=1`; con `SONDAS_PDFLATEX=1`, también el LaTeX), que comparte con la sonda la forma de buscar cada
+pregunta (`tests/texto_exportado.h`) y no dice el texto de lo que falta.
 
 Repetidas el 23 de noviembre: todas con `SONDAS=20` y con los detectores, sin nada, y la de pdflatex con `SONDAS=5`
 (60 documentos, ya con código dentro del texto: las sondas ponen comillas invertidas al azar), que compila.

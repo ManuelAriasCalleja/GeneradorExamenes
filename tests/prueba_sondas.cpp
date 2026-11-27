@@ -17,6 +17,7 @@
 #include "maquetador.h"
 #include "moodle.h"
 #include "parecidas.h"
+#include "texto_exportado.h"
 
 #include <QDir>
 #include <QJsonArray>
@@ -329,109 +330,6 @@ Pregunta preguntaLegible(QRandomGenerator &rng, int numero)
     if (rng.bounded(8) == 0)
         p.imagen = imagenInventada();
     return p;
-}
-
-// Lo que se compara de un texto exportado: sus letras y cifras, en minúsculas (y los superíndices y subíndices como
-// cifras normales, que es como salen en el LaTeX). Los espacios, los saltos de línea, la puntuación y los números de
-// línea del código cambian de un formato a otro.
-QString soloLetras(const QString &texto)
-{
-    QString res;
-    for (const QChar c : texto.normalized(QString::NormalizationForm_KC))
-        if (c.isLetterOrNumber())
-            res += c.toLower();
-    return res;
-}
-
-// Lo que falta en 'texto' (el de un fichero exportado) de las preguntas del examen: cada una debe estar en su orden, con
-// todo lo suyo (las líneas y las celdas del enunciado, las opciones y, con soluciones, la explicación y la referencia)
-// entre el principio de su enunciado y el de la siguiente.
-QStringList faltanDelExamen(const QString &texto, const Modelo &m, bool soluciones)
-{
-    const QString t = soloLetras(texto);
-    QStringList faltan;
-    QVector<int> inicios;
-    int desde = 0;
-    for (int k = 0; k < m.preguntas.size(); ++k) {
-        const QString primera = soloLetras(Enunciado::sinMarcas(m.preguntas.at(k).pregunta.enunciado.section(QLatin1Char('\n'), 0, 0)));
-        const int inicio = int(t.indexOf(primera, desde));
-        if (inicio < 0)
-            faltan << QStringLiteral("pregunta %1: no está su enunciado (o no en su sitio)").arg(k + 1);
-        else
-            desde = inicio + 1;
-        inicios << inicio;
-    }
-    for (int k = 0; k < m.preguntas.size(); ++k) {
-        if (inicios.at(k) < 0)
-            continue;
-        int fin = int(t.size());
-        for (int j = k + 1; j < m.preguntas.size(); ++j)
-            if (inicios.at(j) >= 0) {
-                fin = inicios.at(j);
-                break;
-            }
-        const QString suyo = t.mid(inicios.at(k), fin - inicios.at(k));
-        const PreguntaExamen &pe = m.preguntas.at(k);
-        QStringList trozos;
-        for (const Enunciado::Bloque &b : Enunciado::bloques(pe.pregunta.enunciado)) {
-            for (const QStringList &fila : b.filas)
-                for (const QString &celda : fila)
-                    trozos << Enunciado::sinMarcas(celda);
-            for (const QString &linea : b.lineas)
-                trozos << (b.tipo == Enunciado::Bloque::Codigo ? linea : Enunciado::sinMarcas(linea));
-        }
-        for (int i = 0; i < 4; ++i)
-            trozos << Enunciado::sinMarcas(pe.opcion(i));
-        if (soluciones)
-            trozos << pe.pregunta.explicacion << pe.pregunta.referencia;
-        for (const QString &trozo : std::as_const(trozos)) {
-            const QString buscado = soloLetras(trozo);
-            if (buscado.size() >= 4 && !suyo.contains(buscado))
-                faltan << QStringLiteral("pregunta %1: falta «%2»").arg(k + 1).arg(trozo.left(50));
-        }
-    }
-    return faltan;
-}
-
-// El texto de un PDF exportado sin sus pies de página («Asignatura · Modelo · Junio 2026: 1 / 2», que empiezan por la
-// asignatura de 'd'), que pueden caer en medio de una pregunta larga o pegados a la última línea de la página. Cuando
-// un párrafo se parte entre dos páginas, Qt escribe otra vez su última línea de la primera al principio de la segunda,
-// fuera de la página: no se ve, pero está en el texto del PDF (ver «Vistos y no arreglados» en
-// docs/revision_errores.md). Esa repetida, justo detrás del pie, también se quita.
-QString textoSinPies(const QString &texto, const DatosConvocatoria &d)
-{
-    const QRegularExpression pie(QRegularExpression::escape(d.asignatura) + QStringLiteral(".*: (\\d+|\\?\\?) / (\\d+|\\?\\?)"));
-    QStringList lineas;
-    bool trasPie = false;
-    for (const QString &linea : texto.split(QLatin1Char('\n'))) {
-        const QRegularExpressionMatch m = pie.match(linea);
-        if (m.hasMatch()) {
-            const QString antes = linea.left(m.capturedStart()).trimmed();
-            if (!antes.isEmpty())
-                lineas << antes;
-            trasPie = true;
-            continue;
-        }
-        if (!trasPie || lineas.isEmpty() || linea.trimmed() != lineas.last().trimmed())
-            lineas << linea;
-        trasPie = false;
-    }
-    return lineas.join(QLatin1Char('\n'));
-}
-
-// El texto del cuerpo de un Word (sus párrafos, uno por línea).
-QString textoDeWord(const QByteArray &documento)
-{
-    QString texto;
-    QXmlStreamReader r(documento);
-    while (!r.atEnd()) {
-        r.readNext();
-        if (r.isStartElement() && r.name() == QLatin1String("p"))
-            texto += QLatin1Char('\n');
-        else if (r.isStartElement() && r.name() == QLatin1String("t"))
-            texto += r.readElementText();
-    }
-    return texto;
 }
 
 } // namespace

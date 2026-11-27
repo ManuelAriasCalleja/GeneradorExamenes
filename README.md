@@ -102,7 +102,9 @@ recorridos principales de la interfaz y la ayuda (que tenga los apartados a
 los que lleva cada ventana y que sus enlaces lleven a algún sitio), el comprobador de los JSON (errores con su línea,
 los ejemplos y que el esquema JSON diga lo mismo que él) y los idiomas (la interfaz en inglés, los exámenes y Moodle
 en el idioma del banco, las pautas de estilo de cada idioma y que la traducción esté completa). Usan preguntas inventadas (`tests/datos_prueba.h`); la de los bancos reales (`prueba_bancos_reales`)
-trabaja con una copia de cada uno y se salta si no están los enlaces `datos` y `banco2`. Para no compilarlas:
+trabaja con una copia de cada uno y se salta si no están los enlaces `datos`, `banco2` y `BancoPreguntas`. Con
+`BANCOS_EXPORTAR=1` exporta además todas sus preguntas (en PDF, HTML, Word y Moodle, y con `SONDAS_PDFLATEX=1` en
+LaTeX compilado) y busca cada texto en lo exportado; tarda, por eso no se hace siempre. Para no compilarlas:
 `cmake -S . -B build -DPRUEBAS=OFF`.
 
 Para buscar errores de memoria y comportamiento indefinido, se compilan en otra carpeta con los detectores de GCC y
