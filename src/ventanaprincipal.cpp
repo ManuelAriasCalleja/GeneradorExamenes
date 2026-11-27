@@ -431,28 +431,16 @@ void VentanaPrincipal::crearMenus()
     archivo->setToolTipsVisible(true);
     connect(m_accionJsonAuto, &QAction::toggled, this, &VentanaPrincipal::cambiarJsonAutomatico);
     archivo->addSeparator();
-    // Las de los exámenes generados (como sus botones, solo cuando los hay).
-    //: Menú Archivo. El & marca la letra del atajo: no puede ser la de otra orden del menú.
-    m_accionesExamen << archivo->addAction(tr("Im&primir los exámenes…"), QKeySequence::Print, this, &VentanaPrincipal::vistaPreviaImpresion);
-    //: Menú Archivo. El & marca la letra del atajo: no puede ser la de otra orden del menú.
-    m_accionesExamen << archivo->addAction(tr("E&xportar los exámenes…"), QKeySequence(Qt::CTRL | Qt::Key_E), this,
-                                           &VentanaPrincipal::exportarExamenes);
-    //: Menú Archivo. El & marca la letra del atajo: no puede ser la de otra orden del menú.
-    m_accionesExamen << archivo->addAction(tr("Re&gistrar la convocatoria…"), this, &VentanaPrincipal::registrarConvocatoria);
-    m_accionesExamen.last()->setToolTip(tr("Guarda los exámenes generados en el historial, para que sus preguntas se "
-                                           "eviten en las convocatorias siguientes"));
-    for (QAction *a : std::as_const(m_accionesExamen))
-        a->setEnabled(false);
-    archivo->addAction(tr("&Historial de convocatorias…"), this, &VentanaPrincipal::historialConvocatorias);
-    archivo->addAction(tr("&Registrar exámenes anteriores…"), this, &VentanaPrincipal::registrarAnteriores)
-        ->setToolTip(tr("Registra en el historial los exámenes de una convocatoria hecha fuera del programa (de "
-                        "sus PDF o su texto), para que se eviten sus preguntas al generar"));
-    archivo->addSeparator();
     // En macOS, «Salir» y «Acerca de…» van en el menú de la aplicación. Qt los reconoce por su texto en inglés: en
     // castellano hay que decírselo.
     archivo->addAction(tr("&Salir"), QKeySequence::Quit, this, &QWidget::close)->setMenuRole(QAction::QuitRole);
 
     QMenu *editar = menuBar()->addMenu(tr("&Editar"));
+    // Como el botón «Deshacer el cambio» (ver actualizarDeshacer()). En un campo de texto, Ctrl+Z deshace lo escrito.
+    //: Menú Editar: deshace el último cambio de una pregunta de los exámenes (o las versiones añadidas)
+    m_accionDeshacer = editar->addAction(tr("&Deshacer el cambio de pregunta"), QKeySequence::Undo, this, &VentanaPrincipal::deshacerCambio);
+    m_accionDeshacer->setEnabled(false);
+    editar->addSeparator();
     editar->addAction(tr("&Temas…"), this, &VentanaPrincipal::gestionarTemas);
     editar->addAction(tr("&Nueva pregunta…"), QKeySequence::New, m_banco, &PestanaBanco::nuevaPregunta);
     editar->addAction(tr("&Revisar el estilo del banco…"), this, &VentanaPrincipal::revisarEstilo);
@@ -475,6 +463,27 @@ void VentanaPrincipal::crearMenus()
     menuIdioma->addSeparator();
     for (const Idioma::Disponible &d : Idioma::disponibles())
         anadirIdioma(d.nombre, d.codigo);
+
+    // Lo que se hace con los exámenes generados (como sus botones, solo cuando los hay) y con los de antes.
+    //: Menú de la barra: lo que se hace con los exámenes. El & marca la letra del atajo: no puede ser la de otro menú.
+    QMenu *examenes = menuBar()->addMenu(tr("E&xámenes"));
+    m_accionesExamen << examenes->addAction(tr("&Imprimir los exámenes…"), QKeySequence::Print, this, &VentanaPrincipal::vistaPreviaImpresion);
+    m_accionesExamen << examenes->addAction(tr("&Exportar los exámenes…"), QKeySequence(Qt::CTRL | Qt::Key_E), this,
+                                            &VentanaPrincipal::exportarExamenes);
+    m_accionesExamen << examenes->addAction(tr("&Registrar la convocatoria…"), this, &VentanaPrincipal::registrarConvocatoria);
+    m_accionesExamen.last()->setToolTip(tr("Guarda los exámenes generados en el historial, para que sus preguntas se "
+                                           "eviten en las convocatorias siguientes"));
+    //: Menú Exámenes: hacer en pantalla el examen que se ve, como un estudiante
+    m_accionesExamen << examenes->addAction(tr("&Practicar este examen…"), this, &VentanaPrincipal::practicar);
+    for (QAction *a : std::as_const(m_accionesExamen))
+        a->setEnabled(false);
+    examenes->addSeparator();
+    examenes->addAction(tr("&Historial de convocatorias…"), this, &VentanaPrincipal::historialConvocatorias);
+    //: Menú Exámenes. El & marca la letra del atajo: no puede ser la de otra orden del menú.
+    examenes->addAction(tr("Registrar exámenes &anteriores…"), this, &VentanaPrincipal::registrarAnteriores)
+        ->setToolTip(tr("Registra en el historial los exámenes de una convocatoria hecha fuera del programa (de "
+                        "sus PDF o su texto), para que se eviten sus preguntas al generar"));
+    examenes->setToolTipsVisible(true);
 
     QMenu *ayuda = menuBar()->addMenu(tr("A&yuda"));
     ayuda->addAction(tr("&Manual de uso"), QKeySequence::HelpContents, this, &VentanaPrincipal::mostrarAyuda);
@@ -510,7 +519,7 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
     for (QAction *a : std::as_const(m_accionesExamen))
         a->setEnabled(false);
     m_preguntaACambiar->setEnabled(false);
-    m_deshacerCambio->setEnabled(false);
+    actualizarDeshacer();
     actualizarRegistro();
     m_panel->ponerAsignaturaDelBanco();
     m_panel->ponerIdiomaDelBanco();
@@ -1076,7 +1085,7 @@ void VentanaPrincipal::generar()
     if (m_panel->evitaRecientes() && m_bd.examenesRegistrados().isEmpty())
         m_resultado.avisos << tr("No hay ninguna convocatoria registrada en el historial, así que no se evitan las "
                                  "preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con "
-                                 "Archivo → Registrar exámenes anteriores…");
+                                 "Exámenes → Registrar exámenes anteriores…");
     m_configResultado = config;
     guardarConfiguracion();
     presentarResultado();
@@ -1117,7 +1126,7 @@ void VentanaPrincipal::presentarResultado(const QString &origen)
     m_preguntaACambiar->setEnabled(hayExamen());
     m_cambios.clear();
     m_quitadas.clear();
-    m_deshacerCambio->setEnabled(false);
+    actualizarDeshacer();
     ofrecerCarpeta(QString());
     m_exportados = false;
     m_registrados = !origen.isEmpty();   // cargados del historial
@@ -1432,7 +1441,7 @@ void VentanaPrincipal::registrarConvocatoria()
         if (!yaRegistrados.contains(nombre))
             yaRegistrados << nombre;
     QString texto = tr("Se guardarán en el historial los exámenes de %1: %2.\n\n"
-                       "Al generar, se evitarán sus preguntas, y desde Archivo → Historial de convocatorias "
+                       "Al generar, se evitarán sus preguntas, y desde Exámenes → Historial de convocatorias "
                        "se podrán volver a cargar tal como están.")
                         .arg(d.convocatoriaYAnio(), nombres.join(QStringLiteral(", ")));
     if (!yaRegistrados.isEmpty())
@@ -1532,7 +1541,7 @@ void VentanaPrincipal::cambiar(int indice)
     m_registrados = false;   // ya no son como los registrados
     for (int version : Generador::versionesDe(m_resultado, modelo))   // se ha cambiado en todas
         m_quitadas[version].insert(quitada.grupo());
-    m_deshacerCambio->setEnabled(true);
+    actualizarDeshacer();
     actualizarMaqueta();
     m_preguntaACambiar->setValue(indice + 1);
     m_visorExamen->scrollToAnchor(QStringLiteral("q%1").arg(indice + 1));
@@ -1573,7 +1582,7 @@ void VentanaPrincipal::anadirVersiones()
     m_resultado = conVersiones;
     m_quitadas = quitadas;
     m_registrados = false;   // ya no son como los registrados
-    m_deshacerCambio->setEnabled(true);
+    actualizarDeshacer();
     ponerSelector(nuevoActual);
     actualizarMaqueta();
     QStringList cuales;
@@ -1735,6 +1744,16 @@ void VentanaPrincipal::ponerVerificacionDelBanco(ResultadoGeneracion &resultado)
     }
 }
 
+void VentanaPrincipal::actualizarDeshacer()
+{
+    const bool hay = !m_cambios.isEmpty();
+    m_deshacerCambio->setEnabled(hay);
+    m_accionDeshacer->setEnabled(hay);
+    //: Menú Editar: deshace las versiones que se acaban de añadir a los exámenes
+    m_accionDeshacer->setText(hay && m_cambios.last().versiones ? tr("&Deshacer las versiones añadidas")
+                                                                : tr("&Deshacer el cambio de pregunta"));
+}
+
 void VentanaPrincipal::deshacerCambio()
 {
     if (m_cambios.isEmpty())
@@ -1742,7 +1761,7 @@ void VentanaPrincipal::deshacerCambio()
     const CambioPregunta cambio = m_cambios.takeLast();
     m_resultado = cambio.antes;
     m_registrados = false;
-    m_deshacerCambio->setEnabled(!m_cambios.isEmpty());
+    actualizarDeshacer();
     if (cambio.versiones) {
         m_quitadas = cambio.quitadas;
         ponerSelector(cambio.modelo);

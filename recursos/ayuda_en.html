@@ -101,7 +101,7 @@ start-up to those of the next exam session (see <a href="#convocatoria">Exam ses
 <p>To avoid repeating questions from the last exam sessions, the program looks them up in its
 <a href="#historial">history</a>, where the exams generated with it are saved. Exam sessions from before the program
 was used are not there, and their questions could come up again. Before generating the first exams, record the
-previous ones from their PDFs with <i>File → Record previous exams…</i> (see
+previous ones from their PDFs with <i>Exams → Record previous exams…</i> (see
 <a href="#anteriores">Recording previous exams</a>). As long as none has been recorded, a warning is shown when
 generating.</p>
 
@@ -218,7 +218,7 @@ they were generated without random order, they are the same as if they had been 
 <li>An exam that already has versions gets the missing ones, with its numbering, and the ones it has do not change. If
 fewer than it has are asked for, none is removed.</li>
 <li>It is undone like a question replacement, with <b>Undo the change</b> (or “Undo the added versions”, by
-right-clicking).</li>
+right-clicking and in the <b>Edit</b> menu, Ctrl+Z).</li>
 <li>If the exams had been recorded, when you record the exam session again their versions replace the recorded ones
 without them (see <a href="#historial">The exam session history</a>).</li>
 </ul>
@@ -394,8 +394,9 @@ others left.</li>
 <li>If the new one is not among the desirable ones (for example, because it is already in another exam or was used
 in a recent exam session and there was no other left), the yellow box warns you. If no question can take its place,
 nothing is changed and a warning is shown.</li>
-<li><b>Undo the change</b> (or “Undo the last question change”, by right-clicking) undoes the changes, from the last
-to the first, and also the <a href="#versiones">versions added</a> to the exams.</li>
+<li><b>Undo the change</b> (or “Undo the last question change”, by right-clicking, and <b>Edit → Undo the question
+change</b>, Ctrl+Z) undoes the changes, from the last to the first, and also the <a href="#versiones">versions
+added</a> to the exams. In a text field, Ctrl+Z undoes what was typed in it.</li>
 </ul>
 <p>Questions can also be replaced in exams loaded from the <a href="#historial">history</a>; the replacements are
 then chosen with the options currently set in the window. If the exams are then recorded again, they replace the ones
@@ -469,10 +470,10 @@ hand, “(with questions changed by hand)” is added, also when they are loaded
 <p>Once the exams have been generated, the buttons below the preview (and the <b>File</b> menu) print them or save
 them to files:</p>
 <ul>
-<li><b>Print…</b> (<b>File → Print the exams…</b>, Ctrl+P) opens the print preview of all the exams, from which
+<li><b>Print…</b> (<b>Exams → Print the exams…</b>, Ctrl+P) opens the print preview of all the exams, from which
 they are printed. They are printed without solutions: to print the solutions, export them as PDF and print the
 PDF.</li>
-<li><b>Export…</b> (<b>File → Export the exams…</b>, Ctrl+E) saves them to files, in the format or formats you
+<li><b>Export…</b> (<b>Exams → Export the exams…</b>, Ctrl+E) saves them to files, in the format or formats you
 choose, with or without their solutions (see <a href="#exportar-ficheros">The export dialog</a>).</li>
 </ul>
 <p>The formats:</p>
@@ -539,7 +540,7 @@ it is updated when printing or in the print preview.</p>
 <!-- ======================================================================================================= -->
 <h2><a name="practicar"></a>Practising an exam</h2>
 
-<p><b>Practise this exam…</b> opens the exam being shown so that you can take it on screen, as a student would, and
+<p><b>Practise this exam…</b> (also in the <b>Exams</b> menu) opens the exam being shown so that you can take it on screen, as a student would, and
 have it marked. It is useful, for example, for checking an exam before approving it.</p>
 <ol>
 <li>Choose the duration (from 5 to 300 minutes; it is remembered from one time to the next) and click <b>Start</b>.
@@ -565,7 +566,7 @@ exactly as it was set. Each bank has its own: the exam sessions of one subject d
 <a href="#asignaturas">Several subjects</a>).</p>
 
 <h3><a name="registrar"></a>Recording an exam session</h3>
-<p><b>Record exam session…</b>, below the exam preview (also <b>File → Record the exam session…</b>), saves the
+<p><b>Record exam session…</b>, below the exam preview (also <b>Exams → Record the exam session…</b>), saves the
 generated exams in the history: a copy of their questions exactly as they were set, the order of the options and the
 exam session details (subject, instructions, scoring, the seed and whether questions were changed by hand). The name
 of the exam session must have been entered.</p>
@@ -587,7 +588,7 @@ program), you are asked first: <b>Record them…</b>, <b>Do not record them</b> 
 
 <h3><a name="anteriores"></a>Recording previous exams</h3>
 <p>The exams of exam sessions held outside the program (those from before it was used) are recorded with
-<i>File → Record previous exams…</i>. That way their questions are avoided when generating the following ones, just
+<i>Exams → Record previous exams…</i>. That way their questions are avoided when generating the following ones, just
 like those of the generated exam sessions.</p>
 <ol>
 <li>Click <b>Add PDF…</b> and choose the PDFs of the exam session’s exams (several at once). If an exam is only
@@ -610,7 +611,7 @@ loaded from the history, it comes with the current questions. To read PDFs, the 
 <b>Add PDF…</b> is disabled, copy and paste the text.</p>
 
 <h3><a name="consultar-historial"></a>Loading or deleting exam sessions</h3>
-<p><i>File → Exam session history…</i> shows the recorded exam sessions (for example, “June 2026”) with their exams,
+<p><i>Exams → Exam session history…</i> shows the recorded exam sessions (for example, “June 2026”) with their exams,
 the number of questions in each one and when it was recorded.</p>
 <ul>
 <li><b>Load</b> (Alt+L or Enter, or double-click an exam): takes the selected exam session, or a single exam, to

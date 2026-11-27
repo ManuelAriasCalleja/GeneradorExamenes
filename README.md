@@ -168,7 +168,7 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   personalizada, con los puntos que se escriban. (Las versiones anteriores tenían la casilla «Automática»: marcada,
   es la del 30 %; sin marcar, la personalizada.) Va en una línea dentro del recuadro de las instrucciones:
   «Respuesta correcta: +0,50 puntos · incorrecta: −0,15 puntos · en blanco: 0 puntos».
-- *Exportar…* (también *Archivo → Exportar los exámenes…*, Ctrl+E) abre un diálogo donde se elige todo de una vez:
+- *Exportar…* (también *Exámenes → Exportar los exámenes…*, Ctrl+E) abre un diálogo donde se elige todo de una vez:
   los formatos (PDF, Word .docx, HTML editable en Word/LibreOffice y LaTeX, uno o varios), los enunciados y las
   soluciones (uno de los dos o los dos, cada uno en su carpeta, que se recuerda en cada banco) y los exámenes, cada
   uno en su fichero (por defecto `2026-Junio-Nacional-Original.pdf`…, con el nombre que se quiera, sin extensión) y,
@@ -179,13 +179,15 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   respuesta correcta en verde y, debajo de cada pregunta, su explicación y su referencia, si las tiene. Al terminar,
   el botón «Abrir la carpeta» de la barra de estado abre la carpeta de los ficheros (con dos, la que las contiene).
   Las palabras de los nombres van separadas por guiones.
-  También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar este examen…»): se elige la
-  duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar «Empezar».
+  También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar este examen…», también en el
+  menú *Exámenes*): se elige la duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar
+  «Empezar».
 - Una pregunta que no convenza se cambia por otra sin volver a generar: botón derecho sobre ella en la vista («Cambiar
   la pregunta N por otra del tema T») o su número en «Pregunta» y «Cambiar por otra». La nueva es del mismo tema, va
   en el mismo sitio y, si se barajan las opciones, con la correcta en la misma letra (o en una de las que menos salen
   si la quitada no se barajaba y su letra es de las que más), así que el resto de los exámenes no cambia; se elige con las reglas de la generación, y las ya quitadas de ese examen no vuelven mientras queden
-  otras. «Deshacer el cambio» los deshace del último al primero. Después, la semilla ya no reproduce los exámenes.
+  otras. «Deshacer el cambio» (o *Editar → Deshacer el cambio de pregunta*, Ctrl+Z) los deshace del último al
+  primero. Después, la semilla ya no reproduce los exámenes.
 - Una pregunta del examen se corrige sin salir de él: botón derecho sobre ella («Editar la pregunta N (código)…») o
   su número en «Pregunta» y «Editar…». Se abre el editor con la pregunta del banco; lo guardado queda en el banco y se
   ve en todos los exámenes en que está, en el mismo sitio y con las opciones en el mismo orden (si cambia la correcta
@@ -228,15 +230,15 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   HTML, en la etiqueta `generator`; y en el LaTeX, en un comentario de la primera línea y en el asunto del PDF al
   compilarlo. Con preguntas cambiadas a mano, se añade «(con preguntas cambiadas a mano)», también al cargarlos del
   historial si se registraron así.
-- *Registrar convocatoria…* (también en *Archivo → Registrar la convocatoria…*) guarda en el historial (dentro de la
+- *Registrar convocatoria…* (también en *Exámenes → Registrar la convocatoria…*) guarda en el historial (dentro de la
   base de datos) los exámenes generados, con una copia de sus preguntas tal como salieron y el orden de las opciones. Si ya había exámenes registrados con el
   mismo nombre, convocatoria y año, se sustituyen. Mientras los exámenes estén exportados (o impresos) y sin
   registrar, el botón se ve en amarillo y, antes de perderlos (al generar otros, cargar del historial, abrir otro
-  banco o salir), se pregunta si registrarlos. En *Archivo → Historial de convocatorias* se puede cargar una
+  banco o salir), se pregunta si registrarlos. En *Exámenes → Historial de convocatorias* se puede cargar una
   convocatoria (o un solo examen) en la ventana para verla, exportarla, imprimirla o practicarla tal como salió,
   aunque después se hayan corregido sus preguntas, o eliminarla del historial. La ficha de cada pregunta, en el
   banco, dice en qué exámenes registrados ha salido.
-- *Archivo → Registrar exámenes anteriores…* registra en el historial las convocatorias hechas fuera del programa,
+- *Exámenes → Registrar exámenes anteriores…* registra en el historial las convocatorias hechas fuera del programa,
   para que sus preguntas también se eviten: se eligen los PDF de sus exámenes (con Qt PDF) o se pega su texto, el
   programa separa las preguntas («1.-», «a)»…), reconoce cada una en el banco con el índice de parecidas (y el orden
   de sus opciones), propone la convocatoria y el nombre de cada examen a partir del fichero

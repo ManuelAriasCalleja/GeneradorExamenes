@@ -194,6 +194,9 @@ private:
     void informarExportacion(const QStringList &escritos, const QStringList &fallidos, const QString &nota = QString());
     // Enseña en la barra de estado el botón que abre la carpeta donde se acaba de exportar (vacía: lo quita).
     void ofrecerCarpeta(const QString &carpeta);
+    // El botón «Deshacer el cambio» y Editar → Deshacer…, activos si hay algún cambio que deshacer, y el texto de este,
+    // que dice si lo último fue añadir versiones.
+    void actualizarDeshacer();
 
     BaseDatos m_bd;
     QVector<Tema> m_temas;
@@ -239,6 +242,7 @@ private:
     VisorAmpliable *m_visorExamen;
     QList<QPushButton *> m_botonesExamen;
     QList<QAction *> m_accionesExamen;      // las del menú que, como m_botonesExamen, necesitan exámenes generados
+    QAction *m_accionDeshacer = nullptr;    // Editar → Deshacer el cambio de pregunta, como m_deshacerCambio
     QPushButton *m_botonRegistrar;
     QSpinBox *m_preguntaACambiar;
     QPushButton *m_deshacerCambio;

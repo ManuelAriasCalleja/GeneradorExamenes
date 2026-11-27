@@ -1377,14 +1377,14 @@ Do you want to overwrite them?</translation>
     <message>
         <location line="+3"/>
         <source>Exámenes guardados con «Registrar convocatoria…». Cargue una convocatoria o un examen para verlo, exportarlo o imprimirlo tal como salió, aunque después se hayan corregido sus preguntas.</source>
-        <extracomment>«Registrar convocatoria…» es una orden del menú Archivo de la ventana principal: tradúzcase igual</extracomment>
+        <extracomment>«Registrar convocatoria…» es un botón de la ventana principal: tradúzcase igual</extracomment>
         <translation>Exams saved with “Record exam session…”. Load an exam session or an exam to view, export or print it exactly as it was set, even if its questions have been corrected since.</translation>
     </message>
     <message>
         <location line="+42"/>
-        <source>Todavía no hay ninguna convocatoria registrada. Las anteriores al programa se registran con Archivo → Registrar exámenes anteriores…</source>
-        <extracomment>«Archivo → Registrar exámenes anteriores…» es un menú de la ventana principal: tradúzcase igual</extracomment>
-        <translation>No exam session has been recorded yet. Those from before the program are recorded with File → Record previous exams…</translation>
+        <source>Todavía no hay ninguna convocatoria registrada. Las anteriores al programa se registran con Exámenes → Registrar exámenes anteriores…</source>
+        <extracomment>«Exámenes → Registrar exámenes anteriores…» es un menú de la ventana principal: tradúzcase igual</extracomment>
+        <translation>No exam session has been recorded yet. Those from before the program are recorded with Exams → Record previous exams…</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -3946,45 +3946,22 @@ You can also right-click the question.</translation>
         <translation>After each change to the bank (a question or topic saved or deleted), the linked JSON is rewritten if it matched the database beforehand. A JSON that no longer matches (for example, one freshly generated from the .docx) is left untouched, and a warning is shown.</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>Im&amp;primir los exámenes…</source>
-        <extracomment>Menú Archivo. El &amp; marca la letra del atajo: no puede ser la de otra orden del menú.</extracomment>
-        <translation>&amp;Print the exams…</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>E&amp;xportar los exámenes…</source>
-        <extracomment>Menú Archivo. El &amp; marca la letra del atajo: no puede ser la de otra orden del menú.</extracomment>
-        <translation>Expor&amp;t the exams…</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Re&amp;gistrar la convocatoria…</source>
-        <extracomment>Menú Archivo. El &amp; marca la letra del atajo: no puede ser la de otra orden del menú.</extracomment>
-        <translation>Recor&amp;d the exam session…</translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+46"/>
         <source>Guarda los exámenes generados en el historial, para que sus preguntas se eviten en las convocatorias siguientes</source>
         <translation>Saves the generated exams in the history, so that their questions are avoided in the following exam sessions</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+7"/>
         <source>&amp;Historial de convocatorias…</source>
         <translation>Exam session &amp;history…</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>&amp;Registrar exámenes anteriores…</source>
-        <translation>&amp;Record previous exams…</translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+3"/>
         <source>Registra en el historial los exámenes de una convocatoria hecha fuera del programa (de sus PDF o su texto), para que se eviten sus preguntas al generar</source>
         <translation>Records in the history the exams of an exam session held outside the program (from their PDFs or their text), so that their questions are avoided when generating</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="-48"/>
         <source>&amp;Salir</source>
         <translation>&amp;Quit</translation>
     </message>
@@ -3994,7 +3971,14 @@ You can also right-click the question.</translation>
         <translation>&amp;Edit</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+3"/>
+        <location line="+1313"/>
+        <source>&amp;Deshacer el cambio de pregunta</source>
+        <extracomment>Menú Editar: deshace el último cambio de una pregunta de los exámenes (o las versiones añadidas)</extracomment>
+        <translation>&amp;Undo the question change</translation>
+    </message>
+    <message>
+        <location line="-1310"/>
         <source>&amp;Temas…</source>
         <translation>&amp;Topics…</translation>
     </message>
@@ -4025,6 +4009,39 @@ You can also right-click the question.</translation>
         <source>El del sistema (%1)</source>
         <extracomment>Opción del menú Idioma: el idioma del sistema; %1 es su nombre («Español», «English»)</extracomment>
         <translation>System default (%1)</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>E&amp;xámenes</source>
+        <extracomment>Menú de la barra: lo que se hace con los exámenes. El &amp; marca la letra del atajo: no puede ser la de otro menú.</extracomment>
+        <translation>E&amp;xams</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>&amp;Imprimir los exámenes…</source>
+        <translation>&amp;Print the exams…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>&amp;Exportar los exámenes…</source>
+        <translation>&amp;Export the exams…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Registrar la convocatoria…</source>
+        <translation>&amp;Record the exam session…</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>&amp;Practicar este examen…</source>
+        <extracomment>Menú Exámenes: hacer en pantalla el examen que se ve, como un estudiante</extracomment>
+        <translation>Pr&amp;actise this exam…</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Registrar exámenes &amp;anteriores…</source>
+        <extracomment>Menú Exámenes. El &amp; marca la letra del atajo: no puede ser la de otra orden del menú.</extracomment>
+        <translation>Record previous e&amp;xams…</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -4345,7 +4362,7 @@ Overwrite it with the contents of the database?</translation>
 %1</translation>
     </message>
     <message>
-        <location line="-479"/>
+        <location line="-488"/>
         <source>Exportar…</source>
         <extracomment>Botón: abre el diálogo para guardar los exámenes en ficheros (PDF, Word, HTML o LaTeX), con o sin soluciones</extracomment>
         <translation>Export…</translation>
@@ -4356,7 +4373,7 @@ Overwrite it with the contents of the database?</translation>
         <translation>Saves the exams as PDF, Word, HTML or LaTeX (one or several at once): the exams, their solutions or both, each in its own folder.</translation>
     </message>
     <message>
-        <location line="+329"/>
+        <location line="+338"/>
         <source> El JSON, que ahora es el del banco, se ha puesto al día con ellas.</source>
         <translation> The JSON, which is now the bank’s, has been brought up to date with them.</translation>
     </message>
@@ -4464,12 +4481,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>A ticked exam has no name.</translation>
     </message>
     <message>
-        <location line="+17"/>
-        <source>No hay ninguna convocatoria registrada en el historial, así que no se evitan las preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con Archivo → Registrar exámenes anteriores…</source>
-        <translation>There is no exam session recorded in the history, so questions from previous ones are not avoided. If they were held outside the program, record them with File → Record previous exams…</translation>
-    </message>
-    <message>
-        <location line="+88"/>
+        <location line="+105"/>
         <source>Añadir las que faltan</source>
         <extracomment>Enlace del aviso de las versiones que faltan: las añade a los exámenes, sin volver a generarlos</extracomment>
         <translation>Add the missing ones</translation>
@@ -4632,16 +4644,7 @@ If they are the final ones, record them first.</translation>
         <translation>Enter the exam session (February, June…).</translation>
     </message>
     <message>
-        <location line="+12"/>
-        <source>Se guardarán en el historial los exámenes de %1: %2.
-
-Al generar, se evitarán sus preguntas, y desde Archivo → Historial de convocatorias se podrán volver a cargar tal como están.</source>
-        <translation>The exams for %1 will be saved in the history: %2.
-
-Their questions will be avoided when generating, and they can be loaded again exactly as they are from File → Exam session history.</translation>
-    </message>
-    <message>
-        <location line="+5"/>
+        <location line="+17"/>
         <source>
 
 Ya había registrados de estos exámenes (con el mismo nombre, o con otras versiones), y se sustituirán: %1.</source>
@@ -4694,7 +4697,12 @@ Un examen de la lista en el mensaje de las versiones añadidas: %1 es su nombre,
         <translation>“%1”</translation>
     </message>
     <message>
-        <location line="-421"/>
+        <location line="-505"/>
+        <source>No hay ninguna convocatoria registrada en el historial, así que no se evitan las preguntas de las anteriores. Si se hicieron fuera del programa, regístrelas con Exámenes → Registrar exámenes anteriores…</source>
+        <translation>There is no exam session recorded in the history, so questions from previous ones are not avoided. If they were held outside the program, record them with Exams → Record previous exams…</translation>
+    </message>
+    <message>
+        <location line="+84"/>
         <source>Se piden %1 versiones de cada examen, y estos tienen menos: %2.</source>
         <extracomment>Aviso junto al examen; %1 es el número de versiones (dos o más) y %2, la lista de exámenes: «Nacional Original», «Nacional Reserva»</extracomment>
         <translation>%1 versions of each exam are asked for, and these have fewer: %2.</translation>
@@ -4705,7 +4713,16 @@ Un examen de la lista en el mensaje de las versiones añadidas: %1 es su nombre,
         <translation>compile the .tex files twice with pdflatex</translation>
     </message>
     <message>
-        <location line="+171"/>
+        <location line="+21"/>
+        <source>Se guardarán en el historial los exámenes de %1: %2.
+
+Al generar, se evitarán sus preguntas, y desde Exámenes → Historial de convocatorias se podrán volver a cargar tal como están.</source>
+        <translation>The exams for %1 will be saved in the history: %2.
+
+Their questions will be avoided when generating, and they can be loaded again exactly as they are from Exams → Exam session history.</translation>
+    </message>
+    <message>
+        <location line="+150"/>
         <source>Añadidas las versiones de %1. Los exámenes que ya había no cambian; si no tenían versiones, ahora son la %2.</source>
         <extracomment>%1 es la lista de los exámenes («Nacional Original», «Nacional Reserva») y %2, la etiqueta de la primera versión (A o 1)</extracomment>
         <translation>Versions added to %1. The exams you already had do not change; those without versions are now version %2.</translation>
@@ -4739,7 +4756,13 @@ Un examen de la lista en el mensaje de las versiones añadidas: %1 es su nombre,
         <translation>Verify the questions of “%1”</translation>
     </message>
     <message>
-        <location line="+59"/>
+        <location line="+53"/>
+        <source>&amp;Deshacer las versiones añadidas</source>
+        <extracomment>Menú Editar: deshace las versiones que se acaban de añadir a los exámenes</extracomment>
+        <translation>&amp;Undo the added versions</translation>
+    </message>
+    <message>
+        <location line="+16"/>
         <source>Quitadas las versiones que se añadieron: los exámenes vuelven a estar como antes.</source>
         <translation>The added versions have been removed: the exams are back as they were.</translation>
     </message>

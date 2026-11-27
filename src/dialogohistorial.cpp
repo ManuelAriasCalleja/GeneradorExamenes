@@ -44,7 +44,7 @@ DialogoHistorial::DialogoHistorial(BaseDatos *bd, QWidget *parent)
     //: Botón. El & marca la letra del atajo (Alt+letra): no puede ser la de «Cargar» ni la de «Cerrar».
     DialogoAyuda::ponerAyuda(this, botones, QStringLiteral("historial"))->setText(tr("&Ayuda"));
 
-    //: «Registrar convocatoria…» es una orden del menú Archivo de la ventana principal: tradúzcase igual
+    //: «Registrar convocatoria…» es un botón de la ventana principal: tradúzcase igual
     auto *explicacion = new QLabel(tr(
         "Exámenes guardados con «Registrar convocatoria…». Cargue una convocatoria o un examen para verlo, "
         "exportarlo o imprimirlo tal como salió, aunque después se hayan corregido sus preguntas."));
@@ -86,9 +86,9 @@ void DialogoHistorial::rellenar()
     m_arbol->resizeColumnToContents(ColPreguntas);
     m_arbol->resizeColumnToContents(ColRegistrado);
     if (m_arbol->topLevelItemCount() == 0) {
-        //: «Archivo → Registrar exámenes anteriores…» es un menú de la ventana principal: tradúzcase igual
+        //: «Exámenes → Registrar exámenes anteriores…» es un menú de la ventana principal: tradúzcase igual
         auto *vacio = new QTreeWidgetItem(m_arbol, {tr("Todavía no hay ninguna convocatoria registrada. Las "
-                                                       "anteriores al programa se registran con Archivo → "
+                                                       "anteriores al programa se registran con Exámenes → "
                                                        "Registrar exámenes anteriores…")});
         vacio->setFlags(Qt::NoItemFlags);
     }

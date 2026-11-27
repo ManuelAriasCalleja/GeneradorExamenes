@@ -1119,13 +1119,14 @@ private slots:
         QVERIFY(generar);
         for (QWidget *w = generar; w; w = w->parentWidget())
             QVERIFY(!qobject_cast<QScrollArea *>(w));
-        // Imprimir, exportar y registrar están en el menú Archivo y, como sus botones, solo con exámenes.
+        // Imprimir, exportar, registrar y practicar están en el menú Exámenes y, como sus botones, solo con exámenes.
         QHash<QString, QAction *> acciones;
         for (QAction *a : v.findChildren<QAction *>())
             acciones.insert(a->text(), a);
-        const QStringList delMenu{QStringLiteral("Im&primir los exámenes…"), QStringLiteral("E&xportar los exámenes…"),
-                                  QStringLiteral("Re&gistrar la convocatoria…")};
-        const QStringList botones{QStringLiteral("Imprimir…"), QStringLiteral("Exportar…"), QStringLiteral("Registrar convocatoria…")};
+        const QStringList delMenu{QStringLiteral("&Imprimir los exámenes…"), QStringLiteral("&Exportar los exámenes…"),
+                                  QStringLiteral("&Registrar la convocatoria…"), QStringLiteral("&Practicar este examen…")};
+        const QStringList botones{QStringLiteral("Imprimir…"), QStringLiteral("Exportar…"), QStringLiteral("Registrar convocatoria…"),
+                                  QStringLiteral("Practicar este examen…")};
         for (int i = 0; i < delMenu.size(); ++i) {
             QVERIFY2(acciones.value(delMenu.at(i)) && !acciones.value(delMenu.at(i))->isEnabled(), qPrintable(delMenu.at(i)));
             QVERIFY2(!conTexto<QPushButton>(&v, botones.at(i))->isEnabled(), qPrintable(botones.at(i)));
@@ -1246,6 +1247,12 @@ private slots:
         QVERIFY(numero && cambiar && deshacer);
         QVERIFY(cambiar->isEnabled());
         QVERIFY(!deshacer->isEnabled());
+        // Editar → Deshacer (Ctrl+Z), como el botón.
+        QAction *deshacerMenu = nullptr;
+        for (QAction *a : v.findChildren<QAction *>())
+            if (a->shortcut() == QKeySequence(QKeySequence::Undo))
+                deshacerMenu = a;
+        QVERIFY(deshacerMenu && !deshacerMenu->isEnabled());
 
         // Con el número y el botón; se deshace con «Deshacer el cambio».
         numero->setValue(3);
@@ -1256,9 +1263,33 @@ private slots:
         for (QLabel *l : v.findChildren<QLabel *>())
             avisa = avisa || l->text().contains(QStringLiteral("con una pregunta cambiada a mano"));
         QVERIFY(avisa);
+        QVERIFY(deshacerMenu->isEnabled());
+        QCOMPARE(deshacerMenu->text(), QStringLiteral("&Deshacer el cambio de pregunta"));
         deshacer->click();
         QCOMPARE(visor->toPlainText(), antes);
         QVERIFY(!deshacer->isEnabled());
+        QVERIFY(!deshacerMenu->isEnabled());
+
+        // Con Ctrl+Z. En un campo de texto, deshace lo escrito y no el cambio.
+        cambiar->click();
+        const QString cambiado = visor->toPlainText();
+        QVERIFY(cambiado != antes);
+        v.activateWindow();
+        QVERIFY(QTest::qWaitForWindowActive(&v));
+        QLineEdit *asignatura = nullptr;
+        for (QLineEdit *e : v.findChildren<QLineEdit *>())
+            if (e->placeholderText() == QStringLiteral("Nombre de la asignatura"))
+                asignatura = e;
+        QVERIFY(asignatura);
+        asignatura->setFocus();
+        QTest::keyClicks(asignatura, QStringLiteral("x"));
+        QTest::keyClick(asignatura, Qt::Key_Z, Qt::ControlModifier);
+        QCOMPARE(visor->toPlainText(), cambiado);
+        QVERIFY(deshacer->isEnabled());
+        visor->setFocus();
+        QTest::keyClick(visor, Qt::Key_Z, Qt::ControlModifier);
+        QCOMPARE(visor->toPlainText(), antes);
+        QVERIFY(!deshacerMenu->isEnabled());
 
         // Con el botón derecho sobre la pregunta 5.
         QTextBlock bloque;
@@ -2183,8 +2214,14 @@ private slots:
             QVERIFY2(!l->text().startsWith(QStringLiteral("Semilla:")) || !l->text().contains(QStringLiteral("a mano")),
                      qPrintable(l->text()));
 
-        // Se deshace como un cambio de pregunta.
-        QVERIFY(QMetaObject::invokeMethod(&v, "deshacerCambio"));
+        // Se deshace como un cambio de pregunta, y Editar → Deshacer lo dice.
+        QAction *deshacerMenu = nullptr;
+        for (QAction *a : v.findChildren<QAction *>())
+            if (a->shortcut() == QKeySequence(QKeySequence::Undo))
+                deshacerMenu = a;
+        QVERIFY(deshacerMenu && deshacerMenu->isEnabled());
+        QCOMPARE(deshacerMenu->text(), QStringLiteral("&Deshacer las versiones añadidas"));
+        deshacerMenu->trigger();
         QCOMPARE(nombres(selector), (QStringList{QStringLiteral("Nacional Original"), QStringLiteral("Nacional Reserva")}));
         QCOMPARE(visor->toPlainText(), antes);
         QVERIFY(dice(QStringLiteral("y estos tienen menos")));

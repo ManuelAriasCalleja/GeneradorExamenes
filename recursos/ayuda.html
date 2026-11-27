@@ -100,7 +100,7 @@ los de la próxima convocatoria (ver <a href="#convocatoria">Convocatoria</a>).<
 <p>Para no repetir preguntas de las últimas convocatorias, el programa las busca en su
 <a href="#historial">historial</a>, donde se guardan los exámenes que se generan con él. Las convocatorias
 anteriores a usar el programa no están, y sus preguntas podrían volver a salir. Antes de generar los primeros
-exámenes, registre las anteriores con <i>Archivo → Registrar exámenes anteriores…</i> a partir de sus PDF (ver
+exámenes, registre las anteriores con <i>Exámenes → Registrar exámenes anteriores…</i> a partir de sus PDF (ver
 <a href="#anteriores">Registrar exámenes anteriores</a>). Mientras no haya ninguna registrada, al generar se avisa.</p>
 
 <h3><a name="pasos"></a>Un examen paso a paso</h3>
@@ -213,7 +213,7 @@ generaron sin orden aleatorio, son las mismas que si se hubieran pedido entonces
 <li>A un examen que ya tiene versiones se le añaden las que faltan, con su numeración, y las que tiene no cambian. Si se
 piden menos de las que tiene, no se quita ninguna.</li>
 <li>Se deshace como un cambio de pregunta, con <b>Deshacer el cambio</b> (o «Deshacer las versiones añadidas», con el
-botón derecho).</li>
+botón derecho y en el menú <b>Editar</b>, Ctrl+Z).</li>
 <li>Si los exámenes estaban registrados, al registrar la convocatoria otra vez sus versiones sustituyen a los
 registrados sin ellas (ver <a href="#historial">El historial de convocatorias</a>).</li>
 </ul>
@@ -385,8 +385,9 @@ nunca, luego las «old» y por último las de las convocatorias registradas, de 
 <li>Si la nueva no es de las deseables (por ejemplo, porque ya está en otro examen o salió en una convocatoria
 reciente y no quedaba otra), el recuadro amarillo lo avisa. Si no hay ninguna que pueda ir en su lugar, no se cambia
 nada y se avisa.</li>
-<li><b>Deshacer el cambio</b> (o «Deshacer el último cambio de pregunta», con el botón derecho) deshace los cambios,
-del último al primero, y también las <a href="#versiones">versiones añadidas</a> a los exámenes.</li>
+<li><b>Deshacer el cambio</b> (o «Deshacer el último cambio de pregunta», con el botón derecho, y <b>Editar → Deshacer
+el cambio de pregunta</b>, Ctrl+Z) deshace los cambios, del último al primero, y también las
+<a href="#versiones">versiones añadidas</a> a los exámenes. En un campo de texto, Ctrl+Z deshace lo escrito en él.</li>
 </ul>
 <p>Se pueden cambiar preguntas también en los exámenes cargados del <a href="#historial">historial</a>; entonces se
 eligen con las opciones que haya en la ventana. Si después se registran otra vez, sustituyen a los que había.</p>
@@ -460,10 +461,10 @@ han cambiado preguntas a mano, se añade «(con preguntas cambiadas a mano)», t
 <p>Una vez generados los exámenes, los botones de debajo de la vista (y el menú <b>Archivo</b>) los imprimen o los
 guardan en ficheros:</p>
 <ul>
-<li><b>Imprimir…</b> (<b>Archivo → Imprimir los exámenes…</b>, Ctrl+P) abre la vista previa de impresión de todos
+<li><b>Imprimir…</b> (<b>Exámenes → Imprimir los exámenes…</b>, Ctrl+P) abre la vista previa de impresión de todos
 los exámenes, desde la que se imprimen. Se imprimen sin soluciones: para imprimir las soluciones, expórtelas en PDF
 e imprima el PDF.</li>
-<li><b>Exportar…</b> (<b>Archivo → Exportar los exámenes…</b>, Ctrl+E) los guarda en ficheros, en el formato o los
+<li><b>Exportar…</b> (<b>Exámenes → Exportar los exámenes…</b>, Ctrl+E) los guarda en ficheros, en el formato o los
 formatos que se elijan, con sus soluciones o sin ellas (ver <a href="#exportar-ficheros">El diálogo de
 exportar</a>).</li>
 </ul>
@@ -532,7 +533,7 @@ actualiza al imprimir o con la vista previa de impresión.</p>
 <!-- ======================================================================================================= -->
 <h2><a name="practicar"></a>Practicar un examen</h2>
 
-<p><b>Practicar este examen…</b> abre el examen que se está viendo para hacerlo en pantalla, como lo haría un
+<p><b>Practicar este examen…</b> (también en el menú <b>Exámenes</b>) abre el examen que se está viendo para hacerlo en pantalla, como lo haría un
 estudiante, y corregirlo. Sirve, por ejemplo, para comprobar un examen antes de darlo por bueno.</p>
 <ol>
 <li>Elija la duración (de 5 a 300 minutos; se recuerda de una vez a otra) y pulse <b>Empezar</b>. Hasta entonces no
@@ -557,7 +558,7 @@ como salió. Cada banco tiene el suyo: las convocatorias de una asignatura no cu
 <a href="#asignaturas">Varias asignaturas</a>).</p>
 
 <h3><a name="registrar"></a>Registrar una convocatoria</h3>
-<p><b>Registrar convocatoria…</b>, bajo la vista del examen (también <b>Archivo → Registrar la convocatoria…</b>),
+<p><b>Registrar convocatoria…</b>, bajo la vista del examen (también <b>Exámenes → Registrar la convocatoria…</b>),
 guarda en el historial los exámenes generados: una copia de sus preguntas tal como salieron, el orden de las opciones
 y los datos de la convocatoria (asignatura, instrucciones, puntuación, la semilla y si se cambiaron preguntas a mano).
 Hace falta haber escrito el nombre de la convocatoria.</p>
@@ -579,7 +580,7 @@ van a perder (al generar otros, cargar del historial, abrir otro banco o salir d
 
 <h3><a name="anteriores"></a>Registrar exámenes anteriores</h3>
 <p>Los exámenes de las convocatorias hechas fuera del programa (las anteriores a usarlo) se registran con
-<i>Archivo → Registrar exámenes anteriores…</i>. Así sus preguntas se evitan al generar las siguientes, como las de
+<i>Exámenes → Registrar exámenes anteriores…</i>. Así sus preguntas se evitan al generar las siguientes, como las de
 las convocatorias generadas.</p>
 <ol>
 <li>Pulse <b>Añadir PDF…</b> y elija los PDF de los exámenes de la convocatoria (varios a la vez). Si un examen solo
@@ -602,7 +603,7 @@ desde el historial, sale con las preguntas actuales. Para leer los PDF, el progr
 <b>Añadir PDF…</b> está desactivado, copie y pegue el texto.</p>
 
 <h3><a name="consultar-historial"></a>Cargar o eliminar convocatorias</h3>
-<p><i>Archivo → Historial de convocatorias…</i> muestra las convocatorias registradas (por ejemplo, «Junio 2026») con
+<p><i>Exámenes → Historial de convocatorias…</i> muestra las convocatorias registradas (por ejemplo, «Junio 2026») con
 sus exámenes, el número de preguntas de cada uno y cuándo se registró.</p>
 <ul>
 <li><b>Cargar</b> (Alt+C o Intro, o doble clic en un examen): lleva la convocatoria elegida, o un solo examen, a la
