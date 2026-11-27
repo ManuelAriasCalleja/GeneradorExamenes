@@ -3,54 +3,63 @@
 #include <QDialog>
 #include <QStringList>
 #include <QVector>
+#include <array>
 
 class QCheckBox;
+class QLabel;
 class QLineEdit;
+class QPushButton;
 class QTableWidget;
 
-// Exportación en bloque de los exámenes generados: se elige la carpeta y el nombre del fichero de cada examen
-// (y, si hay varios, opcionalmente uno con todos juntos) y quien llama los escribe de una vez.
+// Exportación de los exámenes generados, de una vez: en uno o varios formatos (PDF, Word, HTML, LaTeX), sus
+// enunciados y sus soluciones (cada cosa en su carpeta, que se recuerda en cada banco) y los exámenes que se marquen,
+// cada uno en su fichero (con el nombre que se quiera) y, si hay varios, también todos juntos en uno. Quien llama
+// escribe los ficheros que dice ficheros().
 class DialogoExportar : public QDialog
 {
     Q_OBJECT
 public:
+    enum Formato { Pdf, Word, Html, Latex };   // en el orden del diálogo
+    static constexpr int kNumFormatos = 4;
+    // Sin punto: «pdf», «docx», «html», «tex».
+    static QString extension(Formato formato);
+
     struct Fichero
     {
         QVector<int> modelos;   // índices de los modelos que contiene
-        QString ruta;           // ruta completa, con extensión
+        Formato formato = Pdf;
+        bool soluciones = false;
+        QString ruta;           // completa, con extensión
     };
 
     // 'nombres' son los de los exámenes (Nacional Original...) y 'nombreBase' el principio propuesto para el nombre de
-    // los ficheros (sin extensión): «<nombreBase>-<examen>», y el de todos juntos, «<nombreBase>». Con 'soluciones',
-    // se propone el mismo nombre con «-soluciones» al final, para que cada fichero quede junto al de sin soluciones
-    // en la misma carpeta sin pisarlo. 'extension' va sin punto.
-    DialogoExportar(const QString &titulo, const QStringList &nombres, const QString &nombreBase,
-                    const QString &extension, bool soluciones, QWidget *parent = nullptr);
+    // sus ficheros: «<nombreBase>-<examen>», y el de todos juntos, «<nombreBase>». Los de las soluciones se llaman igual
+    // con «-soluciones» al final, así que no se pisan aunque vayan a la misma carpeta.
+    DialogoExportar(const QStringList &nombres, const QString &nombreBase, QWidget *parent = nullptr);
 
-    QString carpeta() const;
-    // Ficheros marcados, en el orden de la tabla.
+    // Lo que se escribe: de cada examen marcado (o de todos juntos), sus enunciados y sus soluciones, lo que esté
+    // marcado, en cada formato marcado. Por examen y, de cada uno, como en el diálogo.
     QVector<Fichero> ficheros() const;
-
-    // Pone la casilla «Con soluciones» (con el texto 'texto'), marcada si se han propuesto los nombres con soluciones.
-    // Al marcarla o desmarcarla, los nombres propuestos que no se hayan cambiado pasan a llevar «-soluciones» o no.
-    void ofrecerSoluciones(const QString &texto);
-    bool conSoluciones() const;
 
 public slots:
     void accept() override;
 
 private:
-    void elegirCarpeta();
-    QString nombreFichero(int fila) const;
-    QString nombrePropuesto(int fila, bool soluciones) const;
-    void cambiarNombres(bool soluciones);
+    QString carpeta(bool soluciones) const;
+    // El nombre de la fila, como se ha escrito, sin la extensión si se ha puesto la de alguno de los formatos.
+    QString nombre(int fila) const;
+    void elegirCarpeta(bool soluciones);
+    // Las carpetas de lo que no se exporta, sin poder tocarlas, y cuántos ficheros salen.
+    void actualizar();
 
-    QLineEdit *m_carpeta;
+    std::array<QCheckBox *, kNumFormatos> m_formatos{};
+    QCheckBox *m_enunciados;
+    QCheckBox *m_soluciones;
+    QLineEdit *m_carpetaEnunciados;
+    QLineEdit *m_carpetaSoluciones;
+    QPushButton *m_elegirEnunciados;
+    QPushButton *m_elegirSoluciones;
     QTableWidget *m_tabla;
-    QCheckBox *m_soluciones = nullptr;
-    QStringList m_nombres;   // de los exámenes
-    QString m_nombreBase;
-    QString m_extension;
-    bool m_solucionesPropuestas;   // si los nombres que se propusieron al abrir son los de con soluciones
+    QLabel *m_resumen;
     int m_numModelos;
 };

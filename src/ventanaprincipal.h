@@ -82,11 +82,8 @@ private slots:
     void generar();
     void mostrarModelo();
     void vistaPreviaImpresion();
-    void exportarPdf();
-    void exportarSolucionesPdf();
-    void exportarHtml();
-    void exportarLatex();
-    void exportarDocx();
+    // Los exámenes, en los formatos, con o sin soluciones y en los ficheros que se elijan en DialogoExportar.
+    void exportarExamenes();
     void registrarConvocatoria();
     void historialConvocatorias();
     void registrarAnteriores();
@@ -192,14 +189,8 @@ private:
     // Nivel de la maqueta: el de letra grande si está marcada la casilla; si no, el de compactación con el que los
     // modelos generados caben en sus páginas (ver Maquetador), o el normal si no hay que ajustarlos a ellas.
     int nivelMaqueta() const;
-    static QString textoConSoluciones();
-    // Exporta los exámenes que se elijan en el diálogo, cada fichero con 'escribir' (ver exportacion.h), con los nombres
-    // que empiezan por nombreBaseFichero(); 'nota' se añade al mensaje del final. Con 'casillaSoluciones', el diálogo
-    // tiene la casilla «Con soluciones» con ese texto, marcada si lo está 'soluciones', y es ella la que decide.
-    using Escritor = bool (*)(const QString &ruta, const QVector<Modelo> &modelos, const DatosConvocatoria &datos,
-                              bool soluciones, int nivel);
-    void exportar(const QString &titulo, const QString &extension, Escritor escribir, bool soluciones,
-                  const QString &nota = QString(), const QString &casillaSoluciones = QString());
+    // Dice en la barra de estado cuántos ficheros se han guardado y dónde ('nota' va detrás), avisa de los que no, y
+    // ofrece abrir la carpeta (la que tiene todos: con los enunciados y las soluciones en dos, la que contiene las dos).
     void informarExportacion(const QStringList &escritos, const QStringList &fallidos, const QString &nota = QString());
     // Enseña en la barra de estado el botón que abre la carpeta donde se acaba de exportar (vacía: lo quita).
     void ofrecerCarpeta(const QString &carpeta);
@@ -247,6 +238,7 @@ private:
     QLabel *m_infoGeneracion;
     VisorAmpliable *m_visorExamen;
     QList<QPushButton *> m_botonesExamen;
+    QList<QAction *> m_accionesExamen;      // las del menú que, como m_botonesExamen, necesitan exámenes generados
     QPushButton *m_botonRegistrar;
     QSpinBox *m_preguntaACambiar;
     QPushButton *m_deshacerCambio;

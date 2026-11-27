@@ -25,6 +25,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
+#include <array>
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QCloseEvent>
@@ -107,14 +108,33 @@ private:
 };
 
 // Carpetas de los diálogos (las guardan ellos en la configuración) que van con cada banco: la de las exportaciones
-// (exámenes y Moodle) y la de los PDF de los exámenes anteriores.
-const QStringList kCarpetasDelBanco{QStringLiteral("exportar/carpeta"), QStringLiteral("anteriores/carpeta")};
+// (los enunciados de los exámenes y Moodle), la de las soluciones de los exámenes y la de los PDF de los exámenes
+// anteriores.
+const QStringList kCarpetasDelBanco{QStringLiteral("exportar/carpeta"), QStringLiteral("exportar/carpetaSoluciones"),
+                                    QStringLiteral("anteriores/carpeta")};
 
 // Claves de la configuración de cada usuario (QSettings) que se usan en más de un sitio.
 const QString kClaveBanco = QStringLiteral("bd/ruta");                    // el último banco que se abrió
 const QString kClaveGeometria = QStringLiteral("ventana/geometria");
 const QString kClaveEscalaVista = QStringLiteral("vista/escala");         // el tamaño de la vista del examen
 const QString kClaveDuracionPractica = QStringLiteral("practica/duracion");
+
+// La carpeta más honda que contiene todas 'carpetas' (rutas absolutas, al menos una): la de los exámenes de una
+// convocatoria, si sus enunciados y sus soluciones van en dos dentro de ella. Si no tienen ninguna en común (en
+// Windows, en dos unidades), la primera.
+QString carpetaComun(const QStringList &carpetas)
+{
+    QStringList comun = QDir::cleanPath(carpetas.first()).split(QLatin1Char('/'));
+    for (const QString &carpeta : carpetas) {
+        const QStringList partes = QDir::cleanPath(carpeta).split(QLatin1Char('/'));
+        int i = 0;
+        while (i < comun.size() && i < partes.size() && comun.at(i) == partes.at(i))
+            ++i;
+        comun = comun.mid(0, i);
+    }
+    const QString res = comun.join(QLatin1Char('/'));
+    return res.isEmpty() || res == QStringLiteral("/") || res.endsWith(QLatin1Char(':')) ? carpetas.first() : res;
+}
 
 // El primer nombre que está dos veces en 'nombres'; vacío si no hay ninguno.
 QString repetidoEn(const QStringList &nombres)
@@ -291,8 +311,8 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     m_visorExamen->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_visorExamen, &QWidget::customContextMenuRequested, this, &VentanaPrincipal::menuVista);
     lr->addWidget(m_visorExamen, 1);
-    // Dos filas de botones (exportar; cambiar preguntas, registrar y practicar) para que la ventana quepa en
-    // pantallas pequeñas.
+    // Dos filas de botones para que la ventana quepa en pantallas pequeñas: lo que se hace con los exámenes (imprimir,
+    // exportar, registrar y practicar) y con una de sus preguntas (editarla, verificarla o cambiarla).
     auto *exportar = new QHBoxLayout;
     auto *otras = new QHBoxLayout;
     auto boton = [&](QHBoxLayout *fila, const QString &texto, void (VentanaPrincipal::*slot)()) {
@@ -304,12 +324,10 @@ QWidget *VentanaPrincipal::crearPanelResultados()
         return b;
     };
     boton(exportar, tr("Imprimir…"), &VentanaPrincipal::vistaPreviaImpresion);
-    boton(exportar, tr("Exportar PDF…"), &VentanaPrincipal::exportarPdf);
-    boton(exportar, tr("Soluciones PDF…"), &VentanaPrincipal::exportarSolucionesPdf);
-    boton(exportar, tr("Exportar HTML…"), &VentanaPrincipal::exportarHtml);
-    boton(exportar, tr("Exportar LaTeX…"), &VentanaPrincipal::exportarLatex);
-    //: Botón: guarda los exámenes en un documento de Word (.docx)
-    boton(exportar, tr("Exportar Word…"), &VentanaPrincipal::exportarDocx);
+    //: Botón: abre el diálogo para guardar los exámenes en ficheros (PDF, Word, HTML o LaTeX), con o sin soluciones
+    boton(exportar, tr("Exportar…"), &VentanaPrincipal::exportarExamenes)
+        ->setToolTip(tr("Guarda los exámenes en PDF, Word, HTML o LaTeX (uno o varios a la vez), sus enunciados, sus "
+                        "soluciones o los dos, cada cosa en su carpeta."));
     exportar->addStretch();
     m_preguntaACambiar = new QSpinBox;
     m_preguntaACambiar->setEnabled(false);
@@ -335,8 +353,8 @@ QWidget *VentanaPrincipal::crearPanelResultados()
     connect(m_deshacerCambio, &QPushButton::clicked, this, &VentanaPrincipal::deshacerCambio);
     otras->addWidget(m_deshacerCambio);
     otras->addStretch();
-    m_botonRegistrar = boton(otras, tr("Registrar convocatoria…"), &VentanaPrincipal::registrarConvocatoria);
-    boton(otras, tr("Practicar este examen…"), &VentanaPrincipal::practicar);
+    m_botonRegistrar = boton(exportar, tr("Registrar convocatoria…"), &VentanaPrincipal::registrarConvocatoria);
+    boton(exportar, tr("Practicar este examen…"), &VentanaPrincipal::practicar);
     lr->addLayout(exportar);
     lr->addLayout(otras);
 
@@ -413,6 +431,14 @@ void VentanaPrincipal::crearMenus()
     archivo->setToolTipsVisible(true);
     connect(m_accionJsonAuto, &QAction::toggled, this, &VentanaPrincipal::cambiarJsonAutomatico);
     archivo->addSeparator();
+    // Las de los exámenes generados (como sus botones, solo cuando los hay).
+    //: Menú Archivo. El & marca la letra del atajo: no puede ser la de otra orden del menú.
+    m_accionesExamen << archivo->addAction(tr("Im&primir los exámenes…"), QKeySequence::Print, this, &VentanaPrincipal::vistaPreviaImpresion);
+    //: Menú Archivo. El & marca la letra del atajo: no puede ser la de otra orden del menú.
+    m_accionesExamen << archivo->addAction(tr("E&xportar los exámenes…"), QKeySequence(Qt::CTRL | Qt::Key_E), this,
+                                           &VentanaPrincipal::exportarExamenes);
+    for (QAction *a : std::as_const(m_accionesExamen))
+        a->setEnabled(false);
     archivo->addAction(tr("&Historial de convocatorias…"), this, &VentanaPrincipal::historialConvocatorias);
     archivo->addAction(tr("&Registrar exámenes anteriores…"), this, &VentanaPrincipal::registrarAnteriores)
         ->setToolTip(tr("Registra en el historial los exámenes de una convocatoria hecha fuera del programa (de "
@@ -477,6 +503,8 @@ bool VentanaPrincipal::abrirBaseDatos(const QString &ruta)
     m_correctasPorLetra->clear();
     for (QPushButton *b : m_botonesExamen)
         b->setEnabled(false);
+    for (QAction *a : std::as_const(m_accionesExamen))
+        a->setEnabled(false);
     m_preguntaACambiar->setEnabled(false);
     m_deshacerCambio->setEnabled(false);
     actualizarRegistro();
@@ -1080,6 +1108,8 @@ void VentanaPrincipal::presentarResultado(const QString &origen)
     ponerSelector(0);
     for (QPushButton *b : std::as_const(m_botonesExamen))
         b->setEnabled(hayExamen());
+    for (QAction *a : std::as_const(m_accionesExamen))
+        a->setEnabled(hayExamen());
     m_preguntaACambiar->setEnabled(hayExamen());
     m_cambios.clear();
     m_quitadas.clear();
@@ -1274,13 +1304,22 @@ void VentanaPrincipal::informarExportacion(const QStringList &escritos, const QS
         QMessageBox::warning(this, windowTitle(), tr("No se pudieron escribir estos ficheros:\n%1").arg(fallidos.join(QLatin1Char('\n'))));
     if (escritos.isEmpty())
         return;
-    QString mensaje = escritos.size() == 1
-                          ? tr("Fichero guardado en %1").arg(QDir::toNativeSeparators(escritos.first()))
-                          : tr("%1 ficheros guardados en %2").arg(escritos.size()).arg(QDir::toNativeSeparators(QFileInfo(escritos.first()).absolutePath()));
+    QStringList carpetas;
+    for (const QString &ruta : escritos)
+        if (const QString carpeta = QFileInfo(ruta).absolutePath(); !carpetas.contains(carpeta))
+            carpetas << carpeta;
+    QString mensaje;
+    if (escritos.size() == 1)
+        mensaje = tr("Fichero guardado en %1").arg(QDir::toNativeSeparators(escritos.first()));
+    else if (carpetas.size() == 1)
+        mensaje = tr("%1 ficheros guardados en %2").arg(escritos.size()).arg(QDir::toNativeSeparators(carpetas.first()));
+    else   // los enunciados en una y las soluciones en otra
+        mensaje = tr("%1 ficheros guardados en %2 y %3").arg(escritos.size()).arg(QDir::toNativeSeparators(carpetas.at(0)),
+                                                                                   QDir::toNativeSeparators(carpetas.at(1)));
     if (!nota.isEmpty())
         mensaje += QStringLiteral(" (%1)").arg(nota);
     statusBar()->showMessage(mensaje, 8000);
-    ofrecerCarpeta(QFileInfo(escritos.first()).absolutePath());
+    ofrecerCarpeta(carpetaComun(carpetas));
     m_exportados = true;
     actualizarRegistro();
 }
@@ -1343,61 +1382,31 @@ bool VentanaPrincipal::puedenDescartarse()
     return caja.clickedButton() == descartar;
 }
 
-void VentanaPrincipal::exportar(const QString &titulo, const QString &extension, Escritor escribir, bool soluciones,
-                                const QString &nota, const QString &casillaSoluciones)
+void VentanaPrincipal::exportarExamenes()
 {
     if (!hayExamen())
         return;
-    DialogoExportar dialogo(titulo, nombresModelos(), nombreBaseFichero(), extension, soluciones, this);
-    if (!casillaSoluciones.isEmpty())
-        dialogo.ofrecerSoluciones(casillaSoluciones);
+    DialogoExportar dialogo(nombresModelos(), nombreBaseFichero(), this);
     if (dialogo.exec() != QDialog::Accepted)
         return;
-    guardarConfiguracion();   // la carpeta, en el banco
-    if (!casillaSoluciones.isEmpty())
-        soluciones = dialogo.conSoluciones();
+    guardarConfiguracion();   // las carpetas, en el banco
+    // En el orden de DialogoExportar::Formato.
+    using Escritor = bool (*)(const QString &ruta, const QVector<Modelo> &modelos, const DatosConvocatoria &datos,
+                              bool soluciones, int nivel);
+    const std::array<Escritor, DialogoExportar::kNumFormatos> escritores{&Exportacion::pdf, &Exportacion::docx,
+                                                                         &Exportacion::html, &Exportacion::latex};
     const DatosConvocatoria d = datosConvocatoria();
     const int nivel = nivelMaqueta();
     QStringList escritos, fallidos;
-    for (const DialogoExportar::Fichero &f : dialogo.ficheros())
-        (escribir(f.ruta, modelosDe(f.modelos), d, soluciones, nivel) ? escritos : fallidos) << f.ruta;
-    informarExportacion(escritos, fallidos, nota);
-}
-
-// Cada examen marcado en el diálogo se guarda en su propio fichero (y, si se marca, otro con todos juntos).
-void VentanaPrincipal::exportarPdf()
-{
-    exportar(tr("Exportar exámenes a PDF"), QStringLiteral("pdf"), &Exportacion::pdf, false);
-}
-
-// Igual que exportarPdf(), pero cada fichero lleva delante la hoja de soluciones de sus exámenes.
-void VentanaPrincipal::exportarSolucionesPdf()
-{
-    exportar(tr("Exportar soluciones a PDF"), QStringLiteral("pdf"), &Exportacion::pdf, true);
-}
-
-// La casilla del diálogo de exportar a HTML y a LaTeX: con ella llevan lo mismo que el PDF de soluciones.
-QString VentanaPrincipal::textoConSoluciones()
-{
-    return tr("Con soluciones (plantilla de corrección y, en cada pregunta, la correcta, la explicación y la referencia)");
-}
-
-void VentanaPrincipal::exportarHtml()
-{
-    exportar(tr("Exportar a HTML (editable en Word / LibreOffice)"), QStringLiteral("html"), &Exportacion::html,
-             m_verSoluciones->isChecked(), QString(), textoConSoluciones());
-}
-
-void VentanaPrincipal::exportarLatex()
-{
-    exportar(tr("Exportar a LaTeX"), QStringLiteral("tex"), &Exportacion::latex,
-             m_verSoluciones->isChecked(), tr("compílelos dos veces con pdflatex"), textoConSoluciones());
-}
-
-void VentanaPrincipal::exportarDocx()
-{
-    exportar(tr("Exportar a Word (.docx)"), QStringLiteral("docx"), &Exportacion::docx, m_verSoluciones->isChecked(),
-             QString(), textoConSoluciones());
+    bool conLatex = false;
+    QGuiApplication::setOverrideCursor(Qt::WaitCursor);
+    for (const DialogoExportar::Fichero &f : dialogo.ficheros()) {
+        const bool escrito = escritores.at(f.formato)(f.ruta, modelosDe(f.modelos), d, f.soluciones, nivel);
+        (escrito ? escritos : fallidos) << f.ruta;
+        conLatex = conLatex || (escrito && f.formato == DialogoExportar::Latex);
+    }
+    QGuiApplication::restoreOverrideCursor();
+    informarExportacion(escritos, fallidos, conLatex ? tr("los .tex, compílelos dos veces con pdflatex") : QString());
 }
 
 void VentanaPrincipal::registrarConvocatoria()

@@ -168,17 +168,17 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   personalizada, con los puntos que se escriban. (Las versiones anteriores tenían la casilla «Automática»: marcada,
   es la del 30 %; sin marcar, la personalizada.) Va en una línea dentro del recuadro de las instrucciones:
   «Respuesta correcta: +0,50 puntos · incorrecta: −0,15 puntos · en blanco: 0 puntos».
-- Exportar a PDF, a HTML editable en Word/LibreOffice, a LaTeX o a Word (.docx): se abre un diálogo donde se elige la
-  carpeta y el nombre del fichero de cada examen (por defecto `2026-Junio-Nacional-Original.pdf`…) y se
-  exportan todos de una vez; también se puede marcar «Todos los exámenes en un fichero». Las soluciones en PDF
-  se exportan igual, por examen (`2026-Junio-Nacional-Original-soluciones.pdf`…) o todas juntas: primero la hoja
-  de soluciones (tabla de estructura por temas como la de las instrucciones y, de cada examen, la plantilla de
-  corrección, «1 C», «2 A»…, con el código y la referencia de cada pregunta) y después los exámenes con la
-  respuesta correcta en verde y, debajo de cada pregunta, su explicación y su referencia, si las tiene. Al terminar, el botón «Abrir la carpeta» de la barra de estado abre la carpeta de los ficheros. En HTML,
-  LaTeX y Word, la casilla «Con soluciones» del diálogo (propuesta como esté «Mostrar soluciones») decide
-  si van con ellas (las mismas que en el PDF), y entonces los nombres llevan también «-soluciones» al final. Las
-  palabras de los nombres van separadas por guiones y el de las soluciones es el del examen con «-soluciones» al
-  final, así que exámenes y soluciones caben en la misma carpeta sin pisarse y cada uno queda junto al otro.
+- *Exportar…* (también *Archivo → Exportar los exámenes…*, Ctrl+E) abre un diálogo donde se elige todo de una vez:
+  los formatos (PDF, Word .docx, HTML editable en Word/LibreOffice y LaTeX, uno o varios), los enunciados y las
+  soluciones (uno de los dos o los dos, cada uno en su carpeta, que se recuerda en cada banco) y los exámenes, cada
+  uno en su fichero (por defecto `2026-Junio-Nacional-Original.pdf`…, con el nombre que se quiera, sin extensión) y,
+  si se marca, «Todos los exámenes en un fichero». Las soluciones se llaman como los enunciados con «-soluciones» al
+  final (`2026-Junio-Nacional-Original-soluciones.pdf`…), así que caben en la misma carpeta sin pisarse; empiezan por
+  la hoja de soluciones (tabla de estructura por temas como la de las instrucciones y, de cada examen, la plantilla
+  de corrección, «1 C», «2 A»…, con el código y la referencia de cada pregunta) y siguen los exámenes con la
+  respuesta correcta en verde y, debajo de cada pregunta, su explicación y su referencia, si las tiene. Al terminar,
+  el botón «Abrir la carpeta» de la barra de estado abre la carpeta de los ficheros (con dos, la que las contiene).
+  Las palabras de los nombres van separadas por guiones.
   También se puede imprimir o hacer el examen en pantalla y corregirlo («Practicar este examen…»): se elige la
   duración (se recuerda de una vez a otra) y el reloj empieza a contar al pulsar «Empezar».
 - Una pregunta que no convenza se cambia por otra sin volver a generar: botón derecho sobre ella en la vista («Cambiar
@@ -211,11 +211,11 @@ va dentro del ejecutable: si cambia lo que se ve o se hace en el programa, hay q
   para el tamaño normal (también en el menú del botón derecho). Solo cambia la pantalla, no la impresión ni las
   exportaciones, y el tamaño se recuerda de una vez a otra. Igual se amplían, cada uno con su tamaño, el panel de la
   izquierda y el banco de preguntas (la lista y la ficha): las teclas actúan sobre aquello en lo que está el puntero.
-- *Exportar LaTeX…* guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>-imagenes` al
-  lado). Con la casilla «Con soluciones» del diálogo marcada incluye también la hoja de soluciones y las
+- En LaTeX se guarda `.tex` para pdflatex (y las imágenes en una carpeta `<nombre>-imagenes` al
+  lado). El de las soluciones incluye también la hoja de soluciones y las
   soluciones marcadas, con la explicación y la referencia de cada pregunta. Hay que compilarlo dos veces para que salga el «página / total» del pie:
   `pdflatex examen.tex && pdflatex examen.tex`.
-- *Exportar Word…* guarda `.docx` (Office Open XML, para Word o LibreOffice) con la misma maqueta que el PDF y las
+- En Word se guarda `.docx` (Office Open XML, para Word o LibreOffice) con la misma maqueta que el PDF y las
   imágenes dentro: cada examen en su sección, que empieza en página nueva y tiene su pie «…: página / total» (el total
   es la página de un marcador al final de la sección, que entienden Word y LibreOffice), y las preguntas sin partirse
   entre dos páginas. Lo escribe `src/docx.cpp`, sin bibliotecas externas: el ZIP lo hace `src/zip.cpp` con la zlib

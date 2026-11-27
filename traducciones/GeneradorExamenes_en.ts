@@ -1139,17 +1139,12 @@ Record them?</translation>
 <context>
     <name>DialogoExportar</name>
     <message>
-        <location filename="../src/dialogoexportar.cpp" line="+41"/>
+        <location filename="../src/dialogoexportar.cpp" line="+85"/>
         <source>Elegir…</source>
         <translation>Choose…</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Carpeta:</source>
-        <translation>Folder:</translation>
-    </message>
-    <message>
-        <location line="+5"/>
+        <location line="+24"/>
         <source>Marque los exámenes que quiere exportar y cambie el nombre de sus ficheros si lo desea:</source>
         <translation>Tick the exams you want to export and change their file names if you wish:</translation>
     </message>
@@ -1164,17 +1159,12 @@ Record them?</translation>
         <translation>File</translation>
     </message>
     <message>
-        <location line="+14"/>
-        <source>Pulse sobre el nombre para cambiarlo</source>
-        <translation>Click the name to change it</translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+21"/>
         <source>Todos los exámenes en un fichero</source>
         <translation>All the exams in one file</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+9"/>
         <source>Exportar</source>
         <translation>Export</translation>
     </message>
@@ -1184,44 +1174,151 @@ Record them?</translation>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="+83"/>
+        <location line="+80"/>
         <source>Carpeta donde guardar los exámenes</source>
         <translation>Folder in which to save the exams</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>Indique la carpeta donde guardar los ficheros.</source>
-        <translation>Specify the folder in which to save the files.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+33"/>
         <source>No se pudo crear la carpeta
 %1</source>
         <translation>Could not create the folder
 %1</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+19"/>
         <source>Marque al menos un examen.</source>
         <translation>Tick at least one exam.</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="-10"/>
         <source>Hay un examen marcado sin nombre de fichero.</source>
         <translation>A ticked exam has no file name.</translation>
     </message>
     <message>
+        <location line="-211"/>
+        <source>Exportar exámenes</source>
+        <translation>Export exams</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Formatos:</source>
+        <extracomment>Delante de las casillas de los formatos en que se exportan los exámenes (PDF, Word, HTML, LaTeX)</extracomment>
+        <translation>Formats:</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Word (.docx)</source>
+        <extracomment>Formato de exportación: documento de Word</extracomment>
+        <translation>Word (.docx)</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+1"/>
+        <source>Se puede abrir y modificar con Word o LibreOffice.</source>
+        <translation>It can be opened and edited with Word or LibreOffice.</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Para compilarlo con pdflatex (dos veces, para que salga el total de páginas del pie).</source>
+        <translation>To be compiled with pdflatex (twice, so that the footer shows the total number of pages).</translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>en la carpeta</source>
+        <extracomment>Delante del campo de la carpeta de los enunciados o de las soluciones, en el diálogo de exportar</extracomment>
+        <translation>in the folder</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Enunciados</source>
+        <extracomment>Casilla del diálogo de exportar: los exámenes tal como los ven los estudiantes, sin soluciones</extracomment>
+        <translation>Exams</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Los exámenes tal como los ven los estudiantes, sin soluciones.</source>
+        <translation>The exams as the students see them, without solutions.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Soluciones</source>
+        <extracomment>Casilla del diálogo de exportar: los exámenes con sus soluciones</extracomment>
+        <translation>Solutions</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>La hoja de soluciones (estructura y plantilla de corrección) y los exámenes con la respuesta correcta marcada y, en cada pregunta, la explicación y la referencia.</source>
+        <translation>The solutions sheet (structure and answer key) and the exams with the correct answer marked and, under each question, its explanation and reference.</translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>Pulse sobre el nombre para cambiarlo. Sin extensión: cada fichero lleva la de su formato y los de las soluciones, además, «-soluciones» al final.</source>
+        <translation>Click the name to change it. Without extension: each file gets the one of its format, and the solutions files also end in “-soluciones”.</translation>
+    </message>
+    <message>
+        <location line="+83"/>
+        <source>No se guardará ningún fichero: marque al menos un formato, «Enunciados» o «Soluciones» y un examen.</source>
+        <translation>No file will be saved: tick at least one format, “Exams” or “Solutions”, and one exam.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Se guardará un fichero.</source>
+        <translation>One file will be saved.</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Se guardarán %1 ficheros.</source>
+        <translation>%1 files will be saved.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Los de las soluciones acaban en «-soluciones».</source>
+        <translation>The solutions files end in “-soluciones”.</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Carpeta donde guardar las soluciones</source>
+        <translation>Folder where to save the solutions</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Marque al menos un formato.</source>
+        <translation>Tick at least one format.</translation>
+    </message>
+    <message>
         <location line="+4"/>
+        <source>Marque «Enunciados», «Soluciones» o los dos.</source>
+        <translation>Tick “Exams”, “Solutions” or both.</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Indique la carpeta donde guardar las soluciones.</source>
+        <translation>Enter the folder where to save the solutions.</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Indique la carpeta donde guardar los enunciados.</source>
+        <translation>Enter the folder where to save the exams.</translation>
+    </message>
+    <message>
+        <location line="+17"/>
         <source>El nombre «%1» no puede contener barras.</source>
         <translation>The name “%1” cannot contain slashes.</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+14"/>
         <source>Dos exámenes tienen el mismo nombre de fichero: %1</source>
         <translation>Two exams have the same file name: %1</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+13"/>
+        <source>… y %1 más</source>
+        <extracomment>Tras la lista de ficheros que ya existen, cuando son más de los que se ven</extracomment>
+        <translation>… and %1 more</translation>
+    </message>
+    <message>
+        <location line="+1"/>
         <source>Ya existen estos ficheros en la carpeta:
 %1
 
@@ -2296,7 +2393,7 @@ Do you want to save it anyway?</translation>
         <translation>Topic %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/latex.cpp" line="+276"/>
+        <location filename="../src/latex.cpp" line="+283"/>
         <location filename="../src/docx.cpp" line="+761"/>
         <location filename="../src/maquetador.cpp" line="+361"/>
         <source>Explicación:</source>
@@ -3634,7 +3731,7 @@ Replace it with this one?</translation>
         <translation>%1 (%2 questions)</translation>
     </message>
     <message>
-        <location filename="../src/ventanaprincipal.cpp" line="+135"/>
+        <location filename="../src/ventanaprincipal.cpp" line="+155"/>
         <source>Generar examen</source>
         <translation>Generate exam</translation>
     </message>
@@ -3692,27 +3789,7 @@ Replace it with this one?</translation>
         <translation>Print…</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Exportar PDF…</source>
-        <translation>Export PDF…</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Soluciones PDF…</source>
-        <translation>Solutions PDF…</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Exportar HTML…</source>
-        <translation>Export HTML…</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Exportar LaTeX…</source>
-        <translation>Export LaTeX…</translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="+11"/>
         <source>Pregunta:</source>
         <extracomment>Delante del número de la pregunta del examen que se quiere editar o cambiar</extracomment>
         <translation>Question:</translation>
@@ -3750,20 +3827,14 @@ Replace it with this one?</translation>
         <translation>Edit…</translation>
     </message>
     <message>
-        <location line="-88"/>
+        <location line="-86"/>
         <source>Versión adaptada para estudiantes con discapacidad visual: letra de 16 pt, una opción por línea (enunciados sin cursiva), más separación e imágenes más grandes, sin límite de páginas.
 Vale para la vista, la impresión y las exportaciones; los ficheros llevan «-letra-grande» en el nombre.</source>
         <translation>Adapted version for visually impaired students: 16 pt font, one option per line (question text not in italics), more spacing and larger images, with no page limit.
 Applies to the preview, printing and exports; the files have “-letra-grande” in their name.</translation>
     </message>
     <message>
-        <location line="+78"/>
-        <source>Exportar Word…</source>
-        <extracomment>Botón: guarda los exámenes en un documento de Word (.docx)</extracomment>
-        <translation>Export Word…</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+80"/>
         <source>Número de la pregunta que se quiere editar o cambiar, en el examen que se ve.
 También se puede pulsar con el botón derecho sobre la pregunta.</source>
         <translation>Number of the question to edit or replace, in the exam being shown.
@@ -3875,7 +3946,19 @@ You can also right-click the question.</translation>
         <translation>After each change to the bank (a question or topic saved or deleted), the linked JSON is rewritten if it matched the database beforehand. A JSON that no longer matches (for example, one freshly generated from the .docx) is left untouched, and a warning is shown.</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+8"/>
+        <source>Im&amp;primir los exámenes…</source>
+        <extracomment>Menú Archivo. El &amp; marca la letra del atajo: no puede ser la de otra orden del menú.</extracomment>
+        <translation>&amp;Print the exams…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>E&amp;xportar los exámenes…</source>
+        <extracomment>Menú Archivo. El &amp; marca la letra del atajo: no puede ser la de otra orden del menú.</extracomment>
+        <translation>Expor&amp;t the exams…</translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>&amp;Historial de convocatorias…</source>
         <translation>Exam session &amp;history…</translation>
     </message>
@@ -3959,7 +4042,7 @@ You can also right-click the question.</translation>
 %2</translation>
     </message>
     <message>
-        <location line="+34"/>
+        <location line="+36"/>
         <source>Elija el banco de preguntas (fichero .db) con el que quiere trabajar.</source>
         <translation>Choose the question bank (.db file) you want to work with.</translation>
     </message>
@@ -4042,12 +4125,12 @@ Choose where it is or create a new one.</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+751"/>
+        <location line="+762"/>
         <source>Cancelar</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location line="-737"/>
+        <location line="-748"/>
         <source>Error al importar:
 %1</source>
         <translation>Import error:
@@ -4251,7 +4334,18 @@ Overwrite it with the contents of the database?</translation>
 %1</translation>
     </message>
     <message>
-        <location line="-149"/>
+        <location line="-475"/>
+        <source>Exportar…</source>
+        <extracomment>Botón: abre el diálogo para guardar los exámenes en ficheros (PDF, Word, HTML o LaTeX), con o sin soluciones</extracomment>
+        <translation>Export…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Guarda los exámenes en PDF, Word, HTML o LaTeX (uno o varios a la vez), sus enunciados, sus soluciones o los dos, cada cosa en su carpeta.</source>
+        <translation>Saves the exams as PDF, Word, HTML or LaTeX (one or several at once): the exams, their solutions or both, each in its own folder.</translation>
+    </message>
+    <message>
+        <location line="+325"/>
         <source> El JSON, que ahora es el del banco, se ha puesto al día con ellas.</source>
         <translation> The JSON, which is now the bank’s, has been brought up to date with them.</translation>
     </message>
@@ -4364,7 +4458,7 @@ Click to overwrite the JSON with the contents of the database.</translation>
         <translation>There is no exam session recorded in the history, so questions from previous ones are not avoided. If they were held outside the program, record them with File → Record previous exams…</translation>
     </message>
     <message>
-        <location line="+86"/>
+        <location line="+88"/>
         <source>Añadir las que faltan</source>
         <extracomment>Enlace del aviso de las versiones que faltan: las añade a los exámenes, sin volver a generarlos</extracomment>
         <translation>Add the missing ones</translation>
@@ -4472,17 +4566,22 @@ With “Fit on one page per 10 questions” (in Options), the layout is compacte
 %1</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+9"/>
         <source>Fichero guardado en %1</source>
         <translation>File saved to %1</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>%1 ficheros guardados en %2</source>
         <translation>%1 files saved to %2</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+2"/>
+        <source>%1 ficheros guardados en %2 y %3</source>
+        <translation>%1 files saved in %2 and %3</translation>
+    </message>
+    <message>
+        <location line="+24"/>
         <source>Vista previa de impresión</source>
         <translation>Print preview</translation>
     </message>
@@ -4517,42 +4616,7 @@ If they are the final ones, record them first.</translation>
         <translation>Do not record them</translation>
     </message>
     <message>
-        <location line="+34"/>
-        <source>Exportar exámenes a PDF</source>
-        <translation>Export exams to PDF</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Exportar soluciones a PDF</source>
-        <translation>Export solutions to PDF</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Con soluciones (plantilla de corrección y, en cada pregunta, la correcta, la explicación y la referencia)</source>
-        <translation>With solutions (answer key and, for each question, the correct answer, the explanation and the reference)</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Exportar a HTML (editable en Word / LibreOffice)</source>
-        <translation>Export to HTML (editable in Word / LibreOffice)</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Exportar a LaTeX</source>
-        <translation>Export to LaTeX</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>compílelos dos veces con pdflatex</source>
-        <translation>compile them twice with pdflatex</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Exportar a Word (.docx)</source>
-        <translation>Export to Word (.docx)</translation>
-    </message>
-    <message>
-        <location line="+10"/>
+        <location line="+43"/>
         <source>Indique la convocatoria (Febrero, Junio…).</source>
         <translation>Enter the exam session (February, June…).</translation>
     </message>
@@ -4610,8 +4674,8 @@ Some of these exams were already recorded (with the same name, or with other ver
         <translation>“%1”, question %2: %3 instead of %4</translation>
     </message>
     <message>
-        <location line="-402"/>
-        <location line="+444"/>
+        <location line="-381"/>
+        <location line="+423"/>
         <source>«%1»</source>
         <extracomment>Un examen en la lista del aviso de las versiones que faltan: %1 es su nombre, entre comillas
 ----------
@@ -4619,13 +4683,18 @@ Un examen de la lista en el mensaje de las versiones añadidas: %1 es su nombre,
         <translation>“%1”</translation>
     </message>
     <message>
-        <location line="-442"/>
+        <location line="-421"/>
         <source>Se piden %1 versiones de cada examen, y estos tienen menos: %2.</source>
         <extracomment>Aviso junto al examen; %1 es el número de versiones (dos o más) y %2, la lista de exámenes: «Nacional Original», «Nacional Reserva»</extracomment>
         <translation>%1 versions of each exam are asked for, and these have fewer: %2.</translation>
     </message>
     <message>
-        <location line="+444"/>
+        <location line="+252"/>
+        <source>los .tex, compílelos dos veces con pdflatex</source>
+        <translation>compile the .tex files twice with pdflatex</translation>
+    </message>
+    <message>
+        <location line="+171"/>
         <source>Añadidas las versiones de %1. Los exámenes que ya había no cambian; si no tenían versiones, ahora son la %2.</source>
         <extracomment>%1 es la lista de los exámenes («Nacional Original», «Nacional Reserva») y %2, la etiqueta de la primera versión (A o 1)</extracomment>
         <translation>Versions added to %1. The exams you already had do not change; those without versions are now version %2.</translation>

@@ -210,6 +210,26 @@ QVector<qreal> tamanos(const QTextDocument *doc)
     return t;
 }
 
+// Al abrirse el diálogo de exportar (DialogoExportar), elige en él los formatos ('formatos', sus extensiones), los
+// enunciados (en 'carpeta') y las soluciones (en 'carpetaSoluciones'; si está vacía, no se exportan) y pulsa Exportar.
+void exportarEn(const QString &carpeta, const QStringList &formatos, const QString &carpetaSoluciones = QString(),
+                bool enunciados = true)
+{
+    QTimer::singleShot(100, [=] {
+        QWidget *d = QApplication::activeModalWidget();
+        if (!d)
+            return;
+        for (QCheckBox *formato : d->findChildren<QCheckBox *>())
+            if (formato->objectName().startsWith(QStringLiteral("formato-")))
+                formato->setChecked(formatos.contains(formato->objectName().mid(8)));
+        marcar(d, QStringLiteral("Enunciados"), enunciados);
+        marcar(d, QStringLiteral("Soluciones"), !carpetaSoluciones.isEmpty());
+        d->findChild<QLineEdit *>(QStringLiteral("carpetaEnunciados"))->setText(carpeta);
+        d->findChild<QLineEdit *>(QStringLiteral("carpetaSoluciones"))->setText(carpetaSoluciones);
+        pulsar(d, QStringLiteral("Exportar"));
+    });
+}
+
 // Si cada medida de 'a' es 'escala' veces la de 'b' (con medio punto de margen, por los píxeles redondeados).
 bool proporcionales(const QVector<qreal> &a, const QVector<qreal> &b, qreal escala)
 {
@@ -1101,64 +1121,76 @@ private slots:
             QVERIFY(!qobject_cast<QScrollArea *>(w));
         generar->click();
 
+        // Exportar está en el menú Archivo y, como su botón, solo con exámenes.
+        QAction *accion = nullptr;
+        for (QAction *a : v.findChildren<QAction *>())
+            if (a->text() == QStringLiteral("E&xportar los exámenes…"))
+                accion = a;
+        QVERIFY(accion && accion->isEnabled());
+        QVERIFY(conTexto<QPushButton>(&v, QStringLiteral("Exportar…"))->isEnabled());
+
+        // Los cuatro formatos a la vez, los enunciados en una carpeta y las soluciones en otra (que se crean).
         const QString carpeta = dir.filePath(QStringLiteral("exportados"));
-        QDir().mkpath(carpeta);
-        for (const char *slot : {"exportarPdf", "exportarSolucionesPdf", "exportarHtml", "exportarLatex", "exportarDocx"}) {
-            QTimer::singleShot(100, [&carpeta] {
-                QWidget *d = QApplication::activeModalWidget();
-                if (!d)
-                    return;
-                d->findChild<QLineEdit *>()->setText(carpeta);
-                pulsar(d, QStringLiteral("Exportar"));
-            });
-            QVERIFY(QMetaObject::invokeMethod(&v, slot));
+        const QString enunciados = carpeta + QStringLiteral("/Enunciados"), soluciones = carpeta + QStringLiteral("/Soluciones");
+        const QStringList formatos{QStringLiteral("pdf"), QStringLiteral("docx"), QStringLiteral("html"), QStringLiteral("tex")};
+        exportarEn(enunciados, formatos, soluciones);
+        accion->trigger();
+        // Por omisión, un fichero por examen (Nacional Original y Nacional Reserva) de cada formato en cada carpeta.
+        const QStringList deEnunciados = QDir(enunciados).entryList(QDir::Files), deSoluciones = QDir(soluciones).entryList(QDir::Files);
+        for (const QString &formato : formatos) {
+            QCOMPARE(deEnunciados.filter(QLatin1Char('.') + formato).size(), 2);
+            QCOMPARE(deSoluciones.filter(QStringLiteral("-soluciones.") + formato).size(), 2);
         }
-        // HTML con soluciones: con la casilla del diálogo (sin «Mostrar soluciones»), y «-soluciones» en el nombre.
-        QTimer::singleShot(100, [&carpeta] {
-            QWidget *d = QApplication::activeModalWidget();
-            if (!d)
-                return;
-            d->findChild<QLineEdit *>()->setText(carpeta);
-            d->findChild<QCheckBox *>()->setChecked(true);
-            pulsar(d, QStringLiteral("Exportar"));
-        });
-        QVERIFY(QMetaObject::invokeMethod(&v, "exportarHtml"));
-        // Tras exportar, la barra de estado ofrece abrir la carpeta.
+        QCOMPARE(deEnunciados.filter(QStringLiteral("-soluciones")).size(), 0);
+        // Las soluciones se llaman como los enunciados con «-soluciones» al final, y las palabras van separadas por guiones.
+        for (const QString &f : deSoluciones)
+            QVERIFY2(deEnunciados.contains(QString(f).remove(QStringLiteral("-soluciones"))), qPrintable(f));
+        QVERIFY2(deEnunciados.filter(QStringLiteral("_")).isEmpty(), qPrintable(deEnunciados.join(QStringLiteral(", "))));
+        for (const QString &f : deEnunciados)
+            QVERIFY2(QFileInfo(enunciados + QLatin1Char('/') + f).size() > 1000, qPrintable(f));
+        for (const QString &f : deSoluciones)
+            QVERIFY2(QFileInfo(soluciones + QLatin1Char('/') + f).size() > 1000, qPrintable(f));
+        QFile conSoluciones(soluciones + QStringLiteral("/") + deSoluciones.filter(QStringLiteral(".html")).value(0));
+        QVERIFY(conSoluciones.open(QIODevice::ReadOnly));
+        QVERIFY(QString::fromUtf8(conSoluciones.readAll()).contains(QStringLiteral("CON SOLUCIONES")));
+        QFile sinSoluciones(enunciados + QStringLiteral("/") + deEnunciados.filter(QStringLiteral(".html")).value(0));
+        QVERIFY(sinSoluciones.open(QIODevice::ReadOnly));
+        QVERIFY(!QString::fromUtf8(sinSoluciones.readAll()).contains(QStringLiteral("CON SOLUCIONES")));
+        // Tras exportar, la barra de estado ofrece abrir la carpeta: la que tiene las dos.
         auto *abrir = conTexto<QPushButton>(&v, QStringLiteral("Abrir la carpeta"));
         QVERIFY(abrir);
         QVERIFY(abrir->isVisible());
         QCOMPARE(abrir->toolTip(), QDir::toNativeSeparators(carpeta));
-        QFile conSoluciones(carpeta + QStringLiteral("/") + QDir(carpeta).entryList({QStringLiteral("*-soluciones.html")}).value(0));
-        QVERIFY(conSoluciones.open(QIODevice::ReadOnly));
-        QVERIFY(QString::fromUtf8(conSoluciones.readAll()).contains(QStringLiteral("CON SOLUCIONES")));
-        // Con «Letra grande», los ficheros llevan «-letra-grande» en el nombre.
-        auto *letraGrande = v.findChild<QCheckBox *>(QString(), Qt::FindChildrenRecursively);
-        letraGrande = conTexto<QCheckBox>(&v, QStringLiteral("Letra grande"));
-        QCOMPARE(letraGrande->text(), QStringLiteral("Letra grande"));
-        letraGrande->setChecked(true);
-        QTimer::singleShot(100, [&carpeta] {
+        // La próxima vez, el diálogo propone lo mismo: las dos carpetas y los cuatro formatos.
+        QStringList propuesto;
+        QTimer::singleShot(100, [&] {
             QWidget *d = QApplication::activeModalWidget();
             if (!d)
                 return;
-            d->findChild<QLineEdit *>()->setText(carpeta);
-            pulsar(d, QStringLiteral("Exportar"));
+            propuesto << d->findChild<QLineEdit *>(QStringLiteral("carpetaEnunciados"))->text()
+                      << d->findChild<QLineEdit *>(QStringLiteral("carpetaSoluciones"))->text();
+            for (QCheckBox *c : d->findChildren<QCheckBox *>())
+                if (c->objectName().startsWith(QStringLiteral("formato-")) && c->isChecked())
+                    propuesto << c->objectName();
+            propuesto << d->findChild<QLabel *>(QStringLiteral("resumen"))->text();
+            pulsar(d, QStringLiteral("Cancelar"));
         });
-        QVERIFY(QMetaObject::invokeMethod(&v, "exportarPdf"));
-        // Por omisión, un fichero por examen (Nacional Original y Nacional Reserva) de cada tipo.
+        QVERIFY(QMetaObject::invokeMethod(&v, "exportarExamenes"));
+        QCOMPARE(propuesto, (QStringList{enunciados, soluciones, QStringLiteral("formato-pdf"), QStringLiteral("formato-docx"),
+                                         QStringLiteral("formato-html"), QStringLiteral("formato-tex"),
+                                         QStringLiteral("Se guardarán 16 ficheros. Los de las soluciones acaban en «-soluciones».")}));
+
+        // Con «Letra grande», los ficheros llevan «-letra-grande» en el nombre. Solo los enunciados, en PDF, y en la
+        // carpeta de arriba: los mensajes y la carpeta que se ofrece son esa.
+        auto *letraGrande = conTexto<QCheckBox>(&v, QStringLiteral("Letra grande"));
+        QVERIFY(letraGrande);
+        letraGrande->setChecked(true);
+        exportarEn(carpeta, {QStringLiteral("pdf")});
+        QVERIFY(QMetaObject::invokeMethod(&v, "exportarExamenes"));
         const QStringList ficheros = QDir(carpeta).entryList(QDir::Files);
-        QCOMPARE(ficheros.filter(QStringLiteral(".pdf")).size(), 6);
+        QCOMPARE(ficheros.size(), 2);
         QCOMPARE(ficheros.filter(QStringLiteral("-letra-grande-")).size(), 2);
-        QCOMPARE(ficheros.filter(QStringLiteral("-soluciones.")).size(), 4);
-        // El de con soluciones se llama como el de sin ellas con «-soluciones» al final, para que estén juntos en la
-        // carpeta sin pisarse, y las palabras van separadas por guiones.
-        for (const QString &f : ficheros.filter(QStringLiteral("-soluciones.")))
-            QVERIFY2(ficheros.contains(QString(f).remove(QStringLiteral("-soluciones"))), qPrintable(f));
-        QVERIFY2(ficheros.filter(QStringLiteral("_")).isEmpty(), qPrintable(ficheros.join(QStringLiteral(", "))));
-        QCOMPARE(ficheros.filter(QStringLiteral(".html")).size(), 4);
-        QCOMPARE(ficheros.filter(QStringLiteral(".tex")).size(), 2);
-        QCOMPARE(ficheros.filter(QStringLiteral(".docx")).size(), 2);
-        for (const QString &f : ficheros)
-            QVERIFY2(QFileInfo(carpeta + QLatin1Char('/') + f).size() > 1000, qPrintable(f));
+        QCOMPARE(abrir->toolTip(), QDir::toNativeSeparators(carpeta));
         QCOMPARE(QSettings().value(QStringLiteral("bd/ruta")).toString(), dir.filePath(QStringLiteral("banco.db")));
 
         // El banco entero, a Moodle: el fichero se escribe en la ruta del diálogo.
@@ -1277,7 +1309,8 @@ private slots:
             QVERIFY(botones.size() >= 6);   // Añadir, Quitar, Todos, Ninguno, los repartos y Guardar reparto…
             QTRY_VERIFY(std::none_of(botones.begin(), botones.end(), [](QPushButton *b) { return b->isHidden(); }));
             QTRY_VERIFY(zona->viewport()->width() >= zona->widget()->minimumSizeHint().width());
-            QVERIFY(!zona->horizontalScrollBar()->isVisible());
+            // La barra se pone al día un poco después (puede verse un momento, sin nada que desplazar).
+            QTRY_VERIFY(!zona->horizontalScrollBar()->isVisible());
             for (QPushButton *b : botones) {
                 const QRect r(b->mapTo(zona->viewport(), QPoint(0, 0)), b->size());
                 QVERIFY2(r.left() >= 0 && r.right() < zona->viewport()->width(), qPrintable(b->text()));
@@ -1738,16 +1771,10 @@ private slots:
         QVERIFY2(lineaGris().startsWith(QStringLiteral("Registrada el ")) && lineaGris().contains(QStringLiteral(" (con preguntas cambiadas a mano)")),
                  qPrintable(lineaGris()));
         const QString carpeta = dir.filePath(QStringLiteral("exportados"));
-        QDir().mkpath(carpeta);
-        QTimer::singleShot(100, [&carpeta] {
-            QWidget *d = QApplication::activeModalWidget();
-            if (!d)
-                return;
-            d->findChild<QLineEdit *>()->setText(carpeta);
-            d->findChild<QCheckBox *>()->setChecked(true);
-            pulsar(d, QStringLiteral("Exportar"));
-        });
-        QVERIFY(QMetaObject::invokeMethod(&v, "exportarHtml"));
+        exportarEn(carpeta, {QStringLiteral("html")}, carpeta, false);   // solo las soluciones
+        QVERIFY(QMetaObject::invokeMethod(&v, "exportarExamenes"));
+        QCOMPARE(QDir(carpeta).entryList({QStringLiteral("*.html")}).filter(QStringLiteral("-soluciones")).size(),
+                 QDir(carpeta).entryList({QStringLiteral("*.html")}).size());
         const QStringList exportados = QDir(carpeta).entryList({QStringLiteral("*-soluciones.html")});
         QVERIFY(!exportados.isEmpty());
         for (const QString &nombre : exportados) {
@@ -2284,6 +2311,74 @@ private slots:
         }
     }
 
+    // Lo que escribe el diálogo de exportar: de cada examen marcado, los enunciados y las soluciones (cada cosa en su
+    // carpeta, y las soluciones con «-soluciones» al final) en cada formato marcado. El nombre se cambia sin extensión
+    // (si se le pone la de un formato, se quita), y todos juntos solo si se marca. Lo elegido se propone la vez siguiente.
+    void exportarEscribeLoMarcado()
+    {
+        QSettings().clear();
+        QTemporaryDir dir;
+        QSettings().setValue(QStringLiteral("exportar/carpeta"), dir.filePath(QStringLiteral("e")));
+        QSettings().setValue(QStringLiteral("exportar/carpetaSoluciones"), dir.filePath(QStringLiteral("s")));
+        auto ficheros = [&dir](const DialogoExportar &d) {
+            QStringList res;
+            for (const DialogoExportar::Fichero &f : d.ficheros()) {
+                QStringList modelos;
+                for (int m : f.modelos)
+                    modelos << QString::number(m);
+                res << QStringLiteral("%1 [%2] %3%4").arg(QDir(dir.path()).relativeFilePath(f.ruta), modelos.join(QLatin1Char(',')))
+                           .arg(int(f.formato)).arg(f.soluciones ? QStringLiteral(" soluciones") : QString());
+            }
+            return res;
+        };
+        {
+            // La primera vez: PDF, enunciados y soluciones, y cada examen en su fichero.
+            DialogoExportar d({QStringLiteral("Uno"), QStringLiteral("Dos")}, QStringLiteral("2026-Junio"));
+            QCOMPARE(ficheros(d), (QStringList{QStringLiteral("e/2026-Junio-Uno.pdf [0] 0"),
+                                               QStringLiteral("s/2026-Junio-Uno-soluciones.pdf [0] 0 soluciones"),
+                                               QStringLiteral("e/2026-Junio-Dos.pdf [1] 0"),
+                                               QStringLiteral("s/2026-Junio-Dos-soluciones.pdf [1] 0 soluciones")}));
+            // También Word; el primero no, el segundo con otro nombre (con extensión) y todos juntos.
+            d.findChild<QCheckBox *>(QStringLiteral("formato-docx"))->setChecked(true);
+            auto *tabla = d.findChild<QTableWidget *>();
+            QCOMPARE(tabla->rowCount(), 3);
+            tabla->item(0, 0)->setCheckState(Qt::Unchecked);
+            tabla->item(1, 1)->setText(QStringLiteral("segundo.PDF"));
+            tabla->item(2, 0)->setCheckState(Qt::Checked);
+            QCOMPARE(ficheros(d), (QStringList{QStringLiteral("e/segundo.pdf [1] 0"), QStringLiteral("e/segundo.docx [1] 1"),
+                                               QStringLiteral("s/segundo-soluciones.pdf [1] 0 soluciones"),
+                                               QStringLiteral("s/segundo-soluciones.docx [1] 1 soluciones"),
+                                               QStringLiteral("e/2026-Junio.pdf [0,1] 0"), QStringLiteral("e/2026-Junio.docx [0,1] 1"),
+                                               QStringLiteral("s/2026-Junio-soluciones.pdf [0,1] 0 soluciones"),
+                                               QStringLiteral("s/2026-Junio-soluciones.docx [0,1] 1 soluciones")}));
+            QCOMPARE(d.findChild<QLabel *>(QStringLiteral("resumen"))->text(),
+                     QStringLiteral("Se guardarán 8 ficheros. Los de las soluciones acaban en «-soluciones»."));
+            // Sin enunciados, su carpeta no se puede tocar.
+            marcar(&d, QStringLiteral("Enunciados"), false);
+            QVERIFY(!d.findChild<QLineEdit *>(QStringLiteral("carpetaEnunciados"))->isEnabled());
+            QCOMPARE(ficheros(d).size(), 4);
+            // Al exportar se crea la carpeta y se guarda lo elegido.
+            d.accept();
+            QCOMPARE(d.result(), int(QDialog::Accepted));
+            QVERIFY(QFileInfo(dir.filePath(QStringLiteral("s"))).isDir());
+        }
+        DialogoExportar d({QStringLiteral("Uno")}, QStringLiteral("2026-Junio"));
+        QCOMPARE(d.findChild<QTableWidget *>()->rowCount(), 1);   // con uno solo, no hay «todos juntos»
+        QCOMPARE(ficheros(d), (QStringList{QStringLiteral("s/2026-Junio-Uno-soluciones.pdf [0] 0 soluciones"),
+                                           QStringLiteral("s/2026-Junio-Uno-soluciones.docx [0] 1 soluciones")}));
+        // Sin formato, sin nada que exportar: no se cierra y lo dice.
+        for (QCheckBox *c : d.findChildren<QCheckBox *>())
+            c->setChecked(false);
+        QVERIFY(d.ficheros().isEmpty());
+        QVERIFY(d.findChild<QLabel *>(QStringLiteral("resumen"))->text().startsWith(QStringLiteral("No se guardará ningún fichero")));
+        QString aviso;
+        responder(QStringLiteral("OK"), &aviso);
+        d.accept();
+        QCOMPARE(aviso, QStringLiteral("Marque al menos un formato."));
+        QVERIFY(d.result() != QDialog::Accepted);
+        QSettings().clear();
+    }
+
     // Después de «Elegir…» (Exportar, Moodle), «Añadir PDF…» o «Pegar texto…» (Registrar exámenes anteriores), el foco
     // vuelve al campo o a la lista: si se quedara en el botón, Intro lo pulsaría otra vez en vez de exportar o registrar.
     void elegirDevuelveElFoco()
@@ -2306,8 +2401,7 @@ private slots:
             return true;
         };
         {
-            DialogoExportar d(QStringLiteral("Exportar"), {QStringLiteral("Uno")}, QStringLiteral("examen"),
-                              QStringLiteral("pdf"), true);
+            DialogoExportar d({QStringLiteral("Uno")}, QStringLiteral("examen"));
             d.show();
             QVERIFY(QTest::qWaitForWindowActive(&d));
             QVERIFY(pulsarYCerrar(d, QStringLiteral("Elegir…")));
@@ -2388,8 +2482,7 @@ private slots:
             comprobar(d, QStringLiteral("Registrar"));
         }
         {
-            DialogoExportar d(QStringLiteral("Exportar"), {QStringLiteral("Uno"), QStringLiteral("Dos")},
-                              QStringLiteral("examen"), QStringLiteral("pdf"), true);
+            DialogoExportar d({QStringLiteral("Uno"), QStringLiteral("Dos")}, QStringLiteral("examen"));
             comprobar(d, QStringLiteral("Exportar"));
         }
         {
@@ -3283,14 +3376,8 @@ private slots:
 
         // Exportados: el botón de registrar avisa y, al generar otros, se pregunta.
         const QString carpeta = dir.filePath(QStringLiteral("exportados"));
-        QTimer::singleShot(100, [&carpeta] {
-            QWidget *d = QApplication::activeModalWidget();
-            if (!d)
-                return;
-            d->findChild<QLineEdit *>()->setText(carpeta);
-            pulsar(d, QStringLiteral("Exportar"));
-        });
-        QVERIFY(QMetaObject::invokeMethod(&v, "exportarPdf"));
+        exportarEn(carpeta, {QStringLiteral("pdf")});
+        QVERIFY(QMetaObject::invokeMethod(&v, "exportarExamenes"));
         QVERIFY(!registrar->styleSheet().isEmpty());
         const QString exportados = visor->toPlainText();
         QString texto;

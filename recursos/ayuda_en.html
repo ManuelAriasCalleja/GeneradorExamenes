@@ -118,7 +118,7 @@ the warnings in the yellow box, if there are any.</li>
 <a href="#cambiar-pregunta">Replacing a question</a> and <a href="#editar-pregunta">Editing a question of the
 exam</a>). If you are not happy with the whole set, click
 <b>Generate exams</b> again: different ones come out each time.</li>
-<li>Click <b>Export PDF…</b> to save the exams and <b>Solutions PDF…</b> to save the solutions.</li>
+<li>Click <b>Export…</b> to save the exams and their solutions (as PDF, Word, HTML or LaTeX).</li>
 <li>When they are final, click <b>Record exam session…</b>: they are saved in the history and their questions will
 be avoided in the following exam sessions.</li>
 </ol>
@@ -351,8 +351,8 @@ Original · June 2026: 2 / 2”, with the number of pages the printed exam takes
 <li><b>Exam</b>: which of the exams of the exam session is shown.</li>
 <li><b>Show solutions</b>: in the preview, puts the exam’s answer key at the top, marks the correct answer in green,
 shows the code of each question and puts its explanation and reference below it (see
-<a href="#exportar">Printing and exporting</a>). When exporting to HTML or LaTeX, it decides what is suggested for
-the “With solutions” box of the dialog.</li>
+<a href="#exportar">Printing and exporting</a>). It only changes the preview: whether the solutions are exported is
+chosen when exporting.</li>
 <li><b>Large print</b>: the adapted version (see <a href="#letra-grande">Large print</a>).</li>
 <li>The grey line below shows the seed, the level of the compact layout, if it has been used, and the recording date,
 if the exams have been loaded from the history. Its text can be selected and copied.</li>
@@ -466,71 +466,69 @@ hand, “(with questions changed by hand)” is added, also when they are loaded
 <!-- ======================================================================================================= -->
 <h2><a name="exportar"></a>Printing and exporting</h2>
 
-<p>Once the exams have been generated, the buttons below the preview print them or save them to files:</p>
-<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
-<tr><th align="left">Button</th><th align="left">What it does</th><th align="left">Suggested name</th></tr>
-<tr><td><b>Print…</b></td>
-<td>Opens the print preview of all the exams, from which they are printed. They are printed without
-solutions.</td><td></td></tr>
-<tr><td><b>Export PDF…</b></td><td>Saves the exams as PDF.</td>
-<td><tt>2026-Junio-Nacional-Original.pdf</tt></td></tr>
-<tr><td><b>Solutions PDF…</b></td>
-<td>Saves the solutions sheet (the structure by topic, like the one in the instructions, and the answer key)
-followed by the exams with the correct answer marked, the explanation and the reference.</td>
-<td><tt>2026-Junio-Nacional-Original-soluciones.pdf</tt></td></tr>
-<tr><td><b>Export HTML…</b></td>
-<td>Saves the exams as HTML, which can be opened and edited in Word or LibreOffice. With the “With
-solutions” box of the dialog ticked, with the solutions, like the solutions PDF.</td>
-<td><tt>2026-Junio-Nacional-Original.html</tt></td></tr>
-<tr><td><b>Export LaTeX…</b></td>
-<td>Saves the exams as LaTeX (see <a href="#latex">LaTeX</a>).</td>
-<td><tt>2026-Junio-Nacional-Original.tex</tt></td></tr>
-<tr><td><b>Export Word…</b></td>
-<td>Saves the exams as a Word document (<tt>.docx</tt>), which can be opened and edited in Word or LibreOffice (see
-<a href="#word">Word</a>). With the “With solutions” box of the dialog ticked, with the solutions.</td>
-<td><tt>2026-Junio-Nacional-Original.docx</tt></td></tr>
-</table>
-<p>The solutions (<b>Solutions PDF…</b>, and HTML, LaTeX or Word with the “With solutions” box ticked) start with the
-solutions sheet: the structure of the exam session (which questions from each topic each exam has) and, for each
-exam, its <b>answer key</b> (“1 C”, “2 A”…, in rows of 10), how many times each letter is correct and the code,
-answer and reference of each question. Then come the exams with the correct answer in green and, below each
-question, its <b>explanation</b> (why it is the correct one) and its <b>reference</b> to the text, if the bank has
-them.</p>
-<p>To print the solutions, export them with <b>Solutions PDF…</b> and print the PDF.</p>
-
-<h3><a name="exportar-ficheros"></a>Folder and file names</h3>
-<p>When exporting, a dialog opens:</p>
+<p>Once the exams have been generated, the buttons below the preview (and the <b>File</b> menu) print them or save
+them to files:</p>
 <ul>
-<li><b>Folder</b>: where the files are saved. It is remembered from one time to the next in each bank (each subject
-has its own); <b>Choose…</b> lets you pick another one. If it does not exist, it is created.</li>
-<li>The table has one row per exam: the ticked ones are exported, each to its own file. Click a file name to change
-it.</li>
+<li><b>Print…</b> (<b>File → Print the exams…</b>, Ctrl+P) opens the print preview of all the exams, from which
+they are printed. They are printed without solutions: to print the solutions, export them as PDF and print the
+PDF.</li>
+<li><b>Export…</b> (<b>File → Export the exams…</b>, Ctrl+E) saves them to files, in the format or formats you
+choose, with or without their solutions (see <a href="#exportar-ficheros">The export dialog</a>).</li>
+</ul>
+<p>The formats:</p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border-collapse: collapse">
+<tr><th align="left">Format</th><th align="left">What it saves</th><th align="left">Suggested name</th></tr>
+<tr><td><b>PDF</b></td><td>The exams as they are printed.</td>
+<td><tt>2026-Junio-Nacional-Original.pdf</tt></td></tr>
+<tr><td><b>Word (.docx)</b></td>
+<td>A Word document, which can be opened and edited in Word or LibreOffice (see <a href="#word">Word</a>).</td>
+<td><tt>2026-Junio-Nacional-Original.docx</tt></td></tr>
+<tr><td><b>HTML</b></td>
+<td>A web page, which can also be opened and edited in Word or LibreOffice.</td>
+<td><tt>2026-Junio-Nacional-Original.html</tt></td></tr>
+<tr><td><b>LaTeX</b></td><td>A file to be compiled with <tt>pdflatex</tt> (see <a href="#latex">LaTeX</a>).</td>
+<td><tt>2026-Junio-Nacional-Original.tex</tt></td></tr>
+</table>
+<p>In all of them, the solutions (<tt>2026-Junio-Nacional-Original-soluciones.pdf</tt>…) start with the solutions
+sheet: the structure of the exam session (which questions from each topic each exam has) and, for each exam, its
+<b>answer key</b> (“1 C”, “2 A”…, in rows of 10), how many times each letter is correct and the code, answer and
+reference of each question. Then come the exams with the correct answer in green and, below each question, its
+<b>explanation</b> (why it is the correct one) and its <b>reference</b> to the text, if the bank has them.</p>
+
+<h3><a name="exportar-ficheros"></a>The export dialog</h3>
+<p>In it you choose, all at once, everything that is saved:</p>
+<ul>
+<li><b>Formats</b>: PDF, Word, HTML and LaTeX, one or several; for each exam, a file is saved in each ticked
+format.</li>
+<li><b>Exams</b> (as the students see them) and <b>Solutions</b>, either of them or both, each in its own folder: for
+example, <tt>February/Exams</tt> and <tt>February/Solutions</tt>. <b>Choose…</b> lets you pick another one; if it
+does not exist, it is created. They can be the same one: the names of the solutions end in “-soluciones”, so they do
+not overwrite those of the exams, and each exam sits next to its solutions. Both folders are remembered from one time
+to the next in each bank (each subject has its own), and so are the formats and the ticked boxes.</li>
+<li>The table has one row per exam: the ticked ones are exported, each to its own file. Click a name to change it; it
+has no extension, because each file gets the one of its format (and the solutions files also end in
+“-soluciones”).</li>
 <li>If there is more than one exam, the last row, “All the exams in one file”, also saves them all together in a
 single file, each starting on a new page (<tt>2026-Junio.pdf</tt>).</li>
-<li>When exporting to HTML, LaTeX or Word, the <b>With solutions</b> box decides whether the solutions are included. It is
-suggested ticked if “Show solutions” is ticked. When it is ticked, the suggested names that have not been changed
-end in “-soluciones” (<tt>2026-Junio-Nacional-Original-soluciones.html</tt>), like those of <b>Solutions
-PDF…</b>.</li>
 </ul>
-<p>The suggested names have their words separated by hyphens, with no spaces or accents, and the name of the solutions
-is that of the exam ending in “-soluciones”: so the exams and their solutions can be saved in the same folder without
-one file overwriting the other, and each exam sits next to its solutions.</p>
+<p>Below the table, the dialog says how many files will be saved. The suggested names have their words separated by
+hyphens, with no spaces or accents.</p>
 <p>If any of the files already exists, you are asked for permission to overwrite it. When the export is finished, the
-status bar says where the files have been saved and, on the right, the <b>Open the folder</b> button opens it (it
-stays there until other exams are generated).</p>
-<p>HTML and LaTeX exports save the images of the questions in a folder next to the file,
+status bar says how many files have been saved and where and, on the right, the <b>Open the folder</b> button opens it
+(if the exams and the solutions go in two folders, the one that contains both; it stays there until other exams are
+generated).</p>
+<p>HTML and LaTeX files save the images of the questions in a folder next to the file,
 <tt>&lt;name&gt;-imagenes</tt>. If you move the file, you must take that folder with it. Word documents contain
 them.</p>
 
 <h3><a name="latex"></a>LaTeX</h3>
-<p><b>Export LaTeX…</b> saves <tt>.tex</tt> files to be compiled with <tt>pdflatex</tt>. With the
-“With solutions” box of the dialog ticked, they also include the solutions sheet and the exams with the solution
-marked, the explanation and the reference. They must be compiled twice for the “page / total” in the footer to come out right:</p>
+<p>LaTeX exports are <tt>.tex</tt> files to be compiled with <tt>pdflatex</tt>. The solutions ones also include the
+solutions sheet and the exams with the solution marked, the explanation and the reference. They must be compiled twice for the “page / total” in the footer to come out right:</p>
 <pre>pdflatex examen.tex
 pdflatex examen.tex</pre>
 
 <h3><a name="word"></a>Word</h3>
-<p><b>Export Word…</b> saves <tt>.docx</tt> documents with the same layout as the PDF (the compact one, if it has been
+<p>Word exports are <tt>.docx</tt> documents with the same layout as the PDF (the compact one, if it has been
 used, or the large print one): the header, the instructions box, the questions with their images and the code in the
 questions in its grey box. Each exam starts on a new page, in its own section, with its footer “…: page / total”, and
 questions are not split across two pages. Since each program lays out text in its own way, an exam may take up a
