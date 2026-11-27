@@ -180,6 +180,13 @@ Cada uno con lo que pasaba, cómo se encontró y si está arreglado (con su prue
    ² y ³ sí salían. Uno de los bancos los usa. Encontrado al buscar en lo exportado los textos de todas las preguntas
    de los bancos. Arreglado: el preámbulo los declara. Pruebas: `latexConoceLosSuperindicesYSubindices` (maqueta) y
    `nadaSePierdeAlExportar` con `SONDAS_PDFLATEX=1`.
+10. **En Windows, la marca de la correcta (✔) salía enorme en el PDF de soluciones** (arreglado). Arial no la tiene, y
+    Qt la tomaba de la letra de los emojis de Windows (Segoe UI Emoji), que en el PDF sale como una gran mancha verde
+    que tapa media página. Pasaba desde que hay soluciones en PDF, y también al imprimirlas. Encontrado por
+    `nadaSePierdeAlExportar` en el flujo de GitHub, la primera vez que se pasaba en Windows: el lector de PDF no
+    encontraba las opciones que había debajo (con `SONDAS_GUARDAR`, el flujo dejó el PDF para verlo). Arreglado: la
+    marca va con una letra de símbolos que la tiene en negro (Segoe UI Symbol, DejaVu Sans o Zapf Dingbats). Prueba:
+    `laMarcaDeLaCorrectaNoEsUnEmoji` (maqueta), que mira que el PDF no lleve ninguna letra de emojis.
 
 ### Vistos y no arreglados
 

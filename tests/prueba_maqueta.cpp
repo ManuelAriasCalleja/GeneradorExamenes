@@ -281,6 +281,20 @@ private slots:
         QVERIFY(html.contains(m.preguntas.first().pregunta.codigoCompleto()));
     }
 
+    // La marca de la correcta no se toma de una letra de emojis: en Windows salía de la Segoe UI Emoji y en el PDF era
+    // enorme, tapando media página. Los nombres de las letras van sin comprimir en el PDF.
+    void laMarcaDeLaCorrectaNoEsUnEmoji()
+    {
+        QTemporaryDir dir;
+        const QString ruta = dir.filePath(QStringLiteral("soluciones.pdf"));
+        for (int nivel : {0, Maquetador::kLetraGrande}) {
+            QVERIFY(Exportacion::pdf(ruta, examenes(bancoInventado(), 3, 1), convocatoria(), true, nivel));
+            const QByteArray pdf = leer(ruta);
+            QVERIFY(pdf.startsWith("%PDF"));
+            QVERIFY2(!pdf.contains("Emoji"), qPrintable(QStringLiteral("nivel %1").arg(nivel)));
+        }
+    }
+
     void solucionesConExplicacionYReferencia()
     {
         // Debajo de cada pregunta, su explicación y su referencia, si las tiene; solo con soluciones.

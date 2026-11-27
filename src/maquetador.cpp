@@ -295,11 +295,17 @@ QString imagenHtml(const Pregunta &p, int n = 0)
         .arg(p.id).arg(ancho);
 }
 
+// La marca de la respuesta correcta (✔), con una letra de símbolos que la tiene en negro: la de Windows, la de Linux y
+// la de macOS. Sin decir cuál, en Windows Qt la toma de la de los emojis (Segoe UI Emoji), y en el PDF sale enorme, tapando
+// media página.
+const char *const kMarcaCorrecta = "<span style=\"font-family:'Segoe UI Symbol','DejaVu Sans','Zapf Dingbats'\">&#10004;</span>";
+
 QString textoOpcion(const QString &letra, const QString &texto, bool marcada)
 {
     QString t = Maquetador::textoHtml(texto);
     if (marcada)
-        return QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2) %3 &#10004;</span>").arg(QLatin1String(Maquetador::kColorCorrecta), letra, t);
+        return QStringLiteral("<span style=\"color:%1; font-weight:bold\">%2) %3 %4</span>")
+            .arg(QLatin1String(Maquetador::kColorCorrecta), letra, t, QLatin1String(kMarcaCorrecta));
     return QStringLiteral("%1) %2").arg(letra, t);
 }
 

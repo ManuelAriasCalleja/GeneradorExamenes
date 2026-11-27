@@ -2976,7 +2976,13 @@ private slots:
         QVERIFY(campo);
         QTest::qWait(50);
         auto sinDesplazar = [campo]() { return campo->verticalScrollBar()->maximum() == 0; };
-        auto lineas = [campo]() { return campo->viewport()->height() / QFontMetricsF(campo->font()).lineSpacing(); };
+        // En líneas del alto con que las pone el campo (el de las del primer párrafo): el de la letra redondeado hacia
+        // arriba, que en macOS es casi un píxel más.
+        auto lineas = [campo]() {
+            const qreal alto = campo->document()->documentLayout()->blockBoundingRect(campo->document()->begin()).height()
+                               / qMax(1, campo->document()->begin().layout()->lineCount());
+            return campo->viewport()->height() / alto;
+        };
         QVERIFY2(sinDesplazar(), "las de entrada caben");
         QVERIFY2(lineas() >= 3 && lineas() < 4, qPrintable(QString::number(lineas())));
         const int deTres = campo->height();
