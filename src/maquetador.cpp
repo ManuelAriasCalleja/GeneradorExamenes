@@ -853,6 +853,9 @@ void evitarCortes(QTextDocument *doc)
             QTextBlockFormat f;
             f.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
             c.mergeBlockFormat(f);
+            // Qt rehace la maqueta solo desde el bloque cambiado, y lo que sigue (con tablas) puede quedar mal colocado:
+            // enunciados que no se pintan y menos páginas de las que hay. Se rehace entera.
+            doc->setPageSize(doc->pageSize());
         }
     }
 }

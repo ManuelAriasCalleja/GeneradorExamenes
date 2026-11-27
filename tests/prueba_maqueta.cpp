@@ -1,6 +1,7 @@
 // Maqueta de los exámenes: que quepan en su folio (compactando si hace falta) y los ficheros exportados.
 
 #include "datos_prueba.h"
+#include "examenesanteriores.h"
 #include "exportacion.h"
 #include "latex.h"
 #include "generador.h"
@@ -543,6 +544,61 @@ private slots:
         QCOMPARE(Maquetador::textoCorrectasPorLetra(m), QStringLiteral("A %1 · B %2 · C %3 · D %4").arg(c[0]).arg(c[1]).arg(c[2]).arg(c[3]));
         QCOMPARE(Maquetador::formatoPuntos(0.3), QStringLiteral("0,30"));
         QCOMPARE(Maquetador::formatoPuntos(1), QStringLiteral("1,00"));
+    }
+
+    // Si una pregunta no cabe al final de una página, pasa entera a la siguiente. Las que vienen detrás tienen que salir
+    // con su número y su enunciado (salían solo las opciones y el código, y el PDF contaba menos páginas de las que eran).
+    void ningunEnunciadoSePierdeTrasUnSaltoDePagina()
+    {
+        if (!ExamenesAnteriores::puedeLeerPdf())
+            QSKIP("Compilado sin Qt PDF");
+        QTemporaryDir dir;
+        for (int variante = 0; variante < 4; ++variante) {
+            Modelo m;
+            m.nombre = QStringLiteral("Examen 1");
+            for (int i = 0; i < 20; ++i) {
+                PreguntaExamen pe;
+                Pregunta &p = pe.pregunta;
+                p.id = i + 1;
+                p.temaNumero = 1 + i / 5;
+                p.numero = i + 1;
+                p.enunciado = QStringLiteral("Enunciado inventado número %1").arg(i + 1);
+                switch ((i + variante) % 3) {
+                case 0:
+                    p.enunciado += QStringLiteral(", con una frase más larga para que ocupe dos líneas enteras de la página, "
+                                                  "que es lo que pasa con muchos enunciados.");
+                    break;
+                case 1:
+                    p.enunciado += QStringLiteral(":\n```xml\n");
+                    for (int l = 0; l < 3 + (i + variante) % 5; ++l)
+                        p.enunciado += QStringLiteral("<dato orden=\"%1\">valor inventado</dato>\n").arg(l);
+                    p.enunciado += QStringLiteral("```\n¿Qué hace este fragmento?");
+                    break;
+                default:
+                    p.enunciado += QStringLiteral(":\n```java\nint x = 1;\n```");
+                }
+                for (int o = 0; o < 4; ++o)
+                    p.opciones << ((i + o) % 2 ? QStringLiteral("Opción inventada %1.").arg(o)
+                                               : QStringLiteral("Opción inventada %1, bastante más larga, que ocupa casi una línea.").arg(o));
+                p.explicacion = QStringLiteral("Explicación inventada de la pregunta, de una línea o dos en la hoja de soluciones.");
+                p.referencia = QStringLiteral("Apartado %1 del libro.").arg(i + 1);
+                m.preguntas << pe;
+            }
+            for (bool soluciones : {false, true}) {
+                const QString ruta = dir.filePath(QStringLiteral("examen.pdf"));
+                QVERIFY(Exportacion::pdf(ruta, {m}, convocatoria(), soluciones, 0));
+                const QString texto = ExamenesAnteriores::textoDePdf(ruta).simplified();
+                // Con soluciones, entre el número y el enunciado va el código de la pregunta («[T1-1]»).
+                for (int i = 1; i <= 20; ++i)
+                    QVERIFY2(texto.contains(QRegularExpression(QStringLiteral("(^| )%1\\.- (\\[[^]]*\\] )?Enunciado inventado número %1(?![0-9])").arg(i))),
+                             qPrintable(QStringLiteral("variante %1%2: falta la pregunta %3")
+                                            .arg(variante).arg(soluciones ? QStringLiteral(", con soluciones") : QString()).arg(i)));
+                // El pie cuenta las páginas que salen.
+                const int paginas = Maquetador::paginas(m, convocatoria(), soluciones, 0);
+                QVERIFY(texto.contains(QStringLiteral(": %1 / %1").arg(paginas)));
+                QVERIFY(!texto.contains(QStringLiteral(": %1 / %2").arg(paginas + 1).arg(paginas)));
+            }
+        }
     }
 
     void exportarPdf()
